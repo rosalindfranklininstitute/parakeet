@@ -1,12 +1,16 @@
 # elfantasma
 > Phantom generator 
 
+## Dependencies
+
+The packages depends on the python-multem package being installed. To do this,
+follow the instructions [here](https://github.com/rosalindfranklininstitute/python-multem).
+
 ## Installation
 
 To install from source, clone this repository and then do the following:
 
 ```sh
-pip install -r requirements.txt
 python setup.py install
 ```
 
