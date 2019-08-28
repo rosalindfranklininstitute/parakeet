@@ -17,11 +17,16 @@ def main():
     setup(
         package_dir={"": "src"},
         packages=find_packages(where="src"),
-        install_requires=["numpy", "python-multem"],
+        install_requires=["numpy", "python-multem", "gemmi"],
         setup_requires=["pytest-runner"],
         tests_require=tests_require,
         test_suite="tests",
-        entry_points={"console_scripts": ["elfantasma=elfantasma.command_line:main"]},
+        entry_points={
+            "console_scripts": [
+                "elfantasma=elfantasma.command_line:main",
+                "elfantasma-read-pdb=elfantasma.command_line:read_pdb",
+            ]
+        },
         extras_require={
             "build_sphinx": ["sphinx", "sphinx_rtd_theme"],
             "test": tests_require,

@@ -1,3 +1,13 @@
+#
+# elfantasma.simulate.py
+#
+# Copyright (C) 2019 Diamond Light Source
+#
+# Author: James Parkhurst
+#
+# This code is distributed under the GPLv3 license, a copy of
+# which is included in the root directory of this package.
+#
 import numpy
 import multem
 import pickle
