@@ -4,7 +4,6 @@
 # This code is distributed under the BSD license.
 #
 from setuptools import setup
-from setuptools import Command
 from setuptools import find_packages
 
 
@@ -22,9 +21,7 @@ def main():
         setup_requires=["pytest-runner"],
         tests_require=tests_require,
         test_suite="tests",
-        entry_points = {
-          'console_scripts': ['elfantasma=elfantasma.command_line:main'],
-        },
+        entry_points={"console_scripts": ["elfantasma=elfantasma.command_line:main"]},
         extras_require={
             "build_sphinx": ["sphinx", "sphinx_rtd_theme"],
             "test": tests_require,
