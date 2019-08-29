@@ -45,18 +45,18 @@ def main():
         help="Choose the device to use",
     )
     parser.add_argument(
-        "-p,--phantom",
-        choices=["4v5d"],
-        default="4v5d",
-        dest="phantom",
-        help="Choose the phantom to generate",
-    )
-    parser.add_argument(
         "-o,--output",
         type=str,
         default="output.pickle",
         dest="output",
         help="The filename for the simulation results",
+    )
+    parser.add_argument(
+        "-p,--phantom",
+        choices=["4v5d"],
+        default="4v5d",
+        dest="phantom",
+        help="Choose the phantom to generate",
     )
 
     # Parse the arguments

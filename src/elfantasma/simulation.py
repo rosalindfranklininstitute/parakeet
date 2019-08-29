@@ -30,16 +30,27 @@ class Simulation(object):
         """
         self.system_conf = system_conf
         self.input_multislice = input_multislice
+        self.output_multislice = []
+        self.angles = numpy.arange(0, 360, 10)
 
     def run(self):
         """
         Run the simulation
 
         """
+        self.output_multislice = []
         print("Running simulation...")
-        self.output_multislice = multem.simulate(
-            self.system_conf, self.input_multislice
-        )
+        for angle in self.angles:
+
+            # Set the rotation angle
+            print(f"  angle = {angle}")
+            self.input_multislice.spec_rot_theta = angle
+            self.input_multislice.spec_rot_u0 = [1, 0, 0]
+
+            # Run the simulation
+            self.output_multislice.append(
+                multem.simulate(self.system_conf, self.input_multislice)
+            )
 
     def asdict(self):
         """
@@ -49,7 +60,10 @@ class Simulation(object):
         """
         return {
             "input": self.input_multislice.asdict(),
-            "output": self.output_multislice.asdict(),
+            "output": [
+                {"angle": angle, "output": output.asdict()}
+                for angle, output in zip(self.angles, self.output_multislice)
+            ],
         }
 
 
@@ -121,23 +135,22 @@ def create_simulation(sample, device="gpu"):
     input_multislice.pn_seed = 300183
 
     # Set the atoms of the sample
-    input_multislice.spec_atoms = list(sample)
-    input_multislice.spec_lx = 500
-    input_multislice.spec_ly = 500
-    input_multislice.spec_lz = 500
-    input_multislice.spec_dz = 1
-    c = 3
+    input_multislice.spec_atoms = sample.atom_data
+    input_multislice.spec_lx = sample.length_x
+    input_multislice.spec_ly = sample.length_y
+    input_multislice.spec_lz = sample.length_z
+    input_multislice.spec_dz = 0.25
 
     # Set the amorphous layers
-    input_multislice.spec_amorp = [(0, 0, 2.0)]
+    # input_multislice.spec_amorp = [(0, 0, 2.0)]
 
     # Specimen thickness
     input_multislice.thick_type = "Whole_Spec"
-    input_multislice.thick = numpy.arange(c, 1000, c)
+    # input_multislice.thick = numpy.arange(1, 1000, 1)
 
     # x-y sampling
-    input_multislice.nx = 1024
-    input_multislice.ny = 1024
+    input_multislice.nx = 2048
+    input_multislice.ny = 2048
     input_multislice.bwl = False
 
     # Microscope parameters

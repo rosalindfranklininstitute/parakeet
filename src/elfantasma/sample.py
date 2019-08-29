@@ -9,16 +9,16 @@
 # which is included in the root directory of this package.
 #
 import gemmi
-import elfantasma.data
 import numpy
+import elfantasma.data
 
 
 class Sample(object):
-    def __init__(self):
-        self.atom_data = []
-        self.length_x = 0
-        self.length_y = 0
-        self.length_z = 0
+    def __init__(self, atom_data, length_x, length_y, length_z):
+        self.atom_data = atom_data
+        self.length_x = length_x
+        self.length_y = length_y
+        self.length_z = length_z
 
 
 def create_4v5d_sample():
@@ -60,15 +60,23 @@ def create_4v5d_sample():
     y = numpy.array(y, dtype=numpy.float64)
     z = numpy.array(z, dtype=numpy.float64)
 
-    # Get the minimum position
+    # Get the min and max atom positions
     min_x = min(x)
     min_y = min(y)
     min_z = min(z)
+    max_x = max(x)
+    max_y = max(y)
+    max_z = max(z)
 
-    # Translate the structure so that all coordinates are positive
-    x -= min_x
-    y -= min_y
-    z -= min_z
+    # Set the total size of the sample
+    length_x = 1.0 * (max_x - min_x)
+    length_y = 1.0 * (max_y - min_y)
+    length_z = 1.0 * (max_z - min_z)
+
+    # Translate the structure so that it is centred in the sample
+    x += (length_x - (max_x + min_x)) / 2.0
+    y += (length_y - (max_y + min_y)) / 2.0
+    z += (length_z - (max_z + min_z)) / 2.0
 
     # Create sigma and region
     sigma = [0.085 for z in element]  # From multem HRTEM example
@@ -77,15 +85,23 @@ def create_4v5d_sample():
     # Print some sample information
     print("Sample information:")
     print("  # atoms: %d" % len(element))
-    print("  Min x:   %f" % min(x))
-    print("  Min y:   %f" % min(y))
-    print("  Min z:   %f" % min(z))
-    print("  Max x:   %f" % max(x))
-    print("  Max y:   %f" % max(y))
-    print("  Max z:   %f" % max(z))
+    print("  Min x:   %.2f" % min(x))
+    print("  Min y:   %.2f" % min(y))
+    print("  Min z:   %.2f" % min(z))
+    print("  Max x:   %.2f" % max(x))
+    print("  Max y:   %.2f" % max(y))
+    print("  Max z:   %.2f" % max(z))
+    print("  Len x:   %.2f" % length_x)
+    print("  Len y:   %.2f" % length_y)
+    print("  Len z:   %.2f" % length_z)
 
     # Return the atom data
-    return zip(element, x, y, z, sigma, occ, region, charge)
+    return Sample(
+        list(zip(element, x, y, z, sigma, occ, region, charge)),
+        length_x,
+        length_y,
+        length_z,
+    )
 
 
 def create_sample(name):
