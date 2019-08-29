@@ -31,6 +31,7 @@ def main():
             "build_sphinx": ["sphinx", "sphinx_rtd_theme"],
             "test": tests_require,
         },
+        include_package_data=True,
     )
 
 
