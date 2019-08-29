@@ -1,6 +1,8 @@
 # elfantasma
 > Phantom generator 
 
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+
 ## Dependencies
 
 The packages depends on the python-multem package being installed. To do this,
