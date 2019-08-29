@@ -1,5 +1,5 @@
 #
-# elfantasma.simulate.py
+# elfantasma.simulation.py
 #
 # Copyright (C) 2019 Diamond Light Source
 #
@@ -36,6 +36,7 @@ class Simulation(object):
         Run the simulation
 
         """
+        print("Running simulation...")
         self.output_multislice = multem.simulate(
             self.system_conf, self.input_multislice
         )
@@ -121,17 +122,17 @@ def create_simulation(sample, device="gpu"):
 
     # Set the atoms of the sample
     input_multislice.spec_atoms = list(sample)
-    input_multislice.spec_lx = 100
-    input_multislice.spec_ly = 100
-    input_multislice.spec_lz = 100
+    input_multislice.spec_lx = 500
+    input_multislice.spec_ly = 500
+    input_multislice.spec_lz = 500
     input_multislice.spec_dz = 1
-    c = 3.1
+    c = 3
 
     # Set the amorphous layers
     input_multislice.spec_amorp = [(0, 0, 2.0)]
 
     # Specimen thickness
-    input_multislice.thick_type = "Through_Thick"
+    input_multislice.thick_type = "Whole_Spec"
     input_multislice.thick = numpy.arange(c, 1000, c)
 
     # x-y sampling

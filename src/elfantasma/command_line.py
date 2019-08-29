@@ -36,7 +36,7 @@ def main():
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Generate EM phantoms")
 
-    # Add an argument for the phantom type
+    # Add some command line arguments
     parser.add_argument(
         "-d,--device",
         choices=["cpu", "gpu"],
@@ -75,7 +75,7 @@ def main():
     simulation.run()
 
     # Save the output to file
-    print("Saving output to %s" % args.output)
+    print("Saving simulation results to %s" % args.output)
     with open(args.output, "wb") as outfile:
         pickle.dump(simulation.asdict(), outfile, protocol=2)
 

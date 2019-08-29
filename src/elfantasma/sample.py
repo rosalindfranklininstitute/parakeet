@@ -13,6 +13,14 @@ import elfantasma.data
 import numpy
 
 
+class Sample(object):
+    def __init__(self):
+        self.atom_data = []
+        self.length_x = 0
+        self.length_y = 0
+        self.length_z = 0
+
+
 def create_4v5d_sample():
     """
     Create a sample with a Ribosome in Ice
@@ -21,6 +29,7 @@ def create_4v5d_sample():
         object: The atom data
 
     """
+    print("Creating sample 4v5d")
 
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
@@ -64,6 +73,16 @@ def create_4v5d_sample():
     # Create sigma and region
     sigma = [0.085 for z in element]  # From multem HRTEM example
     region = [0 for z in element]
+
+    # Print some sample information
+    print("Sample information:")
+    print("  # atoms: %d" % len(element))
+    print("  Min x:   %f" % min(x))
+    print("  Min y:   %f" % min(y))
+    print("  Min z:   %f" % min(z))
+    print("  Max x:   %f" % max(x))
+    print("  Max y:   %f" % max(y))
+    print("  Max z:   %f" % max(z))
 
     # Return the atom data
     return zip(element, x, y, z, sigma, occ, region, charge)
