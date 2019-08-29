@@ -14,7 +14,22 @@ import elfantasma.data
 
 
 class Sample(object):
+    """
+    A class to wrap the sample information
+
+    """
+
     def __init__(self, atom_data, length_x, length_y, length_z):
+        """
+        Initialise the sample
+
+        Args:
+            atom_data (list): A list of tuples containing atom data
+            length_x (float): The x size of the sample in A
+            length_y (float): The y size of the sample in A
+            length_z (float): The z size of the sample in A
+
+        """
         self.atom_data = atom_data
         self.length_x = length_x
         self.length_y = length_y
@@ -79,8 +94,8 @@ def create_4v5d_sample():
     z += (length_z - (max_z + min_z)) / 2.0
 
     # Create sigma and region
-    sigma = [0.085 for z in element]  # From multem HRTEM example
-    region = [0 for z in element]
+    sigma = [0.085 for number in element]  # From multem HRTEM example
+    region = [0 for number in element]
 
     # Print some sample information
     print("Sample information:")
