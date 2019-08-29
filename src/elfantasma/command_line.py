@@ -9,8 +9,23 @@
 # which is included in the root directory of this package.
 #
 import argparse
+import pickle
 import gemmi
-from elfantasma.simulate import simulate
+import elfantasma.sample
+import elfantasma.simulation
+
+
+def show_input(args):
+    """
+    Print the command line arguments
+
+    Args:
+        args (object): The arguments object
+
+    """
+    print("Command line arguments:")
+    for key, value in vars(args).items():
+        print(f"  {key} = {value}")
 
 
 def main():
@@ -18,7 +33,51 @@ def main():
     The main interface to elfantasma
 
     """
-    simulate()
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Generate EM phantoms")
+
+    # Add an argument for the phantom type
+    parser.add_argument(
+        "-d,--device",
+        choices=["cpu", "gpu"],
+        default="gpu",
+        dest="device",
+        help="Choose the device to use",
+    )
+    parser.add_argument(
+        "-p,--phantom",
+        choices=["4v5d"],
+        default="4v5d",
+        dest="phantom",
+        help="Choose the phantom to generate",
+    )
+    parser.add_argument(
+        "-o,--output",
+        type=str,
+        default="output.pickle",
+        dest="output",
+        help="The filename for the simulation results",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Print some options
+    show_input(args)
+
+    # Create the sample
+    sample = elfantasma.sample.create_sample(args.phantom)
+
+    # Create the simulation
+    simulation = elfantasma.simulation.create_simulation(sample, args.device)
+
+    # Run the simulation
+    simulation.run()
+
+    # Save the output to file
+    print("Saving output to %s" % args.output)
+    with open(args.output, "wb") as outfile:
+        pickle.dump(simulation.asdict(), outfile, protocol=2)
 
 
 def read_pdb():

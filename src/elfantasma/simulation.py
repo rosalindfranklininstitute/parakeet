@@ -8,18 +8,98 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import warnings
 import numpy
 import multem
-import pickle
-from cu001_crystal import cu001_crystal
 
 
-def simulate():
-    input_multislice = multem.Input()
+class Simulation(object):
+    """
+    An object to wrap the simulation
+
+    """
+
+    def __init__(self, system_conf, input_multislice):
+        """
+        Initialise the simulation
+
+        Args:
+            system_conf (object): The system configuration object
+            input_multislice (object): The input object
+
+        """
+        self.system_conf = system_conf
+        self.input_multislice = input_multislice
+
+    def run(self):
+        """
+        Run the simulation
+
+        """
+        self.output_multislice = multem.simulate(
+            self.system_conf, self.input_multislice
+        )
+
+    def asdict(self):
+        """
+        Returns:
+            dict: The results as a dictionary
+
+        """
+        return {
+            "input": self.input_multislice.asdict(),
+            "output": self.output_multislice.asdict(),
+        }
+
+
+def create_system_configuration(device):
+    """
+    Create an appropriate system configuration
+
+    Args:
+        device (str): The device to use
+
+    Returns:
+        object: The system configuration
+
+    """
+    assert device in ["cpu", "gpu"]
+
+    # Initialise the system configuration
     system_conf = multem.SystemConfiguration()
 
+    # Set the precision
     system_conf.precision = "float"
-    system_conf.device = "device"
+
+    # Set the device
+    if device == "gpu":
+        if multem.is_gpu_available():
+            system_conf.device = "device"
+        else:
+            system_conf.device = "host"
+            warnings.warn("GPU not present, reverting to CPU")
+    else:
+        system_conf.device = "host"
+
+    # Return the system configuration
+    return system_conf
+
+
+def create_simulation(sample, device="gpu"):
+    """
+    Create the simulation
+
+    Args:
+        sample (object): The sample object
+        device (str): The device to use
+
+    """
+
+    # Create the system configuration
+    system_conf = create_system_configuration(device)
+
+    # Initialise the input and system configuration
+    input_multislice = multem.Input()
 
     # Set simulation experiment
     input_multislice.simulation_type = "HRTEM"
@@ -39,27 +119,13 @@ def simulate():
     input_multislice.pn_dim = 110
     input_multislice.pn_seed = 300183
 
-    input_multislice.iw_psi = [0]
-    input_multislice.iw_x = [0]
-    input_multislice.iw_y = [0]
-
-    # Specimen information
-    na = 16
-    nb = 16
-    nc = 20
-    ncu = 2
-    rms3d = 0.085
-
-    (
-        input_multislice.spec_atoms,
-        input_multislice.spec_lx,
-        input_multislice.spec_ly,
-        input_multislice.spec_lz,
-        a,
-        b,
-        c,
-        input_multislice.spec_dz,
-    ) = cu001_crystal(na, nb, nc, ncu, rms3d)
+    # Set the atoms of the sample
+    input_multislice.spec_atoms = list(sample)
+    input_multislice.spec_lx = 100
+    input_multislice.spec_ly = 100
+    input_multislice.spec_lz = 100
+    input_multislice.spec_dz = 1
+    c = 3.1
 
     # Set the amorphous layers
     input_multislice.spec_amorp = [(0, 0, 2.0)]
@@ -85,6 +151,8 @@ def simulate():
     # Condenser lens
     # source spread function
     ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
+    # input_multislice.obj_lens_ssf_sigma = ssf_sigma
+    # input_multislice.obj_lens_ssf_npoints = 4
 
     # Objective lens
     input_multislice.obj_lens_m = 0
@@ -107,13 +175,5 @@ def simulate():
     input_multislice.obj_lens_zero_defocus_type = "First"
     input_multislice.obj_lens_zero_defocus_plane = 0
 
-    # Do the simulation
-    output_multislice = multem.simulate(system_conf, input_multislice)
-
-    data = {"input": input_multislice.asdict(), "output": output_multislice.asdict()}
-
-    pickle.dump(data, open("simulated_HRTEM.p", "wb"), protocol=2)
-
-
-if __name__ == "__main__":
-    main()
+    # Return the simulation object
+    return Simulation(system_conf, input_multislice)
