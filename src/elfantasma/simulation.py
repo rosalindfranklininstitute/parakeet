@@ -67,6 +67,7 @@ class Simulation(object):
             ],
         }
 
+    @property
     def data(self):
         """
         Returns:
