@@ -124,7 +124,7 @@ def create_simulation(sample, device="gpu"):
     input_multislice.potential_type = "Lobato_0_12"
 
     # Potential slicing
-    input_multislice.potential_slicing = "Planes"
+    input_multislice.potential_slicing = "dz_Proj"
 
     # Electron-Phonon interaction model
     input_multislice.pn_model = "Frozen_Phonon"
@@ -139,7 +139,7 @@ def create_simulation(sample, device="gpu"):
     input_multislice.spec_lx = sample.length_x
     input_multislice.spec_ly = sample.length_y
     input_multislice.spec_lz = sample.length_z
-    input_multislice.spec_dz = 0.25
+    input_multislice.spec_dz = 3.0
 
     # Set the amorphous layers
     # input_multislice.spec_amorp = [(0, 0, 2.0)]
