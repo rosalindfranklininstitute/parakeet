@@ -84,9 +84,9 @@ def create_4v5d_sample():
     max_z = max(z)
 
     # Set the total size of the sample
-    length_x = 1.0 * (max_x - min_x)
-    length_y = 1.0 * (max_y - min_y)
-    length_z = 1.0 * (max_z - min_z)
+    length_x = 2.0 * (max_x - min_x)
+    length_y = 2.0 * (max_y - min_y)
+    length_z = 2.0 * (max_z - min_z)
 
     # Translate the structure so that it is centred in the sample
     x += (length_x - (max_x + min_x)) / 2.0
@@ -99,16 +99,16 @@ def create_4v5d_sample():
 
     # Print some sample information
     print("Sample information:")
-    print("  # atoms: %d" % len(element))
-    print("  Min x:   %.2f" % min(x))
-    print("  Min y:   %.2f" % min(y))
-    print("  Min z:   %.2f" % min(z))
-    print("  Max x:   %.2f" % max(x))
-    print("  Max y:   %.2f" % max(y))
-    print("  Max z:   %.2f" % max(z))
-    print("  Len x:   %.2f" % length_x)
-    print("  Len y:   %.2f" % length_y)
-    print("  Len z:   %.2f" % length_z)
+    print("    # atoms: %d" % len(element))
+    print("    Min x:   %.2f" % min(x))
+    print("    Min y:   %.2f" % min(y))
+    print("    Min z:   %.2f" % min(z))
+    print("    Max x:   %.2f" % max(x))
+    print("    Max y:   %.2f" % max(y))
+    print("    Max z:   %.2f" % max(z))
+    print("    Len x:   %.2f" % length_x)
+    print("    Len y:   %.2f" % length_y)
+    print("    Len z:   %.2f" % length_z)
 
     # Return the atom data
     return Sample(

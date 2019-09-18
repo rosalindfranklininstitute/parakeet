@@ -31,7 +31,8 @@ class Simulation(object):
         self.system_conf = system_conf
         self.input_multislice = input_multislice
         self.output_multislice = []
-        self.angles = numpy.arange(0, 360, 10)
+        # self.angles = numpy.arange(0, 360, 10)
+        self.angles = numpy.arange(0, 10, 4)  # 360, 10)
 
     def run(self):
         """
@@ -43,7 +44,7 @@ class Simulation(object):
         for angle in self.angles:
 
             # Set the rotation angle
-            print(f"  angle = {angle}")
+            print(f"    angle = {angle}")
             self.input_multislice.spec_rot_theta = angle
             self.input_multislice.spec_rot_u0 = [1, 0, 0]
 
@@ -65,6 +66,26 @@ class Simulation(object):
                 for angle, output in zip(self.angles, self.output_multislice)
             ],
         }
+
+    def data(self):
+        """
+        Returns:
+            array: The simultion data
+
+        """
+
+        # Get the expected dimensions
+        nx = self.input_multislice.nx
+        ny = self.input_multislice.nx
+        nz = len(self.output_multislice)
+
+        # Initialise the result array and fill with data
+        result = numpy.zeros(shape=(nz, ny, nx), dtype=numpy.float32)
+        for k, output in enumerate(self.output_multislice):
+            assert len(output.data) == 1
+            data = output.data[0].m2psi_tot
+            result[k, :, :] = data
+        return result
 
 
 def create_system_configuration(device):

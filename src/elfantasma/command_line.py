@@ -8,9 +8,11 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import os.path
 import argparse
 import pickle
 import gemmi
+import mrcfile
 import elfantasma.sample
 import elfantasma.simulation
 
@@ -25,7 +27,28 @@ def show_input(args):
     """
     print("Command line arguments:")
     for key, value in vars(args).items():
-        print(f"  {key} = {value}")
+        print(f"    {key} = {value}")
+
+
+def write_file(simulation, filename):
+    """
+    Write the simulated data to file
+
+    Args:
+        simulated (object): The simulation object
+        filename (str): The output filename
+
+    """
+    print(f"Saving simulation results to {filename}")
+    extension = os.path.splitext(filename)[1]
+    if extension in [".p", ".pkl", ".pickle"]:
+        with open(args.output, "wb") as outfile:
+            pickle.dump(simulation.asdict(), outfile, protocol=2)
+    elif extension == ".mrc":
+        with mrcfile.new(filename, overwrite=True) as mrc:
+            mrc.set_data(simulation.data())
+    else:
+        raise RuntimeError(f"File with unknown extension: {filename}")
 
 
 def main():
@@ -74,10 +97,8 @@ def main():
     # Run the simulation
     simulation.run()
 
-    # Save the output to file
-    print("Saving simulation results to %s" % args.output)
-    with open(args.output, "wb") as outfile:
-        pickle.dump(simulation.asdict(), outfile, protocol=2)
+    # Write the simulated data to file
+    write_file(simulation, args.output)
 
 
 def read_pdb():

@@ -17,7 +17,7 @@ def main():
     setup(
         package_dir={"": "src"},
         packages=find_packages(where="src"),
-        install_requires=["numpy", "scipy", "python-multem", "gemmi"],
+        install_requires=["numpy", "scipy", "python-multem", "gemmi", "mrcfile"],
         setup_requires=["pytest-runner"],
         tests_require=tests_require,
         test_suite="tests",
