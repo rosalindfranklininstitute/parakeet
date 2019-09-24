@@ -25,6 +25,7 @@ def main():
             "pillow",
             "python-multem",
             "scipy",
+            "pyyaml",
         ],
         setup_requires=["pytest-runner"],
         tests_require=tests_require,
