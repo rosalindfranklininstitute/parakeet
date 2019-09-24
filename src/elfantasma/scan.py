@@ -30,15 +30,15 @@ class Scan(object):
 
 
 def create_scan(
-    scan_type="still", axis=(1, 0, 0), start_angle=0, stop_angle=0, step_angle=0
+    mode="still", axis=(1, 0, 0), start_angle=0, stop_angle=0, step_angle=0
 ):
     """
     Create an scan
 
     """
-    if scan_type == "still":
+    if mode == "still":
         return Scan(axis=(1, 0, 0), angles=[0])
-    elif scan_type == "tilt_series":
+    elif mode == "tilt_series":
         return Scan(
             axis=axis, angles=numpy.arange(start_angle, stop_angle, step_angle)
         )
