@@ -39,6 +39,4 @@ def create_scan(
     if mode == "still":
         return Scan(axis=(1, 0, 0), angles=[0])
     elif mode == "tilt_series":
-        return Scan(
-            axis=axis, angles=numpy.arange(start_angle, stop_angle, step_angle)
-        )
+        return Scan(axis=axis, angles=numpy.arange(start_angle, stop_angle, step_angle))

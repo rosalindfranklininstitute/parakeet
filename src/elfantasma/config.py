@@ -11,18 +11,20 @@
 import copy
 import yaml
 
+
 def default_config():
     """
     Return:
         dict: the default configuration
 
     """
-    return yaml.safe_load("""
+    return yaml.safe_load(
+        """
 
         output: null
         device: null
         phantom: null
-        
+
         beam:
             E_0: 300
             electrons_per_pixel: 200
@@ -41,7 +43,8 @@ def default_config():
         simulation:
             slice_thickness: 3.0
 
-    """)
+    """
+    )
 
 
 def deepmerge(a, b):
@@ -71,6 +74,7 @@ def deepmerge(a, b):
         return self
 
     return deepmerge_internal(copy.deepcopy(a), b)
+
 
 def difference(master, config):
     """
@@ -106,4 +110,3 @@ def difference(master, config):
         return result
 
     return walk(master, config)
-

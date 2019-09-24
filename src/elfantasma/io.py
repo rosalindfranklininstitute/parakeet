@@ -133,7 +133,7 @@ class Writer(object):
     def as_images(self, template):
         """
         Write the simulated data as a sequence of png files
-        
+
         Args:
             template (str): The output template (e.g. "image_%03d.png")
 
@@ -148,7 +148,7 @@ class Writer(object):
         for i in range(self.data.shape[0]):
             image = self.data[i, :, :] * s1 + s0
             image = image.astype(numpy.uint8)
-            filename = template % (i+1)
+            filename = template % (i + 1)
             print(f"    writing image {i+1} to {filename}")
             PIL.Image.fromarray(image).save(filename)
 

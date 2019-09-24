@@ -8,11 +8,8 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import os.path
 import argparse
-import pickle
 import gemmi
-import numpy
 import yaml
 import elfantasma.io
 import elfantasma.config
@@ -136,7 +133,7 @@ def main():
     simulation = elfantasma.simulation.create_simulation(
         sample,
         scan,
-        device=config['device'],
+        device=config["device"],
         beam=config["beam"],
         detector=config["detector"],
         simulation=config["simulation"],
