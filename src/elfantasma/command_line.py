@@ -12,11 +12,10 @@ import os.path
 import argparse
 import pickle
 import gemmi
-import h5py
-import mrcfile
 import numpy
+import elfantasma.io
 import elfantasma.sample
-import elfantasma.simulation
+# import elfantasma.simulation
 
 
 def show_input(args):
@@ -43,79 +42,6 @@ def write_pickle(simulation, filename):
     """
     with open(filename, "wb") as outfile:
         pickle.dump(simulation.asdict(), outfile, protocol=2)
-
-
-def write_mrcfile(simulation, filename):
-    """
-    Write the simulated data to a mrc file
-
-    Args:
-        simulated (object): The simulation object
-        filename (str): The output filename
-
-    """
-    with mrcfile.new(filename, overwrite=True) as mrc:
-        mrc.set_data(simulation.data)
-
-
-def write_nexus(simulation, filename):
-    """
-    Write the simulated data to a nexus file
-
-    Args:
-        simulated (object): The simulation object
-        filename (str): The output filename
-
-    """
-    with h5py.File(filename, "w") as outfile:
-
-        # Create the entry
-        entry = outfile.create_group("entry")
-        entry.attrs["NX_class"] = "NXentry"
-        entry["definition"] = "NXtomo"
-
-        # Create the instrument
-        instrument = entry.create_group("instrument")
-        instrument.attrs["NX_class"] = "NXinstrument"
-
-        # Create the detector
-        detector = instrument.create_group("detector")
-        detector.attrs["NX_class"] = "NXdetector"
-        detector["data"] = simulation.data
-        detector["image_key"] = numpy.zeros(shape=(len(simulation.output_multislice),))
-
-        # Create the sample
-        sample = entry.create_group("sample")
-        sample.attrs["NX_class"] = "NXsample"
-        sample["name"] = "elfantasma-simulation"
-        sample["rotation_angle"] = simulation.angles
-
-        # Create the data
-        data = entry.create_group("data")
-        data["data"] = detector["data"]
-        data["rotation_angle"] = sample["rotation_angle"]
-        data["image_key"] = detector["image_key"]
-
-
-def write_file(simulation, filename):
-    """
-    Write the simulated data to file
-
-    Args:
-        simulated (object): The simulation object
-        filename (str): The output filename
-
-    """
-    print(f"Saving simulation results to {filename}")
-    extension = os.path.splitext(filename)[1]
-    if extension in [".p", ".pkl", ".pickle"]:
-        write_pickle(simulation, filename)
-    elif extension in [".mrc"]:
-        write_mrcfile(simulation, filename)
-    elif extension in [".h5", ".hdf5", ".nx", ".nxs", ".nexus", "nxtomo"]:
-        write_nexus(simulation, filename)
-    else:
-        raise RuntimeError(f"File with unknown extension: {filename}")
 
 
 def main():
@@ -167,6 +93,45 @@ def main():
     # Write the simulated data to file
     write_file(simulation, args.output)
 
+def convert():
+    """
+    Convert the input file type to a different file type
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Read a PDB file")
+
+    # Add an argument for the filename
+    parser.add_argument(
+        "filename",
+        type=str,
+        default=None,
+        help="The input filename",
+    )
+    
+    # Add an argument for the filename
+    parser.add_argument(
+        "-o,--output",
+        type=str,
+        default=None,
+        required=True,
+        dest="output",
+        help="The output filename",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Read the input
+    print(f"Reading data from {args.filename}")
+    reader = elfantasma.io.Reader.from_file(args.filename)
+
+    # Create the write
+    print(f"Writing data to {args.output}")
+    writer = elfantasma.io.Writer(shape=reader.data.shape)
+    writer.data[:,:,:] = reader.data[:,:,:]
+    writer.angle[:] = reader.angle[:]
+    writer.as_file(args.output)
 
 def read_pdb():
     """
@@ -221,5 +186,23 @@ def read_pdb():
                     )
 
 
+# if __name__ == "__main__":
+#     main()
+
+
+
+
 if __name__ == "__main__":
-    main()
+
+    writer = elfantasma.io.Writer(shape=(10, 100, 100))
+    for i in range(10):
+        image = numpy.random.random(100*100)
+        image.shape = (100,100)
+        writer.data[i,:,:] = image
+        writer.angle[i] = i
+    writer.as_file("hello.h5")
+
+    
+    reader = elfantasma.io.Reader.from_file("hello.h5")
+    print(reader.data)
+

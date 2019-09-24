@@ -22,6 +22,7 @@ def main():
             "h5py",
             "mrcfile",
             "numpy",
+            "pillow",
             "python-multem",
             "scipy",
         ],
@@ -32,6 +33,7 @@ def main():
             "console_scripts": [
                 "elfantasma=elfantasma.command_line:main",
                 "elfantasma-read-pdb=elfantasma.command_line:read_pdb",
+                "elfantasma-convert=elfantasma.command_line:convert",
             ]
         },
         extras_require={
