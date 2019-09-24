@@ -13,35 +13,72 @@ import argparse
 import pickle
 import gemmi
 import numpy
+import yaml
 import elfantasma.io
+import elfantasma.config
 import elfantasma.sample
-# import elfantasma.simulation
+import elfantasma.scan
+import elfantasma.simulation
 
 
-def show_input(args):
+def load_config(args):
+    """
+    Load the configuration from the various inputs
+
+    Args:
+        args (object): The command line arguments
+
+    Returns:
+        dict: The configuration dictionary
+
+    """
+
+    # Get the command line arguments
+    command_line = {
+        "device": args.device,
+        "output": args.output,
+        "phantom": args.phantom,
+    }
+
+    # If the yaml configuration is set then merge the configuration
+    if args.config:
+        with open(args.config) as infile:
+            config_file = yaml.safe_load(infile)
+    else:
+        config_file = {}
+
+    # Get the configuration
+    config = elfantasma.config.deepmerge(
+        elfantasma.config.default_config(),
+        elfantasma.config.deepmerge(config_file, command_line),
+    )
+
+    # Return the config
+    return config
+
+
+def show_config(config):
     """
     Print the command line arguments
 
     Args:
-        args (object): The arguments object
+        config (object): The configuration object
 
     """
-    print("Command line arguments:")
-    for key, value in vars(args).items():
-        print(f"    {key} = {value}")
-
-
-def write_pickle(simulation, filename):
-    """
-    Write the simulated data to a python pickle file
-
-    Args:
-        simulated (object): The simulation object
-        filename (str): The output filename
-
-    """
-    with open(filename, "wb") as outfile:
-        pickle.dump(simulation.asdict(), outfile, protocol=2)
+    print("Configuration:")
+    print(
+        "\n".join(
+            [
+                f"    {line}"
+                for line in yaml.dump(
+                    elfantasma.config.difference(
+                        elfantasma.config.default_config(), config
+                    ),
+                    indent=4,
+                ).split("\n")
+            ]
+        )
+    )
 
 
 def main():
@@ -54,6 +91,14 @@ def main():
 
     # Add some command line arguments
     parser.add_argument(
+        "-c,--config",
+        type=str,
+        default=None,
+        dest="config",
+        #        action=YamlAction,
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
         "-d,--device",
         choices=["cpu", "gpu"],
         default="gpu",
@@ -63,7 +108,7 @@ def main():
     parser.add_argument(
         "-o,--output",
         type=str,
-        default="output.pickle",
+        default="output.h5",
         dest="output",
         help="The filename for the simulation results",
     )
@@ -76,22 +121,37 @@ def main():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    config = load_config(parser.parse_args())
 
     # Print some options
-    show_input(args)
+    show_config(config)
 
     # Create the sample
-    sample = elfantasma.sample.create_sample(args.phantom)
+    sample = elfantasma.sample.create_sample(config["phantom"])
+
+    # Create the scan
+    scan = elfantasma.scan.create_scan(**config["scan"])
 
     # Create the simulation
-    simulation = elfantasma.simulation.create_simulation(sample, args.device)
+    simulation = elfantasma.simulation.create_simulation(
+        sample,
+        scan,
+        device=config['device'],
+        beam=config["beam"],
+        detector=config["detector"],
+        simulation=config["simulation"],
+    )
+
+    # Create the writer
+    writer = elfantasma.io.Writer()
 
     # Run the simulation
-    simulation.run()
+    simulation.run(writer)
 
     # Write the simulated data to file
-    write_file(simulation, args.output)
+    print(f"Writing data to {config['output']}")
+    writer.as_file(config["output"])
+
 
 def convert():
     """
@@ -102,13 +162,8 @@ def convert():
     parser = argparse.ArgumentParser(description="Read a PDB file")
 
     # Add an argument for the filename
-    parser.add_argument(
-        "filename",
-        type=str,
-        default=None,
-        help="The input filename",
-    )
-    
+    parser.add_argument("filename", type=str, default=None, help="The input filename")
+
     # Add an argument for the filename
     parser.add_argument(
         "-o,--output",
@@ -129,9 +184,10 @@ def convert():
     # Create the write
     print(f"Writing data to {args.output}")
     writer = elfantasma.io.Writer(shape=reader.data.shape)
-    writer.data[:,:,:] = reader.data[:,:,:]
+    writer.data[:, :, :] = reader.data[:, :, :]
     writer.angle[:] = reader.angle[:]
     writer.as_file(args.output)
+
 
 def read_pdb():
     """
@@ -186,23 +242,5 @@ def read_pdb():
                     )
 
 
-# if __name__ == "__main__":
-#     main()
-
-
-
-
 if __name__ == "__main__":
-
-    writer = elfantasma.io.Writer(shape=(10, 100, 100))
-    for i in range(10):
-        image = numpy.random.random(100*100)
-        image.shape = (100,100)
-        writer.data[i,:,:] = image
-        writer.angle[i] = i
-    writer.as_file("hello.h5")
-
-    
-    reader = elfantasma.io.Reader.from_file("hello.h5")
-    print(reader.data)
-
+    main()
