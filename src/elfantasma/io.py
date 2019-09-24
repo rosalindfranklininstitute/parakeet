@@ -14,12 +14,14 @@ import mrcfile
 import os
 import PIL.Image
 
+
 class Writer(object):
     """
     Interface to write the simulated data
 
     """
-    def __init__(self, shape):
+
+    def __init__(self, shape=None):
         """
         Initialise the data
 
@@ -27,8 +29,29 @@ class Writer(object):
             shape (tuple): The dimensions of the data
 
         """
+        if shape is None:
+            shape = (0, 0, 0)
+
+        # Instantiate
         self._data = numpy.zeros(shape=shape, dtype=numpy.float32)
         self._angle = numpy.zeros(shape=shape[0], dtype=numpy.float32)
+
+    @property
+    def shape(self):
+        """
+        The shape property
+
+        """
+        return self._data.shape
+
+    @shape.setter
+    def shape(self, s):
+        """
+        Set the shape property
+
+        """
+        self._data.resize(s)
+        self._angle.resize(s[0])
 
     @property
     def data(self):
@@ -73,7 +96,7 @@ class Writer(object):
             filename (str): The output filename
 
         """
-        
+
         # Ensure that the angles matches the data
         assert len(self.angle) == self.data.shape[0], "Inconsistent dimensions"
 
@@ -123,10 +146,10 @@ class Writer(object):
 
         # Write each image to a PNG
         for i in range(self.data.shape[0]):
-            image = self.data[i,:,:] * s1 + s0
+            image = self.data[i, :, :] * s1 + s0
             image = image.astype(numpy.uint8)
-            filename = template % i
-            print(f"    writing image {i} to {filename}")
+            filename = template % (i+1)
+            print(f"    writing image {i+1} to {filename}")
             PIL.Image.fromarray(image).save(filename)
 
     def as_file(self, filename):
@@ -147,11 +170,13 @@ class Writer(object):
         else:
             raise RuntimeError(f"File with unknown extension: {filename}")
 
+
 class Reader(object):
     """
     Interface to write the simulated data
 
     """
+
     def __init__(self, data, angle):
         """
         Initialise the data
@@ -177,7 +202,6 @@ class Reader(object):
             filename (str): The input filename
 
         """
-        
 
         # Read the data
         with mrcfile.open(filename) as mrc:
@@ -230,4 +254,3 @@ class Reader(object):
             return Class.from_nexus(filename)
         else:
             raise RuntimeError(f"File with unknown extension: {filename}")
-
