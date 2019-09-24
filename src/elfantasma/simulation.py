@@ -10,7 +10,8 @@
 #
 import warnings
 import numpy
-import multem
+
+# import multem
 
 
 class Simulation(object):
@@ -19,7 +20,14 @@ class Simulation(object):
 
     """
 
-    def __init__(self, system_conf, input_multislice):
+    def __init__(
+        self,
+        system_conf,
+        input_multislice,
+        axis=None,
+        angles=None,
+        electrons_per_pixel=None,
+    ):
         """
         Initialise the simulation
 
@@ -30,18 +38,25 @@ class Simulation(object):
         """
         self.system_conf = system_conf
         self.input_multislice = input_multislice
-        self.output_multislice = []
-        # self.angles = numpy.arange(0, 360, 10)
-        self.angles = numpy.arange(0, 10, 4)  # 360, 10)
+        self.axis = axis
+        self.angles = angles
+        self.electrons_per_pixel = electrons_per_pixel
 
-    def run(self):
+    def run(self, writer):
         """
         Run the simulation
 
         """
-        self.output_multislice = []
+        # Get the expected dimensions
+        nx = self.input_multislice.nx
+        ny = self.input_multislice.nx
+        nz = len(self.angles)
+
+        # Reshape the writer
+        writer.shape = (nz, ny, nx)
+
         print("Running simulation...")
-        for angle in self.angles:
+        for i, angle in enumerate(self.angles):
 
             # Set the rotation angle
             print(f"    angle = {angle}")
@@ -49,9 +64,17 @@ class Simulation(object):
             self.input_multislice.spec_rot_u0 = [1, 0, 0]
 
             # Run the simulation
-            self.output_multislice.append(
-                multem.simulate(self.system_conf, self.input_multislice)
-            )
+            output_multislice = multem.simulate(self.system_conf, self.input_multislice)
+
+            # Get the ideal image data
+            ideal_image = output_multislice.data[0].m2psi_tot
+
+            # Compute the image scaled with Poisson noise
+            image = numpy.random.poisson(self.electrons_per_pixel * ideal_image)
+
+            # Set the output in the writer
+            writer.data[i, :, :] = image
+            writer.angle[i] = angle
 
     def asdict(self):
         """
@@ -59,34 +82,18 @@ class Simulation(object):
             dict: The results as a dictionary
 
         """
-        return {
-            "input": self.input_multislice.asdict(),
-            "output": [
-                {"angle": angle, "output": output.asdict()}
-                for angle, output in zip(self.angles, self.output_multislice)
-            ],
-        }
+        return {"input": self.input_multislice.asdict(), "angles": self.angles}
 
-    @property
-    def data(self):
+    def as_pickle(self, filename):
         """
-        Returns:
-            array: The simultion data
+        Write the simulated data to a python pickle file
+
+        Args:
+            filename (str): The output filename
 
         """
-
-        # Get the expected dimensions
-        nx = self.input_multislice.nx
-        ny = self.input_multislice.nx
-        nz = len(self.output_multislice)
-
-        # Initialise the result array and fill with data
-        result = numpy.zeros(shape=(nz, ny, nx), dtype=numpy.float32)
-        for k, output in enumerate(self.output_multislice):
-            assert len(output.data) == 1
-            data = output.data[0].m2psi_tot
-            result[k, :, :] = data
-        return result
+        with open(filename, "wb") as outfile:
+            pickle.dump(self.asdict(), outfile, protocol=2)
 
 
 def create_system_configuration(device):
@@ -122,12 +129,15 @@ def create_system_configuration(device):
     return system_conf
 
 
-def create_simulation(sample, device="gpu"):
+def create_simulation(
+    sample, scan, device="gpu", beam=None, detector=None, simulation=None
+):
     """
     Create the simulation
 
     Args:
         sample (object): The sample object
+        scan (object): The scan object
         device (str): The device to use
 
     """
@@ -161,22 +171,21 @@ def create_simulation(sample, device="gpu"):
     input_multislice.spec_lx = sample.length_x
     input_multislice.spec_ly = sample.length_y
     input_multislice.spec_lz = sample.length_z
-    input_multislice.spec_dz = 3.0
+    input_multislice.spec_dz = simulation["slice_thickness"]
 
     # Set the amorphous layers
     # input_multislice.spec_amorp = [(0, 0, 2.0)]
 
     # Specimen thickness
     input_multislice.thick_type = "Whole_Spec"
-    # input_multislice.thick = numpy.arange(1, 1000, 1)
 
     # x-y sampling
-    input_multislice.nx = 2048
-    input_multislice.ny = 2048
+    input_multislice.nx = detector["nx"]
+    input_multislice.ny = detector["ny"]
     input_multislice.bwl = False
 
     # Microscope parameters
-    input_multislice.E_0 = 300
+    input_multislice.E_0 = beam["E_0"]
     input_multislice.theta = 0.0
     input_multislice.phi = 0.0
 
@@ -211,5 +220,10 @@ def create_simulation(sample, device="gpu"):
     input_multislice.obj_lens_zero_defocus_type = "First"
     input_multislice.obj_lens_zero_defocus_plane = 0
 
-    # Return the simulation object
-    return Simulation(system_conf, input_multislice)
+    # Set the electrons per pixel
+    electrons_per_pixel = beam["electrons_per_pixel"]
+
+    # Create the simulation
+    return Simulation(
+        system_conf, input_multislice, scan.axis, scan.angles, electrons_per_pixel
+    )
