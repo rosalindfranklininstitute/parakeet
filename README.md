@@ -30,7 +30,7 @@ Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitu
 
 ## License
 
-Copyright Diamond Light Source, 2019.
+Copyright Diamond Light Source and Rosalind Franklin Institute, 2019.
 
 Distributed under the terms of the GPLv3 license, elfantasma is free and open source software.
 

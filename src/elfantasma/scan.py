@@ -1,7 +1,7 @@
 #
 # elfantasma.scan.py
 #
-# Copyright (C) 2019 Diamond Light Source
+# Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
 # Author: James Parkhurst
 #
