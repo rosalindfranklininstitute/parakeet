@@ -11,6 +11,7 @@
 import dask.distributed
 import dask_jobqueue
 import concurrent.futures
+import elfantasma.config
 
 
 def factory(mp_method="multiprocessing", max_workers=1):
@@ -35,8 +36,8 @@ def factory(mp_method="multiprocessing", max_workers=1):
             resource_spec="gpu=1",
             job_extra=["-V"],
             name="elfantasma",
-            local_directory="_cluster",
-            log_directory="_cluster",
+            local_directory=elfantasma.config.temp_directory(),
+            log_directory=elfantasma.config.temp_directory(),
         )
 
         # Set the number of worker nodes

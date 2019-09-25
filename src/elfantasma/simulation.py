@@ -11,7 +11,72 @@
 import warnings
 import numpy
 import multem
+import os
+import pickle
+import elfantasma.config
 import elfantasma.futures
+
+
+class SingleImageSimulation(object):
+    """
+    A class to do the actual simulation
+
+    The simulation is structured this way because the input data to the
+    simulation is large enough that it makes an overhead to creating the
+    individual processes. Therefore it is more efficient to save the simulation
+    to pickle so that it is only pickled once (instead of for each job)
+
+    """
+
+    def __init__(self, filename):
+        """
+        Save the filename to the cached data to load
+
+        """
+        self.filename = filename
+
+    def load_simulation_data(self):
+        """
+        Returns:
+            object: The simulation data
+
+        """
+        with open(self.filename, "rb") as infile:
+            simulation = pickle.load(infile)
+        return simulation
+
+    def __call__(self, i):
+        """
+        Simulate a single frame
+
+        Args:
+            i (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Load the simulation data
+        simulation = self.load_simulation_data()
+
+        # Get the rotation angle
+        angle = simulation.angles[i]
+
+        # Set the rotation angle
+        simulation.input_multislice.spec_rot_theta = angle
+        simulation.input_multislice.spec_rot_u0 = [1, 0, 0]
+
+        # Run the simulation
+        output_multislice = multem.simulate(
+            simulation.system_conf, simulation.input_multislice
+        )
+
+        # Get the ideal image data
+        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot)
+
+        # Compute the image scaled with Poisson noise
+        return angle, numpy.random.poisson(simulation.electrons_per_pixel * ideal_image)
 
 
 class Simulation(object):
@@ -50,9 +115,6 @@ class Simulation(object):
 
         """
 
-        # Get the futures executor
-        executor = elfantasma.futures.factory(**self.multiprocessing)
-
         # Get the expected dimensions
         nx = self.input_multislice.nx
         ny = self.input_multislice.nx
@@ -61,50 +123,33 @@ class Simulation(object):
         # Reshape the writer
         writer.shape = (nz, ny, nx)
 
-        # Submit all jobs
-        print("Running simulation...")
-        results = [
-            executor.submit(self.simulate_frame, i) for i, a in enumerate(self.angles)
-        ]
+        # Set the filename
+        filename = os.path.join(elfantasma.config.temp_directory(), "simulation.pickle")
 
-        # Wait for results
-        for i, result in enumerate(results):
+        # Save the simulation as pickle
+        self.as_pickle(filename)
 
-            # Get the result
-            angle, image = result.result()
+        # Get the futures executor
+        with elfantasma.futures.factory(**self.multiprocessing) as executor:
 
-            # Set the output in the writer
-            print(f"    angle = {angle}")
-            writer.data[i, :, :] = image
-            writer.angle[i] = angle
+            # Submit all jobs
+            print("Running simulation...")
+            n = len(self.angles)
+            futures = []
+            for i, angle in enumerate(self.angles):
+                print(f"    Submitting job: {i+1}/{n} for angle: {angle}")
+                futures.append(executor.submit(SingleImageSimulation(filename), i))
 
-    def simulate_frame(self, i):
-        """
-        Simulate a single frame
+            # Wait for results
+            for i, future in enumerate(futures):
 
-        Args:
-            i (int): The frame number
+                # Get the result
+                print(f"    Waiting on job: {i+1}/{n}")
+                angle, image = future.result()
 
-        Returns:
-            tuple: (angle, image)
-
-        """
-
-        # Get the rotation angle
-        angle = self.angles[i]
-
-        # Set the rotation angle
-        self.input_multislice.spec_rot_theta = angle
-        self.input_multislice.spec_rot_u0 = [1, 0, 0]
-
-        # Run the simulation
-        output_multislice = multem.simulate(self.system_conf, self.input_multislice)
-
-        # Get the ideal image data
-        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot)
-
-        # Compute the image scaled with Poisson noise
-        return angle, numpy.random.poisson(self.electrons_per_pixel * ideal_image)
+                # Set the output in the writer
+                writer.data[i, :, :] = image
+                writer.angle[i] = angle
 
     def asdict(self):
         """
@@ -122,8 +167,13 @@ class Simulation(object):
             filename (str): The output filename
 
         """
+
+        # Make directory if it doesn't exist
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        # Write the simulation
         with open(filename, "wb") as outfile:
-            pickle.dump(self.asdict(), outfile, protocol=2)
+            pickle.dump(self, outfile)
 
 
 def create_system_configuration(device):

@@ -12,6 +12,15 @@ import copy
 import yaml
 
 
+def temp_directory():
+    """
+    Returns:
+        str: A temp directory for working in
+
+    """
+    return "_elfantasma"
+
+
 def default_config():
     """
     Return:
