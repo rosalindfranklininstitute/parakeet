@@ -128,7 +128,7 @@ def show_config_main():
     config = elfantasma.config.load_config(parser.parse_args())
 
     # Print some options
-    elfantasma.config.show_config(config)
+    elfantasma.config.show_config(config, full=True)
 
 
 def convert():
