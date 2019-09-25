@@ -270,7 +270,7 @@ def create_simulation(
     input_multislice.pn_single_conf = False
     input_multislice.pn_nconf = 10
     input_multislice.pn_dim = 110
-    input_multislice.pn_seed = 300183
+    input_multislice.pn_seed = 300_183
 
     # Set the atoms of the sample
     input_multislice.spec_atoms = sample.atom_data

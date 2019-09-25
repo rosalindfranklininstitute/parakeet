@@ -39,6 +39,7 @@ def main():
                 "elfantasma-read-pdb=elfantasma.command_line:read_pdb",
                 "elfantasma-convert=elfantasma.command_line:convert",
                 "elfantasma-show-config=elfantasma.command_line:show_config_main",
+                "elfantasma-create-sample=elfantasma.command_line:create_sample",
             ]
         },
         extras_require={

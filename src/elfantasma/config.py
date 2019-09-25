@@ -34,6 +34,19 @@ def default_config():
         device: gpu
         phantom: 4v5d
 
+        sample:
+
+            4v5d:
+                length_x: null
+                length_y: null
+                length_z: null
+
+            ribosomes_in_lamella:
+                length_x: 10000
+                length_y: 10000
+                length_z: 500
+                number_of_ribosomes: 4
+
         beam:
             E_0: 300
             electrons_per_pixel: 200

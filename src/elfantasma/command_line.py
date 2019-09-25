@@ -9,12 +9,15 @@
 # which is included in the root directory of this package.
 #
 import argparse
+import copy
 import gemmi
+import pickle
 import elfantasma.io
 import elfantasma.config
 import elfantasma.sample
 import elfantasma.scan
-import elfantasma.simulation
+
+# import elfantasma.simulation
 
 
 def main():
@@ -27,29 +30,33 @@ def main():
 
     # Add some command line arguments
     parser.add_argument(
-        "-c,--config",
+        "-c",
+        "--config",
         type=str,
         default=None,
         dest="config",
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
-        "-d,--device",
+        "-d",
+        "--device",
         choices=["cpu", "gpu"],
         default=None,
         dest="device",
         help="Choose the device to use",
     )
     parser.add_argument(
-        "-o,--output",
+        "-o",
+        "--output",
         type=str,
         default=None,
         dest="output",
         help="The filename for the simulation results",
     )
     parser.add_argument(
-        "-p,--phantom",
-        choices=["4v5d"],
+        "-p",
+        "--phantom",
+        choices=["4v5d", "ribosomes_in_lamella"],
         default=None,
         dest="phantom",
         help="Choose the phantom to generate",
@@ -77,7 +84,7 @@ def main():
     elfantasma.config.show_config(config)
 
     # Create the sample
-    sample = elfantasma.sample.create_sample(config["phantom"])
+    sample = elfantasma.sample.create_sample(config["phantom"], **config["sample"])
 
     # Create the scan
     scan = elfantasma.scan.create_scan(**config["scan"])
@@ -117,7 +124,8 @@ def show_config_main():
 
     # Add some command line arguments
     parser.add_argument(
-        "-c,--config",
+        "-c",
+        "--config",
         type=str,
         default=None,
         dest="config",
@@ -144,7 +152,8 @@ def convert():
 
     # Add an argument for the filename
     parser.add_argument(
-        "-o,--output",
+        "-o",
+        "--output",
         type=str,
         default=None,
         required=True,
@@ -178,7 +187,8 @@ def read_pdb():
 
     # Add an argument for the filename
     parser.add_argument(
-        "-f,--filename",
+        "-f",
+        "--filename",
         type=str,
         default=None,
         dest="filename",
@@ -218,6 +228,60 @@ def read_pdb():
                             atom.charge,
                         )
                     )
+
+
+def create_sample():
+    """
+    Create a sample and save it
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Create a sample and save it")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="sample.pickle",
+        dest="output",
+        help="The filename for the sample file",
+    )
+    parser.add_argument(
+        "-p",
+        "--phantom",
+        choices=["4v5d", "ribosomes_in_lamella"],
+        default=None,
+        dest="phantom",
+        help="Choose the phantom to generate",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Load the configuration
+    sub_args = copy.deepcopy(args)
+    delattr(sub_args, "output")
+    config = elfantasma.config.load_config(sub_args)
+
+    # Print some options
+    elfantasma.config.show_config(config)
+
+    # Create the sample
+    sample = elfantasma.sample.create_sample(config["phantom"], **config["sample"])
+
+    # Write the sample to file
+    print(f"Writing sample to {args.output}")
+    with open(args.output, "wb") as outfile:
+        pickle.dump(sample.atom_data, outfile)
 
 
 if __name__ == "__main__":
