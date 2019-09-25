@@ -10,64 +10,11 @@
 #
 import argparse
 import gemmi
-import yaml
 import elfantasma.io
 import elfantasma.config
 import elfantasma.sample
 import elfantasma.scan
 import elfantasma.simulation
-
-
-def load_config(args):
-    """
-    Load the configuration from the various inputs
-
-    Args:
-        args (object): The command line arguments
-
-    Returns:
-        dict: The configuration dictionary
-
-    """
-
-    # Get the command line arguments
-    command_line = dict(
-        (k, v) for k, v in vars(args).items() if k != "config" and v != None
-    )
-
-    # If the yaml configuration is set then merge the configuration
-    if args.config:
-        with open(args.config) as infile:
-            config_file = yaml.safe_load(infile)
-    else:
-        config_file = {}
-
-    # Get the configuration
-    config = elfantasma.config.deepmerge(
-        elfantasma.config.default_config(),
-        elfantasma.config.deepmerge(config_file, command_line),
-    )
-
-    # Return the config
-    return config
-
-
-def show_config(config, full=False):
-    """
-    Print the command line arguments
-
-    Args:
-        config (object): The configuration object
-
-    """
-    if full == False:
-        config = elfantasma.config.difference(
-            elfantasma.config.default_config(), config
-        )
-    print("Configuration:")
-    print(
-        "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
-    )
 
 
 def main():
@@ -124,10 +71,10 @@ def main():
     )
 
     # Parse the arguments
-    config = load_config(parser.parse_args())
+    config = elfantasma.config.load_config(parser.parse_args())
 
     # Print some options
-    show_config(config)
+    elfantasma.config.show_config(config)
 
     # Create the sample
     sample = elfantasma.sample.create_sample(config["phantom"])
@@ -178,10 +125,10 @@ def show_config_main():
     )
 
     # Parse the arguments
-    config = load_config(parser.parse_args())
+    config = elfantasma.config.load_config(parser.parse_args())
 
     # Print some options
-    show_config(config, full=True)
+    elfantasma.config.show_config(config)
 
 
 def convert():
