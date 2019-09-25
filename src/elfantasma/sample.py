@@ -276,9 +276,9 @@ def create_ribosomes_in_lamella_sample(
     size_z = max_z - min_z
 
     # Recentre coords on zero (needed or rotation)
-    x += size_x / 2.0 - min_x
-    y += size_y / 2.0 - min_y
-    z += size_z / 2.0 - min_z
+    x -= (max_x + min_x) / 2.0
+    y -= (max_y + min_y) / 2.0
+    z -= (max_z + min_z) / 2.0
 
     # Set the total size of the sample
     assert length_x > size_x
