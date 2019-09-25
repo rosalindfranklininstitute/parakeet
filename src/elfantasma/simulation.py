@@ -10,8 +10,8 @@
 #
 import warnings
 import numpy
-
-# import multem
+import multem
+import elfantasma.futures
 
 
 class Simulation(object):
@@ -27,6 +27,7 @@ class Simulation(object):
         axis=None,
         angles=None,
         electrons_per_pixel=None,
+        multiprocessing=None,
     ):
         """
         Initialise the simulation
@@ -41,12 +42,17 @@ class Simulation(object):
         self.axis = axis
         self.angles = angles
         self.electrons_per_pixel = electrons_per_pixel
+        self.multiprocessing = multiprocessing
 
     def run(self, writer):
         """
         Run the simulation
 
         """
+
+        # Get the futures executor
+        executor = elfantasma.futures.factory(**self.multiprocessing)
+
         # Get the expected dimensions
         nx = self.input_multislice.nx
         ny = self.input_multislice.nx
@@ -55,26 +61,48 @@ class Simulation(object):
         # Reshape the writer
         writer.shape = (nz, ny, nx)
 
+        # Submit all jobs
         print("Running simulation...")
-        for i, angle in enumerate(self.angles):
+        results = [executor.submit(self.simulate_frame, i) for i in self.angles]
 
-            # Set the rotation angle
-            print(f"    angle = {angle}")
-            self.input_multislice.spec_rot_theta = angle
-            self.input_multislice.spec_rot_u0 = [1, 0, 0]
+        # Wait for results
+        for i, result in enumerate(results):
 
-            # Run the simulation
-            output_multislice = multem.simulate(self.system_conf, self.input_multislice)
-
-            # Get the ideal image data
-            ideal_image = output_multislice.data[0].m2psi_tot
-
-            # Compute the image scaled with Poisson noise
-            image = numpy.random.poisson(self.electrons_per_pixel * ideal_image)
+            # Get the result
+            angle, image = result.result()
 
             # Set the output in the writer
+            print(f"    angle = {angle}")
             writer.data[i, :, :] = image
             writer.angle[i] = angle
+
+    def simulate_frame(self, i):
+        """
+        Simulate a single frame
+
+        Args:
+            i (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Get the rotation angle
+        angle = self.angles[i]
+
+        # Set the rotation angle
+        self.input_multislice.spec_rot_theta = angle
+        self.input_multislice.spec_rot_u0 = [1, 0, 0]
+
+        # Run the simulation
+        output_multislice = multem.simulate(self.system_conf, self.input_multislice)
+
+        # Get the ideal image data
+        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot)
+
+        # Compute the image scaled with Poisson noise
+        return angle, numpy.random.poisson(self.electrons_per_pixel * ideal_image)
 
     def asdict(self):
         """
@@ -130,7 +158,13 @@ def create_system_configuration(device):
 
 
 def create_simulation(
-    sample, scan, device="gpu", beam=None, detector=None, simulation=None
+    sample,
+    scan,
+    device="gpu",
+    beam=None,
+    detector=None,
+    simulation=None,
+    multiprocessing=None,
 ):
     """
     Create the simulation
@@ -225,5 +259,10 @@ def create_simulation(
 
     # Create the simulation
     return Simulation(
-        system_conf, input_multislice, scan.axis, scan.angles, electrons_per_pixel
+        system_conf,
+        input_multislice,
+        scan.axis,
+        scan.angles,
+        electrons_per_pixel,
+        multiprocessing,
     )

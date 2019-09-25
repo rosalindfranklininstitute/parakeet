@@ -18,6 +18,9 @@ def main():
         package_dir={"": "src"},
         packages=find_packages(where="src"),
         install_requires=[
+            "dask",
+            "distributed",
+            "dask_jobqueue",
             "gemmi",
             "h5py",
             "mrcfile",

@@ -35,6 +35,8 @@ def load_config(args):
         "device": args.device,
         "output": args.output,
         "phantom": args.phantom,
+        "max_workers": args.max_workers,
+        "mp_method": args.mp_method,
     }
 
     # If the yaml configuration is set then merge the configuration
@@ -116,6 +118,21 @@ def main():
         dest="phantom",
         help="Choose the phantom to generate",
     )
+    parser.add_argument(
+        "--max_workers",
+        type=int,
+        default=1,
+        dest="max_workers",
+        help="The maximum number of worker processes",
+    )
+    parser.add_argument(
+        "--mp_method",
+        type=str,
+        choices=["multiprocessing", "sge"],
+        default="multiprocessing",
+        dest="mp_method",
+        help="The multiprocessing method to use",
+    )
 
     # Parse the arguments
     config = load_config(parser.parse_args())
@@ -137,6 +154,10 @@ def main():
         beam=config["beam"],
         detector=config["detector"],
         simulation=config["simulation"],
+        multiprocessing={
+            "mp_method": config["mp_method"],
+            "max_workers": config["max_workers"],
+        },
     )
 
     # Create the writer

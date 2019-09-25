@@ -43,6 +43,9 @@ def default_config():
         simulation:
             slice_thickness: 3.0
 
+        mp_method: multiprocessing
+        max_workers: 1
+
     """
     )
 
