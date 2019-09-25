@@ -28,12 +28,15 @@ class SingleImageSimulation(object):
 
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename_or_object):
         """
         Save the filename to the cached data to load
 
+        Args:
+            filename_or_object (object): The filename or simulation object
+
         """
-        self.filename = filename
+        self.filename_or_object = filename_or_object
 
     def load_simulation_data(self):
         """
@@ -41,8 +44,11 @@ class SingleImageSimulation(object):
             object: The simulation data
 
         """
-        with open(self.filename, "rb") as infile:
-            simulation = pickle.load(infile)
+        if isinstance(self.filename_or_object, str):
+            with open(self.filename_or_object, "rb") as infile:
+                simulation = pickle.load(infile)
+        else:
+            simulation = self.filename_or_object
         return simulation
 
     def __call__(self, i):
@@ -123,33 +129,47 @@ class Simulation(object):
         # Reshape the writer
         writer.shape = (nz, ny, nx)
 
-        # Set the filename
-        filename = os.path.join(elfantasma.config.temp_directory(), "simulation.pickle")
-
-        # Save the simulation as pickle
-        self.as_pickle(filename)
-
-        # Get the futures executor
-        with elfantasma.futures.factory(**self.multiprocessing) as executor:
-
-            # Submit all jobs
-            print("Running simulation...")
-            n = len(self.angles)
-            futures = []
+        # If we are executing in a single process just do a for loop
+        if (
+            self.multiprocessing["mp_method"] == "multiprocessing"
+            and self.multiprocessing["max_workers"] == 1
+        ):
             for i, angle in enumerate(self.angles):
-                print(f"    Submitting job: {i+1}/{n} for angle: {angle}")
-                futures.append(executor.submit(SingleImageSimulation(filename), i))
-
-            # Wait for results
-            for i, future in enumerate(futures):
-
-                # Get the result
-                print(f"    Waiting on job: {i+1}/{n}")
-                angle, image = future.result()
-
-                # Set the output in the writer
+                print(f"    Running job: {i+1}/{nz} for angle: {angle} degrees")
+                simulator = SingleImageSimulation(self)
+                angle, image = simulator(i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
+        else:
+
+            # Set the filename
+            filename = os.path.join(
+                elfantasma.config.temp_directory(), "simulation.pickle"
+            )
+
+            # Save the simulation as pickle
+            self.as_pickle(filename)
+
+            # Get the futures executor
+            with elfantasma.futures.factory(**self.multiprocessing) as executor:
+
+                # Submit all jobs
+                print("Running simulation...")
+                futures = []
+                for i, angle in enumerate(self.angles):
+                    print(f"    Submitting job: {i+1}/{nz} for angle: {angle} degrees")
+                    futures.append(executor.submit(SingleImageSimulation(filename), i))
+
+                # Wait for results
+                for i, future in enumerate(futures):
+
+                    # Get the result
+                    print(f"    Waiting on job: {i+1}/{nz}")
+                    angle, image = future.result()
+
+                    # Set the output in the writer
+                    writer.data[i, :, :] = image
+                    writer.angle[i] = angle
 
     def asdict(self):
         """
