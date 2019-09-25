@@ -63,7 +63,9 @@ class Simulation(object):
 
         # Submit all jobs
         print("Running simulation...")
-        results = [executor.submit(self.simulate_frame, i) for i in self.angles]
+        results = [
+            executor.submit(self.simulate_frame, i) for i, a in enumerate(self.angles)
+        ]
 
         # Wait for results
         for i, result in enumerate(results):

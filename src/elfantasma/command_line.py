@@ -31,13 +31,9 @@ def load_config(args):
     """
 
     # Get the command line arguments
-    command_line = {
-        "device": args.device,
-        "output": args.output,
-        "phantom": args.phantom,
-        "max_workers": args.max_workers,
-        "mp_method": args.mp_method,
-    }
+    command_line = dict(
+        (k, v) for k, v in vars(args).items() if k != "config" and v != None
+    )
 
     # If the yaml configuration is set then merge the configuration
     if args.config:
@@ -56,7 +52,7 @@ def load_config(args):
     return config
 
 
-def show_config(config):
+def show_config(config, full=False):
     """
     Print the command line arguments
 
@@ -64,19 +60,13 @@ def show_config(config):
         config (object): The configuration object
 
     """
+    if full == False:
+        config = elfantasma.config.difference(
+            elfantasma.config.default_config(), config
+        )
     print("Configuration:")
     print(
-        "\n".join(
-            [
-                f"    {line}"
-                for line in yaml.dump(
-                    elfantasma.config.difference(
-                        elfantasma.config.default_config(), config
-                    ),
-                    indent=4,
-                ).split("\n")
-            ]
-        )
+        "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
     )
 
 
@@ -94,34 +84,33 @@ def main():
         type=str,
         default=None,
         dest="config",
-        #        action=YamlAction,
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
         "-d,--device",
         choices=["cpu", "gpu"],
-        default="gpu",
+        default=None,
         dest="device",
         help="Choose the device to use",
     )
     parser.add_argument(
         "-o,--output",
         type=str,
-        default="output.h5",
+        default=None,
         dest="output",
         help="The filename for the simulation results",
     )
     parser.add_argument(
         "-p,--phantom",
         choices=["4v5d"],
-        default="4v5d",
+        default=None,
         dest="phantom",
         help="Choose the phantom to generate",
     )
     parser.add_argument(
         "--max_workers",
         type=int,
-        default=1,
+        default=None,
         dest="max_workers",
         help="The maximum number of worker processes",
     )
@@ -129,7 +118,7 @@ def main():
         "--mp_method",
         type=str,
         choices=["multiprocessing", "sge"],
-        default="multiprocessing",
+        default=None,
         dest="mp_method",
         help="The multiprocessing method to use",
     )
@@ -169,6 +158,30 @@ def main():
     # Write the simulated data to file
     print(f"Writing data to {config['output']}")
     writer.as_file(config["output"])
+
+
+def show_config_main():
+    """
+    Show the full configuration
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Show the configuration")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c,--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+
+    # Parse the arguments
+    config = load_config(parser.parse_args())
+
+    # Print some options
+    show_config(config, full=True)
 
 
 def convert():

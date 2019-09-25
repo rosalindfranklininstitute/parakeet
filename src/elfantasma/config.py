@@ -21,9 +21,9 @@ def default_config():
     return yaml.safe_load(
         """
 
-        output: null
-        device: null
-        phantom: null
+        output: output.h5
+        device: gpu
+        phantom: 4v5d
 
         beam:
             E_0: 300
