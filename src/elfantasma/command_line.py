@@ -11,6 +11,7 @@
 import argparse
 import gemmi
 import pickle
+import time
 import elfantasma.io
 import elfantasma.config
 import elfantasma.sample
@@ -23,6 +24,10 @@ def main():
     The main interface to elfantasma
 
     """
+
+    # Get the start time
+    start_time = time.time()
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Generate EM phantoms")
 
@@ -134,6 +139,9 @@ def main():
     # Write the simulated data to file
     print(f"Writing data to {config['output']}")
     writer.as_file(config["output"])
+
+    # Write some timing stats
+    print("Time taken: %.2f seconds" % time.time() - start_time)
 
 
 def show_config_main():
