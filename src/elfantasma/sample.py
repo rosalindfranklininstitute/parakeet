@@ -10,6 +10,7 @@
 #
 import gemmi
 import numpy
+import pickle
 import scipy.spatial.transform
 import elfantasma.data
 from math import acos, cos, pi, sin
@@ -135,7 +136,7 @@ def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
     )
 
 
-def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=100):
+def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=1000):
     """
     Find n random non overlapping positions for cubes within a volume
 
@@ -335,6 +336,14 @@ def create_ribosomes_in_lamella_sample(
     print("    Len y:   %.2f" % length_y)
     print("    Len z:   %.2f" % length_z)
 
+    # Check positions
+    assert min(sample_x) > 0
+    assert min(sample_y) > 0
+    assert min(sample_z) > 0
+    assert max(sample_x) < length_x
+    assert max(sample_y) < length_y
+    assert max(sample_z) < length_z
+
     # Return the atom data
     return Sample(
         list(
@@ -355,6 +364,23 @@ def create_ribosomes_in_lamella_sample(
     )
 
 
+def create_custom_sample(filename=None):
+    """
+    Create the custom sample from file
+
+    Args:
+        filename: The sample filename
+
+    Returns:
+        object: The atom data
+
+    """
+    print(f"Reading sample information from {filename}")
+    with open(filename, "rb") as infile:
+        sample = pickle.load(infile)
+    return sample
+
+
 def create_sample(name, **kwargs):
     """
     Create the sample
@@ -369,4 +395,5 @@ def create_sample(name, **kwargs):
     return {
         "4v5d": create_4v5d_sample,
         "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
+        "custom": create_custom_sample,
     }[name](**kwargs[name])

@@ -42,10 +42,13 @@ def default_config():
                 length_z: null
 
             ribosomes_in_lamella:
-                length_x: 10000
-                length_y: 10000
+                length_x: 2000
+                length_y: 2000
                 length_z: 500
-                number_of_ribosomes: 4
+                number_of_ribosomes: 10
+
+            custom:
+                filename: null
 
         beam:
             E_0: 300
@@ -137,12 +140,13 @@ def difference(master, config):
     return walk(master, config)
 
 
-def load_config(args):
+def load_config(config=None, command_line=None):
     """
     Load the configuration from the various inputs
 
     Args:
-        args (object): The command line arguments
+        config (str): The config filename
+        command_line (dict): The command line arguments
 
     Returns:
         dict: The configuration dictionary
@@ -150,13 +154,12 @@ def load_config(args):
     """
 
     # Get the command line arguments
-    command_line = dict(
-        (k, v) for k, v in vars(args).items() if k != "config" and v != None
-    )
+    if command_line is None:
+        command_line = {}
 
     # If the yaml configuration is set then merge the configuration
-    if args.config:
-        with open(args.config) as infile:
+    if config:
+        with open(config) as infile:
             config_file = yaml.safe_load(infile)
     else:
         config_file = {}

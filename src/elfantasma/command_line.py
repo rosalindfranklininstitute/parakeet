@@ -9,15 +9,13 @@
 # which is included in the root directory of this package.
 #
 import argparse
-import copy
 import gemmi
 import pickle
 import elfantasma.io
 import elfantasma.config
 import elfantasma.sample
 import elfantasma.scan
-
-# import elfantasma.simulation
+import elfantasma.simulation
 
 
 def main():
@@ -56,9 +54,16 @@ def main():
     parser.add_argument(
         "-p",
         "--phantom",
-        choices=["4v5d", "ribosomes_in_lamella"],
+        choices=["4v5d", "ribosomes_in_lamella", "custom"],
         default=None,
         dest="phantom",
+        help="Choose the phantom to generate",
+    )
+    parser.add_argument(
+        "--custom_phantom_filename",
+        type=str,
+        default=None,
+        dest="custom_phantom_filename",
         help="Choose the phantom to generate",
     )
     parser.add_argument(
@@ -78,7 +83,25 @@ def main():
     )
 
     # Parse the arguments
-    config = elfantasma.config.load_config(parser.parse_args())
+    args = parser.parse_args()
+
+    # Set the command line args in a dict
+    command_line = {}
+    if args.device is not None:
+        command_line["device"] = args.device
+    if args.output is not None:
+        command_line["output"] = args.output
+    if args.phantom is not None:
+        command_line["phantom"] = args.phantom
+    if args.max_workers is not None:
+        command_line["max_workers"] = args.max_workers
+    if args.mp_method is not None:
+        command_line["mp_method"] = args.mp_method
+    if args.custom_phantom_filename is not None:
+        command_line["sample"] = {"custom": {"filename": args.custom_phantom_filename}}
+
+    # Load the full configuration
+    config = elfantasma.config.load_config(args.config, command_line)
 
     # Print some options
     elfantasma.config.show_config(config)
@@ -133,7 +156,7 @@ def show_config_main():
     )
 
     # Parse the arguments
-    config = elfantasma.config.load_config(parser.parse_args())
+    config = elfantasma.config.load_config(parser.parse_args().config)
 
     # Print some options
     elfantasma.config.show_config(config, full=True)
@@ -267,10 +290,13 @@ def create_sample():
     # Parse the arguments
     args = parser.parse_args()
 
+    # Set the command line args in a dict
+    command_line = {}
+    if args.phantom is not None:
+        command_line["phantom"] = args.phantom
+
     # Load the configuration
-    sub_args = copy.deepcopy(args)
-    delattr(sub_args, "output")
-    config = elfantasma.config.load_config(sub_args)
+    config = elfantasma.config.load_config(args.config, command_line)
 
     # Print some options
     elfantasma.config.show_config(config)
@@ -281,7 +307,7 @@ def create_sample():
     # Write the sample to file
     print(f"Writing sample to {args.output}")
     with open(args.output, "wb") as outfile:
-        pickle.dump(sample.atom_data, outfile)
+        pickle.dump(sample, outfile)
 
 
 if __name__ == "__main__":
