@@ -15,6 +15,8 @@ import scipy.spatial.transform
 import elfantasma.data
 from math import acos, cos, pi, sin
 
+import numpy.random
+
 
 class Sample(object):
     """
@@ -136,7 +138,7 @@ def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
     )
 
 
-def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=1000):
+def distribute_boxes_uniformly(length_x, length_y, length_z, boxes, max_tries=1000):
     """
     Find n random non overlapping positions for cubes within a volume
 
@@ -144,8 +146,7 @@ def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=1
         length_x (float): The X size of the box
         length_y (float): The Y size of the box
         length_z (float): The Z size of the box
-        size (float): The size of the cube
-        n (int): The number of cubes
+        boxes (float): The list of boxes
         max_tries (int): The maximum tries per cube
 
     Returns:
@@ -154,12 +155,12 @@ def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=1
     """
 
     # Check if the cube overlaps with any other
-    def overlapping(positions, q):
-        for p in positions:
-            p0 = p - size / 2
-            p1 = p + size / 2
-            q0 = q - size / 2
-            q1 = q + size / 2
+    def overlapping(positions, box_sizes, q, q_size):
+        for p, p_size in zip(positions, box_sizes):
+            p0 = p - p_size / 2
+            p1 = p + p_size / 2
+            q0 = q - q_size / 2
+            q1 = q + q_size / 2
             if not (
                 q0[0] > p1[0]
                 or q1[0] < p0[0]
@@ -171,23 +172,31 @@ def distribute_cubes_randomly(length_x, length_y, length_z, size, n, max_tries=1
                 return True
         return False
 
-    # The bounds to search in
-    lower = (size / 2, size / 2, size / 2)
-    upper = (length_x - size / 2, length_y - size / 2, length_z - size / 2)
-    assert lower[0] < upper[0]
-    assert lower[1] < upper[1]
-    assert lower[2] < upper[2]
-
-    # Loop until we have added enough cubes
+    # Loop until we have added the boxes
     positions = []
-    num_tries = 0
-    while len(positions) < n:
-        q = numpy.random.uniform(lower, upper)
-        if len(positions) == 0 or not overlapping(positions, q):
-            positions.append(q)
-        num_tries += 1
-        if num_tries > max_tries:
-            raise RuntimeError(f"Unable to place {n} cubes")
+    box_sizes = []
+    for box_size in boxes:
+
+        # The bounds to search in
+        lower = box_size / 2
+        upper = numpy.array((length_x, length_y, length_z)) - box_size / 2
+        assert lower[0] < upper[0]
+        assert lower[1] < upper[1]
+        assert lower[2] < upper[2]
+
+        # Try to add the box
+        num_tries = 0
+        while True:
+            q = numpy.random.uniform(lower, upper)
+            if len(positions) == 0 or not overlapping(
+                positions, box_sizes, q, box_size
+            ):
+                positions.append(q)
+                box_sizes.append(box_size)
+                break
+            num_tries += 1
+            if num_tries > max_tries:
+                raise RuntimeError(f"Unable to place cube of size {box_size}")
 
     # Return the cube positions
     return positions
@@ -258,36 +267,44 @@ def create_ribosomes_in_lamella_sample(
                     occ.append(atom.occ)
                     charge.append(atom.charge)
 
+    # Recentre the coords on zero
+    def recentre(coords):
+
+        # Get the min and max atom positions
+        min_coords = numpy.min(coords, axis=0)
+        max_coords = numpy.max(coords, axis=0)
+
+        # Compute the size of the box around the ribosomes
+        size = max_coords - min_coords
+
+        # Set the total size of the sample
+        assert length_x > size[0]
+        assert length_y > size[1]
+        assert length_z > size[2]
+
+        # Recentre coords on zero (needed for rotation)
+        return coords - (max_coords + min_coords) / 2.0
+
     # Cast to numpy array
-    x = numpy.array(x, dtype=numpy.float64)
-    y = numpy.array(y, dtype=numpy.float64)
-    z = numpy.array(z, dtype=numpy.float64)
+    coords = recentre(numpy.array(list(zip(x, y, z)), dtype=numpy.float64))
 
-    # Get the min and max atom positions
-    min_x = min(x)
-    min_y = min(y)
-    min_z = min(z)
-    max_x = max(x)
-    max_y = max(y)
-    max_z = max(z)
+    # Generate some randomly oriented ribosome coordinates
+    ribosomes = []
+    for i in range(number_of_ribosomes):
 
-    # Compute the size of the box around the ribosomes
-    size_x = max_x - min_x
-    size_y = max_y - min_y
-    size_z = max_z - min_z
+        # Get a random rotation
+        vector = random_uniform_rotation()
 
-    # Recentre coords on zero (needed or rotation)
-    x -= (max_x + min_x) / 2.0
-    y -= (max_y + min_y) / 2.0
-    z -= (max_z + min_z) / 2.0
+        # Create the scipy rotation object and apply the rotation
+        rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
+        ribosomes.append(recentre(rotation.apply(coords)))
 
-    # Set the total size of the sample
-    assert length_x > size_x
-    assert length_y > size_y
-    assert length_z > size_z
-
-    # Make a numpy array of coords
-    coords = numpy.array(list(zip(x, y, z)))
+    # Get the min and max coords or each ribosome and return the box size
+    def ribosome_boxes(ribosomes):
+        for transformed_coords in ribosomes:
+            min_coords = numpy.min(transformed_coords, axis=0)
+            max_coords = numpy.max(transformed_coords, axis=0)
+            yield max_coords - min_coords
 
     # Put the ribosomes in the sample
     sample_element = []
@@ -296,26 +313,20 @@ def create_ribosomes_in_lamella_sample(
     sample_z = []
     sample_occ = []
     sample_charge = []
-    cube_size = max(size_x, size_y, size_z)
-    for position in distribute_cubes_randomly(
-        length_x, length_y, length_z, cube_size, number_of_ribosomes
+    for i, translation in enumerate(
+        distribute_boxes_uniformly(
+            length_x, length_y, length_z, ribosome_boxes(ribosomes)
+        )
     ):
 
-        # Get a random rotation
-        vector = random_uniform_rotation()
+        # Apply the translation
+        ribosomes[i] += translation
 
-        # Create the scipy rotation object and apply the rotation
-        rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
-        transformed_coords = rotation.apply(coords)
-
-        # Now apply the translation
-        transformed_coords += position
-
-        x, y, z = zip(*transformed_coords)
+        # Extend the arrays
         sample_element.extend(element)
-        sample_x.extend(x)
-        sample_y.extend(y)
-        sample_z.extend(z)
+        sample_x.extend(ribosomes[i][:, 0])
+        sample_y.extend(ribosomes[i][:, 1])
+        sample_z.extend(ribosomes[i][:, 2])
         sample_occ.extend(occ)
         sample_charge.extend(charge)
 
