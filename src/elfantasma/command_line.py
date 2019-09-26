@@ -60,26 +60,26 @@ def main():
         help="Choose the phantom to generate",
     )
     parser.add_argument(
-        "--custom_phantom_filename",
-        type=str,
-        default=None,
-        dest="custom_phantom_filename",
-        help="Choose the phantom to generate",
-    )
-    parser.add_argument(
-        "--max_workers",
+        "--cluster.max_workers",
         type=int,
         default=None,
-        dest="max_workers",
+        dest="cluster_max_workers",
         help="The maximum number of worker processes",
     )
     parser.add_argument(
-        "--mp_method",
+        "--cluster.method",
         type=str,
-        choices=["multiprocessing", "sge"],
+        choices=["sge"],
         default=None,
-        dest="mp_method",
-        help="The multiprocessing method to use",
+        dest="cluster_method",
+        help="The cluster method to use",
+    )
+    parser.add_argument(
+        "--sample.custom.filename",
+        type=str,
+        default=None,
+        dest="sample_custom_filename",
+        help="Choose the phantom to generate",
     )
 
     # Parse the arguments
@@ -93,12 +93,14 @@ def main():
         command_line["output"] = args.output
     if args.phantom is not None:
         command_line["phantom"] = args.phantom
-    if args.max_workers is not None:
-        command_line["max_workers"] = args.max_workers
-    if args.mp_method is not None:
-        command_line["mp_method"] = args.mp_method
-    if args.custom_phantom_filename is not None:
-        command_line["sample"] = {"custom": {"filename": args.custom_phantom_filename}}
+    if args.cluster_max_workers is not None or args.cluster_method is not None:
+        command_line["cluster"] = {}
+    if args.cluster_max_workers is not None:
+        command_line["cluster"]["max_workers"] = args.cluster_max_workers
+    if args.cluster_method is not None:
+        command_line["cluster"]["method"] = args.cluster_method
+    if args.sample_custom_filename is not None:
+        command_line["sample"] = {"custom": {"filename": args.sample_custom_filename}}
 
     # Load the full configuration
     config = elfantasma.config.load_config(args.config, command_line)
@@ -120,10 +122,7 @@ def main():
         beam=config["beam"],
         detector=config["detector"],
         simulation=config["simulation"],
-        multiprocessing={
-            "mp_method": config["mp_method"],
-            "max_workers": config["max_workers"],
-        },
+        cluster=config["cluster"],
     )
 
     # Create the writer

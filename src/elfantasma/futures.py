@@ -10,27 +10,24 @@
 #
 import dask.distributed
 import dask_jobqueue
-import concurrent.futures
 import elfantasma.config
 
 
-def factory(mp_method="multiprocessing", max_workers=1):
+def factory(method="sge", max_workers=1):
     """
     Configure the future to use for parallel processing
 
     Args:
-        method (str): The multiprocessing method (multiprocessing, sge)
+        method (str): The cluster method (sge)
         max_workers (int): The number of worker processes
 
     """
-    if mp_method == "multiprocessing":
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-    elif mp_method == "sge":
+    if method == "sge":
 
         # Create the SGECluster object
         cluster = dask_jobqueue.SGECluster(
-            cores=1,
-            memory="16 GB",
+            cores=8,
+            memory="64 GB",
             queue="all.q",
             project="tomography",
             resource_spec="gpu=1",
@@ -46,7 +43,7 @@ def factory(mp_method="multiprocessing", max_workers=1):
         # Return the client
         executor = dask.distributed.Client(cluster)
     else:
-        raise RuntimeError(f"Unknown multiprocessing method: {mp_method}")
+        raise RuntimeError(f"Unknown multiprocessing method: {method}")
 
     # Return the executor
     return executor

@@ -23,48 +23,22 @@ class SingleImageSimulation(object):
 
     The simulation is structured this way because the input data to the
     simulation is large enough that it makes an overhead to creating the
-    individual processes. Therefore it is more efficient to save the simulation
-    to pickle so that it is only pickled once (instead of for each job)
+    individual processes.
 
     """
 
-    def __init__(self, filename_or_object):
-        """
-        Save the filename to the cached data to load
-
-        Args:
-            filename_or_object (object): The filename or simulation object
-
-        """
-        self.filename_or_object = filename_or_object
-
-    def load_simulation_data(self):
-        """
-        Returns:
-            object: The simulation data
-
-        """
-        if isinstance(self.filename_or_object, str):
-            with open(self.filename_or_object, "rb") as infile:
-                simulation = pickle.load(infile)
-        else:
-            simulation = self.filename_or_object
-        return simulation
-
-    def __call__(self, i):
+    def __call__(self, simulation, i):
         """
         Simulate a single frame
 
         Args:
+            simulation (object): The simulation object
             i (int): The frame number
 
         Returns:
             tuple: (angle, image)
 
         """
-
-        # Load the simulation data
-        simulation = self.load_simulation_data()
 
         # Get the rotation angle
         angle = simulation.angles[i]
@@ -98,7 +72,7 @@ class Simulation(object):
         axis=None,
         angles=None,
         electrons_per_pixel=None,
-        multiprocessing=None,
+        cluster=None,
     ):
         """
         Initialise the simulation
@@ -113,7 +87,7 @@ class Simulation(object):
         self.axis = axis
         self.angles = angles
         self.electrons_per_pixel = electrons_per_pixel
-        self.multiprocessing = multiprocessing
+        self.cluster = cluster
 
     def run(self, writer):
         """
@@ -129,36 +103,32 @@ class Simulation(object):
         # Reshape the writer
         writer.shape = (nz, ny, nx)
 
+        # The single image simulator
+        single_image_simulator = SingleImageSimulation()
+
         # If we are executing in a single process just do a for loop
-        if (
-            self.multiprocessing["mp_method"] == "multiprocessing"
-            and self.multiprocessing["max_workers"] == 1
-        ):
+        if self.cluster["method"] is None:
             for i, angle in enumerate(self.angles):
                 print(f"    Running job: {i+1}/{nz} for angle: {angle} degrees")
-                simulator = SingleImageSimulation(self)
-                angle, image = simulator(i)
+                angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
         else:
 
-            # Set the filename
-            filename = os.path.join(
-                elfantasma.config.temp_directory(), "simulation.pickle"
-            )
-
-            # Save the simulation as pickle
-            self.as_pickle(filename)
-
             # Get the futures executor
-            with elfantasma.futures.factory(**self.multiprocessing) as executor:
+            with elfantasma.futures.factory(**self.cluster) as executor:
+
+                # Copy the data to each worker
+                remote_self = executor.scatter(self)
 
                 # Submit all jobs
                 print("Running simulation...")
                 futures = []
                 for i, angle in enumerate(self.angles):
                     print(f"    Submitting job: {i+1}/{nz} for angle: {angle} degrees")
-                    futures.append(executor.submit(SingleImageSimulation(filename), i))
+                    futures.append(
+                        executor.submit(single_image_simulator, remote_self, i)
+                    )
 
                 # Wait for results
                 for i, future in enumerate(futures):
@@ -230,13 +200,7 @@ def create_system_configuration(device):
 
 
 def create_simulation(
-    sample,
-    scan,
-    device="gpu",
-    beam=None,
-    detector=None,
-    simulation=None,
-    multiprocessing=None,
+    sample, scan, device="gpu", beam=None, detector=None, simulation=None, cluster=None
 ):
     """
     Create the simulation
@@ -336,5 +300,5 @@ def create_simulation(
         scan.axis,
         scan.angles,
         electrons_per_pixel,
-        multiprocessing,
+        cluster,
     )
