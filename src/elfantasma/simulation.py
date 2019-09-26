@@ -270,16 +270,34 @@ def create_simulation(
     # input_multislice.obj_lens_ssf_npoints = 4
 
     # Objective lens
-    input_multislice.obj_lens_m = 0
-    input_multislice.obj_lens_c_10 = 20
-    input_multislice.obj_lens_c_30 = 0.04
-    input_multislice.obj_lens_c_50 = 0.00
-    input_multislice.obj_lens_c_12 = 0.0
-    input_multislice.obj_lens_phi_12 = 0.0
-    input_multislice.obj_lens_c_23 = 0.0
-    input_multislice.obj_lens_phi_23 = 0.0
-    input_multislice.obj_lens_inner_aper_ang = 0.0
-    input_multislice.obj_lens_outer_aper_ang = 0.0
+    input_multislice.obj_lens_m = beam["objective_lens"]["m"]
+    input_multislice.obj_lens_c_10 = beam["objective_lens"]["c_10"]
+    input_multislice.obj_lens_c_12 = beam["objective_lens"]["c_12"]
+    input_multislice.obj_lens_phi_12 = beam["objective_lens"]["phi_12"]
+    input_multislice.obj_lens_c_21 = beam["objective_lens"]["c_21"]
+    input_multislice.obj_lens_phi_21 = beam["objective_lens"]["phi_21"]
+    input_multislice.obj_lens_c_23 = beam["objective_lens"]["c_23"]
+    input_multislice.obj_lens_phi_23 = beam["objective_lens"]["phi_23"]
+    input_multislice.obj_lens_c_30 = beam["objective_lens"]["c_30"]
+    input_multislice.obj_lens_c_32 = beam["objective_lens"]["c_32"]
+    input_multislice.obj_lens_phi_32 = beam["objective_lens"]["phi_32"]
+    input_multislice.obj_lens_c_34 = beam["objective_lens"]["c_34"]
+    input_multislice.obj_lens_phi_34 = beam["objective_lens"]["phi_34"]
+    input_multislice.obj_lens_c_41 = beam["objective_lens"]["c_41"]
+    input_multislice.obj_lens_phi_41 = beam["objective_lens"]["phi_41"]
+    input_multislice.obj_lens_c_43 = beam["objective_lens"]["c_43"]
+    input_multislice.obj_lens_phi_43 = beam["objective_lens"]["phi_43"]
+    input_multislice.obj_lens_c_45 = beam["objective_lens"]["c_45"]
+    input_multislice.obj_lens_phi_45 = beam["objective_lens"]["phi_45"]
+    input_multislice.obj_lens_c_50 = beam["objective_lens"]["c_50"]
+    input_multislice.obj_lens_c_52 = beam["objective_lens"]["c_52"]
+    input_multislice.obj_lens_phi_52 = beam["objective_lens"]["phi_52"]
+    input_multislice.obj_lens_c_54 = beam["objective_lens"]["c_54"]
+    input_multislice.obj_lens_phi_54 = beam["objective_lens"]["phi_54"]
+    input_multislice.obj_lens_c_56 = beam["objective_lens"]["c_56"]
+    input_multislice.obj_lens_phi_56 = beam["objective_lens"]["phi_56"]
+    input_multislice.obj_lens_inner_aper_ang = beam["objective_lens"]["inner_aper_ang"]
+    input_multislice.obj_lens_outer_aper_ang = beam["objective_lens"]["outer_aper_ang"]
 
     # defocus spread function
     dsf_sigma = multem.iehwgd_to_sigma(32)

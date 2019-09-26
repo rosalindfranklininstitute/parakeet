@@ -54,6 +54,36 @@ def default_config():
             E_0: 300
             electrons_per_pixel: 200
 
+            objective_lens:
+                m: 0
+                c_10: 20
+                c_12: 0.0
+                phi_12: 0.0
+                c_21: 0.0
+                phi_21: 0.0
+                c_23: 0.0
+                phi_23: 0.0
+                c_30: 0.04
+                c_32: 0.0
+                phi_32: 0.0
+                c_34: 0.0
+                phi_34: 0.0
+                c_41: 0.0
+                phi_41: 0.0
+                c_43: 0.0
+                phi_43: 0.0
+                c_45: 0.0
+                phi_45: 0.0
+                c_50: 0.0
+                c_52: 0.0
+                phi_52: 0.0
+                c_54: 0.0
+                phi_54: 0.0
+                c_56: 0.0
+                phi_56: 0.0
+                inner_aper_ang: 0.0
+                outer_aper_ang: 0.0
+
         detector:
             nx: 2048
             ny: 2048
