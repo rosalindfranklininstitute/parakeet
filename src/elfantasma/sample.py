@@ -164,6 +164,9 @@ class Sample(object):
         rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
         coords = rotation.apply(coords)
 
+        # Set the rotated coords
+        self.atom_data[["x", "y", "z"]] = coords
+
         # Compute the min and max coords
         self.min_and_max_coords()
 
