@@ -1,5 +1,5 @@
 #
-# elfantasma.phantom.py
+# elfantasma.sample.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -65,6 +65,27 @@ class Sample(object):
         )
         self.atom_data["region"] = self.atom_data["model"]
 
+        # Compute the min and max
+        self.min_and_max_coords()
+
+        # If box size is None then copy to sample size
+        if size is None:
+            self.resize(self.sample_size[:])
+        else:
+            self.resize(size)
+
+        # Recentre the atoms in the box
+        self.recentre()
+
+    def min_and_max_coords(self):
+        """
+        Compute the min and max coords
+
+        Returns:
+            (min, max): The min and max coords
+
+        """
+
         # Get the coordinates
         coords = self.atom_data[["x", "y", "z"]]
 
@@ -78,14 +99,8 @@ class Sample(object):
             self.max_coords = numpy.max(coords, axis=0)
             self.sample_size = self.max_coords - self.min_coords
 
-        # If box size is None then copy to sample size
-        if size is None:
-            self.resize(self.sample_size[:])
-        else:
-            self.resize(size)
-
-        # Recentre the atoms in the box
-        self.recentre()
+        # Return the min and max
+        return self.min_coords, self.max_coords
 
     def resize(self, size=None):
         """
@@ -149,13 +164,8 @@ class Sample(object):
         rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
         coords = rotation.apply(coords)
 
-        # Set the coordinates
-        self.atom_data[["x", "y", "z"]] = coords
-
-        # Get the min and max atom positions
-        self.min_coords = numpy.min(coords, axis=0)
-        self.max_coords = numpy.max(coords, axis=0)
-        self.sample_size = self.max_coords - self.min_coords
+        # Compute the min and max coords
+        self.min_and_max_coords()
 
     def extend(self, other):
         """
@@ -178,11 +188,10 @@ class Sample(object):
         # Set the atom data
         self.atom_data = self.atom_data.append(other.atom_data)
 
-        # Update box sizes
-        coords = self.atom_data[["x", "y", "z"]]
-        self.min_coords = numpy.min(coords, axis=0)
-        self.max_coords = numpy.max(coords, axis=0)
-        self.sample_size = self.max_coords - self.min_coords
+        # Compute the min and max coords
+        self.min_and_max_coords()
+
+        # Set the box as the sample size
         self.box_size = self.sample_size
 
     def validate(self):
@@ -190,8 +199,9 @@ class Sample(object):
         Just validate the box size
 
         """
+        self.min_and_max_coords()
         assert numpy.all(numpy.greater_equal(self.min_coords, (0, 0, 0)))
-        assert numpy.all(numpy.less_equal(self.min_coords, self.box_size))
+        assert numpy.all(numpy.less_equal(self.max_coords, self.box_size))
 
     def info(self):
         """
