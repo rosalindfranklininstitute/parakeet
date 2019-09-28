@@ -8,14 +8,16 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import copy
+import itertools
 import gemmi
 import numpy
+import pandas
 import pickle
+import os
 import scipy.spatial.transform
 import elfantasma.data
 from math import acos, cos, pi, sin
-
-import numpy.random
 
 
 class Sample(object):
@@ -24,21 +26,422 @@ class Sample(object):
 
     """
 
-    def __init__(self, atom_data, length_x, length_y, length_z):
+    def __init__(self, atom_data=None, size=None):
         """
         Initialise the sample
 
         Args:
-            atom_data (list): A list of tuples containing atom data
-            length_x (float): The x size of the sample in A
-            length_y (float): The y size of the sample in A
-            length_z (float): The z size of the sample in A
+            atom_data (object): The sample atom_data
+            size (tuple): The size of the sample box (units: A)
 
         """
+        # Create and empty data frame
+        if atom_data is None:
+            atom_data = pandas.DataFrame()
+            column_info = (
+                ("model", "str"),
+                ("chain", "str"),
+                ("residue", "str"),
+                ("atomic_number", "uint32"),
+                ("x", "float64"),
+                ("y", "float64"),
+                ("z", "float64"),
+                ("occ", "float64"),
+                ("charge", "uint32"),
+            )
+            atom_data = pandas.DataFrame(
+                dict(
+                    (name, pandas.Series([], dtype=dtype))
+                    for name, dtype in column_info
+                )
+            )
+
+        # Set the atom data
         self.atom_data = atom_data
-        self.length_x = length_x
-        self.length_y = length_y
-        self.length_z = length_z
+
+        # Add a couple of columns
+        self.atom_data["sigma"] = pandas.Series(
+            [0.085 for i in range(self.atom_data.shape[0])], dtype="float64"
+        )
+        self.atom_data["region"] = self.atom_data["model"]
+
+        # Get the coordinates
+        coords = self.atom_data[["x", "y", "z"]]
+
+        # Get the min and max atom positions
+        if coords.shape[0] == 0:
+            self.min_coords = numpy.array([0, 0, 0], dtype="float64")
+            self.max_coords = numpy.array([0, 0, 0], dtype="float64")
+            self.sample_size = numpy.array([0, 0, 0], dtype="float64")
+        else:
+            self.min_coords = numpy.min(coords, axis=0)
+            self.max_coords = numpy.max(coords, axis=0)
+            self.sample_size = self.max_coords - self.min_coords
+
+        # If box size is None then copy to sample size
+        if size is None:
+            self.resize(self.sample_size[:])
+        else:
+            self.resize(size)
+
+        # Recentre the atoms in the box
+        self.recentre()
+
+    def resize(self, size=None):
+        """
+        Resize the sample box.
+
+        This must be greater than the box around the sample
+
+        Args:
+            size (tuple): The size of the sample box (units: A)
+
+        """
+        if size is not None:
+            assert numpy.all(numpy.greater_equal(size, self.sample_size))
+        else:
+            size = self.sample_size
+        self.box_size = size
+
+    def recentre(self, position=None):
+        """
+        Recentre the sample in the sample box
+
+        Args:
+            position (tuple): The position to centre on (otherwise the centre of the box)
+
+
+        """
+        if position is None:
+            position = self.box_size / 2.0
+        translation = numpy.array(position) - (self.max_coords + self.min_coords) / 2.0
+        self.translate(translation)
+
+    def translate(self, translation):
+        """
+        Translate the sample by some amount
+
+        Args:
+            translation (tuple): The translation
+
+        """
+
+        # Transform the sample
+        self.atom_data[["x", "y", "z"]] += translation
+
+        # Compute the new max and min
+        self.min_coords += translation
+        self.max_coords += translation
+
+    def rotate(self, vector):
+        """
+        Perform a rotation
+
+        Args:
+            vector (tuple): The rotation vector
+
+        """
+
+        # Get the coordinates
+        coords = self.atom_data[["x", "y", "z"]]
+
+        # Perform the rotation
+        rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
+        coords = rotation.apply(coords)
+
+        # Set the coordinates
+        self.atom_data[["x", "y", "z"]] = coords
+
+        # Get the min and max atom positions
+        self.min_coords = numpy.min(coords, axis=0)
+        self.max_coords = numpy.max(coords, axis=0)
+        self.sample_size = self.max_coords - self.min_coords
+
+    def extend(self, other):
+        """
+        Extend this sample with another
+
+        Args:
+            other (sample): Another sample object
+
+        """
+        # Get the maximum model index
+        if self.atom_data.shape[0] == 0:
+            region = 0
+        else:
+            region = self.atom_data["model"].max() + 1
+
+        # Update the region number and set the model name as a string version of the region
+        other.atom_data["model"] += region
+        other.atom_data["region"] = other.atom_data["model"]
+
+        # Set the atom data
+        self.atom_data = self.atom_data.append(other.atom_data)
+
+        # Update box sizes
+        coords = self.atom_data[["x", "y", "z"]]
+        self.min_coords = numpy.min(coords, axis=0)
+        self.max_coords = numpy.max(coords, axis=0)
+        self.sample_size = self.max_coords - self.min_coords
+        self.box_size = self.sample_size
+
+    def validate(self):
+        """
+        Just validate the box size
+
+        """
+        assert numpy.all(numpy.greater_equal(self.min_coords, (0, 0, 0)))
+        assert numpy.all(numpy.less_equal(self.min_coords, self.box_size))
+
+    def info(self):
+        """
+        Get some sample info
+
+        Returns:
+            str: Some sample info
+
+        """
+        lines = [
+            "Sample information:",
+            "    # models:      %d" % len(set(self.atom_data["model"])),
+            "    # atoms:       %d" % self.atom_data.shape[0],
+            "    Min x:         %.2f" % self.min_coords[0],
+            "    Min y:         %.2f" % self.min_coords[1],
+            "    Min z:         %.2f" % self.min_coords[2],
+            "    Max x:         %.2f" % self.max_coords[0],
+            "    Max y:         %.2f" % self.max_coords[1],
+            "    Max z:         %.2f" % self.max_coords[2],
+            "    Sample size x: %.2f" % self.sample_size[0],
+            "    Sample size y: %.2f" % self.sample_size[1],
+            "    Sample size z: %.2f" % self.sample_size[2],
+            "    Box size x:    %.2f" % self.box_size[0],
+            "    Box size y:    %.2f" % self.box_size[1],
+            "    Box size z:    %.2f" % self.box_size[2],
+        ]
+        return "\n".join(lines)
+
+    def as_gemmi_structure(self):
+        """
+        Get the gemmi structure
+
+        Returns:
+            object: The gemmi structure
+
+        """
+
+        # Sort the values ahead of time
+        self.atom_data.sort_values(by=["model", "chain", "residue"])
+
+        # Create a zip iterator over the arrays
+        structure = zip(
+            self.atom_data["model"],
+            self.atom_data["chain"],
+            self.atom_data["residue"],
+            self.atom_data["atomic_number"],
+            self.atom_data["x"],
+            self.atom_data["y"],
+            self.atom_data["z"],
+            self.atom_data["occ"],
+            self.atom_data["charge"],
+        )
+
+        # Create the structure
+        gemmi_structure = gemmi.Structure()
+
+        # Iterate over the models
+        for model_name, model in itertools.groupby(structure, key=lambda x: x[0]):
+
+            # Iterate over the chains in the model
+            gemmi_model = gemmi.Model(str(model_name))
+            for chain_name, chain in itertools.groupby(model, key=lambda x: x[1]):
+
+                # Iterate over the residues in the chain
+                gemmi_chain = gemmi.Chain(chain_name)
+                for residue_name, residue in itertools.groupby(
+                    chain, key=lambda x: x[2]
+                ):
+
+                    # Iterate over the atoms in the residue
+                    gemmi_residue = gemmi.Residue()
+                    gemmi_residue.name = residue_name
+                    for _, _, _, atomic_number, x, y, z, occ, charge in residue:
+                        gemmi_atom = gemmi.Atom()
+                        gemmi_atom.element = gemmi.Element(atomic_number)
+                        gemmi_atom.pos.x = x
+                        gemmi_atom.pos.y = y
+                        gemmi_atom.pos.z = z
+                        gemmi_atom.occ = occ
+                        gemmi_atom.charge = charge
+                        gemmi_residue.add_atom(gemmi_atom, -1)
+
+                    # Add the residue
+                    gemmi_chain.add_residue(gemmi_residue, -1)
+
+                # Add the chain
+                gemmi_model.add_chain(gemmi_chain, -1)
+
+            # Add the model
+            gemmi_structure.add_model(gemmi_model, -1)
+
+        # Return the structure
+        return gemmi_structure
+
+    def as_cif(self, filename):
+        """
+        Write the sample to a cif file
+
+        Args:
+            filename (str): The output filename
+
+        """
+        self.as_gemmi_structure().make_mmcif_document().write_file(filename)
+
+    def as_pdb(self, filename):
+        """
+        Write the sample to a pdb file
+
+        Args:
+            filename (str): The output filename
+
+        """
+        self.as_gemmi_structure().write_pdb(filename)
+
+    def as_pickle(self, filename):
+        """
+        Write the sample to a pickle file
+
+        Args:
+            filename (str): The output filename
+
+        """
+        with open(filename, "wb") as outfile:
+            pickle.dump(self, outfile)
+
+    def as_file(self, filename):
+        """
+        Write the sample to a file
+
+        Args:
+            filename (str): The output filename
+
+        """
+        extension = os.path.splitext(filename)[1].lower()
+        if extension in [".cif"]:
+            self.as_cif(filename)
+        elif extension in [".pdb"]:
+            self.as_pdb(filename)
+        elif extension in [".p", ".pkl", ".pickle"]:
+            self.as_pickle(filename)
+        else:
+            raise RuntimeError(f"File with unknown extension: {filename}")
+
+    @classmethod
+    def from_gemmi_structure(Class, structure):
+        """
+        Read the sample from a gemmi sucture
+
+        Args:
+            structure (object): The input structure
+
+        Returns:
+            object: The Sample object
+
+        """
+
+        # The column data
+        column_info = (
+            ("model", "uint32"),
+            ("chain", "str"),
+            ("residue", "str"),
+            ("atomic_number", "uint32"),
+            ("x", "float64"),
+            ("y", "float64"),
+            ("z", "float64"),
+            ("occ", "float64"),
+            ("charge", "uint32"),
+        )
+
+        # Iterate through the atoms
+        def iterate_atoms(structure):
+            for model_index, model in enumerate(structure):
+                for chain in model:
+                    for residue in chain:
+                        for atom in residue:
+                            yield (
+                                model_index,
+                                chain.name,
+                                residue.name,
+                                atom.element.atomic_number,
+                                atom.pos.x,
+                                atom.pos.y,
+                                atom.pos.z,
+                                atom.occ,
+                                atom.charge,
+                            )
+
+        # Create a dictionary of column data
+        def create_atom_data(structure, column_info):
+            return dict(
+                (name, pandas.Series(data, dtype=dtype))
+                for data, (name, dtype) in zip(
+                    zip(*iterate_atoms(structure)), column_info
+                )
+            )
+
+        # Return the sample with the atom data as a pandas dataframe
+        return Sample(pandas.DataFrame(create_atom_data(structure, column_info)))
+
+    @classmethod
+    def from_gemmi_file(Class, filename):
+        """
+        Read the sample from a file
+
+        Args:
+            filename (str): The input filename
+
+        Returns:
+            object: The Sample object
+
+        """
+
+        # Read the structure
+        return Class.from_gemmi_structure(gemmi.read_structure(filename))
+
+    @classmethod
+    def from_pickle(Class, filename):
+        """
+        Read the sample from a file
+
+        Args:
+            filename (str): The input filename
+
+        Returns:
+            object: The Sample object
+
+        """
+        with open(filename, "rb") as infile:
+            return pickle.load(infile)
+
+    @classmethod
+    def from_file(Class, filename):
+        """
+        Read the sample from a file
+
+        Args:
+            filename (str): The input filename
+
+        Returns:
+            object: The Sample object
+
+        """
+        extension = os.path.splitext(filename)[1].lower()
+        if extension in [".cif", ".pdb"]:
+            obj = Class.from_gemmi_file(filename)
+        elif extension in [".p", ".pkl", ".pickle"]:
+            obj = Class.from_pickle(filename)
+        else:
+            raise RuntimeError(f"File with unknown extension: {filename}")
+        return obj
 
 
 def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
@@ -62,90 +465,31 @@ def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
 
-    # Read the structure
-    structure = gemmi.read_structure(filename)
+    # Create the sample
+    sample = Sample.from_file(filename)
 
-    # Iterate through atoms and create the atom data
-    element = []
-    x = []
-    y = []
-    z = []
-    occ = []
-    charge = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    element.append(atom.element.atomic_number)
-                    x.append(atom.pos.x)
-                    y.append(atom.pos.y)
-                    z.append(atom.pos.z)
-                    occ.append(atom.occ)
-                    charge.append(atom.charge)
+    # Set the size
+    if length_x is None or length_y is None or length_z is None:
+        size = sample.sample_size * 2.0
+    else:
+        size = (length_x, length_y, length_z)
 
-    # Cast to numpy array
-    x = numpy.array(x, dtype=numpy.float64)
-    y = numpy.array(y, dtype=numpy.float64)
-    z = numpy.array(z, dtype=numpy.float64)
+    # Resize and recentre
+    sample.resize(size)
+    sample.recentre()
+    print(sample.info())
+    sample.validate()
 
-    # Get the min and max atom positions
-    min_x = min(x)
-    min_y = min(y)
-    min_z = min(z)
-    max_x = max(x)
-    max_y = max(y)
-    max_z = max(z)
-
-    # Set the total size of the sample
-    if length_x is None:
-        length_x = 2.0 * (max_x - min_x)
-    if length_y is None:
-        length_y = 2.0 * (max_y - min_y)
-    if length_z is None:
-        length_z = 2.0 * (max_z - min_z)
-    assert length_x > (max_x - min_x)
-    assert length_y > (max_y - min_y)
-    assert length_z > (max_z - min_z)
-
-    # Translate the structure so that it is centred in the sample
-    x += (length_x - (max_x + min_x)) / 2.0
-    y += (length_y - (max_y + min_y)) / 2.0
-    z += (length_z - (max_z + min_z)) / 2.0
-
-    # Create sigma and region
-    sigma = [0.085 for number in element]  # From multem HRTEM example
-    region = [0 for number in element]
-
-    # Print some sample information
-    print("Sample information:")
-    print("    # atoms: %d" % len(element))
-    print("    Min x:   %.2f" % min(x))
-    print("    Min y:   %.2f" % min(y))
-    print("    Min z:   %.2f" % min(z))
-    print("    Max x:   %.2f" % max(x))
-    print("    Max y:   %.2f" % max(y))
-    print("    Max z:   %.2f" % max(z))
-    print("    Len x:   %.2f" % length_x)
-    print("    Len y:   %.2f" % length_y)
-    print("    Len z:   %.2f" % length_z)
-
-    # Return the atom data
-    return Sample(
-        list(zip(element, x, y, z, sigma, occ, region, charge)),
-        length_x,
-        length_y,
-        length_z,
-    )
+    # Return the sample
+    return sample
 
 
-def distribute_boxes_uniformly(length_x, length_y, length_z, boxes, max_tries=1000):
+def distribute_boxes_uniformly(volume_size, boxes, max_tries=1000):
     """
     Find n random non overlapping positions for cubes within a volume
 
     Args:
-        length_x (float): The X size of the box
-        length_y (float): The Y size of the box
-        length_z (float): The Z size of the box
+        volume_size (float): The size of the volume
         boxes (float): The list of boxes
         max_tries (int): The maximum tries per cube
 
@@ -179,7 +523,7 @@ def distribute_boxes_uniformly(length_x, length_y, length_z, boxes, max_tries=10
 
         # The bounds to search in
         lower = box_size / 2
-        upper = numpy.array((length_x, length_y, length_z)) - box_size / 2
+        upper = volume_size - box_size / 2
         assert lower[0] < upper[0]
         assert lower[1] < upper[1]
         assert lower[2] < upper[2]
@@ -246,47 +590,12 @@ def create_ribosomes_in_lamella_sample(
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
 
-    # Read the structure
-    structure = gemmi.read_structure(filename)
+    # Create a single ribosome sample
+    single_sample = Sample.from_file(filename)
+    single_sample.recentre((0, 0, 0))
 
-    # Iterate through atoms and create the atom data
-    element = []
-    x = []
-    y = []
-    z = []
-    occ = []
-    charge = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    element.append(atom.element.atomic_number)
-                    x.append(atom.pos.x)
-                    y.append(atom.pos.y)
-                    z.append(atom.pos.z)
-                    occ.append(atom.occ)
-                    charge.append(atom.charge)
-
-    # Recentre the coords on zero
-    def recentre(coords):
-
-        # Get the min and max atom positions
-        min_coords = numpy.min(coords, axis=0)
-        max_coords = numpy.max(coords, axis=0)
-
-        # Compute the size of the box around the ribosomes
-        size = max_coords - min_coords
-
-        # Set the total size of the sample
-        assert length_x > size[0]
-        assert length_y > size[1]
-        assert length_z > size[2]
-
-        # Recentre coords on zero (needed for rotation)
-        return coords - (max_coords + min_coords) / 2.0
-
-    # Cast to numpy array
-    coords = recentre(numpy.array(list(zip(x, y, z)), dtype=numpy.float64))
+    # Set the sample size
+    box_size = numpy.array([length_x, length_y, length_z])
 
     # Generate some randomly oriented ribosome coordinates
     ribosomes = []
@@ -295,84 +604,38 @@ def create_ribosomes_in_lamella_sample(
         # Get a random rotation
         vector = random_uniform_rotation()
 
-        # Create the scipy rotation object and apply the rotation
-        rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
-        ribosomes.append(recentre(rotation.apply(coords)))
+        # Copy the ribosomes
+        ribosome = copy.deepcopy(single_sample)
+        ribosome.rotate(vector)
+        ribosome.recentre((0, 0, 0))
+        ribosomes.append(ribosome)
 
-    # Get the min and max coords or each ribosome and return the box size
+    # Get the ribosome sample size
     def ribosome_boxes(ribosomes):
-        for transformed_coords in ribosomes:
-            min_coords = numpy.min(transformed_coords, axis=0)
-            max_coords = numpy.max(transformed_coords, axis=0)
-            yield max_coords - min_coords
+        for ribosome in ribosomes:
+            yield ribosome.sample_size
 
     # Put the ribosomes in the sample
-    sample_element = []
-    sample_x = []
-    sample_y = []
-    sample_z = []
-    sample_occ = []
-    sample_charge = []
+    print("Placing ribosomes:")
+    sample = Sample()
     for i, translation in enumerate(
-        distribute_boxes_uniformly(
-            length_x, length_y, length_z, ribosome_boxes(ribosomes)
-        )
+        distribute_boxes_uniformly(box_size, ribosome_boxes(ribosomes))
     ):
+        print(f"    Placing ribosome {i}")
 
         # Apply the translation
-        ribosomes[i] += translation
+        ribosomes[i].translate(translation)
 
-        # Extend the arrays
-        sample_element.extend(element)
-        sample_x.extend(ribosomes[i][:, 0])
-        sample_y.extend(ribosomes[i][:, 1])
-        sample_z.extend(ribosomes[i][:, 2])
-        sample_occ.extend(occ)
-        sample_charge.extend(charge)
+        # Extend the sample
+        sample.extend(ribosomes[i])
 
-    # Create sigma and region
-    sample_sigma = [0.085 for number in sample_element]  # From multem HRTEM example
-    sample_region = [0 for number in sample_element]
+    # Resize and print some info
+    sample.resize(box_size)
+    print(sample.info())
+    sample.validate()
 
-    # Print some sample information
-    print("Sample information:")
-    print("    # atoms: %d" % len(sample_element))
-    print("    Min x:   %.2f" % min(sample_x))
-    print("    Min y:   %.2f" % min(sample_y))
-    print("    Min z:   %.2f" % min(sample_z))
-    print("    Max x:   %.2f" % max(sample_x))
-    print("    Max y:   %.2f" % max(sample_y))
-    print("    Max z:   %.2f" % max(sample_z))
-    print("    Len x:   %.2f" % length_x)
-    print("    Len y:   %.2f" % length_y)
-    print("    Len z:   %.2f" % length_z)
-
-    # Check positions
-    assert min(sample_x) > 0
-    assert min(sample_y) > 0
-    assert min(sample_z) > 0
-    assert max(sample_x) < length_x
-    assert max(sample_y) < length_y
-    assert max(sample_z) < length_z
-
-    # Return the atom data
-    return Sample(
-        list(
-            zip(
-                sample_element,
-                sample_x,
-                sample_y,
-                sample_z,
-                sample_sigma,
-                sample_occ,
-                sample_region,
-                sample_charge,
-            )
-        ),
-        length_x,
-        length_y,
-        length_z,
-    )
+    # Return the sample
+    return sample
 
 
 def create_custom_sample(filename=None):
@@ -387,9 +650,7 @@ def create_custom_sample(filename=None):
 
     """
     print(f"Reading sample information from {filename}")
-    with open(filename, "rb") as infile:
-        sample = pickle.load(infile)
-    return sample
+    return Sample.from_file(filename)
 
 
 def create_sample(name, **kwargs):

@@ -10,7 +10,6 @@
 #
 import argparse
 import gemmi
-import pickle
 import time
 import elfantasma.io
 import elfantasma.config
@@ -313,8 +312,7 @@ def create_sample():
 
     # Write the sample to file
     print(f"Writing sample to {args.output}")
-    with open(args.output, "wb") as outfile:
-        pickle.dump(sample, outfile)
+    sample.as_file(args.output)
 
 
 if __name__ == "__main__":
