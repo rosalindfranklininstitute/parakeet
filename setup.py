@@ -25,6 +25,7 @@ def main():
             "h5py",
             "mrcfile",
             "numpy",
+            "pandas",
             "pillow",
             "python-multem",
             "scipy",
