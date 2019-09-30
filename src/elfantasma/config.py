@@ -47,6 +47,12 @@ def default_config():
                 length_z: 500
                 number_of_ribosomes: 10
 
+            ribosomes_in_cylinder:
+                radius: 1500
+                length: 100000
+                margin: 500
+                number_of_ribosomes: 100
+
             custom:
                 filename: null
 

@@ -15,9 +15,10 @@ import numpy
 import pandas
 import pickle
 import os
+import scipy.constants
 import scipy.spatial.transform
 import elfantasma.data
-from math import acos, cos, pi, sin
+from math import acos, cos, pi, sin, sqrt, floor
 
 
 class Sample(object):
@@ -26,7 +27,7 @@ class Sample(object):
 
     """
 
-    def __init__(self, atom_data=None, size=None):
+    def __init__(self, atom_data=None, size=None, recentre=True):
         """
         Initialise the sample
 
@@ -75,7 +76,8 @@ class Sample(object):
             self.resize(size)
 
         # Recentre the atoms in the box
-        self.recentre()
+        if recentre:
+            self.recentre()
 
     @property
     def spec_atoms(self):
@@ -443,6 +445,23 @@ class Sample(object):
         return Class.from_gemmi_structure(gemmi.read_structure(filename))
 
     @classmethod
+    def from_ligand_file(Class, filename):
+        """
+        Read the sample from a file
+
+        Args:
+            filename (str): The input filename
+
+        Returns:
+            object: The Sample object
+
+        """
+        # Create a single ribosome sample
+        return Class.from_gemmi_structure(
+            gemmi.make_structure_from_chemcomp_block(gemmi.cif.read(filename)[0])
+        )
+
+    @classmethod
     def from_pickle(Class, filename):
         """
         Read the sample from a file
@@ -673,6 +692,105 @@ def create_ribosomes_in_lamella_sample(
     return sample
 
 
+def create_ribosomes_in_cylinder_sample(
+    radius=1500, margin=500, length=10000, number_of_ribosomes=20
+):
+    """
+    Create a sample with some Ribosomes in ice
+
+    The cylinder will have it's circular cross section in the Y/Z plane and
+    will be elongated in along the X axis. A margin will be put in the Y axis
+    such that each image will fully contain the width of the cylinder.
+
+    Args:
+        radius (float): The radius of the cylinder (units: A)
+        length (float): The length of the cylinder (units: A)
+        margin (float): The margin around the cylinder (units: A)
+        number_of_ribosomes (int): The number of ribosomes to place
+
+    Returns:
+        object: The atom data
+
+    """
+    print("Creating sample: ribosomes_in_cylinder")
+
+    # Get the filename of the water.cif file
+    filename = elfantasma.data.get_path("water.cif")
+
+    # Create a single ribosome sample
+    single_water = Sample.from_ligand_file(filename)
+    single_water.recentre((0, 0, 0))
+
+    # Compute the number of water molecules
+    avogadros_number = scipy.constants.Avogadro
+    molar_mass_of_water = 18.01528  # grams / mole
+    density_of_water = 997  # kg / m^3
+    volume_of_cylinder = pi * radius ** 2 * length  # A^3
+    mass_of_cylinder = (density_of_water * 1000) * (
+        volume_of_cylinder * 1e-10 ** 3
+    )  # g
+    number_of_waters = int(
+        floor((mass_of_cylinder / molar_mass_of_water) * avogadros_number)
+    )
+
+    # Print some stuff of water
+    print("Water information:")
+    print("    Volume of cylinder: %g m^3" % (volume_of_cylinder * 1e-10 ** 3))
+    print("    Density of water: %g kg/m^3" % density_of_water)
+    print("    Mass of cylinder: %g kg" % (mass_of_cylinder / 1000))
+    print("    Number of water molecules to place: %d" % number_of_waters)
+
+    # Get the filename of the 4v5d.cif file
+    filename = elfantasma.data.get_path("4v5d.cif")
+
+    # Create a single ribosome sample
+    single_sample = Sample.from_file(filename)
+    single_sample.recentre((0, 0, 0))
+
+    # Set the cuboid size and box size
+    cuboid_size = numpy.array([length, sqrt(2) * radius, sqrt(2) * radius])
+    box_size = numpy.array([length, 2 * (radius + margin), 2 * (radius + margin)])
+
+    # Generate some randomly oriented ribosome coordinates
+    ribosomes = []
+    for i in range(number_of_ribosomes):
+
+        # Get a random rotation
+        vector = random_uniform_rotation()
+
+        # Copy the ribosomes
+        ribosome = copy.deepcopy(single_sample)
+        ribosome.atom_data["model"] += i
+        ribosome.atom_data["region"] = ribosome.atom_data["model"]
+        ribosome.rotate(vector)
+        ribosome.recentre((0, 0, 0))
+        ribosomes.append(ribosome)
+
+    # Get the ribosome sample size
+    def ribosome_boxes(ribosomes):
+        for ribosome in ribosomes:
+            yield ribosome.sample_size
+
+    # Put the ribosomes in the sample
+    print("Placing ribosomes:")
+    for i, translation in enumerate(
+        distribute_boxes_uniformly(cuboid_size, ribosome_boxes(ribosomes))
+    ):
+        print(f"    Placing ribosome {i}")
+
+        # Apply the translation
+        ribosomes[i].translate(translation + numpy.array([0, margin, margin]))
+
+    # Create the sample
+    sample = Sample(pandas.concat([r.atom_data for r in ribosomes]), recentre=False)
+    sample.resize(box_size)
+    print(sample.info())
+    sample.validate()
+
+    # Return the sample
+    return sample
+
+
 def create_custom_sample(filename=None):
     """
     Create the custom sample from file
@@ -702,5 +820,6 @@ def create_sample(name, **kwargs):
     return {
         "4v5d": create_4v5d_sample,
         "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
+        "ribosomes_in_cylinder": create_ribosomes_in_cylinder_sample,
         "custom": create_custom_sample,
     }[name](**kwargs[name])
