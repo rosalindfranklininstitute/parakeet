@@ -77,6 +77,28 @@ class Sample(object):
         # Recentre the atoms in the box
         self.recentre()
 
+    @property
+    def spec_atoms(self):
+        """
+        Get the subset of data needed to the simulation
+
+        Returns:
+            list: A list of tuples
+
+        """
+        return list(
+            zip(
+                self.atom_data["atomic_number"],
+                self.atom_data["x"],
+                self.atom_data["y"],
+                self.atom_data["z"],
+                self.atom_data["sigma"],
+                self.atom_data["occ"],
+                self.atom_data["region"],
+                self.atom_data["charge"],
+            )
+        )
+
     def min_and_max_coords(self):
         """
         Compute the min and max coords

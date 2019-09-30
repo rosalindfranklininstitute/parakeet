@@ -237,10 +237,10 @@ def create_simulation(
     input_multislice.pn_seed = 300_183
 
     # Set the atoms of the sample
-    input_multislice.spec_atoms = sample.atom_data
-    input_multislice.spec_lx = sample.length_x
-    input_multislice.spec_ly = sample.length_y
-    input_multislice.spec_lz = sample.length_z
+    input_multislice.spec_atoms = sample.spec_atoms
+    input_multislice.spec_lx = sample.box_size[0]
+    input_multislice.spec_ly = sample.box_size[1]
+    input_multislice.spec_lz = sample.box_size[2]
     input_multislice.spec_dz = simulation["slice_thickness"]
 
     # Set the amorphous layers

@@ -140,7 +140,7 @@ def main():
     writer.as_file(config["output"])
 
     # Write some timing stats
-    print("Time taken: %.2f seconds" % time.time() - start_time)
+    print("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
 def show_config_main():
