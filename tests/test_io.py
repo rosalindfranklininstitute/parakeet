@@ -37,6 +37,9 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
         writer.position[i] = position[i]
 
     assert writer.shape == data.shape
+    assert writer.is_mrcfile_writer == True
+    assert writer.is_nexus_writer == False
+    assert writer.is_image_writer == False
 
     # Test different ways of writing position
     writer.position[0, 0] = position[0][0]
@@ -69,6 +72,9 @@ def test_write_nexus(tmp_path, io_test_data):
         writer.position[i] = position[i]
 
     assert writer.shape == data.shape
+    assert writer.is_mrcfile_writer == False
+    assert writer.is_nexus_writer == True
+    assert writer.is_image_writer == False
 
     # Test different ways of writing position
     writer.position[0, 0] = position[0][0]
@@ -102,9 +108,30 @@ def test_write_images(tmp_path, io_test_data):
             writer.position[i] = position[i]
 
         assert writer.shape == data.shape
+        assert writer.is_mrcfile_writer == False
+        assert writer.is_nexus_writer == False
+        assert writer.is_image_writer == True
+        assert writer.vmin == vmin
+        assert writer.vmax == vmax
+        if vmin is not None and vmax is not None:
+            writer.vmin = vmin + 1
+            writer.vmax = vmax - 1
+            assert writer.vmin == vmin + 1
+            assert writer.vmax == vmax - 1
 
         for i in range(data.shape[0]):
             assert os.path.exists(filename % (i + 1))
 
     test(None, None)
     test(numpy.min(data), numpy.max(data))
+
+
+def test_unknown_image(tmp_path):
+
+    filename = os.path.join(tmp_path, "tmp.unknown")
+
+    with pytest.raises(RuntimeError):
+        writer = elfantasma.io.new(filename, shape=(1, 10, 10))
+
+    with pytest.raises(RuntimeError):
+        reader = elfantasma.io.open(filename)
