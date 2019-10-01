@@ -91,7 +91,7 @@ class Sample(object):
                 self.atom_data["z"],
                 self.atom_data["sigma"],
                 self.atom_data["occ"],
-                self.atom_data["model"],
+                [0 for i in range(len(self.atom_data["model"]))],
                 self.atom_data["charge"],
             )
         )

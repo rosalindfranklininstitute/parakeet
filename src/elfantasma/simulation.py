@@ -211,7 +211,7 @@ class Simulation(object):
                 futures = []
                 for i, angle in enumerate(self.angles):
                     print(
-                        f"    Submitting job: {i+1}/{self.shape[0]} for angle: {angle} degrees"
+                        f"    Submitting job: {i+1}/{self.shape[0]} for {angle} degrees"
                     )
                     futures.append(
                         executor.submit(single_image_simulator, remote_self, i)

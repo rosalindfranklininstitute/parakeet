@@ -208,6 +208,7 @@ def convert():
             print(f"    Reading image {i}")
             min_image.append(numpy.min(reader.data[i, :, :]))
             max_image.append(numpy.max(reader.data[i, :, :]))
+            print("        min/max: %f/%f" % (min_image[-1], max_image[-1]))
         writer.vmin = min(min_image)
         writer.vmax = max(max_image)
         print("Min: %f" % writer.vmin)
