@@ -26,7 +26,7 @@ def factory(method="sge", max_workers=1):
 
         # Create the SGECluster object
         cluster = dask_jobqueue.SGECluster(
-            cores=8,
+            cores=1,
             memory="64 GB",
             queue="all.q",
             project="tomography",

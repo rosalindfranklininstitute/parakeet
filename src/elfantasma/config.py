@@ -49,7 +49,7 @@ def default_config():
 
             ribosomes_in_cylinder:
                 radius: 1500
-                length: 100000
+                length: 10000
                 margin: 500
                 number_of_ribosomes: 100
 
@@ -91,15 +91,18 @@ def default_config():
                 outer_aper_ang: 0.0
 
         detector:
-            nx: 2048
-            ny: 2048
+            nx: 4000
+            ny: 4000
+            pixel_size: 1
 
         scan:
             mode: still
-            axis: 1,0,0
+            axis: [1,0,0]
             start_angle: 0
             stop_angle: 360
             step_angle: 10
+            start_pos: 0
+            stop_pos: 0
 
         simulation:
             slice_thickness: 3.0

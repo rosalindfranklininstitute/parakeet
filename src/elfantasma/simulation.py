@@ -15,6 +15,7 @@ import os
 import pickle
 import elfantasma.config
 import elfantasma.futures
+import elfantasma.sample
 
 
 class SingleImageSimulation(object):
@@ -42,10 +43,27 @@ class SingleImageSimulation(object):
 
         # Get the rotation angle
         angle = simulation.angles[i]
+        position = simulation.positions[i]
 
         # Set the rotation angle
         simulation.input_multislice.spec_rot_theta = angle
-        simulation.input_multislice.spec_rot_u0 = [1, 0, 0]
+        simulation.input_multislice.spec_rot_u0 = simulation.axis
+
+        # The field of view
+        x_fov = simulation.detector["nx"] * simulation.detector["pixel_size"]
+        y_fov = simulation.detector["ny"] * simulation.detector["pixel_size"]
+
+        # Get the specimen atoms
+        print(f"Simulating image {i}")
+        spec_atoms = self.spec_atoms(
+            simulation.sample, position, position + x_fov, 0, y_fov
+        )
+
+        # Set the atoms of the sample
+        simulation.input_multislice.spec_atoms = spec_atoms
+        simulation.input_multislice.spec_lx = x_fov
+        simulation.input_multislice.spec_ly = y_fov
+        simulation.input_multislice.spec_lz = simulation.sample.box_size[2]
 
         # Run the simulation
         output_multislice = multem.simulate(
@@ -58,6 +76,50 @@ class SingleImageSimulation(object):
         # Compute the image scaled with Poisson noise
         return angle, numpy.random.poisson(simulation.electrons_per_pixel * ideal_image)
 
+    def spec_atoms(self, sample, x0, x1, y0, y1):
+        """
+        Get a subset of atoms within the field of view
+
+        Args:
+            sample (object): The sample object
+            x0 (float): The lowest X
+            x1 (float): The highest X
+            y0 (float): The lowest Y
+            y1 (float): The highest Y
+
+        Returns:
+            list: The spec atoms list
+
+        """
+        data = sample.atom_data
+
+        # Get a selection
+        selection = data.loc[
+            (data["x"] >= x0)
+            & (data["x"] <= x1)
+            & (data["y"] >= y0)
+            & (data["y"] <= y1)
+        ]
+
+        # Get the subset
+        subset = elfantasma.sample.Sample(selection, recentre=False)
+
+        # Translate for the simulation
+        subset.translate((-x0, -y0, 0))
+
+        # Print some info
+        print("Whole sample:")
+        print(sample.info())
+        print("Selection:")
+        print("    Min box x: %.2f" % x0)
+        print("    Max box x: %.2f" % x1)
+        print("    Min box y: %.2f" % y0)
+        print("    Max box x: %.2f" % y1)
+        print(subset.info())
+
+        # Return the subset as a list
+        return subset.spec_atoms
+
 
 class Simulation(object):
     """
@@ -69,8 +131,11 @@ class Simulation(object):
         self,
         system_conf,
         input_multislice,
+        sample=None,
+        detector=None,
         axis=None,
         angles=None,
+        positions=None,
         electrons_per_pixel=None,
         cluster=None,
     ):
@@ -82,10 +147,17 @@ class Simulation(object):
             input_multislice (object): The input object
 
         """
+
+        # Check the input
+        assert len(angles) == len(positions)
+
         self.system_conf = system_conf
         self.input_multislice = input_multislice
+        self.sample = sample
+        self.detector = detector
         self.axis = axis
         self.angles = angles
+        self.positions = positions
         self.electrons_per_pixel = electrons_per_pixel
         self.cluster = cluster
 
@@ -115,18 +187,23 @@ class Simulation(object):
         # If we are executing in a single process just do a for loop
         if self.cluster["method"] is None:
             for i, angle in enumerate(self.angles):
-                print(
-                    f"    Running job: {i+1}/{self.shape[0]} for angle: {angle} degrees"
-                )
+                print(f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees")
                 angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
         else:
 
+            # Set the maximum number of workers
+            self.cluster["max_workers"] = min(
+                self.cluster["max_workers"], self.shape[0]
+            )
+            print("Initialising %d worker threads" % self.cluster["max_workers"])
+
             # Get the futures executor
             with elfantasma.futures.factory(**self.cluster) as executor:
 
                 # Copy the data to each worker
+                print("Copying data to workers...")
                 remote_self = executor.scatter(self)
 
                 # Submit all jobs
@@ -246,11 +323,7 @@ def create_simulation(
     input_multislice.pn_dim = 110
     input_multislice.pn_seed = 300_183
 
-    # Set the atoms of the sample
-    input_multislice.spec_atoms = sample.spec_atoms
-    input_multislice.spec_lx = sample.box_size[0]
-    input_multislice.spec_ly = sample.box_size[1]
-    input_multislice.spec_lz = sample.box_size[2]
+    # Set the slice thickness
     input_multislice.spec_dz = simulation["slice_thickness"]
 
     # Set the amorphous layers
@@ -325,8 +398,11 @@ def create_simulation(
     return Simulation(
         system_conf,
         input_multislice,
+        sample,
+        detector,
         scan.axis,
         scan.angles,
+        scan.positions,
         electrons_per_pixel,
         cluster,
     )

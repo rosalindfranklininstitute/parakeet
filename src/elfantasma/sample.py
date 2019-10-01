@@ -40,7 +40,7 @@ class Sample(object):
         if atom_data is None:
             atom_data = pandas.DataFrame()
             column_info = (
-                ("model", "str"),
+                ("model", "uint32"),
                 ("chain", "str"),
                 ("residue", "str"),
                 ("atomic_number", "uint32"),
@@ -49,6 +49,7 @@ class Sample(object):
                 ("z", "float64"),
                 ("occ", "float64"),
                 ("charge", "uint32"),
+                ("sigma", "float64"),
             )
             atom_data = pandas.DataFrame(
                 dict(
@@ -59,12 +60,6 @@ class Sample(object):
 
         # Set the atom data
         self.atom_data = atom_data
-
-        # Add a couple of columns
-        self.atom_data["sigma"] = pandas.Series(
-            [0.085 for i in range(self.atom_data.shape[0])], dtype="float64"
-        )
-        self.atom_data["region"] = self.atom_data["model"]
 
         # Compute the min and max
         self.min_and_max_coords()
@@ -96,7 +91,7 @@ class Sample(object):
                 self.atom_data["z"],
                 self.atom_data["sigma"],
                 self.atom_data["occ"],
-                self.atom_data["region"],
+                self.atom_data["model"],
                 self.atom_data["charge"],
             )
         )
@@ -210,7 +205,6 @@ class Sample(object):
 
         # Update the region number and set the model name as a string version of the region
         other.atom_data["model"] += region
-        other.atom_data["region"] = other.atom_data["model"]
 
         # Set the atom data
         self.atom_data = self.atom_data.append(other.atom_data)
@@ -396,6 +390,7 @@ class Sample(object):
             ("z", "float64"),
             ("occ", "float64"),
             ("charge", "uint32"),
+            ("sigma", "float64"),
         )
 
         # Iterate through the atoms
@@ -414,6 +409,7 @@ class Sample(object):
                                 atom.pos.z,
                                 atom.occ,
                                 atom.charge,
+                                0.085,  # From MULTEM HRTEM example
                             )
 
         # Create a dictionary of column data
@@ -753,15 +749,16 @@ def create_ribosomes_in_cylinder_sample(
 
     # Generate some randomly oriented ribosome coordinates
     ribosomes = []
+    print("Generating random orientations:")
     for i in range(number_of_ribosomes):
 
         # Get a random rotation
+        print(f"    Generating orientation for ribosome {i}")
         vector = random_uniform_rotation()
 
         # Copy the ribosomes
         ribosome = copy.deepcopy(single_sample)
         ribosome.atom_data["model"] += i
-        ribosome.atom_data["region"] = ribosome.atom_data["model"]
         ribosome.rotate(vector)
         ribosome.recentre((0, 0, 0))
         ribosomes.append(ribosome)
@@ -773,13 +770,14 @@ def create_ribosomes_in_cylinder_sample(
 
     # Put the ribosomes in the sample
     print("Placing ribosomes:")
+    correction = margin + (1 - 1 / sqrt(2)) * radius
     for i, translation in enumerate(
         distribute_boxes_uniformly(cuboid_size, ribosome_boxes(ribosomes))
     ):
         print(f"    Placing ribosome {i}")
 
         # Apply the translation
-        ribosomes[i].translate(translation + numpy.array([0, margin, margin]))
+        ribosomes[i].translate(translation + numpy.array([0, correction, correction]))
 
     # Create the sample
     sample = Sample(pandas.concat([r.atom_data for r in ribosomes]), recentre=False)

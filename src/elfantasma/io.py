@@ -53,6 +53,30 @@ class Writer(object):
         """
         return self._position
 
+    @property
+    def is_mrcfile_writer(self):
+        """
+        Return if is mrcfile
+
+        """
+        return isinstance(self, MrcFileWriter)
+
+    @property
+    def is_nexus_writer(self):
+        """
+        Return if is nexus
+
+        """
+        return isinstance(self, NexusWriter)
+
+    @property
+    def is_image_writer(self):
+        """
+        Return if is image
+
+        """
+        return isinstance(self, ImageWriter)
+
 
 class MrcFileWriter(Writer):
     """
@@ -272,7 +296,6 @@ class ImageWriter(Writer):
 
             # Save the image to file
             filename = self.template % (item[0] + 1)
-            print(f"    writing image {item[0]+1} to {filename}")
             image = (data * s1 + s0).astype(numpy.uint8)
             PIL.Image.fromarray(image).save(filename)
 
@@ -292,6 +315,38 @@ class ImageWriter(Writer):
         # Create dummy arrays for angle and position
         self._angle = numpy.zeros(shape=shape[0], dtype=numpy.float32)
         self._position = numpy.zeros(shape=(shape[0], 3), dtype=numpy.float32)
+
+    @property
+    def vmin(self):
+        """
+        The vmin property
+
+        """
+        return self._data.vmin
+
+    @property
+    def vmax(self):
+        """
+        The vmax property
+
+        """
+        return self._data.vmax
+
+    @vmin.setter
+    def vmin(self, vmin):
+        """
+        The vmin propety setter
+
+        """
+        self._data.vmin = vmin
+
+    @vmax.setter
+    def vmax(self, vmax):
+        """
+        The vmax property setter
+
+        """
+        self._data.vmax = vmax
 
 
 class Reader(object):
@@ -318,6 +373,7 @@ class Reader(object):
         self.data = data
         self.angle = angle
         self.position = position
+        self.shape = data.shape
 
     @classmethod
     def from_mrcfile(Class, filename):

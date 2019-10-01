@@ -10,6 +10,7 @@
 #
 import argparse
 import gemmi
+import numpy
 import time
 import elfantasma.io
 import elfantasma.config
@@ -196,12 +197,23 @@ def convert():
 
     # Create the write
     print(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(
-        args.output,
-        shape=reader.data.shape,
-        vmin=reader.data.min(),
-        vmax=reader.data.max(),
-    )
+    writer = elfantasma.io.new(args.output, shape=reader.data.shape)
+
+    # If converting to images, determine min and max
+    if writer.is_image_writer:
+        print("Computing min and max of dataset:")
+        min_image = []
+        max_image = []
+        for i in range(reader.shape[0]):
+            print(f"    Reading image {i}")
+            min_image.append(numpy.min(reader.data[i, :, :]))
+            max_image.append(numpy.max(reader.data[i, :, :]))
+        writer.vmin = min(min_image)
+        writer.vmax = max(max_image)
+        print("Min: %f" % writer.vmin)
+        print("Max: %f" % writer.vmax)
+
+    # Write the data
     for i in range(reader.shape[0]):
         print(f"    Copying image {i}")
         writer.data[i, :, :] = reader.data[i, :, :]
