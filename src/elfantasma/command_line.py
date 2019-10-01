@@ -130,14 +130,11 @@ def main():
     )
 
     # Create the writer
-    writer = elfantasma.io.Writer()
+    print(f"Opening file: {config['output']}")
+    writer = elfantasma.io.new(config["output"], shape=simulation.shape)
 
     # Run the simulation
     simulation.run(writer)
-
-    # Write the simulated data to file
-    print(f"Writing data to {config['output']}")
-    writer.as_file(config["output"])
 
     # Write some timing stats
     print("Time taken: %.2f seconds" % (time.time() - start_time))
@@ -195,14 +192,21 @@ def convert():
 
     # Read the input
     print(f"Reading data from {args.filename}")
-    reader = elfantasma.io.Reader.from_file(args.filename)
+    reader = elfantasma.io.open(args.filename)
 
     # Create the write
     print(f"Writing data to {args.output}")
-    writer = elfantasma.io.Writer(shape=reader.data.shape)
-    writer.data[:, :, :] = reader.data[:, :, :]
-    writer.angle[:] = reader.angle[:]
-    writer.as_file(args.output)
+    writer = elfantasma.io.new(
+        args.output,
+        shape=reader.data.shape,
+        vmin=reader.data.min(),
+        vmax=reader.data.max(),
+    )
+    for i in range(reader.shape[0]):
+        print(f"    Copying image {i}")
+        writer.data[i, :, :] = reader.data[i, :, :]
+        writer.angle[i] = reader.angle[i]
+        writer.position[i] = reader.position[i]
 
 
 def read_pdb():

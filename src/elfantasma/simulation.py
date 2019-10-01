@@ -89,19 +89,25 @@ class Simulation(object):
         self.electrons_per_pixel = electrons_per_pixel
         self.cluster = cluster
 
+    @property
+    def shape(self):
+        """
+        Return the simulation data shape
+
+        """
+        nx = self.input_multislice.nx
+        ny = self.input_multislice.nx
+        nz = len(self.angles)
+        return (nz, ny, nx)
+
     def run(self, writer):
         """
         Run the simulation
 
         """
 
-        # Get the expected dimensions
-        nx = self.input_multislice.nx
-        ny = self.input_multislice.nx
-        nz = len(self.angles)
-
-        # Reshape the writer
-        writer.shape = (nz, ny, nx)
+        # Check the shape of the writer
+        assert writer.shape == self.shape
 
         # The single image simulator
         single_image_simulator = SingleImageSimulation()
@@ -109,7 +115,9 @@ class Simulation(object):
         # If we are executing in a single process just do a for loop
         if self.cluster["method"] is None:
             for i, angle in enumerate(self.angles):
-                print(f"    Running job: {i+1}/{nz} for angle: {angle} degrees")
+                print(
+                    f"    Running job: {i+1}/{self.shape[0]} for angle: {angle} degrees"
+                )
                 angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
@@ -125,7 +133,9 @@ class Simulation(object):
                 print("Running simulation...")
                 futures = []
                 for i, angle in enumerate(self.angles):
-                    print(f"    Submitting job: {i+1}/{nz} for angle: {angle} degrees")
+                    print(
+                        f"    Submitting job: {i+1}/{self.shape[0]} for angle: {angle} degrees"
+                    )
                     futures.append(
                         executor.submit(single_image_simulator, remote_self, i)
                     )
@@ -134,7 +144,7 @@ class Simulation(object):
                 for i, future in enumerate(futures):
 
                     # Get the result
-                    print(f"    Waiting on job: {i+1}/{nz}")
+                    print(f"    Waiting on job: {i+1}/{self.shape[0]}")
                     angle, image = future.result()
 
                     # Set the output in the writer
