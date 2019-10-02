@@ -10,7 +10,8 @@
 #
 import warnings
 import numpy
-import multem
+
+# import multem
 import os
 import pickle
 import elfantasma.config

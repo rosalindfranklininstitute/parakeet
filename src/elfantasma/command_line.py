@@ -108,10 +108,10 @@ def main():
         command_line["sample"] = {"custom": {"filename": args.sample_custom_filename}}
 
     # Load the full configuration
-    config = elfantasma.config.load_config(args.config, command_line)
+    config = elfantasma.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show_config(config)
+    elfantasma.config.show(config)
 
     # Create the sample
     sample = elfantasma.sample.new(config["phantom"], **config["sample"])
@@ -160,10 +160,10 @@ def show_config_main():
     )
 
     # Parse the arguments
-    config = elfantasma.config.load_config(parser.parse_args().config)
+    config = elfantasma.config.load(parser.parse_args().config)
 
     # Print some options
-    elfantasma.config.show_config(config, full=True)
+    elfantasma.config.show(config, full=True)
 
 
 def convert():
@@ -319,10 +319,10 @@ def create_sample():
         command_line["phantom"] = args.phantom
 
     # Load the configuration
-    config = elfantasma.config.load_config(args.config, command_line)
+    config = elfantasma.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show_config(config)
+    elfantasma.config.show(config)
 
     # Create the sample
     sample = elfantasma.sample.new(config["phantom"], **config["sample"])

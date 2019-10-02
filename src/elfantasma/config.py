@@ -21,7 +21,7 @@ def temp_directory():
     return "_elfantasma"
 
 
-def default_config():
+def default():
     """
     Return:
         dict: the default configuration
@@ -181,7 +181,7 @@ def difference(master, config):
     return walk(master, config)
 
 
-def load_config(config=None, command_line=None):
+def load(config=None, command_line=None):
     """
     Load the configuration from the various inputs
 
@@ -206,13 +206,13 @@ def load_config(config=None, command_line=None):
         config_file = {}
 
     # Get the configuration
-    config = deepmerge(default_config(), deepmerge(config_file, command_line))
+    config = deepmerge(default(), deepmerge(config_file, command_line))
 
     # Return the config
     return config
 
 
-def show_config(config, full=False):
+def show(config, full=False):
     """
     Print the command line arguments
 
@@ -221,7 +221,7 @@ def show_config(config, full=False):
 
     """
     if full == False:
-        config = difference(default_config(), config)
+        config = difference(default(), config)
     print("Configuration:")
     print(
         "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
