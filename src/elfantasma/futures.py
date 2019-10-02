@@ -12,6 +12,9 @@ import dask.distributed
 import dask_jobqueue
 import elfantasma.config
 
+# Export this
+as_completed = dask.distributed.as_completed
+
 
 def factory(method="sge", max_workers=1):
     """

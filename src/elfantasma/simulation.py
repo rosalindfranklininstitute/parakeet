@@ -8,12 +8,12 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import warnings
 import numpy
 
 # import multem
 import os
 import pickle
+import warnings
 import elfantasma.config
 import elfantasma.futures
 import elfantasma.sample
@@ -78,9 +78,17 @@ class SingleImageSimulation(object):
         # Remove margin
         margin = simulation.margin
         ideal_image = ideal_image[margin:-margin, margin:-margin]
+        print(
+            "Ideal image min/max: %f/%f"
+            % (numpy.min(ideal_image), numpy.max(ideal_image))
+        )
 
         # Compute the image scaled with Poisson noise
-        return angle, numpy.random.poisson(simulation.electrons_per_pixel * ideal_image)
+        return (
+            i,
+            angle,
+            numpy.random.poisson(simulation.electrons_per_pixel * ideal_image),
+        )
 
     def spec_atoms(self, sample, x0, x1, y0, y1, offset):
         """
@@ -109,14 +117,17 @@ class SingleImageSimulation(object):
         print("Whole sample:")
         print(sample.info())
         print("Selection:")
+        print("    # atoms: %d" % len(atom_data))
         print("    Min box x: %.2f" % x0)
         print("    Max box x: %.2f" % x1)
         print("    Min box y: %.2f" % y0)
         print("    Max box x: %.2f" % y1)
         print("    Min sample x: %.2f" % atom_data["x"].min())
         print("    Max sample x: %.2f" % atom_data["x"].max())
-        print("    Min sample y: %.2f" % atom_data["x"].min())
-        print("    Max sample y: %.2f" % atom_data["x"].max())
+        print("    Min sample y: %.2f" % atom_data["y"].min())
+        print("    Max sample y: %.2f" % atom_data["y"].max())
+        print("    Min sample z: %.2f" % atom_data["z"].min())
+        print("    Max sample z: %.2f" % atom_data["z"].max())
 
         # Return the atom data
         return list(elfantasma.sample.extract_spec_atoms(atom_data))
@@ -191,7 +202,7 @@ class Simulation(object):
         if self.cluster["method"] is None:
             for i, angle in enumerate(self.angles):
                 print(f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees")
-                angle, image = single_image_simulator(self, i)
+                _, angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
         else:
@@ -221,15 +232,20 @@ class Simulation(object):
                     )
 
                 # Wait for results
-                for i, future in enumerate(futures):
+                for j, future in enumerate(elfantasma.futures.as_completed(futures)):
 
                     # Get the result
-                    print(f"    Waiting on job: {i+1}/{self.shape[0]}")
-                    angle, image = future.result()
+                    i, angle, image = future.result()
 
                     # Set the output in the writer
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
+
+                    # Write some info
+                    counts = numpy.sum(image)
+                    print(
+                        f"    Processed job: {i+1} ({j+1}/{self.shape[0]}); image sum: {counts}"
+                    )
 
     def asdict(self):
         """
