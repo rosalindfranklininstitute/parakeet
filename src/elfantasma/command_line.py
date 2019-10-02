@@ -120,7 +120,7 @@ def main():
     scan = elfantasma.scan.new(**config["scan"])
 
     # Create the simulation
-    simulation = elfantasma.simulation.create_simulation(
+    simulation = elfantasma.simulation.new(
         sample,
         scan,
         device=config["device"],

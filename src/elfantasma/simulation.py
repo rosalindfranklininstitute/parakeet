@@ -305,7 +305,7 @@ def create_system_configuration(device):
     return system_conf
 
 
-def create_simulation(
+def new(
     sample, scan, device="gpu", beam=None, detector=None, simulation=None, cluster=None
 ):
     """
@@ -315,6 +315,13 @@ def create_simulation(
         sample (object): The sample object
         scan (object): The scan object
         device (str): The device to use
+        beam (object); The beam parameters
+        detector (object): The detector parameters
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
 
     """
 
