@@ -36,13 +36,13 @@ class Scan(object):
         else:
             self.angles = angles
         if positions is None:
-            self.positions = [0]
+            self.positions = numpy.zeros(shape=len(angles), dtype=numpy.float32)
         else:
             self.positions = positions
         assert len(self.angles) == len(self.positions)
 
 
-def create_scan(
+def new(
     mode="still",
     axis=(1, 0, 0),
     start_angle=0,
@@ -50,18 +50,32 @@ def create_scan(
     step_angle=0,
     start_pos=0,
     stop_pos=0,
-    step_pos=0,
 ):
     """
     Create an scan
+
+    Args:
+        axis (array): The rotation axis
+        start_angle (float): The starting angle
+        stop_angle (float): The stopping angle
+        step_angle (float): The angle step
+        start_pos (float): The starting position
+        stop_pos (float): The stopping position
+
+    Returns:
+        object: The scan object
 
     """
     if mode == "still":
         return Scan(axis=axis, angles=[start_angle], positions=[start_pos])
     elif mode == "tilt_series":
-        return Scan(axis=axis, angles=numpy.arange(start_angle, stop_angle, step_angle))
+        angles = numpy.arange(start_angle, stop_angle, step_angle)
+        positions = numpy.zeros(shape=len(angles), dtype=numpy.float32) + start_pos
+        return Scan(axis=axis, angles=angles, positions=positions)
     elif mode == "helical_scan":
         angles = numpy.arange(start_angle, stop_angle, step_angle)
         step_pos = (stop_pos - start_pos) / len(angles)
         positions = numpy.arange(start_pos, stop_pos, step_pos)
         return Scan(axis=axis, angles=angles, positions=positions)
+    else:
+        raise RuntimeError(f"Scan mode not recognised: {mode}")
