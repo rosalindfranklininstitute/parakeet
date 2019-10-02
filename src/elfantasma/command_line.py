@@ -114,7 +114,7 @@ def main():
     elfantasma.config.show_config(config)
 
     # Create the sample
-    sample = elfantasma.sample.create_sample(config["phantom"], **config["sample"])
+    sample = elfantasma.sample.new(config["phantom"], **config["sample"])
 
     # Create the scan
     scan = elfantasma.scan.create_scan(**config["scan"])
@@ -325,7 +325,7 @@ def create_sample():
     elfantasma.config.show_config(config)
 
     # Create the sample
-    sample = elfantasma.sample.create_sample(config["phantom"], **config["sample"])
+    sample = elfantasma.sample.new(config["phantom"], **config["sample"])
 
     # Write the sample to file
     print(f"Writing sample to {args.output}")

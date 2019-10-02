@@ -1037,6 +1037,7 @@ def create_ribosomes_in_cylinder_sample(
     filename = elfantasma.data.get_path("4v5d.cif")
 
     # Create a single ribosome structure
+    print("Reading structure from file...")
     ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
 
     # Set the cuboid size and box size
@@ -1044,12 +1045,12 @@ def create_ribosomes_in_cylinder_sample(
     box_size = numpy.array([length, 2 * (radius + margin), 2 * (radius + margin)])
 
     # Generate some randomly oriented ribosome coordinates
-    print("Generating random orientations:")
+    print("Generating random orientations...")
     for i in range(number_of_ribosomes):
         ribosomes.append((0, 0, 0), random_uniform_rotation())
 
     # Put the ribosomes in the sample
-    print("Placing ribosomes:")
+    print("Placing ribosomes...")
     correction = margin + (1 - 1 / sqrt(2)) * radius
     for i, translation in enumerate(
         distribute_boxes_uniformly(cuboid_size, ribosomes.individual_sample_sizes)

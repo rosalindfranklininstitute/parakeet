@@ -112,7 +112,7 @@ class SingleImageSimulation(object):
         print("    Max sample y: %.2f" % atom_data["x"].max())
 
         # Return the atom data
-        return list(elfantasma.sample.spec_atoms(atom_data))
+        return list(elfantasma.sample.extract_spec_atoms(atom_data))
 
 
 class Simulation(object):
