@@ -91,21 +91,12 @@ class SingleImageSimulation(object):
             list: The spec atoms list
 
         """
-        data = sample.atom_data
 
-        # Get a selection
-        selection = data.loc[
-            (data["x"] >= x0)
-            & (data["x"] <= x1)
-            & (data["y"] >= y0)
-            & (data["y"] <= y1)
-        ]
-
-        # Get the subset
-        subset = elfantasma.sample.Sample(selection, recentre=False)
+        # Select the atom data
+        atom_data = sample.select_atom_data_in_roi([(x0, y0), (x1, y1)])
 
         # Translate for the simulation
-        subset.translate((-x0, -y0, 0))
+        elfantasma.sample.translate(atom_data, (-x0, -y0, 0))
 
         # Print some info
         print("Whole sample:")
@@ -115,10 +106,13 @@ class SingleImageSimulation(object):
         print("    Max box x: %.2f" % x1)
         print("    Min box y: %.2f" % y0)
         print("    Max box x: %.2f" % y1)
-        print(subset.info())
+        print("    Min sample x: %.2f" % atom_data["x"].min())
+        print("    Max sample x: %.2f" % atom_data["x"].max())
+        print("    Min sample y: %.2f" % atom_data["x"].min())
+        print("    Max sample y: %.2f" % atom_data["x"].max())
 
-        # Return the subset as a list
-        return subset.spec_atoms
+        # Return the atom data
+        return list(elfantasma.sample.spec_atoms(atom_data))
 
 
 class Simulation(object):

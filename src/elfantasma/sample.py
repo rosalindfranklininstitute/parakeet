@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import copy
 import itertools
 import gemmi
 import numpy
@@ -16,63 +15,180 @@ import pandas
 import pickle
 import os
 import scipy.constants
-import scipy.spatial.transform
 import elfantasma.data
 from math import acos, cos, pi, sin, sqrt, floor
+from scipy.spatial.transform import Rotation
 
 
-class Sample(object):
+def translate(atom_data, translation):
     """
-    A class to wrap the sample information
+    Helper function to translate atom data
+
+    Args:
+        atom_data (object): The atom data
+        translation (array): The translation
+
+    """
+    atom_data[["x", "y", "z"]] += translation
+    return atom_data
+
+
+def recentre(atom_data, position=None):
+    """
+    Helper function to reposition atom data
+
+    Args:
+        atom_data (object): The atom data
+        translation (array): The translation
+
+    """
+    # Check the input
+    if position is None:
+        position = (0, 0, 0)
+
+    # Get the coords
+    coords = atom_data[["x", "y", "z"]]
+
+    # Compute the translation
+    translation = numpy.array(position) - (coords.max() + coords.min()) / 2.0
+
+    # Do the translation
+    return translate(atom_data, translation)
+
+
+def extract_spec_atoms(atom_data):
+    """
+    Extract the spec atoms
+
+    Args:
+        atom_data (object): The atom data
+
+    Returns:
+        iterator: The iterator of specimen atoms
+
+    """
+    return zip(
+        atom_data["atomic_number"],
+        atom_data["x"],
+        atom_data["y"],
+        atom_data["z"],
+        atom_data["sigma"],
+        atom_data["occ"],
+        atom_data["region"],
+        atom_data["charge"],
+    )
+
+
+class Structure(object):
+    """
+    Hold a single set of atom data.
+
+    Our simulated specimens tend to be lots of duplicate structures in random
+    positions and orientations so it is more convenient just to save the atom
+    coordinates once and then a list of where we want to put them in space.
 
     """
 
-    def __init__(self, atom_data=None, size=None, recentre=True):
+    def __init__(self, atom_data, positions=None, rotations=None):
         """
-        Initialise the sample
+        Initialise the model
 
         Args:
-            atom_data (object): The sample atom_data
-            size (tuple): The size of the sample box (units: A)
+            atom_data (object): The atom data
+            positions (list): The list of X,Y,Z positions
+            rotations (list): The list of orientations
 
         """
-        # Create and empty data frame
-        if atom_data is None:
-            atom_data = pandas.DataFrame()
-            column_info = (
-                ("model", "uint32"),
-                ("chain", "str"),
-                ("residue", "str"),
-                ("atomic_number", "uint32"),
-                ("x", "float64"),
-                ("y", "float64"),
-                ("z", "float64"),
-                ("occ", "float64"),
-                ("charge", "uint32"),
-                ("sigma", "float64"),
-            )
-            atom_data = pandas.DataFrame(
-                dict(
-                    (name, pandas.Series([], dtype=dtype))
-                    for name, dtype in column_info
-                )
-            )
 
-        # Set the atom data
-        self.atom_data = atom_data
-
-        # Compute the min and max
-        self.min_and_max_coords()
-
-        # If box size is None then copy to sample size
-        if size is None:
-            self.resize(self.sample_size[:])
+        # Set position
+        if positions is None and rotations is None:
+            positions = numpy.zeros(shape=(0, 3), dtype=numpy.float64)
+            rotations = numpy.zeros(shape=(0, 3), dtype=numpy.float64)
         else:
-            self.resize(size)
+            positions = numpy.array(positions, dtype=numpy.float64)
+            rotations = numpy.array(rotations, dtype=numpy.float64)
 
-        # Recentre the atoms in the box
-        if recentre:
-            self.recentre()
+        # Check input
+        assert positions.shape[0] == rotations.shape[0]
+
+        # Set the model stuff
+        self.atom_data = recentre(atom_data)
+        self.positions = positions
+        self.rotations = rotations
+
+    @property
+    def num_models(self):
+        """
+        Returns:
+            int: The number of models
+
+        """
+        assert self.positions.shape[0] == self.rotations.shape[0]
+        return len(set(self.atom_data["model"])) * self.positions.shape[0]
+
+    @property
+    def num_atoms(self):
+        """
+        Returns:
+            int: The number of atoms
+
+        """
+        assert self.positions.shape[0] == self.rotations.shape[0]
+        return self.atom_data.shape[0] * self.positions.shape[0]
+
+    @property
+    def individual_bounding_boxes(self):
+        """
+        Compute the individual bounding boxes
+
+        """
+        # Check transformations are the same length
+        assert self.positions.shape[0] == self.rotations.shape[0]
+
+        # Compute min and max of all positions and rotations
+        reference_coords = self.atom_data[["x", "y", "z"]]
+        if reference_coords.shape[0] != 0:
+            for position, rotation in zip(
+                self.positions, Rotation.from_rotvec(self.rotations)
+            ):
+                coords = rotation.apply(reference_coords) + position
+                yield (numpy.min(coords, axis=0), numpy.max(coords, axis=0))
+
+    @property
+    def individual_sample_sizes(self):
+        """
+        Compute the same size
+
+        """
+        for bbox in self.individual_bounding_boxes:
+            yield bbox[1] - bbox[0]
+
+    @property
+    def bounding_box(self):
+        """
+        Compute the bounding box
+
+        Returns:
+            (min, max): The min and max coords
+
+        """
+
+        # Check transformations are the same length
+        assert self.positions.shape[0] == self.rotations.shape[0]
+
+        # Get the coordinates
+        reference_coords = self.atom_data[["x", "y", "z"]]
+        if reference_coords.shape[0] == 0 or self.positions.shape[0] == 0:
+            min_coords = [[0, 0, 0]]
+            max_coords = [[0, 0, 0]]
+        else:
+            min_coords, max_coords = zip(*self.individual_bounding_boxes)
+
+        # Return the min and max
+        return (
+            numpy.min(numpy.array(min_coords), axis=0),
+            numpy.max(numpy.array(max_coords), axis=0),
+        )
 
     @property
     def spec_atoms(self):
@@ -83,45 +199,228 @@ class Sample(object):
             list: A list of tuples
 
         """
-        return list(
-            zip(
-                self.atom_data["atomic_number"],
-                self.atom_data["x"],
-                self.atom_data["y"],
-                self.atom_data["z"],
-                self.atom_data["sigma"],
-                self.atom_data["occ"],
-                [0 for i in range(len(self.atom_data["model"]))],
-                self.atom_data["charge"],
-            )
-        )
 
-    def min_and_max_coords(self):
+        def spec_atoms_internal():
+
+            # Get the reference coords
+            reference_coords = self.atom_data[["x", "y", "z"]]
+
+            # Iterate over the positions and yield the atom data
+            for position, rotation in zip(
+                self.positions, Rotation.from_rotvec(self.rotations)
+            ):
+
+                # Apply the rotation and translations
+                coords = rotation.apply(reference_coords) + position
+
+                # Yield the atom data
+                yield zip(
+                    self.atom_data["atomic_number"],
+                    coords[:, 0],
+                    coords[:, 1],
+                    coords[:, 2],
+                    self.atom_data["sigma"],
+                    self.atom_data["occ"],
+                    self.atom_data["region"],
+                    self.atom_data["charge"],
+                )
+
+        # Chain all together
+        return itertools.chain(*spec_atoms_internal())
+
+    def select_atom_data_in_roi(self, roi):
         """
-        Compute the min and max coords
+        Get the subset of atoms within the field of view
+
+        Args:
+            roi (array): The region of interest
+
+        Returns:
+            object: The atom data
+
+        """
+
+        # Split the roi
+        (x0, y0), (x1, y1) = roi
+
+        # Get the reference coords
+        reference_coords = self.atom_data[["x", "y", "z"]]
+
+        # Iterate over the positions and yield the atom data
+        for position, rotation in zip(
+            self.positions, Rotation.from_rotvec(self.rotations)
+        ):
+
+            # Apply the rotation and translations
+            coords = rotation.apply(reference_coords) + position
+
+            # Select the coords within the roi
+            selection = (
+                (coords[:, 0] >= x0)
+                & (coords[:, 0] <= x1)
+                & (coords[:, 1] >= y0)
+                & (coords[:, 1] <= y1)
+            )
+
+            # Get the selection
+            subset = self.atom_data.loc[selection].copy()
+            subset[["x", "y", "z"]] = coords[selection]
+
+            # Yield the atom data
+            yield subset
+
+    def append(self, position, rotation):
+        """
+        Append a model
+
+        Args:
+            position (array): The position
+            rotation (array): The rotation
+
+        """
+        self.positions = numpy.append(self.positions, [position], axis=0)
+        self.rotations = numpy.append(self.rotations, [rotation], axis=0)
+
+    def translate(self, translation):
+        """
+        Translate the sample by some amount
+
+        Args:
+            translation (tuple): The translation
+
+        """
+        self.positions += translation
+
+    def rotate(self, vector):
+        """
+        Perform a rotation
+
+        Args:
+            vector (tuple): The rotation vector
+
+        """
+        self.rotations = (
+            Rotation.from_rotvec(vector) * Rotation.from_rotvec(self.rotations)
+        ).as_rotvec()
+
+
+class Sample(object):
+    """
+    A class to wrap the sample information
+
+    """
+
+    def __init__(self, structures=None, size=None, recentre=False):
+        """
+        Initialise the sample
+
+        Args:
+            structures (object): The structure data
+            size (tuple): The size of the sample box (units: A)
+            recentre (bool): Recentre the sample in the box
+
+        """
+
+        # Make sure we have a list
+        if isinstance(structures, Structure):
+            structures = [structures]
+
+        # Set the structures
+        self.structures = structures
+
+        # Compute the min and max
+        self.update()
+
+        # Resize the container
+        self.resize(size)
+
+        # Recentre the atoms in the box
+        if recentre:
+            self.recentre()
+
+    @property
+    def num_models(self):
+        """
+        Returns:
+            int: The number of models
+
+        """
+        return sum(s.num_models for s in self.structures)
+
+    @property
+    def num_atoms(self):
+        """
+        Returns:
+            int: The number of atoms
+
+        """
+        return sum(s.num_atoms for s in self.structures)
+
+    @property
+    def bounding_box(self):
+        """
+        Compute the bounding box
 
         Returns:
             (min, max): The min and max coords
 
         """
 
-        # Get the coordinates
-        coords = self.atom_data[["x", "y", "z"]]
-
-        # Get the min and max atom positions
-        if coords.shape[0] == 0:
-            self.min_coords = numpy.array([0, 0, 0], dtype="float64")
-            self.max_coords = numpy.array([0, 0, 0], dtype="float64")
-            self.sample_size = numpy.array([0, 0, 0], dtype="float64")
-        else:
-            self.min_coords = numpy.min(coords, axis=0)
-            self.max_coords = numpy.max(coords, axis=0)
-            self.sample_size = self.max_coords - self.min_coords
+        # Compute the min and max
+        min_coords = []
+        max_coords = []
+        for structure in self.structures:
+            bbox = structure.bounding_box
+            min_coords.append(bbox[0])
+            max_coords.append(bbox[1])
 
         # Return the min and max
-        return self.min_coords, self.max_coords
+        return (
+            numpy.min(numpy.array(min_coords), axis=0),
+            numpy.max(numpy.array(max_coords), axis=0),
+        )
 
-    def resize(self, size=None):
+    @property
+    def spec_atoms(self):
+        """
+        Get the subset of data needed to the simulation
+
+        Returns:
+            list: A list of tuples
+
+        """
+        return itertools.chain(*[s.spec_atoms for s in self.structures])
+
+    def select_atom_data_in_roi(self, roi):
+        """
+        Get the subset of atoms within the field of view
+
+        Args:
+            roi (array): The region of interest
+
+        Returns:
+            object: The atom data
+
+        """
+        return pandas.concat(
+            list(
+                itertools.chain(
+                    *[s.select_atom_data_in_roi(roi) for s in self.structures]
+                )
+            )
+        )
+
+    def update(self):
+        """
+        Update the statistics
+
+        """
+
+        # Compute the bounding box
+        self.sample_bbox = self.bounding_box
+        self.sample_size = self.sample_bbox[1] - self.sample_bbox[0]
+
+    def resize(self, size=None, margin=1):
         """
         Resize the sample box.
 
@@ -129,12 +428,13 @@ class Sample(object):
 
         Args:
             size (tuple): The size of the sample box (units: A)
+            margin (float): The margin when size is None (units: A)
 
         """
         if size is not None:
             assert numpy.all(numpy.greater_equal(size, self.sample_size))
         else:
-            size = self.sample_size
+            size = self.sample_size + margin * 2
         self.box_size = size
 
     def recentre(self, position=None):
@@ -144,11 +444,17 @@ class Sample(object):
         Args:
             position (tuple): The position to centre on (otherwise the centre of the box)
 
-
         """
+        # Check the input
         if position is None:
             position = self.box_size / 2.0
-        translation = numpy.array(position) - (self.max_coords + self.min_coords) / 2.0
+
+        # Compute the translation
+        translation = (
+            numpy.array(position) - (self.sample_bbox[1] + self.sample_bbox[0]) / 2.0
+        )
+
+        # Translate the structure
         self.translate(translation)
 
     def translate(self, translation):
@@ -159,13 +465,12 @@ class Sample(object):
             translation (tuple): The translation
 
         """
+        # Apply translation to all structures
+        for structure in self.structures:
+            structure.translate(translation)
 
-        # Transform the sample
-        self.atom_data[["x", "y", "z"]] += translation
-
-        # Compute the new max and min
-        self.min_coords += translation
-        self.max_coords += translation
+        # Compute the new bounding box
+        self.sample_bbox += translation
 
     def rotate(self, vector):
         """
@@ -175,54 +480,37 @@ class Sample(object):
             vector (tuple): The rotation vector
 
         """
-
-        # Get the coordinates
-        coords = self.atom_data[["x", "y", "z"]]
-
-        # Perform the rotation
-        rotation = scipy.spatial.transform.Rotation.from_rotvec(vector)
-        coords = rotation.apply(coords)
-
-        # Set the rotated coords
-        self.atom_data[["x", "y", "z"]] = coords
+        # Apply rotation to all structures
+        for structure in self.structures:
+            structure.rotate(vector)
 
         # Compute the min and max coords
-        self.min_and_max_coords()
+        self.update()
 
-    def extend(self, other):
+    def append(self, structure):
         """
-        Extend this sample with another
+        Extend this sample with another structure
 
         Args:
             other (sample): Another sample object
 
         """
-        # Get the maximum model index
-        if self.atom_data.shape[0] == 0:
-            region = 0
-        else:
-            region = self.atom_data["model"].max() + 1
 
-        # Update the region number and set the model name as a string version of the region
-        other.atom_data["model"] += region
+        # Append the structure
+        self.structures.append(structure)
 
-        # Set the atom data
-        self.atom_data = self.atom_data.append(other.atom_data)
-
-        # Compute the min and max coords
-        self.min_and_max_coords()
-
-        # Set the box as the sample size
-        self.box_size = self.sample_size
+        # Update stats and resize to sample
+        self.update()
+        self.resize()
 
     def validate(self):
         """
         Just validate the box size
 
         """
-        self.min_and_max_coords()
-        assert numpy.all(numpy.greater_equal(self.min_coords, (0, 0, 0)))
-        assert numpy.all(numpy.less_equal(self.max_coords, self.box_size))
+        self.update()
+        assert numpy.all(numpy.greater_equal(self.sample_bbox[0], (0, 0, 0)))
+        assert numpy.all(numpy.less_equal(self.sample_bbox[1], self.box_size))
 
     def info(self):
         """
@@ -234,14 +522,14 @@ class Sample(object):
         """
         lines = [
             "Sample information:",
-            "    # models:      %d" % len(set(self.atom_data["model"])),
-            "    # atoms:       %d" % self.atom_data.shape[0],
-            "    Min x:         %.2f" % self.min_coords[0],
-            "    Min y:         %.2f" % self.min_coords[1],
-            "    Min z:         %.2f" % self.min_coords[2],
-            "    Max x:         %.2f" % self.max_coords[0],
-            "    Max y:         %.2f" % self.max_coords[1],
-            "    Max z:         %.2f" % self.max_coords[2],
+            "    # models:      %d" % self.num_models,
+            "    # atoms:       %d" % self.num_atoms,
+            "    Min x:         %.2f" % self.sample_bbox[0][0],
+            "    Min y:         %.2f" % self.sample_bbox[0][1],
+            "    Min z:         %.2f" % self.sample_bbox[0][2],
+            "    Max x:         %.2f" % self.sample_bbox[1][0],
+            "    Max y:         %.2f" % self.sample_bbox[1][1],
+            "    Max z:         %.2f" % self.sample_bbox[1][2],
             "    Sample size x: %.2f" % self.sample_size[0],
             "    Sample size y: %.2f" % self.sample_size[1],
             "    Sample size z: %.2f" % self.sample_size[2],
@@ -260,21 +548,45 @@ class Sample(object):
 
         """
 
-        # Sort the values ahead of time
-        self.atom_data.sort_values(by=["model", "chain", "residue"])
+        # Sort the structure models
+        for s in self.structures:
+            s.atom_data.sort_values(by=["model", "chain", "residue"])
 
-        # Create a zip iterator over the arrays
-        structure = zip(
-            self.atom_data["model"],
-            self.atom_data["chain"],
-            self.atom_data["residue"],
-            self.atom_data["atomic_number"],
-            self.atom_data["x"],
-            self.atom_data["y"],
-            self.atom_data["z"],
-            self.atom_data["occ"],
-            self.atom_data["charge"],
-        )
+        # Get the atom data from the structure
+        def atom_data(s):
+
+            # Get the atom data from each model
+            def atom_data_internal():
+
+                # Get the reference coords
+                reference_coords = s.atom_data[["x", "y", "z"]]
+
+                # Iterate over the positions and yield the atom data
+                for position, rotation in zip(
+                    s.positions, Rotation.from_rotvec(s.rotations)
+                ):
+
+                    # Apply the rotation and translations
+                    coords = rotation.apply(reference_coords) + position
+
+                    # Yield the atom data
+                    yield zip(
+                        s.atom_data["model"],
+                        s.atom_data["chain"],
+                        s.atom_data["residue"],
+                        s.atom_data["atomic_number"],
+                        coords[:, 0],
+                        coords[:, 1],
+                        coords[:, 2],
+                        s.atom_data["occ"],
+                        s.atom_data["charge"],
+                    )
+
+            # Chain all together
+            return itertools.chain(*atom_data_internal())
+
+        # Get the iterator to the atom data
+        structure = itertools.chain(*[atom_data(s) for s in self.structures])
 
         # Create the structure
         gemmi_structure = gemmi.Structure()
@@ -391,6 +703,7 @@ class Sample(object):
             ("occ", "float64"),
             ("charge", "uint32"),
             ("sigma", "float64"),
+            ("region", "uint32"),
         )
 
         # Iterate through the atoms
@@ -409,7 +722,8 @@ class Sample(object):
                                 atom.pos.z,
                                 atom.occ,
                                 atom.charge,
-                                0.085,  # From MULTEM HRTEM example
+                                0.085,  # sigma: from MULTEM HRTEM example
+                                0,  # region: non zero can lead to issues
                             )
 
         # Create a dictionary of column data
@@ -422,7 +736,13 @@ class Sample(object):
             )
 
         # Return the sample with the atom data as a pandas dataframe
-        return Sample(pandas.DataFrame(create_atom_data(structure, column_info)))
+        return Sample(
+            Structure(
+                pandas.DataFrame(create_atom_data(structure, column_info)),
+                positions=[(0, 0, 0)],
+                rotations=[(0, 0, 0)],
+            )
+        )
 
     @classmethod
     def from_gemmi_file(Class, filename):
@@ -640,47 +960,25 @@ def create_ribosomes_in_lamella_sample(
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
 
-    # Create a single ribosome sample
-    single_sample = Sample.from_file(filename)
-    single_sample.recentre((0, 0, 0))
+    # Create a single ribosome structure
+    ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
 
     # Set the sample size
     box_size = numpy.array([length_x, length_y, length_z])
 
     # Generate some randomly oriented ribosome coordinates
-    ribosomes = []
     for i in range(number_of_ribosomes):
-
-        # Get a random rotation
-        vector = random_uniform_rotation()
-
-        # Copy the ribosomes
-        ribosome = copy.deepcopy(single_sample)
-        ribosome.rotate(vector)
-        ribosome.recentre((0, 0, 0))
-        ribosomes.append(ribosome)
-
-    # Get the ribosome sample size
-    def ribosome_boxes(ribosomes):
-        for ribosome in ribosomes:
-            yield ribosome.sample_size
+        ribosomes.append((0, 0, 0), random_uniform_rotation())
 
     # Put the ribosomes in the sample
     print("Placing ribosomes:")
-    sample = Sample()
     for i, translation in enumerate(
-        distribute_boxes_uniformly(box_size, ribosome_boxes(ribosomes))
+        distribute_boxes_uniformly(box_size, ribosomes.individual_sample_sizes)
     ):
-        print(f"    Placing ribosome {i}")
-
-        # Apply the translation
-        ribosomes[i].translate(translation)
-
-        # Extend the sample
-        sample.extend(ribosomes[i])
+        ribosomes.positions[i] = translation
 
     # Resize and print some info
-    sample.resize(box_size)
+    sample = Sample(ribosomes, size=box_size)
     print(sample.info())
     sample.validate()
 
@@ -715,7 +1013,6 @@ def create_ribosomes_in_cylinder_sample(
 
     # Create a single ribosome sample
     single_water = Sample.from_ligand_file(filename)
-    single_water.recentre((0, 0, 0))
 
     # Compute the number of water molecules
     avogadros_number = scipy.constants.Avogadro
@@ -739,49 +1036,28 @@ def create_ribosomes_in_cylinder_sample(
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
 
-    # Create a single ribosome sample
-    single_sample = Sample.from_file(filename)
-    single_sample.recentre((0, 0, 0))
+    # Create a single ribosome structure
+    ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
 
     # Set the cuboid size and box size
     cuboid_size = numpy.array([length, sqrt(2) * radius, sqrt(2) * radius])
     box_size = numpy.array([length, 2 * (radius + margin), 2 * (radius + margin)])
 
     # Generate some randomly oriented ribosome coordinates
-    ribosomes = []
     print("Generating random orientations:")
     for i in range(number_of_ribosomes):
-
-        # Get a random rotation
-        print(f"    Generating orientation for ribosome {i}")
-        vector = random_uniform_rotation()
-
-        # Copy the ribosomes
-        ribosome = copy.deepcopy(single_sample)
-        ribosome.atom_data["model"] += i
-        ribosome.rotate(vector)
-        ribosome.recentre((0, 0, 0))
-        ribosomes.append(ribosome)
-
-    # Get the ribosome sample size
-    def ribosome_boxes(ribosomes):
-        for ribosome in ribosomes:
-            yield ribosome.sample_size
+        ribosomes.append((0, 0, 0), random_uniform_rotation())
 
     # Put the ribosomes in the sample
     print("Placing ribosomes:")
     correction = margin + (1 - 1 / sqrt(2)) * radius
     for i, translation in enumerate(
-        distribute_boxes_uniformly(cuboid_size, ribosome_boxes(ribosomes))
+        distribute_boxes_uniformly(cuboid_size, ribosomes.individual_sample_sizes)
     ):
-        print(f"    Placing ribosome {i}")
-
-        # Apply the translation
-        ribosomes[i].translate(translation + numpy.array([0, correction, correction]))
+        ribosomes.positions[i] = translation + numpy.array([0, correction, correction])
 
     # Create the sample
-    sample = Sample(pandas.concat([r.atom_data for r in ribosomes]), recentre=False)
-    sample.resize(box_size)
+    sample = Sample(ribosomes, size=box_size)
     print(sample.info())
     sample.validate()
 
@@ -804,7 +1080,21 @@ def create_custom_sample(filename=None):
     return Sample.from_file(filename)
 
 
-def create_sample(name, **kwargs):
+def load(filename):
+    """
+    Open the sample from file
+
+    Args:
+        filename (str): The sample filename
+
+    Returns:
+        object: The test sample
+
+    """
+    return Sample.from_file(filename)
+
+
+def new(name, **kwargs):
     """
     Create the sample
 
@@ -820,4 +1110,4 @@ def create_sample(name, **kwargs):
         "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
         "ribosomes_in_cylinder": create_ribosomes_in_cylinder_sample,
         "custom": create_custom_sample,
-    }[name](**kwargs[name])
+    }[name](**kwargs.get(name, {}))
