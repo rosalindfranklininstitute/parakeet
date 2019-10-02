@@ -106,6 +106,7 @@ def default_config():
 
         simulation:
             slice_thickness: 3.0
+            pixel_margin: 100
 
         cluster:
             method: null

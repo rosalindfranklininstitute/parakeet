@@ -52,17 +52,18 @@ class SingleImageSimulation(object):
         # The field of view
         x_fov = simulation.detector["nx"] * simulation.detector["pixel_size"]
         y_fov = simulation.detector["ny"] * simulation.detector["pixel_size"]
+        offset = simulation.margin * simulation.detector["pixel_size"]
 
         # Get the specimen atoms
         print(f"Simulating image {i}")
         spec_atoms = self.spec_atoms(
-            simulation.sample, position, position + x_fov, 0, y_fov
+            simulation.sample, position, position + x_fov, 0, y_fov, offset
         )
 
         # Set the atoms of the sample
         simulation.input_multislice.spec_atoms = spec_atoms
-        simulation.input_multislice.spec_lx = x_fov
-        simulation.input_multislice.spec_ly = y_fov
+        simulation.input_multislice.spec_lx = x_fov + offset * 2
+        simulation.input_multislice.spec_ly = y_fov + offset * 2
         simulation.input_multislice.spec_lz = simulation.sample.box_size[2]
 
         # Run the simulation
@@ -71,12 +72,16 @@ class SingleImageSimulation(object):
         )
 
         # Get the ideal image data
-        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot)
+        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot).T
+
+        # Remove margin
+        margin = simulation.margin
+        ideal_image = ideal_image[margin:-margin, margin:-margin]
 
         # Compute the image scaled with Poisson noise
         return angle, numpy.random.poisson(simulation.electrons_per_pixel * ideal_image)
 
-    def spec_atoms(self, sample, x0, x1, y0, y1):
+    def spec_atoms(self, sample, x0, x1, y0, y1, offset):
         """
         Get a subset of atoms within the field of view
 
@@ -86,6 +91,7 @@ class SingleImageSimulation(object):
             x1 (float): The highest X
             y0 (float): The lowest Y
             y1 (float): The highest Y
+            offset (float): The offset
 
         Returns:
             list: The spec atoms list
@@ -96,7 +102,7 @@ class SingleImageSimulation(object):
         atom_data = sample.select_atom_data_in_roi([(x0, y0), (x1, y1)])
 
         # Translate for the simulation
-        elfantasma.sample.translate(atom_data, (-x0, -y0, 0))
+        elfantasma.sample.translate(atom_data, (offset - x0, offset - y0, 0))
 
         # Print some info
         print("Whole sample:")
@@ -131,6 +137,7 @@ class Simulation(object):
         angles=None,
         positions=None,
         electrons_per_pixel=None,
+        margin=None,
         cluster=None,
     ):
         """
@@ -153,6 +160,7 @@ class Simulation(object):
         self.angles = angles
         self.positions = positions
         self.electrons_per_pixel = electrons_per_pixel
+        self.margin = margin
         self.cluster = cluster
 
     @property
@@ -327,8 +335,8 @@ def create_simulation(
     input_multislice.thick_type = "Whole_Spec"
 
     # x-y sampling
-    input_multislice.nx = detector["nx"]
-    input_multislice.ny = detector["ny"]
+    input_multislice.nx = detector["nx"] + simulation["margin"] * 2
+    input_multislice.ny = detector["ny"] + simulation["margin"] * 2
     input_multislice.bwl = False
 
     # Microscope parameters
@@ -388,6 +396,9 @@ def create_simulation(
     # Set the electrons per pixel
     electrons_per_pixel = beam["electrons_per_pixel"]
 
+    # Set the simulation margin
+    margin = simulation["margin"]
+
     # Create the simulation
     return Simulation(
         system_conf,
@@ -398,5 +409,6 @@ def create_simulation(
         scan.angles,
         scan.positions,
         electrons_per_pixel,
+        margin,
         cluster,
     )
