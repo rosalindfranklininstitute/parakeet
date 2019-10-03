@@ -8,9 +8,8 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import multem
 import numpy
-
-# import multem
 import os
 import pickle
 import warnings
@@ -218,7 +217,7 @@ class Simulation(object):
 
                 # Copy the data to each worker
                 print("Copying data to workers...")
-                remote_self = executor.scatter(self)
+                remote_self = executor.scatter(self, broadcast=True)
 
                 # Submit all jobs
                 print("Running simulation...")
@@ -242,9 +241,11 @@ class Simulation(object):
                     writer.angle[i] = angle
 
                     # Write some info
-                    counts = numpy.sum(image)
+                    vmin = numpy.min(image)
+                    vmax = numpy.max(image)
                     print(
-                        f"    Processed job: {i+1} ({j+1}/{self.shape[0]}); image sum: {counts}"
+                        "    Processed job: %d (%d/%d); image min/max: %.2f/%.2f"
+                        % (i + 1, j + 1, self.shape[0], vmin, vmax)
                     )
 
     def asdict(self):
