@@ -180,8 +180,8 @@ class Simulation(object):
         Return the simulation data shape
 
         """
-        nx = self.input_multislice.nx
-        ny = self.input_multislice.nx
+        nx = self.detector["nx"]
+        ny = self.detector["nx"]
         nz = len(self.angles)
         return (nz, ny, nx)
 

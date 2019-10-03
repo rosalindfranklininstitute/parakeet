@@ -110,7 +110,7 @@ def default():
 
         simulation:
             slice_thickness: 3.0
-            pixel_margin: 100
+            margin: 100
 
         cluster:
             method: null
