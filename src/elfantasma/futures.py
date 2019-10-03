@@ -28,8 +28,17 @@ def factory(method="sge", max_workers=1):
     if method == "sge":
 
         # Create the SGECluster object
+        # For each worker:
+        #   - request 1 gpu and 1 core
+        #   - use 1 process per worker and 1 thread per process
+        # This ensures that only 1 job will be run on each worker at any time
+        # which is required to ensure that there is not any competition for
+        # gpu resources (by default dask will try to run many jobs at the same
+        # time which causes errors and instability).
         cluster = dask_jobqueue.SGECluster(
             cores=1,
+            processes=1,
+            nthreads=1,
             memory="64 GB",
             queue="all.q",
             project="tomography",
