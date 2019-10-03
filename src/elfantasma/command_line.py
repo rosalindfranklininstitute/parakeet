@@ -59,7 +59,13 @@ def main():
     parser.add_argument(
         "-p",
         "--phantom",
-        choices=["4v5d", "ribosomes_in_lamella", "ribosomes_in_cylinder", "custom"],
+        choices=[
+            "4v5d",
+            "ribosomes_in_lamella",
+            "ribosomes_in_cylinder",
+            "single_ribosome_in_ice",
+            "custom",
+        ],
         default=None,
         dest="phantom",
         help="Choose the phantom to generate",
@@ -306,7 +312,12 @@ def create_sample():
     parser.add_argument(
         "-p",
         "--phantom",
-        choices=["4v5d", "ribosomes_in_lamella", "ribosomes_in_cylinder"],
+        choices=[
+            "4v5d",
+            "ribosomes_in_lamella",
+            "ribosomes_in_cylinder",
+            "single_ribosome_in_ice",
+        ],
         default=None,
         dest="phantom",
         help="Choose the phantom to generate",

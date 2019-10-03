@@ -53,6 +53,10 @@ def default():
                 margin: 500
                 number_of_ribosomes: 100
 
+            single_ribosome_in_ice:
+                box_size: 4000
+                ice_size: 2000
+
             custom:
                 filename: null
 

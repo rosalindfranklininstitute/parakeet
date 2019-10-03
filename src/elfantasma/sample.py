@@ -16,7 +16,7 @@ import pickle
 import os
 import scipy.constants
 import elfantasma.data
-from math import acos, cos, pi, sin, sqrt, floor
+from math import pi, sqrt, floor
 from scipy.spatial.transform import Rotation
 
 
@@ -278,8 +278,8 @@ class Structure(object):
             rotation (array): The rotation
 
         """
-        self.positions = numpy.append(self.positions, [position], axis=0)
-        self.rotations = numpy.append(self.rotations, [rotation], axis=0)
+        self.positions = numpy.append(self.positions, position, axis=0)
+        self.rotations = numpy.append(self.rotations, rotation, axis=0)
 
     def translate(self, translation):
         """
@@ -435,7 +435,7 @@ class Sample(object):
             assert numpy.all(numpy.greater_equal(size, self.sample_size))
         else:
             size = self.sample_size + margin * 2
-        self.box_size = size
+        self.box_size = numpy.array(size)
 
     def recentre(self, position=None):
         """
@@ -500,7 +500,7 @@ class Sample(object):
         self.structures.append(structure)
 
         # Update stats and resize to sample
-        self.update()
+        # self.update()
         self.resize()
 
     def validate(self):
@@ -916,23 +916,28 @@ def distribute_boxes_uniformly(volume_size, boxes, max_tries=1000):
     return positions
 
 
-def random_uniform_rotation():
+def random_uniform_rotation(size=1):
     """
     Return a uniform rotation vector sampled on a sphere
+
+    Args:
+        size (int): The number of vectors
 
     Returns:
         vector: The rotation vector
 
     """
-    u1, u2, u3 = numpy.random.uniform(0, 1, 3)
-    theta = acos(2 * u1 - 1)
+    u1 = numpy.random.uniform(0, 1, size=size)
+    u2 = numpy.random.uniform(0, 1, size=size)
+    u3 = numpy.random.uniform(0, 1, size=size)
+    theta = numpy.arccos(2 * u1 - 1)
     phi = 2 * pi * u2
-    x = sin(theta) * cos(phi)
-    y = sin(theta) * sin(phi)
-    z = cos(theta)
-    vector = numpy.array((x, y, z))
-    vector /= numpy.linalg.norm(vector)
-    vector *= 2 * pi * u3
+    x = numpy.sin(theta) * numpy.cos(phi)
+    y = numpy.sin(theta) * numpy.sin(phi)
+    z = numpy.cos(theta)
+    vector = numpy.array((x, y, z)).T
+    vector /= numpy.linalg.norm(vector, axis=0)
+    vector *= 2 * pi * u3.reshape((u3.size, 1))
     return vector
 
 
@@ -967,8 +972,10 @@ def create_ribosomes_in_lamella_sample(
     box_size = numpy.array([length_x, length_y, length_z])
 
     # Generate some randomly oriented ribosome coordinates
-    for i in range(number_of_ribosomes):
-        ribosomes.append((0, 0, 0), random_uniform_rotation())
+    print("Generating random orientations...")
+    rotation = random_uniform_rotation(number_of_ribosomes)
+    position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
+    ribosomes.append(position, rotation)
 
     # Put the ribosomes in the sample
     print("Placing ribosomes:")
@@ -1046,8 +1053,9 @@ def create_ribosomes_in_cylinder_sample(
 
     # Generate some randomly oriented ribosome coordinates
     print("Generating random orientations...")
-    for i in range(number_of_ribosomes):
-        ribosomes.append((0, 0, 0), random_uniform_rotation())
+    rotation = random_uniform_rotation(number_of_ribosomes)
+    position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
+    ribosomes.append(position, rotation)
 
     # Put the ribosomes in the sample
     print("Placing ribosomes...")
@@ -1061,6 +1069,95 @@ def create_ribosomes_in_cylinder_sample(
     sample = Sample(ribosomes, size=box_size)
     print(sample.info())
     sample.validate()
+
+    # Return the sample
+    return sample
+
+
+def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
+    """
+    Create a sample with a Ribosome and ice
+
+    Args:
+        box_size (float): The size of the sample box (units: A)
+        ice_size (float): The size of the ice box (units: A)
+
+    Returns:
+        object: The atom data
+
+    """
+    print("Creating sample single_ribosome_in_ice")
+
+    # Get the filename of the 4v5d.cif file
+    print("Reading structure from file...")
+    filename = elfantasma.data.get_path("4v5d.cif")
+
+    # Create the sample
+    sample = Sample.from_file(filename)
+
+    # The cube sample
+    sample_box_size = (box_size, box_size, box_size)
+
+    # Resize and recentre
+    sample.resize(sample_box_size)
+    sample.recentre()
+
+    # The ice box
+    ice_box_size = (sample.sample_size[0], sample.sample_size[1], ice_size)
+    ice_min_z = box_size / 2.0 - ice_size / 2.0
+    ice_max_z = box_size / 2.0 + ice_size / 2.0
+
+    # Get the filename of the water.cif file
+    filename = elfantasma.data.get_path("water.cif")
+
+    # Create a single ribosome sample
+    print("Reading water from file...")
+    waters = Structure(Sample.from_ligand_file(filename).structures[0].atom_data)
+
+    # Compute the number of water molecules
+    avogadros_number = scipy.constants.Avogadro
+    molar_mass_of_water = 18.01528  # grams / mole
+    density_of_water = 997  # kg / m^3
+    volume_of_ice_box = (
+        ice_size ** 3
+    )  # ice_box_size[0]*ice_box_size[1]*ice_box_size[2]  # A^3
+    mass_of_ice_box = (density_of_water * 1000) * (volume_of_ice_box * 1e-10 ** 3)  # g
+    number_of_waters = int(
+        floor((mass_of_ice_box / molar_mass_of_water) * avogadros_number)
+    )
+
+    # Print some stuff of water
+    print("Water information:")
+    print("    Volume of ice box: %g m^3" % (volume_of_ice_box * 1e-10 ** 3))
+    print("    Density of water: %g kg/m^3" % density_of_water)
+    print("    Mass of ice box: %g kg" % (mass_of_ice_box / 1000))
+    print("    Number of water molecules to place: %d" % number_of_waters)
+
+    # Generate some randomly oriented water coordinates
+    print("Generating random water orientations...")
+    rotation = random_uniform_rotation(number_of_waters)
+    x = numpy.random.uniform(
+        sample.sample_bbox[0][0], sample.sample_bbox[1][0], number_of_waters
+    )
+    y = numpy.random.uniform(
+        sample.sample_bbox[0][1], sample.sample_bbox[1][1], number_of_waters
+    )
+    z = numpy.random.uniform(ice_min_z, ice_max_z, number_of_waters)
+    position = numpy.array((x, y, z)).T
+    waters.extend(position, rotation)
+
+    # Put the waters in the sample
+    # print("Placing waters...")
+    # for i, translation in enumerate(
+    #     distribute_boxes_uniformly(ice_size, waters.individual_sample_sizes)
+    # ):
+    #     waters.positions[i] = translation #+ numpy.array([0, correction, correction])
+
+    print("Adding waters...")
+    sample.append(waters)
+
+    print(sample.info())
+    # sample.validate()
 
     # Return the sample
     return sample
@@ -1110,5 +1207,6 @@ def new(name, **kwargs):
         "4v5d": create_4v5d_sample,
         "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
         "ribosomes_in_cylinder": create_ribosomes_in_cylinder_sample,
+        "single_ribosome_in_ice": create_single_ribosome_in_ice_sample,
         "custom": create_custom_sample,
     }[name](**kwargs.get(name, {}))
