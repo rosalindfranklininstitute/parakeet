@@ -179,6 +179,12 @@ def test_sample(tmp_path, sample_4v5d):
     sample2 = elfantasma.sample.load(pkl_path)
 
 
+def test_random_uniform_rotation():
+
+    rotations = elfantasma.sample.random_uniform_rotation(size=10)
+    assert rotations.shape == (10, 3)
+
+
 def test_create_ribosomes_in_lamella_sample():
 
     sample = elfantasma.sample.create_ribosomes_in_lamella_sample(4000, 4000, 500)
