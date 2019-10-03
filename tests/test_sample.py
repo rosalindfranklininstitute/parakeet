@@ -27,7 +27,7 @@ def test_structure(sample_4v5d):
     assert numpy.allclose(structure.bounding_box[1], (0, 0, 0))
 
     # Add a model
-    structure.append([0, 0, 0], [0, 0, 0])
+    structure.append([[0, 0, 0]], [[0, 0, 0]])
 
     # Check some characteristics
     assert structure.num_models == 1
@@ -36,7 +36,7 @@ def test_structure(sample_4v5d):
     assert numpy.allclose(structure.bounding_box[1], (133.762, 195.798, 190.784))
 
     # Add a model
-    structure.append([10, 10, 10], [0, 0, 0])
+    structure.append([[10, 10, 10]], [[0, 0, 0]])
 
     # Check some characteristics
     assert structure.num_models == 2
@@ -45,7 +45,7 @@ def test_structure(sample_4v5d):
     assert numpy.allclose(structure.bounding_box[1], (143.762, 205.798, 200.784))
 
     # Add a model
-    structure.append([200, 200, 200], [pi / 2, pi / 2, pi / 2])
+    structure.append([[200, 200, 200]], [[pi / 2, pi / 2, pi / 2]])
 
     # Check some characteristics
     assert structure.num_models == 3
@@ -113,8 +113,8 @@ def test_sample(tmp_path, sample_4v5d):
         "    Box size z:    383.57"
     )
 
-    sample.structures[0].append([10, 10, 10], [0, 0, 0])
-    sample.structures[0].append([200, 200, 200], [pi / 2, pi / 2, pi / 2])
+    sample.structures[0].append([[10, 10, 10]], [[0, 0, 0]])
+    sample.structures[0].append([[200, 200, 200]], [[pi / 2, pi / 2, pi / 2]])
 
     sample.update()
     sample.resize()
