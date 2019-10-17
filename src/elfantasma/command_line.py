@@ -206,7 +206,7 @@ def convert():
         "--electrons_per_pixel",
         type=float,
         default=None,
-        dest="beam_flux",
+        dest="electrons_per_pixel",
         help="Multiply data by this value and get Poisson pixel counts",
     )
 
