@@ -62,7 +62,7 @@ def default():
 
         beam:
             E_0: 300
-            electrons_per_pixel: 200
+            flux: null
 
             objective_lens:
                 m: 0
@@ -107,6 +107,7 @@ def default():
             step_angle: 10
             start_pos: 0
             stop_pos: 0
+            exposure_time: 1
 
         simulation:
             slice_thickness: 3.0

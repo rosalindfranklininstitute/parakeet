@@ -83,11 +83,13 @@ class SingleImageSimulation(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (
-            i,
-            angle,
-            numpy.random.poisson(simulation.electrons_per_pixel * ideal_image),
-        )
+        if simulation.electrons_per_pixel is not None:
+            image = (
+                numpy.random.poisson(simulation.electrons_per_pixel * ideal_image),
+            )
+        else:
+            image = ideal_image
+        return (i, angle, image)
 
     def spec_atoms(self, sample, x0, x1, y0, y1, offset):
         """
@@ -419,7 +421,11 @@ def new(
     input_multislice.obj_lens_zero_defocus_plane = 0
 
     # Set the electrons per pixel
-    electrons_per_pixel = beam["electrons_per_pixel"]
+    if beam["flux"] is not None:
+        beam_size = simulation.detector["nx"] * simulation.detector["ny"]
+        electrons_per_pixel = beam["flux"] * scan["exposure_time"] / beam_size
+    else:
+        electrons_per_pixel = None
 
     # Set the simulation margin
     margin = simulation["margin"]

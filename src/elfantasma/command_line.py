@@ -71,6 +71,13 @@ def main():
         help="Choose the phantom to generate",
     )
     parser.add_argument(
+        "--beam.flux",
+        type=float,
+        default=None,
+        dest="beam_flux",
+        help="The beam flux (None means infinite normalized)",
+    )
+    parser.add_argument(
         "--cluster.max_workers",
         type=int,
         default=None,
@@ -104,6 +111,8 @@ def main():
         command_line["output"] = args.output
     if args.phantom is not None:
         command_line["phantom"] = args.phantom
+    if args.beam_flux is not None:
+        command_line["beam"] = {"flux": args.beam_flux}
     if args.cluster_max_workers is not None or args.cluster_method is not None:
         command_line["cluster"] = {}
     if args.cluster_max_workers is not None:
@@ -193,6 +202,13 @@ def convert():
         dest="output",
         help="The output filename",
     )
+    parser.add_argument(
+        "--electrons_per_pixel",
+        type=float,
+        default=None,
+        dest="beam_flux",
+        help="Multiply data by this value and get Poisson pixel counts",
+    )
 
     # Parse the arguments
     args = parser.parse_args()
@@ -219,13 +235,20 @@ def convert():
             )
         writer.vmin = min(min_image)
         writer.vmax = max(max_image)
+        if args.electrons_per_pixel is not None:
+            writer.vmin *= args.electons_per_pixel
+            writer.vmax *= args.electons_per_pixel
         print("Min: %f" % writer.vmin)
         print("Max: %f" % writer.vmax)
 
     # Write the data
     for i in range(reader.shape[0]):
         print(f"    Copying image {i}")
-        writer.data[i, :, :] = reader.data[i, :, :]
+        if args.electrons_per_pixel is None:
+            image = reader.data[i, :, :]
+        else:
+            image = numpy.random.poisson(electrons_per_pixel * reader.data[i, :, :])
+        writer.data[i, :, :] = image
         writer.angle[i] = reader.angle[i]
         writer.position[i] = reader.position[i]
 
