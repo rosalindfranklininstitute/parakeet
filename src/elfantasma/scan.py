@@ -17,14 +17,15 @@ class Scan(object):
 
     """
 
-    def __init__(self, axis=None, angles=None, positions=None):
+    def __init__(self, axis=None, angles=None, positions=None, exposure_time=None):
         """
         Initialise the scan
 
         Args:
             axis (tuple): The rotation axis
             angles (list): The rotation angles (units: degrees)
-            positions (list): The positions to shift(units: A)
+            positions (list): The positions to shift (units: A)
+            exposure_time (float): The exposure time (units: seconds)
 
         """
         if axis is None:
@@ -40,6 +41,7 @@ class Scan(object):
         else:
             self.positions = positions
         assert len(self.angles) == len(self.positions)
+        self.exposure_time = exposure_time
 
 
 def new(
@@ -50,17 +52,19 @@ def new(
     step_angle=0,
     start_pos=0,
     stop_pos=0,
+    exposure_time=1,
 ):
     """
     Create an scan
 
     Args:
         axis (array): The rotation axis
-        start_angle (float): The starting angle
-        stop_angle (float): The stopping angle
-        step_angle (float): The angle step
-        start_pos (float): The starting position
-        stop_pos (float): The stopping position
+        start_angle (float): The starting angle (deg)
+        stop_angle (float): The stopping angle (deg)
+        step_angle (float): The angle step (deg)
+        start_pos (float): The starting position (A)
+        stop_pos (float): The stopping position (A)
+        exposure_time (float): The exposure time (seconds)
 
     Returns:
         object: The scan object
@@ -76,6 +80,8 @@ def new(
         angles = numpy.arange(start_angle, stop_angle, step_angle)
         step_pos = (stop_pos - start_pos) / len(angles)
         positions = numpy.arange(start_pos, stop_pos, step_pos)
-        return Scan(axis=axis, angles=angles, positions=positions)
+        return Scan(
+            axis=axis, angles=angles, positions=positions, exposure_time=exposure_time
+        )
     else:
         raise RuntimeError(f"Scan mode not recognised: {mode}")
