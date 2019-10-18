@@ -41,6 +41,7 @@ def main():
                 "elfantasma-convert=elfantasma.command_line:convert",
                 "elfantasma-show-config=elfantasma.command_line:show_config_main",
                 "elfantasma-create-sample=elfantasma.command_line:create_sample",
+                "elfantasma-freeze=elfantasma.command_line:freeze",
             ]
         },
         extras_require={

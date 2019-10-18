@@ -14,6 +14,7 @@ import numpy
 import time
 import elfantasma.io
 import elfantasma.config
+import elfantasma.freeze
 import elfantasma.sample
 import elfantasma.scan
 import elfantasma.simulation
@@ -366,6 +367,80 @@ def create_sample():
     # Write the sample to file
     print(f"Writing sample to {args.output}")
     sample.as_file(args.output)
+
+
+def freeze():
+    """
+    Freeze a sample
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Create a sample and save it")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="sample.pickle",
+        dest="output",
+        help="The filename for the sample file",
+    )
+    parser.add_argument(
+        "-p",
+        "--phantom",
+        choices=[
+            "4v5d",
+            "ribosomes_in_lamella",
+            "ribosomes_in_cylinder",
+            "single_ribosome_in_ice",
+        ],
+        default=None,
+        dest="phantom",
+        help="Choose the phantom to generate",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Set the command line args in a dict
+    command_line = {}
+    if args.phantom is not None:
+        command_line["phantom"] = args.phantom
+
+    # Load the configuration
+    config = elfantasma.config.load(args.config, command_line)
+
+    # Print some options
+    elfantasma.config.show(config)
+
+    # Create the sample
+    sample = elfantasma.sample.new(config["phantom"], **config["sample"])
+
+    # Get the sample atoms
+    x0 = 0
+    y0 = 0
+    z0 = 0
+    x1 = sample.box_size[0]
+    y1 = sample.box_size[1]
+    z1 = sample.box_size[2]
+    print("Selecting atom data in roi:")
+    print("    x0: %g" % x0)
+    print("    y0: %g" % y0)
+    print("    x1: %g" % x1)
+    print("    y1: %g" % y1)
+    atom_data = sample.select_atom_data_in_roi(((x0, y0), (x1, y1)))
+
+    # Freeze the sample
+    atom_data = elfantasma.freeze.freeze(atom_data, (x0, y0, z0), (x1, y1, z1))
 
 
 if __name__ == "__main__":

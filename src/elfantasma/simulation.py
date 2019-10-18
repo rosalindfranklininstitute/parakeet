@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import multem
+
 import numpy
 import os
 import pickle
@@ -16,6 +16,13 @@ import warnings
 import elfantasma.config
 import elfantasma.futures
 import elfantasma.sample
+import warnings
+
+# Try to input MULTEM
+try:
+    import multem
+except ImportError:
+    warnings.warn("Could not import MULTEM")
 
 
 class SingleImageSimulation(object):
