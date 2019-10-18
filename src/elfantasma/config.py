@@ -112,6 +112,7 @@ def default():
         simulation:
             slice_thickness: 3.0
             margin: 100
+            freeze: False
 
         cluster:
             method: null

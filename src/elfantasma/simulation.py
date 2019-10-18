@@ -14,6 +14,7 @@ import os
 import pickle
 import warnings
 import elfantasma.config
+import elfantasma.freeze
 import elfantasma.futures
 import elfantasma.sample
 import warnings
@@ -66,6 +67,16 @@ class SingleImageSimulation(object):
         spec_atoms = self.spec_atoms(
             simulation.sample, position, position + x_fov, 0, y_fov, offset
         )
+
+        # Freeze the sample
+        if simulation.freeze:
+            bbox0 = (0, 0, 0)
+            bbox1 = (
+                x_fov + offset * 2,
+                y_fov + offset * 2,
+                simulation.sample.box_size[2],
+            )
+            spec_atoms = elfantasma.freeze.freeze(spec_atoms, bbox0, bbox1)
 
         # Set the atoms of the sample
         simulation.input_multislice.spec_atoms = spec_atoms
@@ -158,6 +169,7 @@ class Simulation(object):
         positions=None,
         electrons_per_pixel=None,
         margin=None,
+        freeze=None,
         cluster=None,
     ):
         """
@@ -181,6 +193,7 @@ class Simulation(object):
         self.positions = positions
         self.electrons_per_pixel = electrons_per_pixel
         self.margin = margin
+        self.freeze = freeze
         self.cluster = cluster
 
     @property
@@ -436,6 +449,7 @@ def new(
 
     # Set the simulation margin
     margin = simulation["margin"]
+    freeze = simulation["freeze"]
 
     # Create the simulation
     return Simulation(
@@ -447,6 +461,7 @@ def new(
         scan.angles,
         scan.positions,
         electrons_per_pixel,
+        freeze,
         margin,
         cluster,
     )

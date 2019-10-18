@@ -72,6 +72,13 @@ def main():
         help="Choose the phantom to generate",
     )
     parser.add_argument(
+        "--freeze",
+        type=bool,
+        default=None,
+        dest="freeze",
+        help="Freeze the sample in vitreous ice",
+    )
+    parser.add_argument(
         "--beam.flux",
         type=float,
         default=None,
@@ -112,6 +119,8 @@ def main():
         command_line["output"] = args.output
     if args.phantom is not None:
         command_line["phantom"] = args.phantom
+    if args.freeze is not None:
+        command_line["freeze"] = args.freeze
     if args.beam_flux is not None:
         command_line["beam"] = {"flux": args.beam_flux}
     if args.cluster_max_workers is not None or args.cluster_method is not None:
