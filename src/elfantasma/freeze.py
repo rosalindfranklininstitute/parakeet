@@ -119,25 +119,23 @@ def freeze(atoms, x0, x1):
         print("    placed %d waters" % len(coords))
 
     # Create the data frame for the atoms
+    # FIXME Currently only adding oxygens since they are major contribution
+    # to scattering of electrons; however, we should also add hydrogens
     print("Creating water atom data")
     shape = number_of_waters
     water_atoms = pandas.DataFrame(
         {
-            "model": pandas.Series(numpy.zeros(shape=shape, dtype="uint32")),
-            "chain": pandas.Series(numpy.zeros(shape=shape, dtype="str")),
-            "residue": pandas.Series(numpy.zeros(shape=shape, dtype="str")),
-            "atomic_number": pandas.Series(
-                numpy.full(shape=shape, fill_value=8, dtype="uint32")
-            ),
-            "x": pandas.Series(water_coords[:, 0]),
-            "y": pandas.Series(water_coords[:, 1]),
-            "z": pandas.Series(water_coords[:, 2]),
-            "occ": pandas.Series(numpy.zeros(shape=shape, dtype="float64")),
-            "charge": pandas.Series(numpy.zeros(shape=shape, dtype="float64")),
-            "sigma": pandas.Series(
-                numpy.full(shape=shape, fill_value=0.085, dtype="float64")
-            ),
-            "region": pandas.Series(numpy.zeros(shape=shape, dtype="uint32")),
+            "model": numpy.zeros(shape=shape, dtype="uint32"),
+            "chain": numpy.zeros(shape=shape, dtype="str"),
+            "residue": numpy.zeros(shape=shape, dtype="str"),
+            "atomic_number": numpy.full(shape=shape, fill_value=8, dtype="uint32"),
+            "x": water_coords[:, 0],
+            "y": water_coords[:, 1],
+            "z": water_coords[:, 2],
+            "occ": numpy.ones(shape=shape, dtype="float64"),
+            "charge": numpy.zeros(shape=shape, dtype="float64"),
+            "sigma": numpy.full(shape=shape, fill_value=0.085, dtype="float64"),
+            "region": numpy.zeros(shape=shape, dtype="uint32"),
         }
     )
 
