@@ -191,7 +191,7 @@ def show_config_main():
     elfantasma.config.show(config, full=True)
 
 
-def convert():
+def convert(argv=None):
     """
     Convert the input file type to a different file type
 
@@ -221,7 +221,7 @@ def convert():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Read the input
     print(f"Reading data from {args.filename}")
