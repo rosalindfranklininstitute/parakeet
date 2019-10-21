@@ -133,7 +133,7 @@ def freeze(atoms, x0, x1):
             "y": water_coords[:, 1],
             "z": water_coords[:, 2],
             "occ": numpy.ones(shape=shape, dtype="float64"),
-            "charge": numpy.zeros(shape=shape, dtype="float64"),
+            "charge": numpy.zeros(shape=shape, dtype="uint32"),
             "sigma": numpy.full(shape=shape, fill_value=0.085, dtype="float64"),
             "region": numpy.zeros(shape=shape, dtype="uint32"),
         }
