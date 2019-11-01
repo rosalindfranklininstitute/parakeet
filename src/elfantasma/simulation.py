@@ -64,7 +64,7 @@ class SingleImageSimulation(object):
 
         # Get the specimen atoms
         print(f"Simulating image {i}")
-        spec_atoms = self.spec_atoms(
+        atom_data = self.atom_data(
             simulation.sample, position, position + x_fov, 0, y_fov, offset
         )
 
@@ -76,7 +76,10 @@ class SingleImageSimulation(object):
                 y_fov + offset * 2,
                 simulation.sample.box_size[2],
             )
-            spec_atoms = elfantasma.freeze.freeze(spec_atoms, bbox0, bbox1)
+            atom_data = elfantasma.freeze.freeze(atom_data, bbox0, bbox1)
+
+        # Extract as a list
+        spec_atoms = list(elfantasma.sample.extract_spec_atoms(atom_data))
 
         # Set the atoms of the sample
         simulation.input_multislice.spec_atoms = spec_atoms
@@ -90,11 +93,21 @@ class SingleImageSimulation(object):
         )
 
         # Get the ideal image data
+        # Multem outputs data in column major format. In C++ and Python we
+        # generally deal with data in row major format so we must do a
+        # transpose here.
         ideal_image = numpy.array(output_multislice.data[0].m2psi_tot).T
 
         # Remove margin
         margin = simulation.margin
-        ideal_image = ideal_image[margin:-margin, margin:-margin]
+        j0 = margin
+        i0 = margin
+        j1 = ideal_image.shape[0] - margin
+        i1 = ideal_image.shape[1] - margin
+        assert margin >= 0
+        assert i1 > i0
+        assert j1 > j0
+        ideal_image = ideal_image[j0:j1, i0:i1]
         print(
             "Ideal image min/max: %f/%f"
             % (numpy.min(ideal_image), numpy.max(ideal_image))
@@ -109,7 +122,7 @@ class SingleImageSimulation(object):
             image = ideal_image
         return (i, angle, image)
 
-    def spec_atoms(self, sample, x0, x1, y0, y1, offset):
+    def atom_data(self, sample, x0, x1, y0, y1, offset):
         """
         Get a subset of atoms within the field of view
 
@@ -140,7 +153,7 @@ class SingleImageSimulation(object):
         print("    Min box x: %.2f" % x0)
         print("    Max box x: %.2f" % x1)
         print("    Min box y: %.2f" % y0)
-        print("    Max box x: %.2f" % y1)
+        print("    Max box y: %.2f" % y1)
         print("    Min sample x: %.2f" % atom_data["x"].min())
         print("    Max sample x: %.2f" % atom_data["x"].max())
         print("    Min sample y: %.2f" % atom_data["y"].min())
@@ -149,7 +162,7 @@ class SingleImageSimulation(object):
         print("    Max sample z: %.2f" % atom_data["z"].max())
 
         # Return the atom data
-        return list(elfantasma.sample.extract_spec_atoms(atom_data))
+        return atom_data
 
 
 class Simulation(object):
@@ -203,7 +216,7 @@ class Simulation(object):
 
         """
         nx = self.detector["nx"]
-        ny = self.detector["nx"]
+        ny = self.detector["ny"]
         nz = len(self.angles)
         return (nz, ny, nx)
 
@@ -455,13 +468,13 @@ def new(
     return Simulation(
         system_conf,
         input_multislice,
-        sample,
-        detector,
-        scan.axis,
-        scan.angles,
-        scan.positions,
-        electrons_per_pixel,
-        freeze,
-        margin,
-        cluster,
+        sample=sample,
+        detector=detector,
+        axis=scan.axis,
+        angles=scan.angles,
+        positions=scan.positions,
+        electrons_per_pixel=electrons_per_pixel,
+        margin=margin,
+        freeze=freeze,
+        cluster=cluster,
     )
