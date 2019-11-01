@@ -31,7 +31,6 @@ def default():
         """
 
         output: output.h5
-        device: gpu
         phantom: 4v5d
 
         sample:
@@ -60,9 +59,13 @@ def default():
             custom:
                 filename: null
 
-        beam:
-            E_0: 300
-            flux: null
+        microscope:
+
+            model: null
+
+            beam:
+                E_0: 300
+                flux: null
 
             objective_lens:
                 m: 0
@@ -94,10 +97,10 @@ def default():
                 inner_aper_ang: 0.0
                 outer_aper_ang: 0.0
 
-        detector:
-            nx: 4000
-            ny: 4000
-            pixel_size: 1
+            detector:
+                nx: 4000
+                ny: 4000
+                pixel_size: 1
 
         scan:
             mode: still
@@ -108,6 +111,8 @@ def default():
             start_pos: 0
             stop_pos: 0
             exposure_time: 1
+
+        device: gpu
 
         simulation:
             slice_thickness: 3.0

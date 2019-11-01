@@ -14,6 +14,7 @@ import numpy
 import time
 import elfantasma.io
 import elfantasma.config
+import elfantasma.microscope
 import elfantasma.freeze
 import elfantasma.sample
 import elfantasma.scan
@@ -122,7 +123,7 @@ def main():
     if args.freeze is not None:
         command_line["freeze"] = args.freeze
     if args.beam_flux is not None:
-        command_line["beam"] = {"flux": args.beam_flux}
+        command_line["microscope"] = {"beam": {"flux": args.beam_flux}}
     if args.cluster_max_workers is not None or args.cluster_method is not None:
         command_line["cluster"] = {}
     if args.cluster_max_workers is not None:
@@ -138,6 +139,9 @@ def main():
     # Print some options
     elfantasma.config.show(config)
 
+    # Create the microscope
+    microscope = elfantasma.microscope.new(**config["microscope"])
+
     # Create the sample
     sample = elfantasma.sample.new(config["phantom"], **config["sample"])
 
@@ -146,11 +150,10 @@ def main():
 
     # Create the simulation
     simulation = elfantasma.simulation.new(
-        sample,
-        scan,
+        microscope=microscope,
+        sample=sample,
+        scan=scan,
         device=config["device"],
-        beam=config["beam"],
-        detector=config["detector"],
         simulation=config["simulation"],
         cluster=config["cluster"],
     )

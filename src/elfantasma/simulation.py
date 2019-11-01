@@ -50,17 +50,23 @@ class SingleImageSimulation(object):
         """
 
         # Get the rotation angle
-        angle = simulation.angles[i]
-        position = simulation.positions[i]
+        angle = simulation.scan.angles[i]
+        position = simulation.scan.positions[i]
 
         # Set the rotation angle
         simulation.input_multislice.spec_rot_theta = angle
-        simulation.input_multislice.spec_rot_u0 = simulation.axis
+        simulation.input_multislice.spec_rot_u0 = simulation.scan.axis
 
         # The field of view
-        x_fov = simulation.detector["nx"] * simulation.detector["pixel_size"]
-        y_fov = simulation.detector["ny"] * simulation.detector["pixel_size"]
-        offset = simulation.margin * simulation.detector["pixel_size"]
+        x_fov = (
+            simulation.microscope.detector.nx
+            * simulation.microscope.detector.pixel_size
+        )
+        y_fov = (
+            simulation.microscope.detector.ny
+            * simulation.microscope.detector.pixel_size
+        )
+        offset = simulation.margin * simulation.microscope.detector.pixel_size
 
         # Get the specimen atoms
         print(f"Simulating image {i}")
@@ -175,11 +181,9 @@ class Simulation(object):
         self,
         system_conf,
         input_multislice,
+        microscope=None,
         sample=None,
-        detector=None,
-        axis=None,
-        angles=None,
-        positions=None,
+        scan=None,
         electrons_per_pixel=None,
         margin=None,
         freeze=None,
@@ -199,11 +203,9 @@ class Simulation(object):
 
         self.system_conf = system_conf
         self.input_multislice = input_multislice
+        self.microscope = microscope
         self.sample = sample
-        self.detector = detector
-        self.axis = axis
-        self.angles = angles
-        self.positions = positions
+        self.scan = scan
         self.electrons_per_pixel = electrons_per_pixel
         self.margin = margin
         self.freeze = freeze
@@ -215,9 +217,9 @@ class Simulation(object):
         Return the simulation data shape
 
         """
-        nx = self.detector["nx"]
-        ny = self.detector["ny"]
-        nz = len(self.angles)
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        nz = len(self.scan)
         return (nz, ny, nx)
 
     def run(self, writer):
@@ -234,7 +236,7 @@ class Simulation(object):
 
         # If we are executing in a single process just do a for loop
         if self.cluster["method"] is None:
-            for i, angle in enumerate(self.angles):
+            for i, angle in enumerate(self.scan.angles):
                 print(f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees")
                 _, angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
@@ -257,7 +259,7 @@ class Simulation(object):
                 # Submit all jobs
                 print("Running simulation...")
                 futures = []
-                for i, angle in enumerate(self.angles):
+                for i, angle in enumerate(self.scan.angles):
                     print(
                         f"    Submitting job: {i+1}/{self.shape[0]} for {angle} degrees"
                     )
@@ -289,7 +291,7 @@ class Simulation(object):
             dict: The results as a dictionary
 
         """
-        return {"input": self.input_multislice.asdict(), "angles": self.angles}
+        return {"input": self.input_multislice.asdict(), "angles": self.scan.angles}
 
     def as_pickle(self, filename):
         """
@@ -342,17 +344,16 @@ def create_system_configuration(device):
 
 
 def new(
-    sample, scan, device="gpu", beam=None, detector=None, simulation=None, cluster=None
+    microscope=None, sample=None, scan=None, device="gpu", simulation=None, cluster=None
 ):
     """
     Create the simulation
 
     Args:
+        microscope (object); The microscope object
         sample (object): The sample object
         scan (object): The scan object
         device (str): The device to use
-        beam (object); The beam parameters
-        detector (object): The detector parameters
         simulation (object): The simulation parameters
         cluster (object): The cluster parameters
 
@@ -395,12 +396,12 @@ def new(
     input_multislice.thick_type = "Whole_Spec"
 
     # x-y sampling
-    input_multislice.nx = detector["nx"] + simulation["margin"] * 2
-    input_multislice.ny = detector["ny"] + simulation["margin"] * 2
+    input_multislice.nx = microscope.detector.nx + simulation["margin"] * 2
+    input_multislice.ny = microscope.detector.ny + simulation["margin"] * 2
     input_multislice.bwl = False
 
     # Microscope parameters
-    input_multislice.E_0 = beam["E_0"]
+    input_multislice.E_0 = microscope.beam.energy
     input_multislice.theta = 0.0
     input_multislice.phi = 0.0
 
@@ -415,34 +416,34 @@ def new(
     # input_multislice.obj_lens_ssf_npoints = 4
 
     # Objective lens
-    input_multislice.obj_lens_m = beam["objective_lens"]["m"]
-    input_multislice.obj_lens_c_10 = beam["objective_lens"]["c_10"]
-    input_multislice.obj_lens_c_12 = beam["objective_lens"]["c_12"]
-    input_multislice.obj_lens_phi_12 = beam["objective_lens"]["phi_12"]
-    input_multislice.obj_lens_c_21 = beam["objective_lens"]["c_21"]
-    input_multislice.obj_lens_phi_21 = beam["objective_lens"]["phi_21"]
-    input_multislice.obj_lens_c_23 = beam["objective_lens"]["c_23"]
-    input_multislice.obj_lens_phi_23 = beam["objective_lens"]["phi_23"]
-    input_multislice.obj_lens_c_30 = beam["objective_lens"]["c_30"]
-    input_multislice.obj_lens_c_32 = beam["objective_lens"]["c_32"]
-    input_multislice.obj_lens_phi_32 = beam["objective_lens"]["phi_32"]
-    input_multislice.obj_lens_c_34 = beam["objective_lens"]["c_34"]
-    input_multislice.obj_lens_phi_34 = beam["objective_lens"]["phi_34"]
-    input_multislice.obj_lens_c_41 = beam["objective_lens"]["c_41"]
-    input_multislice.obj_lens_phi_41 = beam["objective_lens"]["phi_41"]
-    input_multislice.obj_lens_c_43 = beam["objective_lens"]["c_43"]
-    input_multislice.obj_lens_phi_43 = beam["objective_lens"]["phi_43"]
-    input_multislice.obj_lens_c_45 = beam["objective_lens"]["c_45"]
-    input_multislice.obj_lens_phi_45 = beam["objective_lens"]["phi_45"]
-    input_multislice.obj_lens_c_50 = beam["objective_lens"]["c_50"]
-    input_multislice.obj_lens_c_52 = beam["objective_lens"]["c_52"]
-    input_multislice.obj_lens_phi_52 = beam["objective_lens"]["phi_52"]
-    input_multislice.obj_lens_c_54 = beam["objective_lens"]["c_54"]
-    input_multislice.obj_lens_phi_54 = beam["objective_lens"]["phi_54"]
-    input_multislice.obj_lens_c_56 = beam["objective_lens"]["c_56"]
-    input_multislice.obj_lens_phi_56 = beam["objective_lens"]["phi_56"]
-    input_multislice.obj_lens_inner_aper_ang = beam["objective_lens"]["inner_aper_ang"]
-    input_multislice.obj_lens_outer_aper_ang = beam["objective_lens"]["outer_aper_ang"]
+    input_multislice.obj_lens_m = microscope.lens.m
+    input_multislice.obj_lens_c_10 = microscope.lens.c_10
+    input_multislice.obj_lens_c_12 = microscope.lens.c_12
+    input_multislice.obj_lens_phi_12 = microscope.lens.phi_12
+    input_multislice.obj_lens_c_21 = microscope.lens.c_21
+    input_multislice.obj_lens_phi_21 = microscope.lens.phi_21
+    input_multislice.obj_lens_c_23 = microscope.lens.c_23
+    input_multislice.obj_lens_phi_23 = microscope.lens.phi_23
+    input_multislice.obj_lens_c_30 = microscope.lens.c_30
+    input_multislice.obj_lens_c_32 = microscope.lens.c_32
+    input_multislice.obj_lens_phi_32 = microscope.lens.phi_32
+    input_multislice.obj_lens_c_34 = microscope.lens.c_34
+    input_multislice.obj_lens_phi_34 = microscope.lens.phi_34
+    input_multislice.obj_lens_c_41 = microscope.lens.c_41
+    input_multislice.obj_lens_phi_41 = microscope.lens.phi_41
+    input_multislice.obj_lens_c_43 = microscope.lens.c_43
+    input_multislice.obj_lens_phi_43 = microscope.lens.phi_43
+    input_multislice.obj_lens_c_45 = microscope.lens.c_45
+    input_multislice.obj_lens_phi_45 = microscope.lens.phi_45
+    input_multislice.obj_lens_c_50 = microscope.lens.c_50
+    input_multislice.obj_lens_c_52 = microscope.lens.c_52
+    input_multislice.obj_lens_phi_52 = microscope.lens.phi_52
+    input_multislice.obj_lens_c_54 = microscope.lens.c_54
+    input_multislice.obj_lens_phi_54 = microscope.lens.phi_54
+    input_multislice.obj_lens_c_56 = microscope.lens.c_56
+    input_multislice.obj_lens_phi_56 = microscope.lens.phi_56
+    input_multislice.obj_lens_inner_aper_ang = microscope.lens.inner_aper_ang
+    input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
 
     # defocus spread function
     dsf_sigma = multem.iehwgd_to_sigma(32)
@@ -454,9 +455,9 @@ def new(
     input_multislice.obj_lens_zero_defocus_plane = 0
 
     # Set the electrons per pixel
-    if beam["flux"] is not None:
-        beam_size = simulation.detector["nx"] * simulation.detector["ny"]
-        electrons_per_pixel = beam["flux"] * scan["exposure_time"] / beam_size
+    if microscope.beam.flux is not None:
+        beam_size = microscope.detector.nx * microscope.detector.ny
+        electrons_per_pixel = microscope.beam.flux * scan.exposure_time / beam_size
     else:
         electrons_per_pixel = None
 
@@ -469,10 +470,7 @@ def new(
         system_conf,
         input_multislice,
         sample=sample,
-        detector=detector,
-        axis=scan.axis,
-        angles=scan.angles,
-        positions=scan.positions,
+        scan=scan,
         electrons_per_pixel=electrons_per_pixel,
         margin=margin,
         freeze=freeze,
