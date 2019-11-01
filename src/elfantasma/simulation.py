@@ -26,6 +26,146 @@ except ImportError:
     warnings.warn("Could not import MULTEM")
 
 
+def create_system_configuration(device):
+    """
+    Create an appropriate system configuration
+
+    Args:
+        device (str): The device to use
+
+    Returns:
+        object: The system configuration
+
+    """
+    assert device in ["cpu", "gpu"]
+
+    # Initialise the system configuration
+    system_conf = multem.SystemConfiguration()
+
+    # Set the precision
+    system_conf.precision = "float"
+
+    # Set the device
+    if device == "gpu":
+        if multem.is_gpu_available():
+            system_conf.device = "device"
+        else:
+            system_conf.device = "host"
+            warnings.warn("GPU not present, reverting to CPU")
+    else:
+        system_conf.device = "host"
+
+    # Return the system configuration
+    return system_conf
+
+
+def create_input_multislice(microscope, slice_thickness, margin):
+    """
+    Create the input multislice object
+
+    Args:
+        microscope (object): The microscope object
+        slice_thickness (float): The slice thickness
+        margin (int): The pixel margin
+
+    Returns:
+        object: The input multislice object
+
+    """
+
+    # Initialise the input and system configuration
+    input_multislice = multem.Input()
+
+    # Set simulation experiment
+    input_multislice.simulation_type = "HRTEM"
+
+    # Electron-Specimen interaction model
+    input_multislice.interaction_model = "Multislice"
+    input_multislice.potential_type = "Lobato_0_12"
+
+    # Potential slicing
+    input_multislice.potential_slicing = "dz_Proj"
+
+    # Electron-Phonon interaction model
+    input_multislice.pn_model = "Frozen_Phonon"
+    input_multislice.pn_coh_contrib = 0
+    input_multislice.pn_single_conf = False
+    input_multislice.pn_nconf = 10
+    input_multislice.pn_dim = 110
+    input_multislice.pn_seed = 300_183
+
+    # Set the slice thickness
+    input_multislice.spec_dz = slice_thickness
+
+    # Set the amorphous layers
+    # input_multislice.spec_amorp = [(0, 0, 2.0)]
+
+    # Specimen thickness
+    input_multislice.thick_type = "Whole_Spec"
+
+    # x-y sampling
+    input_multislice.nx = microscope.detector.nx + margin * 2
+    input_multislice.ny = microscope.detector.ny + margin * 2
+    input_multislice.bwl = False
+
+    # Microscope parameters
+    input_multislice.E_0 = microscope.beam.energy
+    input_multislice.theta = 0.0
+    input_multislice.phi = 0.0
+
+    # Illumination model
+    input_multislice.illumination_model = "Partial_Coherent"
+    input_multislice.temporal_spatial_incoh = "Temporal_Spatial"
+
+    # Condenser lens
+    # source spread function
+    ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
+    # input_multislice.obj_lens_ssf_sigma = ssf_sigma
+    # input_multislice.obj_lens_ssf_npoints = 4
+
+    # Objective lens
+    input_multislice.obj_lens_m = microscope.lens.m
+    input_multislice.obj_lens_c_10 = microscope.lens.c_10
+    input_multislice.obj_lens_c_12 = microscope.lens.c_12
+    input_multislice.obj_lens_phi_12 = microscope.lens.phi_12
+    input_multislice.obj_lens_c_21 = microscope.lens.c_21
+    input_multislice.obj_lens_phi_21 = microscope.lens.phi_21
+    input_multislice.obj_lens_c_23 = microscope.lens.c_23
+    input_multislice.obj_lens_phi_23 = microscope.lens.phi_23
+    input_multislice.obj_lens_c_30 = microscope.lens.c_30
+    input_multislice.obj_lens_c_32 = microscope.lens.c_32
+    input_multislice.obj_lens_phi_32 = microscope.lens.phi_32
+    input_multislice.obj_lens_c_34 = microscope.lens.c_34
+    input_multislice.obj_lens_phi_34 = microscope.lens.phi_34
+    input_multislice.obj_lens_c_41 = microscope.lens.c_41
+    input_multislice.obj_lens_phi_41 = microscope.lens.phi_41
+    input_multislice.obj_lens_c_43 = microscope.lens.c_43
+    input_multislice.obj_lens_phi_43 = microscope.lens.phi_43
+    input_multislice.obj_lens_c_45 = microscope.lens.c_45
+    input_multislice.obj_lens_phi_45 = microscope.lens.phi_45
+    input_multislice.obj_lens_c_50 = microscope.lens.c_50
+    input_multislice.obj_lens_c_52 = microscope.lens.c_52
+    input_multislice.obj_lens_phi_52 = microscope.lens.phi_52
+    input_multislice.obj_lens_c_54 = microscope.lens.c_54
+    input_multislice.obj_lens_phi_54 = microscope.lens.phi_54
+    input_multislice.obj_lens_c_56 = microscope.lens.c_56
+    input_multislice.obj_lens_phi_56 = microscope.lens.phi_56
+    input_multislice.obj_lens_inner_aper_ang = microscope.lens.inner_aper_ang
+    input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
+
+    # defocus spread function
+    dsf_sigma = multem.iehwgd_to_sigma(32)
+    input_multislice.obj_lens_dsf_sigma = dsf_sigma
+    input_multislice.obj_lens_dsf_npoints = 5
+
+    # zero defocus reference
+    input_multislice.obj_lens_zero_defocus_type = "First"
+    input_multislice.obj_lens_zero_defocus_plane = 0
+
+    # Return the input multislice object
+    return input_multislice
+
+
 class SingleImageSimulation(object):
     """
     A class to do the actual simulation
@@ -49,13 +189,21 @@ class SingleImageSimulation(object):
 
         """
 
+        # Create the multem system configuration
+        system_conf = create_system_configuration(simulation.device)
+
+        # Create the multem input multislice object
+        input_multislice = create_input_multislice(
+            simulation.microscope, simulation.slice_thickness, simulation.margin
+        )
+
         # Get the rotation angle
         angle = simulation.scan.angles[i]
         position = simulation.scan.positions[i]
 
         # Set the rotation angle
-        simulation.input_multislice.spec_rot_theta = angle
-        simulation.input_multislice.spec_rot_u0 = simulation.scan.axis
+        input_multislice.spec_rot_theta = angle
+        input_multislice.spec_rot_u0 = simulation.scan.axis
 
         # The field of view
         x_fov = (
@@ -88,15 +236,13 @@ class SingleImageSimulation(object):
         spec_atoms = list(elfantasma.sample.extract_spec_atoms(atom_data))
 
         # Set the atoms of the sample
-        simulation.input_multislice.spec_atoms = spec_atoms
-        simulation.input_multislice.spec_lx = x_fov + offset * 2
-        simulation.input_multislice.spec_ly = y_fov + offset * 2
-        simulation.input_multislice.spec_lz = simulation.sample.box_size[2]
+        input_multislice.spec_atoms = spec_atoms
+        input_multislice.spec_lx = x_fov + offset * 2
+        input_multislice.spec_ly = y_fov + offset * 2
+        input_multislice.spec_lz = simulation.sample.box_size[2]
 
         # Run the simulation
-        output_multislice = multem.simulate(
-            simulation.system_conf, simulation.input_multislice
-        )
+        output_multislice = multem.simulate(system_conf, input_multislice)
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
@@ -179,39 +325,41 @@ class Simulation(object):
 
     def __init__(
         self,
-        system_conf,
-        input_multislice,
         microscope=None,
         sample=None,
         scan=None,
         electrons_per_pixel=None,
         margin=None,
         freeze=None,
+        device=None,
+        slice_thickness=None,
         cluster=None,
     ):
         """
         Initialise the simulation
 
         Args:
-            system_conf (object): The system configuration object
-            input_multislice (object): The input object
+            microscope (object); The microscope object
+            sample (object): The sample object
+            scan (object): The scan object
 
         """
 
-        self.system_conf = system_conf
-        self.input_multislice = input_multislice
         self.microscope = microscope
         self.sample = sample
         self.scan = scan
         self.electrons_per_pixel = electrons_per_pixel
         self.margin = margin
         self.freeze = freeze
+        self.device = device
+        self.slice_thickness = slice_thickness
         self.cluster = cluster
 
     @property
     def shape(self):
         """
-        Return the simulation data shape
+        Return
+            tuple: The simulation data shape
 
         """
         nx = self.microscope.detector.nx
@@ -222,6 +370,9 @@ class Simulation(object):
     def run(self, writer):
         """
         Run the simulation
+
+        Args:
+            writer (object): Write each image to disk
 
         """
 
@@ -282,14 +433,6 @@ class Simulation(object):
                         % (i + 1, j + 1, self.shape[0], vmin, vmax)
                     )
 
-    def asdict(self):
-        """
-        Returns:
-            dict: The results as a dictionary
-
-        """
-        return {"input": self.input_multislice.asdict(), "angles": self.scan.angles}
-
     def as_pickle(self, filename):
         """
         Write the simulated data to a python pickle file
@@ -305,39 +448,6 @@ class Simulation(object):
         # Write the simulation
         with open(filename, "wb") as outfile:
             pickle.dump(self, outfile)
-
-
-def create_system_configuration(device):
-    """
-    Create an appropriate system configuration
-
-    Args:
-        device (str): The device to use
-
-    Returns:
-        object: The system configuration
-
-    """
-    assert device in ["cpu", "gpu"]
-
-    # Initialise the system configuration
-    system_conf = multem.SystemConfiguration()
-
-    # Set the precision
-    system_conf.precision = "float"
-
-    # Set the device
-    if device == "gpu":
-        if multem.is_gpu_available():
-            system_conf.device = "device"
-        else:
-            system_conf.device = "host"
-            warnings.warn("GPU not present, reverting to CPU")
-    else:
-        system_conf.device = "host"
-
-    # Return the system configuration
-    return system_conf
 
 
 def new(
@@ -358,99 +468,6 @@ def new(
         object: The simulation object
 
     """
-
-    # Create the system configuration
-    system_conf = create_system_configuration(device)
-
-    # Initialise the input and system configuration
-    input_multislice = multem.Input()
-
-    # Set simulation experiment
-    input_multislice.simulation_type = "HRTEM"
-
-    # Electron-Specimen interaction model
-    input_multislice.interaction_model = "Multislice"
-    input_multislice.potential_type = "Lobato_0_12"
-
-    # Potential slicing
-    input_multislice.potential_slicing = "dz_Proj"
-
-    # Electron-Phonon interaction model
-    input_multislice.pn_model = "Frozen_Phonon"
-    input_multislice.pn_coh_contrib = 0
-    input_multislice.pn_single_conf = False
-    input_multislice.pn_nconf = 10
-    input_multislice.pn_dim = 110
-    input_multislice.pn_seed = 300_183
-
-    # Set the slice thickness
-    input_multislice.spec_dz = simulation["slice_thickness"]
-
-    # Set the amorphous layers
-    # input_multislice.spec_amorp = [(0, 0, 2.0)]
-
-    # Specimen thickness
-    input_multislice.thick_type = "Whole_Spec"
-
-    # x-y sampling
-    input_multislice.nx = microscope.detector.nx + simulation["margin"] * 2
-    input_multislice.ny = microscope.detector.ny + simulation["margin"] * 2
-    input_multislice.bwl = False
-
-    # Microscope parameters
-    input_multislice.E_0 = microscope.beam.energy
-    input_multislice.theta = 0.0
-    input_multislice.phi = 0.0
-
-    # Illumination model
-    input_multislice.illumination_model = "Partial_Coherent"
-    input_multislice.temporal_spatial_incoh = "Temporal_Spatial"
-
-    # Condenser lens
-    # source spread function
-    ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
-    # input_multislice.obj_lens_ssf_sigma = ssf_sigma
-    # input_multislice.obj_lens_ssf_npoints = 4
-
-    # Objective lens
-    input_multislice.obj_lens_m = microscope.lens.m
-    input_multislice.obj_lens_c_10 = microscope.lens.c_10
-    input_multislice.obj_lens_c_12 = microscope.lens.c_12
-    input_multislice.obj_lens_phi_12 = microscope.lens.phi_12
-    input_multislice.obj_lens_c_21 = microscope.lens.c_21
-    input_multislice.obj_lens_phi_21 = microscope.lens.phi_21
-    input_multislice.obj_lens_c_23 = microscope.lens.c_23
-    input_multislice.obj_lens_phi_23 = microscope.lens.phi_23
-    input_multislice.obj_lens_c_30 = microscope.lens.c_30
-    input_multislice.obj_lens_c_32 = microscope.lens.c_32
-    input_multislice.obj_lens_phi_32 = microscope.lens.phi_32
-    input_multislice.obj_lens_c_34 = microscope.lens.c_34
-    input_multislice.obj_lens_phi_34 = microscope.lens.phi_34
-    input_multislice.obj_lens_c_41 = microscope.lens.c_41
-    input_multislice.obj_lens_phi_41 = microscope.lens.phi_41
-    input_multislice.obj_lens_c_43 = microscope.lens.c_43
-    input_multislice.obj_lens_phi_43 = microscope.lens.phi_43
-    input_multislice.obj_lens_c_45 = microscope.lens.c_45
-    input_multislice.obj_lens_phi_45 = microscope.lens.phi_45
-    input_multislice.obj_lens_c_50 = microscope.lens.c_50
-    input_multislice.obj_lens_c_52 = microscope.lens.c_52
-    input_multislice.obj_lens_phi_52 = microscope.lens.phi_52
-    input_multislice.obj_lens_c_54 = microscope.lens.c_54
-    input_multislice.obj_lens_phi_54 = microscope.lens.phi_54
-    input_multislice.obj_lens_c_56 = microscope.lens.c_56
-    input_multislice.obj_lens_phi_56 = microscope.lens.phi_56
-    input_multislice.obj_lens_inner_aper_ang = microscope.lens.inner_aper_ang
-    input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
-
-    # defocus spread function
-    dsf_sigma = multem.iehwgd_to_sigma(32)
-    input_multislice.obj_lens_dsf_sigma = dsf_sigma
-    input_multislice.obj_lens_dsf_npoints = 5
-
-    # zero defocus reference
-    input_multislice.obj_lens_zero_defocus_type = "First"
-    input_multislice.obj_lens_zero_defocus_plane = 0
-
     # Set the electrons per pixel
     if microscope.beam.flux is not None:
         beam_size = microscope.detector.nx * microscope.detector.ny
@@ -461,16 +478,17 @@ def new(
     # Set the simulation margin
     margin = simulation["margin"]
     freeze = simulation["freeze"]
+    slice_thickness = simulation["slice_thickness"]
 
     # Create the simulation
     return Simulation(
-        system_conf,
-        input_multislice,
         microscope=microscope,
         sample=sample,
         scan=scan,
         electrons_per_pixel=electrons_per_pixel,
         margin=margin,
         freeze=freeze,
+        device=device,
+        slice_thickness=slice_thickness,
         cluster=cluster,
     )
