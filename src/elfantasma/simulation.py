@@ -198,9 +198,6 @@ class Simulation(object):
 
         """
 
-        # Check the input
-        assert len(angles) == len(positions)
-
         self.system_conf = system_conf
         self.input_multislice = input_multislice
         self.microscope = microscope
@@ -469,6 +466,7 @@ def new(
     return Simulation(
         system_conf,
         input_multislice,
+        microscope=microscope,
         sample=sample,
         scan=scan,
         electrons_per_pixel=electrons_per_pixel,

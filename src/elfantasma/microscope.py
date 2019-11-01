@@ -8,6 +8,9 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import elfantasma.beam
+import elfantasma.detector
+import elfantasma.lens
 
 
 class Microscope(object):
@@ -33,14 +36,15 @@ class Microscope(object):
         self.detector = detector
 
 
-def new(self, model=None, beam=None, lens=None, detector=None):
+def new(model=None, beam=None, objective_lens=None, detector=None):
     """
     Make a new detector
 
     Args:
-        nx (int): The size of the detector in X
-        ny (int): The size of the detector in Y
-        pixel_size (float): The effective size of the pixels in A
+        model (str): The microscope model
+        beam (dict): The beam parameters
+        objective_lens (dict): The objective lens parameters
+        detector (dict): The detector parameters
 
     Returns:
         obj: The detector object
@@ -49,15 +53,15 @@ def new(self, model=None, beam=None, lens=None, detector=None):
 
     # Construct the basic models from the input
     beam = elfantasma.beam.new(**beam)
-    lens = elfantasma.lens.new(**lens)
+    lens = elfantasma.lens.new(**objective_lens)
     detector = elfantasma.detector.new(**detector)
 
     # Override the parameters for the different microscope models
     if model == "krios":
-        beam.E_0 = 300
+        beam.energy = 300
         lens.c_30 = 2.7
     elif model == "talos":
-        beam.E_0 = 200
+        beam.energy = 200
         lens.c_30 = 2.7
     elif model is not None:
         raise RuntimeError("Unknown microscope model")

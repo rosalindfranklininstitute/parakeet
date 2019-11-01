@@ -43,6 +43,15 @@ class Scan(object):
         assert len(self.angles) == len(self.positions)
         self.exposure_time = exposure_time
 
+    def __len__(self):
+        """
+        Returns:
+            int: The number of images in the scan
+
+        """
+        assert len(self.angles) == len(self.positions)
+        return len(self.angles)
+
 
 def new(
     mode="still",

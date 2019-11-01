@@ -64,7 +64,7 @@ def default():
             model: null
 
             beam:
-                E_0: 300
+                energy: 300
                 flux: null
 
             objective_lens:

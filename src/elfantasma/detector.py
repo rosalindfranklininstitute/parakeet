@@ -31,7 +31,7 @@ class Detector(object):
         self.pixel_size = pixel_size
 
 
-def new(self, nx=None, ny=None, pixel_size=None):
+def new(nx=None, ny=None, pixel_size=None):
     """
     Make a new detector
 
