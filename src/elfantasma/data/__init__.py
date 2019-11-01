@@ -23,3 +23,37 @@ def get_path(name):
 
     """
     return os.path.join(os.path.dirname(__file__), name)
+
+
+def get_4v1w():
+    """
+    Get the path to the file containing the structure of Apoferratin (4v1w)
+
+    Returns:
+        str: The abolsute path to 4v1w
+
+    """
+    return get_path("4v1w.cif")
+
+
+def get_4v5d():
+    """
+    Get the path to the file containing the structure of ribosome (4v5d)
+
+    Returns:
+        str: The abolsute path to 4v5d
+
+    """
+    return get_path("4v5d.cif")
+
+
+def get_6qt9():
+    """
+    Get the path to the file containing the structure of the icosohedral virus
+    SH1 (6qt9)
+
+    Returns:
+        str: The abolsute path to 6qt9
+
+    """
+    return get_path("6qt9.cif")
