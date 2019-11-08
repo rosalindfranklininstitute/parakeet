@@ -307,7 +307,7 @@ def read_pdb():
                 print("%sResidue: %s" % (prefix * 3, residue.name))
                 for atom in residue:
                     print(
-                        "%sAtom: %s, %f, %f, %f, %f, %f"
+                        "%sAtom: %s, %f, %f, %f, %f, %f, %f"
                         % (
                             prefix * 4,
                             atom.element.name,
@@ -316,6 +316,7 @@ def read_pdb():
                             atom.pos.z,
                             atom.occ,
                             atom.charge,
+                            atom.b_iso,
                         )
                     )
 
