@@ -89,6 +89,10 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.potential_type = "Lobato_0_12"
 
     # Potential slicing
+    # XXX If this is set to "Planes" then for the ribosome example I found that
+    # the simulation would not work well (e.g. The image may have nothing or a
+    # single point of intensity and nothing else). Best to keep this set to
+    # dz_Proj.
     input_multislice.potential_slicing = "dz_Proj"
 
     # Electron-Phonon interaction model
@@ -164,7 +168,7 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.obj_lens_dsf_npoints = 5
 
     # zero defocus reference
-    input_multislice.obj_lens_zero_defocus_type = "First"
+    input_multislice.obj_lens_zero_defocus_type = "Last"
     input_multislice.obj_lens_zero_defocus_plane = 0
 
     # Return the input multislice object
