@@ -1,5 +1,5 @@
 #
-# elfantasma.freeze.py
+# elfantasma.freeze.__init__.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -12,6 +12,8 @@ import numpy
 import pandas
 import scipy.ndimage.morphology
 from math import ceil, floor
+
+from elfantasma.freeze.freeze_ext import *  # noqa
 
 
 def freeze(atoms, x0, x1):

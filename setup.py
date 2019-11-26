@@ -3,8 +3,7 @@
 #
 # This code is distributed under the BSD license.
 #
-from setuptools import setup
-from setuptools import find_packages
+from skbuild import setup
 
 
 def main():
@@ -16,7 +15,7 @@ def main():
 
     setup(
         package_dir={"": "src"},
-        packages=find_packages(where="src"),
+        packages=["elfantasma"],
         install_requires=[
             "dask",
             "distributed",
