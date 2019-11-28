@@ -106,9 +106,6 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     # Set the slice thickness
     input_multislice.spec_dz = slice_thickness
 
-    # Set the amorphous layers
-    # input_multislice.spec_amorp = [(0, 0, 2.0)]
-
     # Specimen thickness
     input_multislice.thick_type = "Whole_Spec"
 
