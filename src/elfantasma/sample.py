@@ -15,9 +15,10 @@ import pandas
 import pickle
 import os
 import scipy.constants
-import elfantasma.data
 from math import pi, sqrt, floor
 from scipy.spatial.transform import Rotation
+import elfantasma.data
+import elfantasma.freeze
 
 
 def translate(atom_data, translation):
@@ -936,7 +937,6 @@ def random_uniform_rotation(size=1):
     y = numpy.sin(theta) * numpy.sin(phi)
     z = numpy.cos(theta)
     vector = numpy.array((x, y, z)).T
-    vector /= numpy.linalg.norm(vector, axis=0)
     vector *= 2 * pi * u3.reshape((u3.size, 1))
     return vector
 
@@ -1163,6 +1163,157 @@ def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
     return sample
 
 
+def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
+    """
+    Create a sample with just a load of water molecules
+
+    Args:
+        length_x (float): The X length (A)
+        length_y (float): The Y length (A)
+        length_z (float): The Z length (A)
+
+    Returns:
+        object: The sample object
+
+    """
+    # Get the filename of the water.cif file
+    filename = elfantasma.data.get_path("water.cif")
+
+    # Create a single ribosome sample
+    single_water = Sample.from_ligand_file(filename)
+    atoms = single_water.structures[0].atom_data[0:3]
+    water_coords = atoms[["x", "y", "z"]].copy()
+    water_coords -= water_coords.iloc[0].copy()
+
+    # Set the volume size
+    volume = length_x * length_y * length_z  # A^3
+
+    # Determine the number of waters to place
+    avogadros_number = scipy.constants.Avogadro
+    molar_mass_of_water = 18.01528  # grams / mole
+    density_of_water = 940.0  # kg / m^3
+    mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
+    number_of_waters = int(
+        floor((mass_of_water / molar_mass_of_water) * avogadros_number)
+    )
+
+    # Van der Waals radius of water
+    van_der_waals_radius = 2.7 / 2.0  # A
+
+    # Compute the total volume in the spheres
+    volume_of_spheres = (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
+
+    # Create the grid
+    grid = (
+        int(floor(length_z / (2 * van_der_waals_radius))),
+        int(floor(length_y / (2 * van_der_waals_radius))),
+        int(floor(length_x / (2 * van_der_waals_radius))),
+    )
+
+    # Compute the node length and density
+    node_length = max((length_z / grid[0], length_y / grid[1], length_x / grid[2]))
+    density = number_of_waters / volume
+
+    print(
+        f"Initialising Sphere Packer:\n"
+        f"    Length X:           {length_x} A\n"
+        f"    Length Y:           {length_y} A\n"
+        f"    Length Z:           {length_z} A\n"
+        f"    Volume:             {volume} A^3\n"
+        f"    Density of water:   {density_of_water} Kg/m^3\n"
+        f"    Mass of water:      {mass_of_water} g\n"
+        f"    Number of waters:   {number_of_waters}\n"
+        f"    Mean diameter:      {2*van_der_waals_radius} A\n"
+        f"    Volume filled:      {100*volume_of_spheres/volume} %\n"
+        f"    Packer grid:        ({grid[0]}, {grid[1]}, {grid[2]})\n"
+        f"    Grid node length:   {node_length} A\n"
+        f"    Density of spheres: {density} #/A^3\n"
+    )
+
+    # Create the sphere packer
+    packer = elfantasma.freeze.SpherePacker(
+        grid, node_length, density, van_der_waals_radius, max_iter=10
+    )
+
+    # Extract all the data
+    molecule_coords = []
+    for s in packer:
+        for g in s:
+            molecule_coords.extend(g)
+    molecule_coords = numpy.array(molecule_coords)
+
+    print(
+        f"Getting output from Sphere Packer:\n"
+        f"    Num molecules: {len(molecule_coords)}\n"
+        f"    Num unplaced:  {packer.num_unplaced_samples()}\n"
+    )
+
+    # The column data
+    column_info = (
+        ("model", "uint32"),
+        ("chain", "str"),
+        ("residue", "str"),
+        ("atomic_number", "uint32"),
+        ("x", "float64"),
+        ("y", "float64"),
+        ("z", "float64"),
+        ("occ", "float64"),
+        ("charge", "uint32"),
+        ("sigma", "float64"),
+        ("region", "uint32"),
+    )
+
+    # Iterate through the atoms
+    def iterate_atoms(molecule_coords):
+        def spec_atom(Z, xyz):
+            return (
+                0,
+                "",
+                "",
+                Z,
+                xyz[0],
+                xyz[1],
+                xyz[2],
+                1.0,
+                0.0,
+                0.085,  # sigma: from MULTEM HRTEM example
+                0,  # region: non zero can lead to issues
+            )
+
+        # Compute the rotation
+        rotation = Rotation.from_rotvec(random_uniform_rotation(len(molecule_coords)))
+
+        # Rotate the Hydrogens around the Oxygen and translate
+        O = rotation.apply(water_coords.iloc[0].copy()) + molecule_coords
+        H1 = rotation.apply(water_coords.iloc[1].copy()) + molecule_coords
+        H2 = rotation.apply(water_coords.iloc[2].copy()) + molecule_coords
+
+        # Iterate through coords
+        for i in range(len(molecule_coords)):
+            yield spec_atom(8, O[i])
+            yield spec_atom(1, H1[i])
+            yield spec_atom(1, H2[i])
+
+    # Create a dictionary of column data
+    def create_atom_data(molecule_coords, column_info):
+        return dict(
+            (name, pandas.Series(data, dtype=dtype))
+            for data, (name, dtype) in zip(
+                zip(*iterate_atoms(molecule_coords)), column_info
+            )
+        )
+
+    # Return the sample with the atom data as a pandas dataframe
+    return Sample(
+        Structure(
+            pandas.DataFrame(create_atom_data(molecule_coords, column_info)),
+            positions=[(0, 0, 0)],
+            rotations=[(0, 0, 0)],
+        ),
+        recentre=True,
+    )
+
+
 def create_custom_sample(filename=None):
     """
     Create the custom sample from file
@@ -1208,5 +1359,6 @@ def new(name, **kwargs):
         "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
         "ribosomes_in_cylinder": create_ribosomes_in_cylinder_sample,
         "single_ribosome_in_ice": create_single_ribosome_in_ice_sample,
+        "only_ice": create_only_ice_sample,
         "custom": create_custom_sample,
     }[name](**kwargs.get(name, {}))
