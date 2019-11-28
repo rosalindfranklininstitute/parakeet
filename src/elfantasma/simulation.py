@@ -9,6 +9,7 @@
 # which is included in the root directory of this package.
 #
 
+import logger
 import numpy
 import os
 import pickle
@@ -24,6 +25,10 @@ try:
     import multem
 except ImportError:
     warnings.warn("Could not import MULTEM")
+
+
+# Get the logger
+logger = logger.getLogger(__name__)
 
 
 def create_system_configuration(device):
@@ -217,7 +222,7 @@ class SingleImageSimulation(object):
         offset = simulation.margin * simulation.microscope.detector.pixel_size
 
         # Get the specimen atoms
-        print(f"Simulating image {i}")
+        logger.info(f"Simulating image {i}")
         atom_data = self.atom_data(
             simulation.sample, position, position + x_fov, 0, y_fov, offset
         )
@@ -260,7 +265,7 @@ class SingleImageSimulation(object):
         assert i1 > i0
         assert j1 > j0
         ideal_image = ideal_image[j0:j1, i0:i1]
-        print(
+        logger.info(
             "Ideal image min/max: %f/%f"
             % (numpy.min(ideal_image), numpy.max(ideal_image))
         )
@@ -298,20 +303,20 @@ class SingleImageSimulation(object):
         elfantasma.sample.translate(atom_data, (offset - x0, offset - y0, 0))
 
         # Print some info
-        print("Whole sample:")
-        print(sample.info())
-        print("Selection:")
-        print("    # atoms: %d" % len(atom_data))
-        print("    Min box x: %.2f" % x0)
-        print("    Max box x: %.2f" % x1)
-        print("    Min box y: %.2f" % y0)
-        print("    Max box y: %.2f" % y1)
-        print("    Min sample x: %.2f" % atom_data["x"].min())
-        print("    Max sample x: %.2f" % atom_data["x"].max())
-        print("    Min sample y: %.2f" % atom_data["y"].min())
-        print("    Max sample y: %.2f" % atom_data["y"].max())
-        print("    Min sample z: %.2f" % atom_data["z"].min())
-        print("    Max sample z: %.2f" % atom_data["z"].max())
+        logger.info("Whole sample:")
+        logger.info(sample.info())
+        logger.info("Selection:")
+        logger.info("    # atoms: %d" % len(atom_data))
+        logger.info("    Min box x: %.2f" % x0)
+        logger.info("    Max box x: %.2f" % x1)
+        logger.info("    Min box y: %.2f" % y0)
+        logger.info("    Max box y: %.2f" % y1)
+        logger.info("    Min sample x: %.2f" % atom_data["x"].min())
+        logger.info("    Max sample x: %.2f" % atom_data["x"].max())
+        logger.info("    Min sample y: %.2f" % atom_data["y"].min())
+        logger.info("    Max sample y: %.2f" % atom_data["y"].max())
+        logger.info("    Min sample z: %.2f" % atom_data["z"].min())
+        logger.info("    Max sample z: %.2f" % atom_data["z"].max())
 
         # Return the atom data
         return atom_data
@@ -385,7 +390,9 @@ class Simulation(object):
         # If we are executing in a single process just do a for loop
         if self.cluster["method"] is None:
             for i, angle in enumerate(self.scan.angles):
-                print(f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees")
+                logger.info(
+                    f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
+                )
                 _, angle, image = single_image_simulator(self, i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
@@ -395,20 +402,20 @@ class Simulation(object):
             self.cluster["max_workers"] = min(
                 self.cluster["max_workers"], self.shape[0]
             )
-            print("Initialising %d worker threads" % self.cluster["max_workers"])
+            logger.info("Initialising %d worker threads" % self.cluster["max_workers"])
 
             # Get the futures executor
             with elfantasma.futures.factory(**self.cluster) as executor:
 
                 # Copy the data to each worker
-                print("Copying data to workers...")
+                logger.info("Copying data to workers...")
                 remote_self = executor.scatter(self, broadcast=True)
 
                 # Submit all jobs
-                print("Running simulation...")
+                logger.info("Running simulation...")
                 futures = []
                 for i, angle in enumerate(self.scan.angles):
-                    print(
+                    logger.info(
                         f"    Submitting job: {i+1}/{self.shape[0]} for {angle} degrees"
                     )
                     futures.append(
@@ -428,7 +435,7 @@ class Simulation(object):
                     # Write some info
                     vmin = numpy.min(image)
                     vmax = numpy.max(image)
-                    print(
+                    logger.info(
                         "    Processed job: %d (%d/%d); image min/max: %.2f/%.2f"
                         % (i + 1, j + 1, self.shape[0], vmin, vmax)
                     )

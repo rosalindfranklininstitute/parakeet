@@ -9,7 +9,11 @@
 # which is included in the root directory of this package.
 #
 import copy
+import logging
 import yaml
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 def temp_directory():
@@ -233,7 +237,7 @@ def show(config, full=False):
     """
     if full == False:
         config = difference(default(), config)
-    print("Configuration:")
-    print(
-        "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
+    logger.info(
+        "Configuration:\n%s"
+        % "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
     )

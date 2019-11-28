@@ -10,6 +10,7 @@
 #
 import itertools
 import gemmi
+import logging
 import numpy
 import pandas
 import pickle
@@ -19,6 +20,9 @@ from math import pi, sqrt, floor
 from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 def translate(atom_data, translation):
@@ -831,7 +835,7 @@ def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
         object: The atom data
 
     """
-    print("Creating sample 4v5d")
+    logger.info("Creating sample 4v5d")
 
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
@@ -848,7 +852,7 @@ def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
     # Resize and recentre
     sample.resize(size)
     sample.recentre()
-    print(sample.info())
+    logger.info(sample.info())
     sample.validate()
 
     # Return the sample
@@ -960,7 +964,7 @@ def create_ribosomes_in_lamella_sample(
         object: The atom data
 
     """
-    print("Creating sample: ribosomes_in_lamella")
+    logger.info("Creating sample: ribosomes_in_lamella")
 
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
@@ -972,21 +976,21 @@ def create_ribosomes_in_lamella_sample(
     box_size = numpy.array([length_x, length_y, length_z])
 
     # Generate some randomly oriented ribosome coordinates
-    print("Generating random orientations...")
+    logger.info("Generating random orientations...")
     rotation = random_uniform_rotation(number_of_ribosomes)
     position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
     ribosomes.append(position, rotation)
 
     # Put the ribosomes in the sample
-    print("Placing ribosomes:")
+    logger.info("Placing ribosomes:")
     for i, translation in enumerate(
         distribute_boxes_uniformly(box_size, ribosomes.individual_sample_sizes)
     ):
         ribosomes.positions[i] = translation
 
-    # Resize and print some info
+    # Resize and logger.info some info
     sample = Sample(ribosomes, size=box_size)
-    print(sample.info())
+    logger.info(sample.info())
     sample.validate()
 
     # Return the sample
@@ -1013,7 +1017,7 @@ def create_ribosomes_in_cylinder_sample(
         object: The atom data
 
     """
-    print("Creating sample: ribosomes_in_cylinder")
+    logger.info("Creating sample: ribosomes_in_cylinder")
 
     # Get the filename of the water.cif file
     filename = elfantasma.data.get_path("water.cif")
@@ -1034,17 +1038,17 @@ def create_ribosomes_in_cylinder_sample(
     )
 
     # Print some stuff of water
-    print("Water information:")
-    print("    Volume of cylinder: %g m^3" % (volume_of_cylinder * 1e-10 ** 3))
-    print("    Density of water: %g kg/m^3" % density_of_water)
-    print("    Mass of cylinder: %g kg" % (mass_of_cylinder / 1000))
-    print("    Number of water molecules to place: %d" % number_of_waters)
+    logger.info("Water information:")
+    logger.info("    Volume of cylinder: %g m^3" % (volume_of_cylinder * 1e-10 ** 3))
+    logger.info("    Density of water: %g kg/m^3" % density_of_water)
+    logger.info("    Mass of cylinder: %g kg" % (mass_of_cylinder / 1000))
+    logger.info("    Number of water molecules to place: %d" % number_of_waters)
 
     # Get the filename of the 4v5d.cif file
     filename = elfantasma.data.get_path("4v5d.cif")
 
     # Create a single ribosome structure
-    print("Reading structure from file...")
+    logger.info("Reading structure from file...")
     ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
 
     # Set the cuboid size and box size
@@ -1052,13 +1056,13 @@ def create_ribosomes_in_cylinder_sample(
     box_size = numpy.array([length, 2 * (radius + margin), 2 * (radius + margin)])
 
     # Generate some randomly oriented ribosome coordinates
-    print("Generating random orientations...")
+    logger.info("Generating random orientations...")
     rotation = random_uniform_rotation(number_of_ribosomes)
     position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
     ribosomes.append(position, rotation)
 
     # Put the ribosomes in the sample
-    print("Placing ribosomes...")
+    logger.info("Placing ribosomes...")
     correction = margin + (1 - 1 / sqrt(2)) * radius
     for i, translation in enumerate(
         distribute_boxes_uniformly(cuboid_size, ribosomes.individual_sample_sizes)
@@ -1067,7 +1071,7 @@ def create_ribosomes_in_cylinder_sample(
 
     # Create the sample
     sample = Sample(ribosomes, size=box_size)
-    print(sample.info())
+    logger.info(sample.info())
     sample.validate()
 
     # Return the sample
@@ -1086,10 +1090,10 @@ def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
         object: The atom data
 
     """
-    print("Creating sample single_ribosome_in_ice")
+    logger.info("Creating sample single_ribosome_in_ice")
 
     # Get the filename of the 4v5d.cif file
-    print("Reading structure from file...")
+    logger.info("Reading structure from file...")
     filename = elfantasma.data.get_path("4v5d.cif")
 
     # Create the sample
@@ -1111,7 +1115,7 @@ def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
     filename = elfantasma.data.get_path("water.cif")
 
     # Create a single ribosome sample
-    print("Reading water from file...")
+    logger.info("Reading water from file...")
     waters = Structure(Sample.from_ligand_file(filename).structures[0].atom_data)
 
     # Compute the number of water molecules
@@ -1127,14 +1131,14 @@ def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
     )
 
     # Print some stuff of water
-    print("Water information:")
-    print("    Volume of ice box: %g m^3" % (volume_of_ice_box * 1e-10 ** 3))
-    print("    Density of water: %g kg/m^3" % density_of_water)
-    print("    Mass of ice box: %g kg" % (mass_of_ice_box / 1000))
-    print("    Number of water molecules to place: %d" % number_of_waters)
+    logger.info("Water information:")
+    logger.info("    Volume of ice box: %g m^3" % (volume_of_ice_box * 1e-10 ** 3))
+    logger.info("    Density of water: %g kg/m^3" % density_of_water)
+    logger.info("    Mass of ice box: %g kg" % (mass_of_ice_box / 1000))
+    logger.info("    Number of water molecules to place: %d" % number_of_waters)
 
     # Generate some randomly oriented water coordinates
-    print("Generating random water orientations...")
+    logger.info("Generating random water orientations...")
     rotation = random_uniform_rotation(number_of_waters)
     x = numpy.random.uniform(
         sample.sample_bbox[0][0], sample.sample_bbox[1][0], number_of_waters
@@ -1147,16 +1151,16 @@ def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
     waters.extend(position, rotation)
 
     # Put the waters in the sample
-    # print("Placing waters...")
+    # logger.info("Placing waters...")
     # for i, translation in enumerate(
     #     distribute_boxes_uniformly(ice_size, waters.individual_sample_sizes)
     # ):
     #     waters.positions[i] = translation #+ numpy.array([0, correction, correction])
 
-    print("Adding waters...")
+    logger.info("Adding waters...")
     sample.append(waters)
 
-    print(sample.info())
+    logger.info(sample.info())
     # sample.validate()
 
     # Return the sample
@@ -1214,7 +1218,7 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
     node_length = max((length_z / grid[0], length_y / grid[1], length_x / grid[2]))
     density = number_of_waters / volume
 
-    print(
+    logger.info(
         f"Initialising Sphere Packer:\n"
         f"    Length X:           {length_x} A\n"
         f"    Length Y:           {length_y} A\n"
@@ -1242,7 +1246,7 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
             molecule_coords.extend(g)
     molecule_coords = numpy.array(molecule_coords)
 
-    print(
+    logger.info(
         f"Getting output from Sphere Packer:\n"
         f"    Num molecules: {len(molecule_coords)}\n"
         f"    Num unplaced:  {packer.num_unplaced_samples()}\n"
@@ -1325,7 +1329,7 @@ def create_custom_sample(filename=None):
         object: The atom data
 
     """
-    print(f"Reading sample information from {filename}")
+    logger.info(f"Reading sample information from {filename}")
     return Sample.from_file(filename)
 
 

@@ -10,6 +10,7 @@
 #
 import argparse
 import gemmi
+import logging
 import numpy
 import time
 import elfantasma.io
@@ -19,6 +20,9 @@ import elfantasma.freeze
 import elfantasma.sample
 import elfantasma.scan
 import elfantasma.simulation
+
+# Get the logger
+logger = logging.getLogger()
 
 
 def main():
@@ -112,6 +116,9 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
+
     # Set the command line args in a dict
     command_line = {}
     if args.device is not None:
@@ -159,14 +166,14 @@ def main():
     )
 
     # Create the writer
-    print(f"Opening file: {config['output']}")
+    logger.info(f"Opening file: {config['output']}")
     writer = elfantasma.io.new(config["output"], shape=simulation.shape)
 
     # Run the simulation
     simulation.run(writer)
 
     # Write some timing stats
-    print("Time taken: %.2f seconds" % (time.time() - start_time))
+    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
 def show_config_main():
@@ -186,6 +193,9 @@ def show_config_main():
         dest="config",
         help="The yaml file to configure the simulation",
     )
+
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
 
     # Parse the arguments
     config = elfantasma.config.load(parser.parse_args().config)
@@ -226,23 +236,26 @@ def convert(argv=None):
     # Parse the arguments
     args = parser.parse_args(argv)
 
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
+
     # Read the input
-    print(f"Reading data from {args.filename}")
+    logger.info(f"Reading data from {args.filename}")
     reader = elfantasma.io.open(args.filename)
 
     # Create the write
-    print(f"Writing data to {args.output}")
+    logger.info(f"Writing data to {args.output}")
     writer = elfantasma.io.new(args.output, shape=reader.data.shape)
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
-        print("Computing min and max of dataset:")
+        logger.info("Computing min and max of dataset:")
         min_image = []
         max_image = []
         for i in range(reader.shape[0]):
             min_image.append(numpy.min(reader.data[i, :, :]))
             max_image.append(numpy.max(reader.data[i, :, :]))
-            print(
+            logger.info(
                 "    Reading image %d: min/max: %.2f/%.2f"
                 % (i, min_image[-1], max_image[-1])
             )
@@ -251,12 +264,12 @@ def convert(argv=None):
         if args.electrons_per_pixel is not None:
             writer.vmin *= args.electons_per_pixel
             writer.vmax *= args.electons_per_pixel
-        print("Min: %f" % writer.vmin)
-        print("Max: %f" % writer.vmax)
+        logger.info("Min: %f" % writer.vmin)
+        logger.info("Max: %f" % writer.vmax)
 
     # Write the data
     for i in range(reader.shape[0]):
-        print(f"    Copying image {i}")
+        logger.info(f"    Copying image {i}")
         if args.electrons_per_pixel is None:
             image = reader.data[i, :, :]
         else:
@@ -293,20 +306,23 @@ def read_pdb():
         parser.print_help()
         exit(0)
 
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
+
     # Read the structure
     structure = gemmi.read_structure(args.filename)
 
     # Iterate through atoms
     prefix = " " * 4
-    print("Structure: %s" % structure.name)
+    logger.info("Structure: %s" % structure.name)
     for model in structure:
-        print("%sModel: %s" % (prefix, model.name))
+        logger.info("%sModel: %s" % (prefix, model.name))
         for chain in model:
-            print("%sChain: %s" % (prefix * 2, chain.name))
+            logger.info("%sChain: %s" % (prefix * 2, chain.name))
             for residue in chain:
-                print("%sResidue: %s" % (prefix * 3, residue.name))
+                logger.info("%sResidue: %s" % (prefix * 3, residue.name))
                 for atom in residue:
-                    print(
+                    logger.info(
                         "%sAtom: %s, %f, %f, %f, %f, %f, %f"
                         % (
                             prefix * 4,
@@ -363,6 +379,9 @@ def create_sample():
     # Parse the arguments
     args = parser.parse_args()
 
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
+
     # Set the command line args in a dict
     command_line = {}
     if args.phantom is not None:
@@ -378,7 +397,7 @@ def create_sample():
     sample = elfantasma.sample.new(config["phantom"], **config["sample"])
 
     # Write the sample to file
-    print(f"Writing sample to {args.output}")
+    logger.info(f"Writing sample to {args.output}")
     sample.as_file(args.output)
 
 
@@ -424,6 +443,9 @@ def freeze():
     # Parse the arguments
     args = parser.parse_args()
 
+    # Configure some basic logging
+    logging.basicConfig(level=logging.INFO)
+
     # Set the command line args in a dict
     command_line = {}
     if args.phantom is not None:
@@ -445,11 +467,11 @@ def freeze():
     x1 = sample.box_size[0]
     y1 = sample.box_size[1]
     z1 = sample.box_size[2]
-    print("Selecting atom data in roi:")
-    print("    x0: %g" % x0)
-    print("    y0: %g" % y0)
-    print("    x1: %g" % x1)
-    print("    y1: %g" % y1)
+    logger.info("Selecting atom data in roi:")
+    logger.info("    x0: %g" % x0)
+    logger.info("    y0: %g" % y0)
+    logger.info("    x1: %g" % x1)
+    logger.info("    y1: %g" % y1)
     atom_data = sample.select_atom_data_in_roi(((x0, y0), (x1, y1)))
 
     # Freeze the sample
