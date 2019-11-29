@@ -257,10 +257,9 @@ class SingleImageSimulation(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        if len(output_multislice.data[0].m2psi_tot) == 0:
+        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot)
+        if len(ideal_image) == 0:
             ideal_image = numpy.abs(output_multislice.data[0].psi_coh).T ** 2
-        else:
-            ideal_image = numpy.array(output_multislice.data[0].m2psi_tot).T
 
         # Remove margin
         margin = simulation.margin
