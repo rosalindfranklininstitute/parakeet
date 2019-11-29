@@ -64,7 +64,7 @@ def create_system_configuration(device):
     return system_conf
 
 
-def create_input_multislice(microscope, slice_thickness, margin):
+def create_input_multislice(microscope, slice_thickness, margin, simulation_type):
     """
     Create the input multislice object
 
@@ -82,7 +82,7 @@ def create_input_multislice(microscope, slice_thickness, margin):
     input_multislice = multem.Input()
 
     # Set simulation experiment
-    input_multislice.simulation_type = "HRTEM"
+    input_multislice.simulation_type = simulation_type
 
     # Electron-Specimen interaction model
     input_multislice.interaction_model = "Multislice"
@@ -199,7 +199,10 @@ class SingleImageSimulation(object):
 
         # Create the multem input multislice object
         input_multislice = create_input_multislice(
-            simulation.microscope, simulation.slice_thickness, simulation.margin
+            simulation.microscope,
+            simulation.slice_thickness,
+            simulation.margin,
+            simulation.simulation_type,
         )
 
         # Get the rotation angle
@@ -253,7 +256,10 @@ class SingleImageSimulation(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        ideal_image = numpy.array(output_multislice.data[0].m2psi_tot).T
+        if len(output_multislice.data[0].m2psi_tot) == 0:
+            ideal_image = numpy.abs(output_multislice.data[0].psi_coh).T ** 2
+        else:
+            ideal_image = numpy.array(output_multislice.data[0].m2psi_tot).T
 
         # Remove margin
         margin = simulation.margin
@@ -334,6 +340,7 @@ class Simulation(object):
         sample=None,
         scan=None,
         electrons_per_pixel=None,
+        simulation_type=None,
         margin=None,
         freeze=None,
         device=None,
@@ -354,6 +361,7 @@ class Simulation(object):
         self.sample = sample
         self.scan = scan
         self.electrons_per_pixel = electrons_per_pixel
+        self.simulation_type = simulation_type
         self.margin = margin
         self.freeze = freeze
         self.device = device
@@ -483,6 +491,7 @@ def new(
         electrons_per_pixel = None
 
     # Set the simulation margin
+    simulation_type = simulation["type"]
     margin = simulation["margin"]
     freeze = simulation["freeze"]
     slice_thickness = simulation["slice_thickness"]
@@ -493,6 +502,7 @@ def new(
         sample=sample,
         scan=scan,
         electrons_per_pixel=electrons_per_pixel,
+        simulation_type=simulation_type,
         margin=margin,
         freeze=freeze,
         device=device,

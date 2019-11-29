@@ -119,6 +119,7 @@ def default():
         device: gpu
 
         simulation:
+            type: HRTEM
             slice_thickness: 3.0
             margin: 100
             freeze: False
