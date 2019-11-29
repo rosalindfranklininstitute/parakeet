@@ -9,7 +9,7 @@
 # which is included in the root directory of this package.
 #
 
-import logger
+import logging
 import numpy
 import os
 import pickle
@@ -28,7 +28,7 @@ except ImportError:
 
 
 # Get the logger
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_system_configuration(device):
