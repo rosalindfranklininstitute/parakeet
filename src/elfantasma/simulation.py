@@ -96,7 +96,7 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.potential_slicing = "dz_Proj"
 
     # Electron-Phonon interaction model
-    input_multislice.pn_model = "Frozen_Phonon"
+    input_multislice.pn_model = "Still_Atom"
     input_multislice.pn_coh_contrib = 0
     input_multislice.pn_single_conf = False
     input_multislice.pn_nconf = 10
@@ -241,17 +241,34 @@ class SingleImageSimulation(object):
             )
             atom_data = elfantasma.freeze.freeze(atom_data, bbox0, bbox1)
 
-        # Extract as a list
-        spec_atoms = list(elfantasma.sample.extract_spec_atoms(atom_data))
-
-        # Set the atoms of the sample
-        input_multislice.spec_atoms = spec_atoms
+        # Set the specimen size
         input_multislice.spec_lx = x_fov + offset * 2
         input_multislice.spec_ly = y_fov + offset * 2
         input_multislice.spec_lz = simulation.sample.box_size[2]
 
-        # Run the simulation
-        output_multislice = multem.simulate(system_conf, input_multislice)
+        # Either slice or don't
+        if simulation.num_slices == 1:
+
+            # Set the atoms in the input
+            input_multislice.spec_atoms = multem.AtomList(
+                elfantasma.sample.extract_spec_atoms(atom_data)
+            )
+
+            # Run the simulation
+            output_multislice = multem.simulate(system_conf, input_multislice)
+
+        else:
+
+            # Slice the specimen atoms
+            spec_slices = list(
+                self.slice_atom_data(
+                    atom_data, input_multislice.spec_lz, simulation.num_slices
+                )
+            )
+            # Run the simulation
+            output_multislice = multem.simulate(
+                system_conf, input_multislice, spec_slices
+            )
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
@@ -284,6 +301,50 @@ class SingleImageSimulation(object):
         else:
             image = ideal_image
         return (i, angle, image)
+
+    def slice_atom_data(self, atom_data, length_z, num_slices):
+        """
+        Slice the atoms into a number of subslices
+
+        Args:
+            atoms_data (list): The atom data
+            length_z (float): The size of the sample in Z
+            num_slices (int): The number of slices to use
+
+        Yields:
+            tuple: (z0, lz, atoms)
+
+        """
+
+        # Check the input
+        assert length_z > 0, length_z
+        assert num_slices > 0, num_slices
+
+        # The slice thickness
+        spec_lz = length_z / num_slices
+
+        # Get the atom z
+        atom_z = atom_data["z"]
+        min_z = numpy.min(atom_z)
+        max_z = numpy.max(atom_z)
+        assert min_z >= 0
+        assert max_z <= length_z
+
+        # Loop through the slices
+        for i in range(num_slices):
+            z0 = i * spec_lz
+            z1 = (i + 1) * spec_lz
+            if i == num_slices - 1:
+                z1 = max(z1, max_z + 1)
+            selection = (atom_z >= z0) & (atom_z < z1)
+            if numpy.count_nonzero(selection) > 0:
+                yield (
+                    z0,
+                    z1 - z0,
+                    multem.AtomList(
+                        elfantasma.sample.extract_spec_atoms(atom_data[selection])
+                    ),
+                )
 
     def atom_data(self, sample, x0, x1, y0, y1, offset):
         """
@@ -346,6 +407,7 @@ class Simulation(object):
         device=None,
         slice_thickness=None,
         cluster=None,
+        num_slices=1,
     ):
         """
         Initialise the simulation
@@ -367,6 +429,7 @@ class Simulation(object):
         self.device = device
         self.slice_thickness = slice_thickness
         self.cluster = cluster
+        self.num_slices = num_slices
 
     @property
     def shape(self):
@@ -495,6 +558,7 @@ def new(
     margin = simulation["margin"]
     freeze = simulation["freeze"]
     slice_thickness = simulation["slice_thickness"]
+    num_slices = simulation["num_slices"]
 
     # Create the simulation
     return Simulation(
@@ -508,4 +572,5 @@ def new(
         device=device,
         slice_thickness=slice_thickness,
         cluster=cluster,
+        num_slices=num_slices,
     )

@@ -123,6 +123,7 @@ def default():
             slice_thickness: 3.0
             margin: 100
             freeze: False
+            num_slices: 1
 
         cluster:
             method: null
