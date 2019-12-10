@@ -25,6 +25,25 @@ import elfantasma.freeze
 logger = logging.getLogger(__name__)
 
 
+def get_sigma_from_atom(atom):
+    """
+    Get the sigma from the atom
+
+    Args:
+        atom (object): A Gemmi atom object
+
+    Returns:
+        float: The positional sigma (sqrt(b_iso))
+
+    """
+    if atom.has_anisou():
+        b_iso = atom.b_iso_from_aniso()
+    else:
+        b_iso = atom.b_iso / (8 * pi ** 2)
+    print(sqrt(b_iso))
+    return sqrt(b_iso)
+
+
 def translate(atom_data, translation):
     """
     Helper function to translate atom data
@@ -727,7 +746,7 @@ class Sample(object):
                                 atom.pos.z,
                                 atom.occ,
                                 atom.charge,
-                                0.085,  # sigma: from MULTEM HRTEM example
+                                get_sigma_from_atom(atom),
                                 0,  # region: non zero can lead to issues
                             )
 
@@ -1280,7 +1299,7 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
                 xyz[2],
                 1.0,
                 0.0,
-                0.085,  # sigma: from MULTEM HRTEM example
+                get_sigma_from_atom(atom),
                 0,  # region: non zero can lead to issues
             )
 

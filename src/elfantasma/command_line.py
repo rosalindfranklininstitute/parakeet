@@ -20,6 +20,7 @@ import elfantasma.freeze
 import elfantasma.sample
 import elfantasma.scan
 import elfantasma.simulation
+from math import pi
 
 # Get the logger
 logger = logging.getLogger()
@@ -285,6 +286,13 @@ def read_pdb():
 
     """
 
+    # Get the b factor
+    def b_factor(atom):
+        if atom.has_anisou():
+            return atom.b_iso_from_aniso()
+        else:
+            return atom.b_iso / (8 * pi ** 2)
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Read a PDB file")
 
@@ -332,7 +340,7 @@ def read_pdb():
                             atom.pos.z,
                             atom.occ,
                             atom.charge,
-                            atom.b_iso,
+                            b_factor(atom),
                         )
                     )
 
