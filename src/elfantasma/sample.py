@@ -25,9 +25,9 @@ import elfantasma.freeze
 logger = logging.getLogger(__name__)
 
 
-def get_sigma_from_atom(atom):
+def get_atom_sigma_sq(atom):
     """
-    Get the sigma from the atom
+    Get the sigma_sq from the atom
 
     Args:
         atom (object): A Gemmi atom object
@@ -39,9 +39,22 @@ def get_sigma_from_atom(atom):
     if atom.has_anisou():
         b_iso = atom.b_iso_from_aniso()
     else:
-        b_iso = atom.b_iso / (8 * pi ** 2)
-    print(sqrt(b_iso))
-    return sqrt(b_iso)
+        b_iso = atom.b_iso
+    return b_iso / (8 * pi ** 2)
+
+
+def get_atom_sigma(atom):
+    """
+    Get the sigma from the atom
+
+    Args:
+        atom (object): A Gemmi atom object
+
+    Returns:
+        float: The positional sigma (sqrt(b_iso))
+
+    """
+    return sqrt(get_atom_sigma_sq(atom))
 
 
 def translate(atom_data, translation):
@@ -746,7 +759,7 @@ class Sample(object):
                                 atom.pos.z,
                                 atom.occ,
                                 atom.charge,
-                                get_sigma_from_atom(atom),
+                                get_atom_sigma(atom),
                                 0,  # region: non zero can lead to issues
                             )
 
@@ -1299,7 +1312,7 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
                 xyz[2],
                 1.0,
                 0.0,
-                get_sigma_from_atom(atom),
+                get_atom_sigma(atom),
                 0,  # region: non zero can lead to issues
             )
 
