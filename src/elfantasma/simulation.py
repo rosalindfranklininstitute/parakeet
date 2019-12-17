@@ -19,6 +19,7 @@ import elfantasma.freeze
 import elfantasma.futures
 import elfantasma.sample
 import warnings
+from math import sqrt
 
 # Try to input MULTEM
 try:

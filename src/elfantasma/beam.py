@@ -31,6 +31,7 @@ class Beam(object):
         """
         self.energy = energy
         self.energy_spread = energy_spread
+        self.acceleration_voltage_spread = acceleration_voltage_spread
         self.flux = flux
 
 
