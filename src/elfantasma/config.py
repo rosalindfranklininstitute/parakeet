@@ -69,6 +69,8 @@ def default():
 
             beam:
                 energy: 300
+                energy_spread: 0.33e-6
+                acceleration_voltage_spread: 0.8e-6
                 flux: null
 
             objective_lens:
@@ -100,6 +102,8 @@ def default():
                 phi_56: 0.0
                 inner_aper_ang: 0.0
                 outer_aper_ang: 0.0
+                c_c: 2.7
+                current_spread: 0.33e-6
 
             detector:
                 nx: 4000

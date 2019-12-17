@@ -46,6 +46,8 @@ class Lens(object):
         phi_56=0.0,
         inner_aper_ang=0.0,
         outer_aper_ang=0.0,
+        c_c=0.0,
+        current_spread=0.0,
     ):
         """
         Initialise the lens
@@ -79,6 +81,8 @@ class Lens(object):
             phi_56 (float): The azimuthal angle of 6-fold astigmatism (degrees)
             inner_aper_ang (float): The inner aperture (mrad)
             outer_aper_ang (float): The outer aperture (mrad)
+            c_c (float): The chromatic abberation (mm)
+            current_spread (float): dI / I where dI is the 1/e half width
 
         """
         self.m = m
@@ -109,6 +113,8 @@ class Lens(object):
         self.phi_56 = phi_56
         self.inner_aper_ang = inner_aper_ang
         self.outer_aper_ang = outer_aper_ang
+        self.c_c = c_c
+        self.current_spread = current_spread
 
 
 def new(**kwargs):

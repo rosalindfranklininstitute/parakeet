@@ -31,6 +31,24 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def defocus_spread(Cc, dEE, dII, dVV):
+    """
+    From equation 3.41 in Kirkland: Advanced Computing in Electron Microscopy
+
+    The dE, dI, dV are the 1/e half widths or E, I and V respectively
+
+    Args:
+        Cc (float): The chromatic abberation
+        dEE (float): dE/E, the fluctuation in the electron energy
+        dII (float): dI/I, the fluctuation in the lens current
+        dVV (float): dV/V, the fluctuation in the acceleration voltage
+
+    Returns:
+
+    """
+    return Cc * sqrt((dEE) ** 2 + (2 * dII) ** 2 + (dVV) ** 2)
+
+
 def create_system_configuration(device):
     """
     Create an appropriate system configuration
@@ -125,9 +143,8 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
 
     # Condenser lens
     # source spread function
-    ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
+    # ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
     # input_multislice.obj_lens_ssf_sigma = ssf_sigma
-    # input_multislice.obj_lens_ssf_npoints = 4
 
     # Objective lens
     input_multislice.obj_lens_m = microscope.lens.m
@@ -160,13 +177,15 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
 
     # defocus spread function
-    dsf_sigma = multem.iehwgd_to_sigma(32)
-    input_multislice.obj_lens_dsf_sigma = dsf_sigma
-    input_multislice.obj_lens_dsf_npoints = 5
+    input_multislice.obj_lens_dsf_sigma = defocus_spread(
+        microscope.lens.c_c,
+        microscope.beam.energy_spread,
+        microscope.lens.current_spread,
+        microscope.beam.acceleration_voltage_spread,
+    )
 
     # zero defocus reference
     input_multislice.obj_lens_zero_defocus_type = "Last"
-    input_multislice.obj_lens_zero_defocus_plane = 0
 
     # Return the input multislice object
     return input_multislice
