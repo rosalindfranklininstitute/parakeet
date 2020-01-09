@@ -25,6 +25,33 @@ import elfantasma.simulation
 logger = logging.getLogger()
 
 
+def configure_logging():
+    """
+    Configure the logging
+
+    """
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": True,
+            "handlers": {
+                "stream": {
+                    "level": "DEBUG",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                }
+            },
+            "loggers": {
+                "elfantasma": {
+                    "handlers": ["stream"],
+                    "level": "DEBUG",
+                    "propagate": True,
+                }
+            },
+        }
+    )
+
+
 def main():
     """
     The main interface to elfantasma
@@ -117,7 +144,7 @@ def main():
     args = parser.parse_args()
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -195,7 +222,7 @@ def show_config_main():
     )
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Parse the arguments
     config = elfantasma.config.load(parser.parse_args().config)
@@ -237,7 +264,7 @@ def convert(argv=None):
     args = parser.parse_args(argv)
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Read the input
     logger.info(f"Reading data from {args.filename}")
@@ -307,7 +334,7 @@ def read_pdb():
         exit(0)
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Read the structure
     structure = gemmi.read_structure(args.filename)
@@ -358,7 +385,7 @@ def create_sample():
         "-o",
         "--output",
         type=str,
-        default="sample.pickle",
+        default="sample.h5",
         dest="output",
         help="The filename for the sample file",
     )
@@ -380,7 +407,7 @@ def create_sample():
     args = parser.parse_args()
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -444,7 +471,7 @@ def freeze():
     args = parser.parse_args()
 
     # Configure some basic logging
-    logging.basicConfig(level=logging.INFO)
+    configure_logging()
 
     # Set the command line args in a dict
     command_line = {}

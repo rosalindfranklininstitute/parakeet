@@ -39,6 +39,29 @@ def default():
 
         sample:
 
+            box: [ 4000, 4000, 4000 ]
+
+            centre: [ 2000, 2000, 2000 ]
+
+            shape:
+                type: cube
+
+                cube:
+                    length: 4000
+
+                cuboid:
+                    length_x: 4000
+                    length_y: 4000
+                    length_z: 4000
+
+                cylinder:
+                    length: 10000
+                    radius: 1500
+
+            ice:
+                generate: False
+                density: 940
+
             4v5d:
                 length_x: null
                 length_y: null
@@ -155,8 +178,6 @@ def deepmerge(a, b):
             if key in self:
                 if isinstance(value, dict):
                     deepmerge_internal(self[key], value)
-                elif isinstance(value, list):
-                    self[key].extend(value)
                 else:
                     self[key] = copy.deepcopy(value)
             else:

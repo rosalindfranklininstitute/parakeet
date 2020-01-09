@@ -41,6 +41,9 @@ def main():
                 "elfantasma.show_config=elfantasma.command_line:show_config_main",
                 "elfantasma.create_sample=elfantasma.command_line:create_sample",
                 "elfantasma.freeze=elfantasma.command_line:freeze",
+                "elfantasma.sample.new=elfantasma.command_line.sample:new",
+                "elfantasma.sample.modify=elfantasma.command_line.sample:modify",
+                "elfantasma.sample.show=elfantasma.command_line.sample:show",
             ]
         },
         extras_require={

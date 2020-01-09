@@ -8,15 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import itertools
+import h5py
 import gemmi
 import logging
 import numpy
 import pandas
-import pickle
-import os
 import scipy.constants
-from math import pi, sqrt, floor
+from math import pi, sqrt, floor, ceil
 from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
@@ -93,627 +91,76 @@ def recentre(atom_data, position=None):
     return translate(atom_data, translation)
 
 
-def extract_spec_atoms(atom_data):
+class AtomData(object):
     """
-    Extract the spec atoms
-
-    Args:
-        atom_data (object): The atom data
-
-    Returns:
-        iterator: The iterator of specimen atoms
-
-    """
-    return zip(
-        atom_data["atomic_number"],
-        atom_data["x"],
-        atom_data["y"],
-        atom_data["z"],
-        atom_data["sigma"],
-        atom_data["occ"],
-        atom_data["region"],
-        atom_data["charge"],
-    )
-
-
-class Structure(object):
-    """
-    Hold a single set of atom data.
-
-    Our simulated specimens tend to be lots of duplicate structures in random
-    positions and orientations so it is more convenient just to save the atom
-    coordinates once and then a list of where we want to put them in space.
+    A class to hold the atom data
 
     """
 
-    def __init__(self, atom_data, positions=None, rotations=None):
+    # The column data
+    column_data = {
+        "atomic_number": "uint8",
+        "x": "float32",
+        "y": "float32",
+        "z": "float32",
+        "sigma": "float32",
+        "occupancy": "float32",
+        "charge": "uint8",
+    }
+
+    def __init__(self, data=None, **kwargs):
         """
-        Initialise the model
+        Initialise the class
+
+        Either the data attribute or the individual arrays must be set.
 
         Args:
-            atom_data (object): The atom data
-            positions (list): The list of X,Y,Z positions
-            rotations (list): The list of orientations
+            data (object): The atom data table
+            atomic_number (array): The array of atomic numbers
+            x (array): The array of x positions
+            y (array): The array of y positions
+            z (array): The array of z positions
+            sigma (array): The array of sigmas
+            occupancy (array): The array of occupancies
+            charge (array): The array of charges
 
         """
-
-        # Set position
-        if positions is None and rotations is None:
-            positions = numpy.zeros(shape=(0, 3), dtype=numpy.float64)
-            rotations = numpy.zeros(shape=(0, 3), dtype=numpy.float64)
-        else:
-            positions = numpy.array(positions, dtype=numpy.float64)
-            rotations = numpy.array(rotations, dtype=numpy.float64)
-
-        # Check input
-        assert positions.shape[0] == rotations.shape[0]
-
-        # Set the model stuff
-        self.atom_data = recentre(atom_data)
-        self.positions = positions
-        self.rotations = rotations
-
-    @property
-    def num_models(self):
-        """
-        Returns:
-            int: The number of models
-
-        """
-        assert self.positions.shape[0] == self.rotations.shape[0]
-        return len(set(self.atom_data["model"])) * self.positions.shape[0]
-
-    @property
-    def num_atoms(self):
-        """
-        Returns:
-            int: The number of atoms
-
-        """
-        assert self.positions.shape[0] == self.rotations.shape[0]
-        return self.atom_data.shape[0] * self.positions.shape[0]
-
-    @property
-    def individual_bounding_boxes(self):
-        """
-        Compute the individual bounding boxes
-
-        """
-        # Check transformations are the same length
-        assert self.positions.shape[0] == self.rotations.shape[0]
-
-        # Compute min and max of all positions and rotations
-        reference_coords = self.atom_data[["x", "y", "z"]]
-        if reference_coords.shape[0] != 0:
-            for position, rotation in zip(
-                self.positions, Rotation.from_rotvec(self.rotations)
-            ):
-                coords = rotation.apply(reference_coords) + position
-                yield (numpy.min(coords, axis=0), numpy.max(coords, axis=0))
-
-    @property
-    def individual_sample_sizes(self):
-        """
-        Compute the same size
-
-        """
-        for bbox in self.individual_bounding_boxes:
-            yield bbox[1] - bbox[0]
-
-    @property
-    def bounding_box(self):
-        """
-        Compute the bounding box
-
-        Returns:
-            (min, max): The min and max coords
-
-        """
-
-        # Check transformations are the same length
-        assert self.positions.shape[0] == self.rotations.shape[0]
-
-        # Get the coordinates
-        reference_coords = self.atom_data[["x", "y", "z"]]
-        if reference_coords.shape[0] == 0 or self.positions.shape[0] == 0:
-            min_coords = [[0, 0, 0]]
-            max_coords = [[0, 0, 0]]
-        else:
-            min_coords, max_coords = zip(*self.individual_bounding_boxes)
-
-        # Return the min and max
-        return (
-            numpy.min(numpy.array(min_coords), axis=0),
-            numpy.max(numpy.array(max_coords), axis=0),
-        )
-
-    @property
-    def spec_atoms(self):
-        """
-        Get the subset of data needed to the simulation
-
-        Returns:
-            list: A list of tuples
-
-        """
-
-        def spec_atoms_internal():
-
-            # Get the reference coords
-            reference_coords = self.atom_data[["x", "y", "z"]]
-
-            # Iterate over the positions and yield the atom data
-            for position, rotation in zip(
-                self.positions, Rotation.from_rotvec(self.rotations)
-            ):
-
-                # Apply the rotation and translations
-                coords = rotation.apply(reference_coords) + position
-
-                # Yield the atom data
-                yield zip(
-                    self.atom_data["atomic_number"],
-                    coords[:, 0],
-                    coords[:, 1],
-                    coords[:, 2],
-                    self.atom_data["sigma"],
-                    self.atom_data["occ"],
-                    self.atom_data["region"],
-                    self.atom_data["charge"],
+        if data is None:
+            self.data = pandas.DataFrame(
+                dict(
+                    (name, pandas.Series(kwargs[name], dtype=dtype))
+                    for name, dtype in AtomData.column_data.items()
                 )
-
-        # Chain all together
-        return itertools.chain(*spec_atoms_internal())
-
-    def select_atom_data_in_roi(self, roi):
-        """
-        Get the subset of atoms within the field of view
-
-        Args:
-            roi (array): The region of interest
-
-        Returns:
-            object: The atom data
-
-        """
-
-        # Split the roi
-        (x0, y0), (x1, y1) = roi
-
-        # Get the reference coords
-        reference_coords = self.atom_data[["x", "y", "z"]]
-
-        # Iterate over the positions and yield the atom data
-        for position, rotation in zip(
-            self.positions, Rotation.from_rotvec(self.rotations)
-        ):
-
-            # Apply the rotation and translations
-            coords = rotation.apply(reference_coords) + position
-
-            # Select the coords within the roi
-            selection = (
-                (coords[:, 0] >= x0)
-                & (coords[:, 0] <= x1)
-                & (coords[:, 1] >= y0)
-                & (coords[:, 1] <= y1)
             )
-
-            # Get the selection
-            subset = self.atom_data.loc[selection].copy()
-            subset[["x", "y", "z"]] = coords[selection]
-
-            # Yield the atom data
-            yield subset
-
-    def append(self, position, rotation):
-        """
-        Append a model
-
-        Args:
-            position (array): The position
-            rotation (array): The rotation
-
-        """
-        self.positions = numpy.append(self.positions, position, axis=0)
-        self.rotations = numpy.append(self.rotations, rotation, axis=0)
-
-    def translate(self, translation):
-        """
-        Translate the sample by some amount
-
-        Args:
-            translation (tuple): The translation
-
-        """
-        self.positions += translation
+        else:
+            column_names = list(data.keys())
+            for name in AtomData.column_data:
+                assert name in column_names
+            self.data = data
 
     def rotate(self, vector):
         """
-        Perform a rotation
+        Rotate the atom data around the rotation vector
 
         Args:
-            vector (tuple): The rotation vector
+            vector (array): The rotation vector
 
         """
-        self.rotations = (
-            Rotation.from_rotvec(vector) * Rotation.from_rotvec(self.rotations)
-        ).as_rotvec()
-
-
-class Sample(object):
-    """
-    A class to wrap the sample information
-
-    """
-
-    def __init__(self, structures=None, size=None, recentre=False):
-        """
-        Initialise the sample
-
-        Args:
-            structures (object): The structure data
-            size (tuple): The size of the sample box (units: A)
-            recentre (bool): Recentre the sample in the box
-
-        """
-
-        # Make sure we have a list
-        if isinstance(structures, Structure):
-            structures = [structures]
-
-        # Set the structures
-        self.structures = structures
-
-        # Compute the min and max
-        self.update()
-
-        # Resize the container
-        self.resize(size)
-
-        # Recentre the atoms in the box
-        if recentre:
-            self.recentre()
-
-    @property
-    def num_models(self):
-        """
-        Returns:
-            int: The number of models
-
-        """
-        return sum(s.num_models for s in self.structures)
-
-    @property
-    def num_atoms(self):
-        """
-        Returns:
-            int: The number of atoms
-
-        """
-        return sum(s.num_atoms for s in self.structures)
-
-    @property
-    def bounding_box(self):
-        """
-        Compute the bounding box
-
-        Returns:
-            (min, max): The min and max coords
-
-        """
-
-        # Compute the min and max
-        min_coords = []
-        max_coords = []
-        for structure in self.structures:
-            bbox = structure.bounding_box
-            min_coords.append(bbox[0])
-            max_coords.append(bbox[1])
-
-        # Return the min and max
-        return (
-            numpy.min(numpy.array(min_coords), axis=0),
-            numpy.max(numpy.array(max_coords), axis=0),
-        )
-
-    @property
-    def spec_atoms(self):
-        """
-        Get the subset of data needed to the simulation
-
-        Returns:
-            list: A list of tuples
-
-        """
-        return itertools.chain(*[s.spec_atoms for s in self.structures])
-
-    def select_atom_data_in_roi(self, roi):
-        """
-        Get the subset of atoms within the field of view
-
-        Args:
-            roi (array): The region of interest
-
-        Returns:
-            object: The atom data
-
-        """
-        return pandas.concat(
-            list(
-                itertools.chain(
-                    *[s.select_atom_data_in_roi(roi) for s in self.structures]
-                )
-            )
-        )
-
-    def update(self):
-        """
-        Update the statistics
-
-        """
-
-        # Compute the bounding box
-        self.sample_bbox = self.bounding_box
-        self.sample_size = self.sample_bbox[1] - self.sample_bbox[0]
-
-    def resize(self, size=None, margin=1):
-        """
-        Resize the sample box.
-
-        This must be greater than the box around the sample
-
-        Args:
-            size (tuple): The size of the sample box (units: A)
-            margin (float): The margin when size is None (units: A)
-
-        """
-        if size is not None:
-            assert numpy.all(numpy.greater_equal(size, self.sample_size))
-        else:
-            size = self.sample_size + margin * 2
-        self.box_size = numpy.array(size)
-
-    def recentre(self, position=None):
-        """
-        Recentre the sample in the sample box
-
-        Args:
-            position (tuple): The position to centre on (otherwise the centre of the box)
-
-        """
-        # Check the input
-        if position is None:
-            position = self.box_size / 2.0
-
-        # Compute the translation
-        translation = (
-            numpy.array(position) - (self.sample_bbox[1] + self.sample_bbox[0]) / 2.0
-        )
-
-        # Translate the structure
-        self.translate(translation)
+        coords = self.data[["x", "y", "z"]]
+        coords = Rotation.from_rotvec(vector).apply(coords).astype("float32")
+        self.data["x"] = coords[:, 0]
+        self.data["y"] = coords[:, 1]
+        self.data["z"] = coords[:, 2]
 
     def translate(self, translation):
         """
-        Translate the sample by some amount
+        Translate the atom data
 
         Args:
-            translation (tuple): The translation
+            translation (array): The translation
 
         """
-        # Apply translation to all structures
-        for structure in self.structures:
-            structure.translate(translation)
-
-        # Compute the new bounding box
-        self.sample_bbox += translation
-
-    def rotate(self, vector):
-        """
-        Perform a rotation
-
-        Args:
-            vector (tuple): The rotation vector
-
-        """
-        # Apply rotation to all structures
-        for structure in self.structures:
-            structure.rotate(vector)
-
-        # Compute the min and max coords
-        self.update()
-
-    def append(self, structure):
-        """
-        Extend this sample with another structure
-
-        Args:
-            other (sample): Another sample object
-
-        """
-
-        # Append the structure
-        self.structures.append(structure)
-
-        # Update stats and resize to sample
-        # self.update()
-        self.resize()
-
-    def validate(self):
-        """
-        Just validate the box size
-
-        """
-        self.update()
-        assert numpy.all(numpy.greater_equal(self.sample_bbox[0], (0, 0, 0)))
-        assert numpy.all(numpy.less_equal(self.sample_bbox[1], self.box_size))
-
-    def info(self):
-        """
-        Get some sample info
-
-        Returns:
-            str: Some sample info
-
-        """
-        lines = [
-            "Sample information:",
-            "    # models:      %d" % self.num_models,
-            "    # atoms:       %d" % self.num_atoms,
-            "    Min x:         %.2f" % self.sample_bbox[0][0],
-            "    Min y:         %.2f" % self.sample_bbox[0][1],
-            "    Min z:         %.2f" % self.sample_bbox[0][2],
-            "    Max x:         %.2f" % self.sample_bbox[1][0],
-            "    Max y:         %.2f" % self.sample_bbox[1][1],
-            "    Max z:         %.2f" % self.sample_bbox[1][2],
-            "    Sample size x: %.2f" % self.sample_size[0],
-            "    Sample size y: %.2f" % self.sample_size[1],
-            "    Sample size z: %.2f" % self.sample_size[2],
-            "    Box size x:    %.2f" % self.box_size[0],
-            "    Box size y:    %.2f" % self.box_size[1],
-            "    Box size z:    %.2f" % self.box_size[2],
-        ]
-        return "\n".join(lines)
-
-    def as_gemmi_structure(self):
-        """
-        Get the gemmi structure
-
-        Returns:
-            object: The gemmi structure
-
-        """
-
-        # Sort the structure models
-        for s in self.structures:
-            s.atom_data.sort_values(by=["model", "chain", "residue"])
-
-        # Get the atom data from the structure
-        def atom_data(s):
-
-            # Get the atom data from each model
-            def atom_data_internal():
-
-                # Get the reference coords
-                reference_coords = s.atom_data[["x", "y", "z"]]
-
-                # Iterate over the positions and yield the atom data
-                for position, rotation in zip(
-                    s.positions, Rotation.from_rotvec(s.rotations)
-                ):
-
-                    # Apply the rotation and translations
-                    coords = rotation.apply(reference_coords) + position
-
-                    # Yield the atom data
-                    yield zip(
-                        s.atom_data["model"],
-                        s.atom_data["chain"],
-                        s.atom_data["residue"],
-                        s.atom_data["atomic_number"],
-                        coords[:, 0],
-                        coords[:, 1],
-                        coords[:, 2],
-                        s.atom_data["occ"],
-                        s.atom_data["charge"],
-                    )
-
-            # Chain all together
-            return itertools.chain(*atom_data_internal())
-
-        # Get the iterator to the atom data
-        structure = itertools.chain(*[atom_data(s) for s in self.structures])
-
-        # Create the structure
-        gemmi_structure = gemmi.Structure()
-
-        # Iterate over the models
-        for model_name, model in itertools.groupby(structure, key=lambda x: x[0]):
-
-            # Iterate over the chains in the model
-            gemmi_model = gemmi.Model(str(model_name))
-            for chain_name, chain in itertools.groupby(model, key=lambda x: x[1]):
-
-                # Iterate over the residues in the chain
-                gemmi_chain = gemmi.Chain(chain_name)
-                for residue_name, residue in itertools.groupby(
-                    chain, key=lambda x: x[2]
-                ):
-
-                    # Iterate over the atoms in the residue
-                    gemmi_residue = gemmi.Residue()
-                    gemmi_residue.name = residue_name
-                    for _, _, _, atomic_number, x, y, z, occ, charge in residue:
-                        gemmi_atom = gemmi.Atom()
-                        gemmi_atom.element = gemmi.Element(atomic_number)
-                        gemmi_atom.pos.x = x
-                        gemmi_atom.pos.y = y
-                        gemmi_atom.pos.z = z
-                        gemmi_atom.occ = occ
-                        gemmi_atom.charge = charge
-                        gemmi_residue.add_atom(gemmi_atom, -1)
-
-                    # Add the residue
-                    gemmi_chain.add_residue(gemmi_residue, -1)
-
-                # Add the chain
-                gemmi_model.add_chain(gemmi_chain, -1)
-
-            # Add the model
-            gemmi_structure.add_model(gemmi_model, -1)
-
-        # Return the structure
-        return gemmi_structure
-
-    def as_cif(self, filename):
-        """
-        Write the sample to a cif file
-
-        Args:
-            filename (str): The output filename
-
-        """
-        self.as_gemmi_structure().make_mmcif_document().write_file(filename)
-
-    def as_pdb(self, filename):
-        """
-        Write the sample to a pdb file
-
-        Args:
-            filename (str): The output filename
-
-        """
-        self.as_gemmi_structure().write_pdb(filename)
-
-    def as_pickle(self, filename):
-        """
-        Write the sample to a pickle file
-
-        Args:
-            filename (str): The output filename
-
-        """
-        with open(filename, "wb") as outfile:
-            pickle.dump(self, outfile)
-
-    def as_file(self, filename):
-        """
-        Write the sample to a file
-
-        Args:
-            filename (str): The output filename
-
-        """
-        extension = os.path.splitext(filename)[1].lower()
-        if extension in [".cif"]:
-            self.as_cif(filename)
-        elif extension in [".pdb"]:
-            self.as_pdb(filename)
-        elif extension in [".p", ".pkl", ".pickle"]:
-            self.as_pickle(filename)
-        else:
-            raise RuntimeError(f"File with unknown extension: {filename}")
+        self.data[["x", "y", "z"]] += numpy.array(translation)
 
     @classmethod
     def from_gemmi_structure(Class, structure):
@@ -728,20 +175,8 @@ class Sample(object):
 
         """
 
-        # The column data
-        column_info = (
-            ("model", "uint32"),
-            ("chain", "str"),
-            ("residue", "str"),
-            ("atomic_number", "uint32"),
-            ("x", "float64"),
-            ("y", "float64"),
-            ("z", "float64"),
-            ("occ", "float64"),
-            ("charge", "uint32"),
-            ("sigma", "float64"),
-            ("region", "uint32"),
-        )
+        # The column order
+        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge"]
 
         # Iterate through the atoms
         def iterate_atoms(structure):
@@ -750,36 +185,24 @@ class Sample(object):
                     for residue in chain:
                         for atom in residue:
                             yield (
-                                model_index,
-                                chain.name,
-                                residue.name,
                                 atom.element.atomic_number,
                                 atom.pos.x,
                                 atom.pos.y,
                                 atom.pos.z,
+                                get_atom_sigma(atom),
                                 atom.occ,
                                 atom.charge,
-                                get_atom_sigma(atom),
-                                0,  # region: non zero can lead to issues
                             )
 
         # Create a dictionary of column data
-        def create_atom_data(structure, column_info):
+        def create_atom_data(structure):
             return dict(
-                (name, pandas.Series(data, dtype=dtype))
-                for data, (name, dtype) in zip(
-                    zip(*iterate_atoms(structure)), column_info
-                )
+                (name, pandas.Series(data, dtype=AtomData.column_data[name]))
+                for data, name in zip(zip(*iterate_atoms(structure)), column_info)
             )
 
         # Return the sample with the atom data as a pandas dataframe
-        return Sample(
-            Structure(
-                pandas.DataFrame(create_atom_data(structure, column_info)),
-                positions=[(0, 0, 0)],
-                rotations=[(0, 0, 0)],
-            )
-        )
+        return AtomData(data=pandas.DataFrame(create_atom_data(structure)))
 
     @classmethod
     def from_gemmi_file(Class, filename):
@@ -814,143 +237,839 @@ class Sample(object):
             gemmi.make_structure_from_chemcomp_block(gemmi.cif.read(filename)[0])
         )
 
-    @classmethod
-    def from_pickle(Class, filename):
+
+class SampleHDF5Adapter(object):
+    """
+    A class to handle the HDF5 group and dataset creation
+
+    """
+
+    class AtomsSubGroup(object):
         """
-        Read the sample from a file
+        A class to handle the atom sub groups
+
+        """
+
+        def __init__(self, handle):
+            """
+            Save the group handle
+
+            Args:
+                handle (object): The group handle
+
+            """
+            self.__handle = handle
+
+        @property
+        def atoms(self):
+            """
+            Return the atom data in the atom sub group
+
+            """
+            return pandas.DataFrame(
+                dict(
+                    (name, pandas.Series(self.__handle[name][:]))
+                    for name in AtomData.column_data
+                )
+            )
+
+        @atoms.setter
+        def atoms(self, data):
+            """
+            Set the atom data in the sub group
+
+            """
+
+            # Create the datasets
+            if len(self.__handle) == 0:
+                for name, dtype in AtomData.column_data.items():
+                    self.__handle.create_dataset(
+                        name, (0,), maxshape=(None,), dtype=dtype, chunks=True
+                    )
+
+            # Get the size
+            i0 = self.__handle["x"].shape[0]
+            i1 = i0 + data["x"].shape[0]
+
+            # Check size, resize and set data
+            for name in AtomData.column_data.keys():
+                assert i0 == self.__handle[name].shape[0]
+                self.__handle[name].resize((i1,))
+                self.__handle[name][i0:i1] = data[name]
+
+        def __len__(self):
+            """
+            Returns the number of atoms
+
+            """
+            if len(self.__handle) == 0:
+                return 0
+            return self.__handle["x"].shape[0]
+
+    class AtomsGroup(object):
+        """
+        A class to hold the atom group
+
+        """
+
+        def __init__(self, handle):
+            """
+            Save the group handle
+
+            Args:
+                handle (object): The group handle
+
+            """
+            self.__handle = handle
+
+        def __len__(self):
+            """
+            Returns:
+                int: The number of sub groups
+
+            """
+            return len(self.__handle)
+
+        def __getitem__(self, item):
+            """
+            Get the subgroup with the given name
+
+            Args:
+                item (str): The subgroup name
+
+            Returns:
+                object: The subgroup
+
+            """
+            if item not in self.__handle:
+                self.__handle.create_group(item)
+            return SampleHDF5Adapter.AtomsSubGroup(self.__handle[item])
+
+        def __iter__(self):
+            """
+            Iterate through the names of the subgroups
+
+            """
+            return self.keys()
+
+        def keys(self):
+            """
+            Iterate through the names of the subgroups
+
+            """
+            return self.__handle.keys()
+
+        def items(self):
+            """
+            Iterate through the names and the subgroups
+
+            """
+            for key, value in self.__handle.items():
+                yield key, SampleHDF5Adapter.AtomsSubGroup(value)
+
+        def values(self):
+            """
+            Iterate through the subgroups
+
+            """
+            for value in self.__handle.values():
+                yield SampleHDF5Adapter.AtomsSubGroup(value)
+
+        def zbins(self):
+            """
+            Iterate through the z bins
+
+            """
+            for key in self.keys():
+                z = int(key.split("=")[1].split("A")[0])
+                yield key, z
+
+        def number_of_atoms(self):
+            """
+            Get the total number of atoms in all the subgroups
+
+            Returns:
+                int: The total number of atoms
+
+            """
+            count = 0
+            for key, value in self.items():
+                count += len(value)
+            return count
+
+    class MoleculeGroup(object):
+        """
+        A class to represent the molecule group
+
+        """
+
+        def __init__(self, handle):
+            """
+            Save the group handle
+
+            Args:
+                handle (object): The group handle
+
+            """
+            self.__handle = handle
+
+        @property
+        def atoms(self):
+            """
+            Get the atoms
+
+            """
+
+            # Get the atoms group
+            group = self.__handle["atoms"]
+
+            # Create a pandas data frame
+            return pandas.DataFrame(
+                dict(
+                    (name, pandas.Series(group[name][:]))
+                    for name in AtomData.column_data
+                )
+            )
+
+        @property
+        def positions(self):
+            """
+            Get the positions
+
+            """
+            return self.__handle["positions"]
+
+        @property
+        def orientations(self):
+            """
+            Get the orientations
+
+            """
+            return self.__handle["orientations"]
+
+        @atoms.setter
+        def atoms(self, data):
+            """
+            Set the atom data
+
+            """
+
+            # Create the atom data group
+            group = self.__handle.create_group("atoms")
+
+            # Set the columns
+            for name, dtype in AtomData.column_data.items():
+                group.create_dataset(name, data=data[name], dtype=dtype, chunks=True)
+
+        @positions.setter
+        def positions(self, positions):
+            """
+            Set the positions
+
+            """
+            self.__handle.create_dataset("positions", data=positions, dtype="float32")
+
+        @orientations.setter
+        def orientations(self, orientations):
+            """
+            Set the orientations
+
+            """
+            self.__handle.create_dataset(
+                "orientations", data=orientations, dtype="float32"
+            )
+
+    class MoleculeListGroup(object):
+        """
+        A class to represent the molecule list group
+
+        """
+
+        def __init__(self, handle):
+            """
+            Save the group handle
+
+            Args:
+                handle (object): The group handle
+
+            """
+            self.__handle = handle
+
+        def __len__(self):
+            """
+            Return the number of molecules
+
+            """
+            return len(self.__handle)
+
+        def __getitem__(self, item):
+            """
+            Get the molecule by name
+
+            """
+            if item not in self.__handle:
+                self.__handle.create_group(item)
+            return SampleHDF5Adapter.MoleculeGroup(self.__handle[item])
+
+        def __iter__(self):
+            """
+            Iterate through the molecule names
+
+            """
+            return self.keys()
+
+        def keys(self):
+            """
+            Iterate through the molecule names
+
+            """
+            return self.__handle.keys()
+
+        def items(self):
+            """
+            Iterate through the molecule names and groups
+
+            """
+            for key, value in self.__handle.items():
+                yield key, SampleHDF5Adapter.MoleculeGroup(value)
+
+        def values(self):
+            """
+            Iterate through the molecule groups
+
+            """
+            for value in self.__handle.values():
+                yield SampleHDF5Adapter.MoleculeGroup(value)
+
+    class SampleGroup(object):
+        """
+        A class to represent the sample group
+
+        """
+
+        def __init__(self, handle):
+            """
+            Save the group handle
+
+            Args:
+                handle (object): The group handle
+
+            """
+            self.__handle = handle
+
+        @property
+        def atoms(self):
+            """
+            Get the atom group
+
+            """
+            if "atoms" not in self.__handle:
+                self.__handle.create_group("atoms")
+            return SampleHDF5Adapter.AtomsGroup(self.__handle["atoms"])
+
+        @property
+        def molecules(self):
+            """
+            Get the molecule group
+
+            """
+            if "molecules" not in self.__handle:
+                self.__handle.create_group("molecules")
+            return SampleHDF5Adapter.MoleculeListGroup(self.__handle["molecules"])
+
+        @property
+        def bounding_box(self):
+            """
+            Get the bounding box
+
+            """
+            if "bounding_box" not in self.__handle:
+                return numpy.zeros(shape=(6,), dtype="float32")
+            return self.__handle["bounding_box"][:]
+
+        @bounding_box.setter
+        def bounding_box(self, bbox):
+            """
+            Set the bounding box
+
+            """
+            if "bounding_box" not in self.__handle:
+                self.__handle.create_dataset("bounding_box", data=bbox, dtype="float32")
+            else:
+                self.__handle["bounding_box"][:] = bbox
+
+        @property
+        def containing_box(self):
+            """
+            Get the containing box
+
+            """
+            if "containing_box" not in self.__handle:
+                return numpy.zeros(shape=(6,), dtype="float32")
+            return self.__handle["containing_box"][:]
+
+        @containing_box.setter
+        def containing_box(self, box):
+            """
+            Set the containing box
+
+            """
+            if "containing_box" not in self.__handle:
+                self.__handle.create_dataset(
+                    "containing_box", data=box, dtype="float32"
+                )
+            else:
+                self.__handle["containing_box"][:] = box
+
+        @property
+        def centre(self):
+            """
+            Get the centre
+
+            """
+            if "centre" not in self.__handle:
+                return numpy.zeros(shape=(3,), dtype="float32")
+            return self.__handle["centre"][:]
+
+        @centre.setter
+        def centre(self, centre):
+            """
+            Set the centre
+
+            """
+            if "centre" not in self.__handle:
+                self.__handle.create_dataset("centre", data=centre, dtype="float32")
+            else:
+                self.__handle["centre"][:] = centre
+
+        @property
+        def shape(self):
+            """
+            Get the containing box
+
+            """
+            if "shape" not in self.__handle:
+                return {}
+
+            # Get the shape
+            shape = self.__handle["shape"][0]
+            return {
+                "type": shape,
+                shape: dict(list(self.__handle["shape"].attrs.items())),
+            }
+
+        @shape.setter
+        def shape(self, shape):
+            """
+            Set the containing box
+
+            """
+            if "shape" not in self.__handle:
+                self.__handle.create_dataset(
+                    "shape", shape=(1,), dtype=h5py.string_dtype(encoding="utf-8")
+                )
+
+            # Set the shape
+            self.__handle["shape"][:] = shape["type"]
+
+            # Set the shape attributes
+            for key, value in shape[shape["type"]].items():
+                self.__handle["shape"].attrs[key] = value
+
+    def __init__(self, filename=None, mode="r"):
+        """
+
+        Initialise the class with a filename
 
         Args:
-            filename (str): The input filename
-
-        Returns:
-            object: The Sample object
+            filename (str): The filename
+            mode (str): The open mode
 
         """
-        with open(filename, "rb") as infile:
-            return pickle.load(infile)
+        self.__handle = h5py.File(filename, mode=mode)
 
-    @classmethod
-    def from_file(Class, filename):
+    @property
+    def sample(self):
         """
-        Read the sample from a file
+        Get the sample group
+
+        """
+        if "sample" not in self.__handle:
+            self.__handle.create_group("sample")
+        return SampleHDF5Adapter.SampleGroup(self.__handle["sample"])
+
+    def close(self):
+        """
+        Close the file
+
+        """
+        self.__handle.close()
+
+
+class Sample(object):
+    """
+    A class to hold the sample data
+
+    """
+
+    def __init__(self, filename=None, mode="r"):
+        """
+
+        Initialise the class with a filename
 
         Args:
-            filename (str): The input filename
-
-        Returns:
-            object: The Sample object
+            filename (str): The filename
+            mode (str): The open mode
 
         """
-        extension = os.path.splitext(filename)[1].lower()
-        if extension in [".cif", ".pdb"]:
-            obj = Class.from_gemmi_file(filename)
-        elif extension in [".p", ".pkl", ".pickle"]:
-            obj = Class.from_pickle(filename)
-        else:
-            raise RuntimeError(f"File with unknown extension: {filename}")
-        return obj
 
+        # Open the HDF5 file
+        self.__handle = SampleHDF5Adapter(filename, mode=mode)
 
-def create_4v5d_sample(length_x=None, length_y=None, length_z=None):
-    """
-    Create a sample with a Ribosome
+        # The zstep between datasets
+        self.zstep = 10  # A
 
-    If the size of the sample is not specified then the sample will be 2x the
-    size of the ribosome and the ribosome will be positioned in the centre
+    def close(self):
+        """
+        Close the HDF5 file
 
-    Args:
-        length_x (float): The X size of the sample (units: A)
-        length_y (float): The Y size of the sample (units: A)
-        length_z (float): The Z size of the sample (units: A)
+        """
+        self.__handle.close()
 
-    Returns:
-        object: The atom data
+    def atoms_dataset_name(self, z):
+        return "Z=%06dA" % z
 
-    """
-    logger.info("Creating sample 4v5d")
+    def atoms_dataset_range(self, z0, z1):
+        z0 = int(floor(z0 / float(self.zstep))) * self.zstep
+        z1 = int(ceil(z1 / float(self.zstep))) * self.zstep
+        for z in range(z0, z1, self.zstep):
+            yield z, z + self.zstep
 
-    # Get the filename of the 4v5d.cif file
-    filename = elfantasma.data.get_path("4v5d.cif")
+    @property
+    def dimensions(self):
+        """
+        The dimensions of the bounding box
 
-    # Create the sample
-    sample = Sample.from_file(filename)
+        Returns:
+            array: The dimensions
 
-    # Set the size
-    if length_x is None or length_y is None or length_z is None:
-        size = sample.sample_size * 2.0
-    else:
-        size = (length_x, length_y, length_z)
+        """
+        x0, x1 = self.bounding_box
+        return x1 - x0
 
-    # Resize and recentre
-    sample.resize(size)
-    sample.recentre()
-    logger.info(sample.info())
-    sample.validate()
+    def add_atoms(self, atoms):
+        """
+        Add some atoms
 
-    # Return the sample
-    return sample
+        Args:
+            atoms (object): The atom data to add to the sample
 
+        """
 
-def distribute_boxes_uniformly(volume_size, boxes, max_tries=1000):
-    """
-    Find n random non overlapping positions for cubes within a volume
+        # Get the min/max coords
+        x0 = atoms.data["x"].min()
+        y0 = atoms.data["y"].min()
+        z0 = atoms.data["z"].min()
+        x1 = atoms.data["x"].max()
+        y1 = atoms.data["y"].max()
+        z1 = atoms.data["z"].max()
 
-    Args:
-        volume_size (float): The size of the volume
-        boxes (float): The list of boxes
-        max_tries (int): The maximum tries per cube
+        # Check the old bounding box
+        if self.number_of_atoms > 0:
 
-    Returns:
-        list: A list of centre positions
+            # Get the bounding box
+            (bx0, by0, bz0), (bx1, by1, bz1) = self.bounding_box
 
-    """
+            # Get the min/max coords
+            x0 = min(x0, bx0)
+            y0 = min(y0, by0)
+            z0 = min(z0, bz0)
+            x1 = max(x1, bx1)
+            y1 = max(y1, by1)
+            z1 = max(z1, bz1)
 
-    # Check if the cube overlaps with any other
-    def overlapping(positions, box_sizes, q, q_size):
-        for p, p_size in zip(positions, box_sizes):
-            p0 = p - p_size / 2
-            p1 = p + p_size / 2
-            q0 = q - q_size / 2
-            q1 = q + q_size / 2
-            if not (
-                q0[0] > p1[0]
-                or q1[0] < p0[0]
-                or q0[1] > p1[1]
-                or q1[1] < p0[1]
-                or q0[2] > p1[2]
-                or q1[2] < p0[2]
-            ):
-                return True
-        return False
+        # Set the bounding box
+        self.__handle.sample.bounding_box = [x0, y0, z0, x1, y1, z1]
 
-    # Loop until we have added the boxes
-    positions = []
-    box_sizes = []
-    for box_size in boxes:
+        # Get the data bounds
+        z_min = atoms.data["z"].min()
+        z_max = atoms.data["z"].max()
 
-        # The bounds to search in
-        lower = box_size / 2
-        upper = volume_size - box_size / 2
-        assert lower[0] < upper[0]
-        assert lower[1] < upper[1]
-        assert lower[2] < upper[2]
+        # Iterate over dataset ranges
+        for z0, z1 in self.atoms_dataset_range(z_min, z_max):
+            name = self.atoms_dataset_name(z0)
+            self.__handle.sample.atoms[name].atoms = atoms.data[
+                (atoms.data["z"] >= z0) & (atoms.data["z"] < z1)
+            ]
 
-        # Try to add the box
-        num_tries = 0
-        while True:
-            q = numpy.random.uniform(lower, upper)
-            if len(positions) == 0 or not overlapping(
-                positions, box_sizes, q, box_size
-            ):
-                positions.append(q)
-                box_sizes.append(box_size)
-                break
-            num_tries += 1
-            if num_tries > max_tries:
-                raise RuntimeError(f"Unable to place cube of size {box_size}")
+    def del_atoms(self, z_min, z_max, deleter):
+        """
+        Delete atoms in the given range
 
-    # Return the cube positions
-    return positions
+        Args:
+            z_min (float): The minimum z
+            z_max (float): The maximum z
+            deleter (func): Check atoms and return only those we want to keep
+
+        """
+
+        # Iterate over dataset ranges
+        for z0, z1 in self.atoms_dataset_range(z_min, z_max):
+            name = self.atoms_dataset_name(z0)
+            atoms = self.__handle.sample.atoms[name].atoms
+            self.__handle.sample.atoms[name].atoms = deleter(atoms)
+
+    def add_molecule(self, atoms, positions, orientations, name=None):
+        """
+        Add a molecule.
+
+        This adds the atoms of each copy of the molecule but also stores the
+        molecule itself with the positions and orientations
+
+        Args:
+            atoms (object): The atom data
+            positions (list): A list of positions
+            orientations (list): A list of orientations
+            name (str): The name of the molecule
+
+        """
+
+        # Convert to numpy arrays
+        positions = numpy.array(positions, dtype="float32")
+        orientations = numpy.array(orientations, dtype="float32")
+        assert positions.shape == orientations.shape
+        assert len(positions.shape) == 2
+        assert positions.shape[1] == 3
+
+        # Get the reference coords
+        reference_coords = atoms.data[["x", "y", "z"]]
+
+        # Loop through all the positions and rotations
+        for position, rotation in zip(positions, Rotation.from_rotvec(orientations)):
+
+            # Make a copy and apply the rotation and translation
+            coords = (rotation.apply(reference_coords) + position).astype("float32")
+            temp = atoms.data.copy()
+            temp["x"] = coords[:, 0]
+            temp["y"] = coords[:, 1]
+            temp["z"] = coords[:, 2]
+
+            # Add to the atoms
+            self.add_atoms(AtomData(data=temp))
+
+        # Add the molecule to it's own field
+        if name is not None:
+            self.__handle.sample.molecules[name].atoms = atoms.data
+            self.__handle.sample.molecules[name].positions = positions
+            self.__handle.sample.molecules[name].orientations = orientations
+
+    @property
+    def containing_box(self):
+        """
+        The box containing the sample
+
+        """
+        x0, y0, z0, x1, y1, z1 = self.__handle.sample.containing_box
+        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+
+    @containing_box.setter
+    def containing_box(self, box):
+        """
+        The box containing the sample
+
+        """
+        (x0, y0, z0), (x1, y1, z1) = box
+        self.__handle.sample.containing_box = x0, y0, z0, x1, y1, z1
+        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+
+    @property
+    def centre(self):
+        """
+        The box containing the sample
+
+        """
+        return self.__handle.sample.centre
+
+    @centre.setter
+    def centre(self, centre):
+        """
+        The box containing the sample
+
+        """
+        self.__handle.sample.centre = centre
+
+    @property
+    def shape(self):
+        """
+        The ideal shape of the sample
+
+        """
+        return self.__handle.sample.shape
+
+    @shape.setter
+    def shape(self, shape):
+        """
+        The ideal shape of the sample
+
+        """
+        self.__handle.sample.shape = shape
+
+    @property
+    def bounding_box(self):
+        """
+        The bounding box
+
+        Returns:
+            tuple: lower, upper - the bounding box coordinates
+
+        """
+        x0, y0, z0, x1, y1, z1 = self.__handle.sample.bounding_box
+        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+
+    @property
+    def molecules(self):
+        """
+        The list of molecule names
+
+        Returns:
+            list: The list of molecule names
+
+        """
+        return list(self.__handle.sample.molecules.keys())
+
+    @property
+    def number_of_molecular_models(self):
+        """
+        The number of molecular models
+
+        Returns:
+            int: The number of molecular models
+
+        """
+        return sum(
+            molecule.positions.shape[0]
+            for molecule in self.__handle.sample.molecules.values()
+        )
+
+    @property
+    def number_of_molecules(self):
+        """
+        The number of molecules
+
+        Returns:
+            int: The number of molcules
+
+        """
+        return len(self.__handle.sample.molecules)
+
+    def get_molecule(self, name):
+        """
+        Get the molcule data
+
+        Args:
+            name (str): The molecule name
+
+        Returns:
+            tuple (atoms, positions, orientations): The molecule data
+
+        """
+        return (
+            AtomData(data=self.__handle.sample.molcules[name].atoms),
+            self.__handle.sample.molecules[name].positions,
+            self.__handle.sample.molecules[name].orientations,
+        )
+
+    def iter_molecules(self):
+        """
+        Iterate over the molecules
+
+        Yields:
+            tuple (name, data): The molecule data
+
+        """
+        for name in self.molecules:
+            yield name, self.get_molecule(name)
+
+    @property
+    def number_of_atoms(self):
+        """
+        Returns:
+            int: The number of atoms
+
+        """
+        return self.__handle.sample.atoms.number_of_atoms()
+
+    def iter_atoms(self):
+        """
+        Iterate over the atoms
+
+        Yields:
+            object: The atom data
+
+        """
+        for name, z in self.__handle.sample.atoms.zbins():
+            yield (z, z + self.zstep), AtomData(
+                data=self.__handle.sample.atoms[name].atoms
+            )
+
+    def get_atoms_in_zrange(self, z0, z1, filter=None):
+        """
+        Get the subset of atoms within the field of view
+
+        Args:
+            z0 (float): The start of the z range
+            z1 (float): The end of the z range
+            filter (func): A function to filter the atoms
+
+        Returns:
+            object: The atom data
+
+        """
+        assert z0 < z1
+        data = pandas.DataFrame()
+        for name, z in self.__handle.sample.atoms.zbins():
+            if z0 <= z + self.zstep and z <= z1:
+                atoms = self.__handle.sample.atoms[name].atoms
+                atoms = atoms[(atoms["z"] >= z0) & (atoms["z"] < z1)]
+                if filter is not None:
+                    atoms = filter(atoms)
+                data = pandas.concat([data, atoms], ignore_index=True)
+        return AtomData(data=data)
+
+    def info(self):
+        """
+        Get some sample info
+
+        Returns:
+            str: Some sample info
+
+        """
+        lines = [
+            "Sample information:",
+            "    # Molecules:   %d" % self.number_of_molecules,
+            "    # models:      %d" % self.number_of_molecular_models,
+            "    # atoms:       %d" % self.number_of_atoms,
+            "    Min x:         %.2f" % self.bounding_box[0][0],
+            "    Min y:         %.2f" % self.bounding_box[0][1],
+            "    Min z:         %.2f" % self.bounding_box[0][2],
+            "    Max x:         %.2f" % self.bounding_box[1][0],
+            "    Max y:         %.2f" % self.bounding_box[1][1],
+            "    Max z:         %.2f" % self.bounding_box[1][2],
+            "    Sample size x: %.2f" % self.dimensions[0],
+            "    Sample size y: %.2f" % self.dimensions[1],
+            "    Sample size z: %.2f" % self.dimensions[2],
+            "    Min box x:     %.2f" % self.containing_box[0][0],
+            "    Min box y:     %.2f" % self.containing_box[0][1],
+            "    Min box z:     %.2f" % self.containing_box[0][2],
+            "    Max box x:     %.2f" % self.containing_box[1][0],
+            "    Max box y:     %.2f" % self.containing_box[1][1],
+            "    Max box z:     %.2f" % self.containing_box[1][2],
+            "    Centre x:      %.2f" % self.centre[0],
+            "    Centre y:      %.2f" % self.centre[1],
+            "    Centre z:      %.2f" % self.centre[2],
+            "    Shape:         %s" % str(self.shape),
+        ]
+        return "\n".join(lines)
 
 
 def random_uniform_rotation(size=1):
@@ -977,236 +1096,14 @@ def random_uniform_rotation(size=1):
     return vector
 
 
-def create_ribosomes_in_lamella_sample(
-    length_x=None, length_y=None, length_z=None, number_of_ribosomes=4
-):
-    """
-    Create a sample with some Ribosomes in ice
-
-    If the size of the sample is not specified then the sample will be 2x the
-    size of the ribosome and the ribosome will be positioned in the centre
-
-    Args:
-        length_x (float): The X size of the sample (units: A)
-        length_y (float): The Y size of the sample (units: A)
-        length_z (float): The Z size of the sample (units: A)
-        number_of_ribosomes (int): The number of ribosomes to place
-
-    Returns:
-        object: The atom data
-
-    """
-    logger.info("Creating sample: ribosomes_in_lamella")
-
-    # Get the filename of the 4v5d.cif file
-    filename = elfantasma.data.get_path("4v5d.cif")
-
-    # Create a single ribosome structure
-    ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
-
-    # Set the sample size
-    box_size = numpy.array([length_x, length_y, length_z])
-
-    # Generate some randomly oriented ribosome coordinates
-    logger.info("Generating random orientations...")
-    rotation = random_uniform_rotation(number_of_ribosomes)
-    position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
-    ribosomes.append(position, rotation)
-
-    # Put the ribosomes in the sample
-    logger.info("Placing ribosomes:")
-    for i, translation in enumerate(
-        distribute_boxes_uniformly(box_size, ribosomes.individual_sample_sizes)
-    ):
-        ribosomes.positions[i] = translation
-
-    # Resize and logger.info some info
-    sample = Sample(ribosomes, size=box_size)
-    logger.info(sample.info())
-    sample.validate()
-
-    # Return the sample
-    return sample
-
-
-def create_ribosomes_in_cylinder_sample(
-    radius=1500, margin=500, length=10000, number_of_ribosomes=20
-):
-    """
-    Create a sample with some Ribosomes in ice
-
-    The cylinder will have it's circular cross section in the Y/Z plane and
-    will be elongated in along the X axis. A margin will be put in the Y axis
-    such that each image will fully contain the width of the cylinder.
-
-    Args:
-        radius (float): The radius of the cylinder (units: A)
-        length (float): The length of the cylinder (units: A)
-        margin (float): The margin around the cylinder (units: A)
-        number_of_ribosomes (int): The number of ribosomes to place
-
-    Returns:
-        object: The atom data
-
-    """
-    logger.info("Creating sample: ribosomes_in_cylinder")
-
-    # Get the filename of the water.cif file
-    filename = elfantasma.data.get_path("water.cif")
-
-    # Create a single ribosome sample
-    single_water = Sample.from_ligand_file(filename)
-
-    # Compute the number of water molecules
-    avogadros_number = scipy.constants.Avogadro
-    molar_mass_of_water = 18.01528  # grams / mole
-    density_of_water = 997  # kg / m^3
-    volume_of_cylinder = pi * radius ** 2 * length  # A^3
-    mass_of_cylinder = (density_of_water * 1000) * (
-        volume_of_cylinder * 1e-10 ** 3
-    )  # g
-    number_of_waters = int(
-        floor((mass_of_cylinder / molar_mass_of_water) * avogadros_number)
-    )
-
-    # Print some stuff of water
-    logger.info("Water information:")
-    logger.info("    Volume of cylinder: %g m^3" % (volume_of_cylinder * 1e-10 ** 3))
-    logger.info("    Density of water: %g kg/m^3" % density_of_water)
-    logger.info("    Mass of cylinder: %g kg" % (mass_of_cylinder / 1000))
-    logger.info("    Number of water molecules to place: %d" % number_of_waters)
-
-    # Get the filename of the 4v5d.cif file
-    filename = elfantasma.data.get_path("4v5d.cif")
-
-    # Create a single ribosome structure
-    logger.info("Reading structure from file...")
-    ribosomes = Structure(Sample.from_file(filename).structures[0].atom_data)
-
-    # Set the cuboid size and box size
-    cuboid_size = numpy.array([length, sqrt(2) * radius, sqrt(2) * radius])
-    box_size = numpy.array([length, 2 * (radius + margin), 2 * (radius + margin)])
-
-    # Generate some randomly oriented ribosome coordinates
-    logger.info("Generating random orientations...")
-    rotation = random_uniform_rotation(number_of_ribosomes)
-    position = numpy.zeros(shape=rotation.shape, dtype=rotation.dtype)
-    ribosomes.append(position, rotation)
-
-    # Put the ribosomes in the sample
-    logger.info("Placing ribosomes...")
-    correction = margin + (1 - 1 / sqrt(2)) * radius
-    for i, translation in enumerate(
-        distribute_boxes_uniformly(cuboid_size, ribosomes.individual_sample_sizes)
-    ):
-        ribosomes.positions[i] = translation + numpy.array([0, correction, correction])
-
-    # Create the sample
-    sample = Sample(ribosomes, size=box_size)
-    logger.info(sample.info())
-    sample.validate()
-
-    # Return the sample
-    return sample
-
-
-def create_single_ribosome_in_ice_sample(box_size=None, ice_size=None):
-    """
-    Create a sample with a Ribosome and ice
-
-    Args:
-        box_size (float): The size of the sample box (units: A)
-        ice_size (float): The size of the ice box (units: A)
-
-    Returns:
-        object: The atom data
-
-    """
-    logger.info("Creating sample single_ribosome_in_ice")
-
-    # Get the filename of the 4v5d.cif file
-    logger.info("Reading structure from file...")
-    filename = elfantasma.data.get_path("4v5d.cif")
-
-    # Create the sample
-    sample = Sample.from_file(filename)
-
-    # The cube sample
-    sample_box_size = (box_size, box_size, box_size)
-
-    # Resize and recentre
-    sample.resize(sample_box_size)
-    sample.recentre()
-
-    # The ice box
-    ice_box_size = (sample.sample_size[0], sample.sample_size[1], ice_size)
-    ice_min_z = box_size / 2.0 - ice_size / 2.0
-    ice_max_z = box_size / 2.0 + ice_size / 2.0
-
-    # Get the filename of the water.cif file
-    filename = elfantasma.data.get_path("water.cif")
-
-    # Create a single ribosome sample
-    logger.info("Reading water from file...")
-    waters = Structure(Sample.from_ligand_file(filename).structures[0].atom_data)
-
-    # Compute the number of water molecules
-    avogadros_number = scipy.constants.Avogadro
-    molar_mass_of_water = 18.01528  # grams / mole
-    density_of_water = 997  # kg / m^3
-    volume_of_ice_box = (
-        ice_size ** 3
-    )  # ice_box_size[0]*ice_box_size[1]*ice_box_size[2]  # A^3
-    mass_of_ice_box = (density_of_water * 1000) * (volume_of_ice_box * 1e-10 ** 3)  # g
-    number_of_waters = int(
-        floor((mass_of_ice_box / molar_mass_of_water) * avogadros_number)
-    )
-
-    # Print some stuff of water
-    logger.info("Water information:")
-    logger.info("    Volume of ice box: %g m^3" % (volume_of_ice_box * 1e-10 ** 3))
-    logger.info("    Density of water: %g kg/m^3" % density_of_water)
-    logger.info("    Mass of ice box: %g kg" % (mass_of_ice_box / 1000))
-    logger.info("    Number of water molecules to place: %d" % number_of_waters)
-
-    # Generate some randomly oriented water coordinates
-    logger.info("Generating random water orientations...")
-    rotation = random_uniform_rotation(number_of_waters)
-    x = numpy.random.uniform(
-        sample.sample_bbox[0][0], sample.sample_bbox[1][0], number_of_waters
-    )
-    y = numpy.random.uniform(
-        sample.sample_bbox[0][1], sample.sample_bbox[1][1], number_of_waters
-    )
-    z = numpy.random.uniform(ice_min_z, ice_max_z, number_of_waters)
-    position = numpy.array((x, y, z)).T
-    waters.extend(position, rotation)
-
-    # Put the waters in the sample
-    # logger.info("Placing waters...")
-    # for i, translation in enumerate(
-    #     distribute_boxes_uniformly(ice_size, waters.individual_sample_sizes)
-    # ):
-    #     waters.positions[i] = translation #+ numpy.array([0, correction, correction])
-
-    logger.info("Adding waters...")
-    sample.append(waters)
-
-    logger.info(sample.info())
-    # sample.validate()
-
-    # Return the sample
-    return sample
-
-
-def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
+def add_ice(sample, centre=None, shape=None, density=940.0):
     """
     Create a sample with just a load of water molecules
 
     Args:
-        length_x (float): The X length (A)
-        length_y (float): The Y length (A)
-        length_z (float): The Z length (A)
+        sample (object): The sample object
+        shape (object): The shape description
+        density (float): The water density
 
     Returns:
         object: The sample object
@@ -1216,18 +1113,44 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
     filename = elfantasma.data.get_path("water.cif")
 
     # Create a single ribosome sample
-    single_water = Sample.from_ligand_file(filename)
-    atoms = single_water.structures[0].atom_data[0:3]
+    single_water = AtomData.from_ligand_file(filename)
+    atoms = single_water.data[0:3]
     water_coords = atoms[["x", "y", "z"]].copy()
     water_coords -= water_coords.iloc[0].copy()
 
-    # Set the volume size
-    volume = length_x * length_y * length_z  # A^3
+    # Set the volume in A^3
+    if shape["type"] == "cube":
+        length = shape["cube"]["length"]
+        volume = length ** 3
+        length_x = length
+        length_y = length
+        length_z = length
+    elif shape["type"] == "cuboid":
+        length_x = shape["cuboid"]["length_x"]
+        length_y = shape["cuboid"]["length_y"]
+        length_z = shape["cuboid"]["length_z"]
+        volume = length_x * length_y * length_z
+    elif shape["type"] == "cylinder":
+        length = shape["cylinder"]["length"]
+        radius = shape["cylinder"]["radius"]
+        volume = pi * radius ** 2 * length
+        length_x = 2 * radius
+        length_y = 2 * radius
+        length_z = length
+    else:
+        raise RuntimeError("Unknown shape")
+
+    # Get the centre and offset
+    centre_x, centre_y, centre_z = centre
+    offset_x = centre_x - length_x / 2.0
+    offset_y = centre_y - length_y / 2.0
+    offset_z = centre_z - length_z / 2.0
+    offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
 
     # Determine the number of waters to place
     avogadros_number = scipy.constants.Avogadro
     molar_mass_of_water = 18.01528  # grams / mole
-    density_of_water = 940.0  # kg / m^3
+    density_of_water = density  # kg / m^3
     mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
     number_of_waters = int(
         floor((mass_of_water / molar_mass_of_water) * avogadros_number)
@@ -1248,7 +1171,7 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
 
     # Compute the node length and density
     node_length = max((length_z / grid[0], length_y / grid[1], length_x / grid[2]))
-    density = number_of_waters / volume
+    sphere_density = number_of_waters / volume
 
     logger.info(
         f"Initialising Sphere Packer:\n"
@@ -1263,138 +1186,205 @@ def create_only_ice_sample(length_x=None, length_y=None, length_z=None):
         f"    Volume filled:      {100*volume_of_spheres/volume} %\n"
         f"    Packer grid:        ({grid[0]}, {grid[1]}, {grid[2]})\n"
         f"    Grid node length:   {node_length} A\n"
-        f"    Density of spheres: {density} #/A^3\n"
+        f"    Density of spheres: {sphere_density} #/A^3\n"
     )
 
     # Create the sphere packer
     packer = elfantasma.freeze.SpherePacker(
-        grid, node_length, density, van_der_waals_radius, max_iter=10
+        grid, node_length, sphere_density, van_der_waals_radius, max_iter=10
     )
 
     # Extract all the data
-    molecule_coords = []
-    for s in packer:
-        for g in s:
-            molecule_coords.extend(g)
-    molecule_coords = numpy.array(molecule_coords)
+    logger.info("Generating water positions:")
+    for z_index, z_slice in enumerate(packer):
 
-    logger.info(
-        f"Getting output from Sphere Packer:\n"
-        f"    Num molecules: {len(molecule_coords)}\n"
-        f"    Num unplaced:  {packer.num_unplaced_samples()}\n"
-    )
-
-    # The column data
-    column_info = (
-        ("model", "uint32"),
-        ("chain", "str"),
-        ("residue", "str"),
-        ("atomic_number", "uint32"),
-        ("x", "float64"),
-        ("y", "float64"),
-        ("z", "float64"),
-        ("occ", "float64"),
-        ("charge", "uint32"),
-        ("sigma", "float64"),
-        ("region", "uint32"),
-    )
-
-    # Iterate through the atoms
-    def iterate_atoms(molecule_coords):
-        def spec_atom(Z, xyz):
-            return (
-                0,
-                "",
-                "",
-                Z,
-                xyz[0],
-                xyz[1],
-                xyz[2],
-                1.0,
-                0.0,
-                get_atom_sigma(atom),
-                0,  # region: non zero can lead to issues
+        # Read the coordinates
+        coords = numpy.zeros(shape=(0, 3), dtype="float32")
+        for node in z_slice:
+            coords = numpy.concatenate(
+                [
+                    coords,
+                    numpy.array(node, dtype="float32").reshape((len(node), 3)) + offset,
+                ]
             )
 
         # Compute the rotation
-        rotation = Rotation.from_rotvec(random_uniform_rotation(len(molecule_coords)))
+        rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
 
         # Rotate the Hydrogens around the Oxygen and translate
-        O = rotation.apply(water_coords.iloc[0].copy()) + molecule_coords
-        H1 = rotation.apply(water_coords.iloc[1].copy()) + molecule_coords
-        H2 = rotation.apply(water_coords.iloc[2].copy()) + molecule_coords
+        O = rotation.apply(water_coords.iloc[0].copy()) + coords
+        H1 = rotation.apply(water_coords.iloc[1].copy()) + coords
+        H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
 
-        # Iterate through coords
-        for i in range(len(molecule_coords)):
-            yield spec_atom(8, O[i])
-            yield spec_atom(1, H1[i])
-            yield spec_atom(1, H2[i])
+        def create_atom_data(atomic_number, coords):
 
-    # Create a dictionary of column data
-    def create_atom_data(molecule_coords, column_info):
-        return dict(
-            (name, pandas.Series(data, dtype=dtype))
-            for data, (name, dtype) in zip(
-                zip(*iterate_atoms(molecule_coords)), column_info
+            # Create a new array
+            def new_array(size, name, value):
+                return (
+                    numpy.zeros(shape=(size,), dtype=AtomData.column_data[name]) + value
+                )
+
+            # Create the new arrays
+            atomic_number = new_array(coords.shape[0], "atomic_number", atomic_number)
+            sigma = new_array(coords.shape[0], "sigma", 0.088)
+            occupancy = new_array(coords.shape[0], "occupancy", 1.0)
+            charge = new_array(coords.shape[0], "charge", 0)
+
+            # Return the data frame
+            return AtomData(
+                data=pandas.DataFrame(
+                    {
+                        "atomic_number": atomic_number,
+                        "x": coords[:, 0],
+                        "y": coords[:, 1],
+                        "z": coords[:, 2],
+                        "sigma": sigma,
+                        "occupancy": occupancy,
+                        "charge": charge,
+                    }
+                )
             )
+
+        # Add the sample atoms
+        sample.add_atoms(create_atom_data(8, O))
+        sample.add_atoms(create_atom_data(1, H1))
+        sample.add_atoms(create_atom_data(1, H2))
+
+        # Log some info
+        logger.info(
+            "    Z slice %d/%d: Num molecules: %d" % (z_index, len(packer), O.shape[0])
         )
 
-    # Return the sample with the atom data as a pandas dataframe
-    return Sample(
-        Structure(
-            pandas.DataFrame(create_atom_data(molecule_coords, column_info)),
-            positions=[(0, 0, 0)],
-            rotations=[(0, 0, 0)],
-        ),
-        recentre=True,
+    # Print some output
+    logger.info(f"Sphere packer: Num unplaced:  {packer.num_unplaced_samples()}")
+
+    # Return the sample
+    return sample
+
+
+def shape_bounding_box(centre, shape):
+    """
+    Compute the shape bounding box
+
+    Args:
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        array: bounding box
+
+    """
+
+    def cube_bounding_box(cube):
+        length = cube["length"]
+        return (0, 0, 0, length, length, length)
+
+    def cuboid_bounding_box(cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return (0, 0, 0, length_x, length_y, length_z)
+
+    def cylinder_bounding_box(cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return (0, 0, 0, 2 * radius, 2 * radius, length)
+
+    # The centre
+    xc, yc, zc = centre
+
+    # The bounding box
+    x0, y0, z0, x1, y1, z1 = {
+        "cube": cube_bounding_box,
+        "cuboid": cuboid_bounding_box,
+        "cylinder": cylinder_bounding_box,
+    }[shape["type"]](shape[shape["type"]])
+
+    # The offset
+    xo = xc - (x1 + x0) / 2.0
+    yo = yc - (y1 + y0) / 2.0
+    zo = zc - (z1 + z0) / 2.0
+
+    # Return the bounding box
+    return (x0 + xo, y0 + yo, z0 + zo, x1 + xo, y1 + yo, z1 + zo)
+
+
+def is_shape_inside_box(box, centre, shape):
+    """
+    Check if the shape is inside the bounding box
+
+    Args:
+        box (array): The bounding box
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        bool: Is the shape inside the box
+
+    """
+
+    # Get the shape bounding box
+    x0, y0, z0, x1, y1, z1 = shape_bounding_box(centre, shape)
+
+    # Check the bounding box is inside the containing box
+    return (
+        x0 >= 0
+        and y0 >= 0
+        and z0 >= 0
+        and x1 <= box[0]
+        and y1 <= box[1]
+        and z1 <= box[2]
     )
 
 
-def create_custom_sample(filename=None):
+def dimensions_are_valid(box, centre, shape):
     """
-    Create the custom sample from file
+    Check the dimensions are valid
 
     Args:
-        filename: The sample filename
+        box (array): The containing box
+        centre (array): The centre of the sample in the box
+        shape (object): The shape of the object
 
     Returns:
-        object: The atom data
+        bool: Are the dimensions valid
 
     """
-    logger.info(f"Reading sample information from {filename}")
-    return Sample.from_file(filename)
+
+    # Return if the shape is inside the bounding box
+    return is_shape_inside_box(box, centre, shape)
 
 
-def load(filename):
-    """
-    Open the sample from file
-
-    Args:
-        filename (str): The sample filename
-
-    Returns:
-        object: The test sample
-
-    """
-    return Sample.from_file(filename)
-
-
-def new(name, **kwargs):
+def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
     """
     Create the sample
 
     Args:
-        name (str): The name of the sample
+        filename (str): The filename of the sample
+        box (list): The containing box of the sample
+        centre (list): The centering of the sample in the box
+        shape (object): The shape of the sample
+        ice (object): The ice description
 
     Returns:
         object: The test sample
 
     """
-    return {
-        "4v5d": create_4v5d_sample,
-        "ribosomes_in_lamella": create_ribosomes_in_lamella_sample,
-        "ribosomes_in_cylinder": create_ribosomes_in_cylinder_sample,
-        "single_ribosome_in_ice": create_single_ribosome_in_ice_sample,
-        "only_ice": create_only_ice_sample,
-        "custom": create_custom_sample,
-    }[name](**kwargs.get(name, {}))
+
+    # Check the dimensions are valid
+    assert dimensions_are_valid(box, centre, shape)
+
+    # Create the sample
+    sample = Sample(filename, mode="w")
+
+    # Set the sample box and shape
+    sample.containing_box = ((0, 0, 0), box)
+    sample.centre = centre
+    sample.shape = shape
+
+    # Add some ice
+    if ice["generate"]:
+        add_ice(sample, centre, shape, ice["density"])
+
+    # Print some info
+    logger.info(sample.info())
