@@ -1199,14 +1199,10 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     for z_index, z_slice in enumerate(packer):
 
         # Read the coordinates
-        coords = numpy.zeros(shape=(0, 3), dtype="float32")
+        coords = []
         for node in z_slice:
-            coords = numpy.concatenate(
-                [
-                    coords,
-                    numpy.array(node, dtype="float32").reshape((len(node), 3)) + offset,
-                ]
-            )
+            coords.extend(node)
+        coords = numpy.array(coords, dtype="float32") + offset
 
         # Compute the rotation
         rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
