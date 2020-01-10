@@ -8,6 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+from collections import defaultdict
 import h5py
 import gemmi
 import logging
@@ -18,6 +19,8 @@ from math import pi, sqrt, floor, ceil
 from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
+
+numpy.random.seed(0)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -584,7 +587,7 @@ class SampleHDF5Adapter(object):
 
             """
             if "bounding_box" not in self.__handle:
-                return numpy.zeros(shape=(6,), dtype="float32")
+                return numpy.zeros(shape=(2, 3), dtype="float32")
             return self.__handle["bounding_box"][:]
 
         @bounding_box.setter
@@ -605,7 +608,7 @@ class SampleHDF5Adapter(object):
 
             """
             if "containing_box" not in self.__handle:
-                return numpy.zeros(shape=(6,), dtype="float32")
+                return numpy.zeros(shape=(2, 3), dtype="float32")
             return self.__handle["containing_box"][:]
 
         @containing_box.setter
@@ -645,7 +648,7 @@ class SampleHDF5Adapter(object):
         @property
         def shape(self):
             """
-            Get the containing box
+            Get the shape
 
             """
             if "shape" not in self.__handle:
@@ -661,7 +664,7 @@ class SampleHDF5Adapter(object):
         @shape.setter
         def shape(self, shape):
             """
-            Set the containing box
+            Set the shape
 
             """
             if "shape" not in self.__handle:
@@ -789,7 +792,7 @@ class Sample(object):
             z1 = max(z1, bz1)
 
         # Set the bounding box
-        self.__handle.sample.bounding_box = [x0, y0, z0, x1, y1, z1]
+        self.__handle.sample.bounding_box = [(x0, y0, z0), (x1, y1, z1)]
 
         # Get the data bounds
         z_min = atoms.data["z"].min()
@@ -842,10 +845,12 @@ class Sample(object):
         assert positions.shape[1] == 3
 
         # Get the reference coords
-        reference_coords = atoms.data[["x", "y", "z"]]
+        reference_coords = atoms.data[["x", "y", "z"]].to_numpy()
 
         # Loop through all the positions and rotations
-        for position, rotation in zip(positions, Rotation.from_rotvec(orientations)):
+        for position, rotation, orientation in zip(
+            positions, Rotation.from_rotvec(orientations), orientations
+        ):
 
             # Make a copy and apply the rotation and translation
             coords = (rotation.apply(reference_coords) + position).astype("float32")
@@ -869,8 +874,7 @@ class Sample(object):
         The box containing the sample
 
         """
-        x0, y0, z0, x1, y1, z1 = self.__handle.sample.containing_box
-        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+        return self.__handle.sample.containing_box
 
     @containing_box.setter
     def containing_box(self, box):
@@ -878,14 +882,12 @@ class Sample(object):
         The box containing the sample
 
         """
-        (x0, y0, z0), (x1, y1, z1) = box
-        self.__handle.sample.containing_box = x0, y0, z0, x1, y1, z1
-        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+        self.__handle.sample.containing_box = box
 
     @property
     def centre(self):
         """
-        The box containing the sample
+        The centre of the shape
 
         """
         return self.__handle.sample.centre
@@ -893,7 +895,7 @@ class Sample(object):
     @centre.setter
     def centre(self, centre):
         """
-        The box containing the sample
+        The centre of the shape
 
         """
         self.__handle.sample.centre = centre
@@ -923,8 +925,7 @@ class Sample(object):
             tuple: lower, upper - the bounding box coordinates
 
         """
-        x0, y0, z0, x1, y1, z1 = self.__handle.sample.bounding_box
-        return numpy.array((x0, y0, z0)), numpy.array((x1, y1, z1))
+        return self.__handle.sample.bounding_box
 
     @property
     def molecules(self):
@@ -1258,6 +1259,96 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     return sample
 
 
+def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
+    """
+    Find n random non overlapping positions for cuboids within a volume
+
+    Args:
+        volume_box (array): The size of the volume
+        boxes (array): The list of boxes
+        max_tries (int): The maximum tries per cube
+
+    Returns:
+        list: A list of centre positions
+
+    """
+
+    # Cast to numpy array
+    volume_lower, volume_upper = numpy.array(volume_box)
+    boxes = numpy.array(boxes)
+
+    # Check if the cube overlaps with any other
+    def overlapping(positions, box_sizes, q, q_size):
+        for p, p_size in zip(positions, box_sizes):
+            p0 = p - p_size / 2
+            p1 = p + p_size / 2
+            q0 = q - q_size / 2
+            q1 = q + q_size / 2
+            if not (
+                q0[0] > p1[0]
+                or q1[0] < p0[0]
+                or q0[1] > p1[1]
+                or q1[1] < p0[1]
+                or q0[2] > p1[2]
+                or q1[2] < p0[2]
+            ):
+                return True
+        return False
+
+    # Loop until we have added the boxes
+    positions = []
+    box_sizes = []
+    for box_size in boxes:
+
+        # The bounds to search in
+        lower = volume_lower + box_size / 2
+        upper = volume_upper - box_size / 2
+        assert lower[0] < upper[0]
+        assert lower[1] < upper[1]
+        assert lower[2] < upper[2]
+
+        # Try to add the box
+        num_tries = 0
+        while True:
+            q = numpy.random.uniform(lower, upper)
+            if len(positions) == 0 or not overlapping(
+                positions, box_sizes, q, box_size
+            ):
+                positions.append(q)
+                box_sizes.append(box_size)
+                break
+            num_tries += 1
+            if num_tries > max_tries:
+                raise RuntimeError(f"Unable to place cube of size {box_size}")
+
+    # Return the cube positions
+    return positions
+
+
+def random_uniform_rotation(size=1):
+    """
+    Return a uniform rotation vector sampled on a sphere
+
+    Args:
+        size (int): The number of vectors
+
+    Returns:
+        vector: The rotation vector
+
+    """
+    u1 = numpy.random.uniform(0, 1, size=size)
+    u2 = numpy.random.uniform(0, 1, size=size)
+    u3 = numpy.random.uniform(0, 1, size=size)
+    theta = numpy.arccos(2 * u1 - 1)
+    phi = 2 * pi * u2
+    x = numpy.sin(theta) * numpy.cos(phi)
+    y = numpy.sin(theta) * numpy.sin(phi)
+    z = numpy.cos(theta)
+    vector = numpy.array((x, y, z)).T
+    vector *= 2 * pi * u3.reshape((u3.size, 1))
+    return vector
+
+
 def shape_bounding_box(centre, shape):
     """
     Compute the shape bounding box
@@ -1273,36 +1364,77 @@ def shape_bounding_box(centre, shape):
 
     def cube_bounding_box(cube):
         length = cube["length"]
-        return (0, 0, 0, length, length, length)
+        return ((0, 0, 0), (length, length, length))
 
     def cuboid_bounding_box(cuboid):
         length_x = cuboid["length_x"]
         length_y = cuboid["length_y"]
         length_z = cuboid["length_z"]
-        return (0, 0, 0, length_x, length_y, length_z)
+        return ((0, 0, 0), (length_x, length_y, length_z))
 
     def cylinder_bounding_box(cylinder):
         length = cylinder["length"]
         radius = cylinder["radius"]
-        return (0, 0, 0, 2 * radius, 2 * radius, length)
-
-    # The centre
-    xc, yc, zc = centre
+        return ((0, 0, 0), (2 * radius, 2 * radius, length))
 
     # The bounding box
-    x0, y0, z0, x1, y1, z1 = {
-        "cube": cube_bounding_box,
-        "cuboid": cuboid_bounding_box,
-        "cylinder": cylinder_bounding_box,
-    }[shape["type"]](shape[shape["type"]])
+    x0, x1 = numpy.array(
+        {
+            "cube": cube_bounding_box,
+            "cuboid": cuboid_bounding_box,
+            "cylinder": cylinder_bounding_box,
+        }[shape["type"]](shape[shape["type"]])
+    )
 
     # The offset
-    xo = xc - (x1 + x0) / 2.0
-    yo = yc - (y1 + y0) / 2.0
-    zo = zc - (z1 + z0) / 2.0
+    offset = centre - (x1 + x0) / 2.0
 
     # Return the bounding box
-    return (x0 + xo, y0 + yo, z0 + zo, x1 + xo, y1 + yo, z1 + zo)
+    return (x0 + offset, x1 + offset)
+
+
+def shape_enclosed_box(centre, shape):
+    """
+    Compute the shape enclosed box
+
+    Args:
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        array: enclosed box
+
+    """
+
+    def cube_enclosed_box(cube):
+        length = cube["length"]
+        return ((0, 0, 0), (length, length, length))
+
+    def cuboid_enclosed_box(cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return ((0, 0, 0), (length_x, length_y, length_z))
+
+    def cylinder_enclosed_box(cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return ((0, 0, 0), (length, sqrt(2) * radius, sqrt(2) * radius))
+
+    # The enclosed box
+    x0, x1 = numpy.array(
+        {
+            "cube": cube_enclosed_box,
+            "cuboid": cuboid_enclosed_box,
+            "cylinder": cylinder_enclosed_box,
+        }[shape["type"]](shape[shape["type"]])
+    )
+
+    # The offset
+    offset = centre - (x1 + x0) / 2.0
+
+    # Return the bounding box
+    return (x0 + offset, x1 + offset)
 
 
 def is_shape_inside_box(box, centre, shape):
@@ -1320,7 +1452,7 @@ def is_shape_inside_box(box, centre, shape):
     """
 
     # Get the shape bounding box
-    x0, y0, z0, x1, y1, z1 = shape_bounding_box(centre, shape)
+    (x0, y0, z0), (x1, y1, z1) = shape_bounding_box(centre, shape)
 
     # Check the bounding box is inside the containing box
     return (
@@ -1331,6 +1463,63 @@ def is_shape_inside_box(box, centre, shape):
         and y1 <= box[1]
         and z1 <= box[2]
     )
+
+
+def is_box_inside_shape(box, centre, shape):
+    """
+    Check if the box is inside the shape
+
+    Args:
+        box (array): The bounding box
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        bool: Is the box is inside shape
+
+    """
+
+    def is_box_inside_cube(x0, x1, centre, cube):
+        length = cube["length"]
+        return (
+            x0[0] >= centre[0] - length / 2.0
+            and x0[1] >= centre[1] - length / 2.0
+            and x0[2] >= centre[2] - length / 2.0
+            and x1[0] <= centre[0] + length / 2.0
+            and x1[1] <= centre[1] + length / 2.0
+            and x1[2] <= centre[2] + length / 2.0
+        )
+
+    def is_box_inside_cuboid(x0, x1, centre, cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return (
+            x0[0] >= centre[0] - length_x / 2.0
+            and x0[1] >= centre[1] - length_y / 2.0
+            and x0[2] >= centre[2] - length_z / 2.0
+            and x1[0] <= centre[0] + length_x / 2.0
+            and x1[1] <= centre[1] + length_y / 2.0
+            and x1[2] <= centre[2] + length_z / 2.0
+        )
+
+    def is_box_inside_cylinder(x0, x1, centre, cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return (
+            (x0[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x0[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and x0[0] >= centre - length / 2.0
+            and x1[0] < centre + length / 2.0
+        )
+
+    return {
+        "cube": is_box_inside_cube,
+        "cuboid": is_box_inside_cuboid,
+        "cylinder": is_box_inside_cylinder,
+    }[shape["type"]](box[0], box[1], centre, shape[shape["type"]])
 
 
 def dimensions_are_valid(box, centre, shape):
@@ -1349,6 +1538,21 @@ def dimensions_are_valid(box, centre, shape):
 
     # Return if the shape is inside the bounding box
     return is_shape_inside_box(box, centre, shape)
+
+
+def load(filename, mode="r"):
+    """
+    Load the sample
+
+    Args:
+        filename (str): The filename of the sample
+        mode (str): The opening mode
+
+    Returns:
+        object: The test sample
+
+    """
+    return Sample(filename, mode=mode)
 
 
 def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
@@ -1384,3 +1588,190 @@ def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
 
     # Print some info
     logger.info(sample.info())
+
+
+def add_single_molecule(sample, name):
+    """
+    Create a sample with a single molecule
+
+    The molecule will be positioned at the centre
+
+    Args:
+        sample (object): The sample object
+        name (str): The name of the molecule to add
+
+    Returns:
+        object: The sample
+
+    """
+    logger.info("Adding single %s molecule" % name)
+
+    # Get the filename of the 4v5d.cif file
+    filename = elfantasma.data.get_path("%s.cif" % name)
+
+    # Get the atom data
+    atoms = AtomData.from_gemmi_file(filename)
+    atoms.data = recentre(atoms.data)
+
+    # Get atom data bounds
+    coords = atoms.data[["x", "y", "z"]]
+    x0 = numpy.min(coords, axis=0) + sample.centre
+    x1 = numpy.max(coords, axis=0) + sample.centre
+
+    # Check the coords
+    assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
+
+    # Print some info
+    logger.info(
+        "\n".join(
+            (
+                "Name:   %s" % name,
+                "Min x:  %.2f" % x0[0],
+                "Min y:  %.2f" % x0[1],
+                "Min z:  %.2f" % x0[2],
+                "Max x:  %.2f" % x1[0],
+                "Max y:  %.2f" % x1[1],
+                "Max z:  %.2f" % x1[2],
+                "Size x: %.2f" % (x1[0] - x0[0]),
+                "Size y: %.2f" % (x1[1] - x0[1]),
+                "Size z: %.2f" % (x1[2] - x0[2]),
+                "Pos x:  %.2f" % (sample.centre[0]),
+                "Pos y:  %.2f" % (sample.centre[1]),
+                "Pos z:  %.2f" % (sample.centre[2]),
+            )
+        )
+    )
+
+    # Add the molecule
+    sample.add_molecule(
+        atoms, positions=[sample.centre], orientations=[(0, 0, 0)], name=name
+    )
+
+    # Print some information
+    logger.info(sample.info())
+
+    # Return the sample
+    return sample
+
+
+def add_multiple_molecules(sample, molecules):
+    """
+    Create a sample with multiple molecules
+
+    The molecules will be positioned randomly in the sample
+
+    Args:
+        sample (object): The sample object
+        molecules (object): The molecules
+
+    Returns:
+        object: The sample
+
+    """
+
+    # Setup some arrays
+    atom_data = {}
+    all_labels = []
+    all_boxes = []
+    all_positions = []
+    all_orientations = []
+
+    # Generate the orientations and boxes
+    for name, number in molecules.items():
+
+        # Skip if number is zero
+        if number == 0:
+            continue
+
+        # Print some info
+        logger.info("Adding %d %s molecules" % (number, name))
+
+        # Get the filename of the 4v5d.cif file
+        filename = elfantasma.data.get_path("%s.cif" % name)
+
+        # Get the atom data
+        atoms = AtomData.from_gemmi_file(filename)
+        atoms.data = recentre(atoms.data)
+        atom_data[name] = atoms
+
+        # Generate some random orientations
+        logger.info("    Generating random orientations")
+        for rotation in Rotation.from_rotvec(random_uniform_rotation(number)):
+            coords = rotation.apply(atoms.data[["x", "y", "z"]])
+            all_orientations.append(rotation.as_rotvec())
+            all_boxes.append(numpy.max(coords, axis=0) - numpy.min(coords, axis=0))
+            all_labels.append(name)
+
+    # Put the molecules in the sample
+    logger.info("Placing molecules:")
+    all_positions = distribute_boxes_uniformly(
+        shape_enclosed_box(sample.centre, sample.shape), all_boxes
+    )
+
+    # Set the positions and orientations by molecule
+    positions = defaultdict(list)
+    orientations = defaultdict(list)
+    for label, rotation, position, box in zip(
+        all_labels, all_orientations, all_positions, all_boxes
+    ):
+
+        # Get atom data bounds
+        x0 = box[0] + sample.centre
+        x1 = box[1] + sample.centre
+
+        # Check the coords
+        assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
+
+        # Construct arrays
+        positions[label].append(position)
+        orientations[label].append(rotation)
+
+        # Print some info
+        logger.info(
+            "    placing %s at (%.2f, %.2f, %.2f) with orientation (%.2f, %.2f, %.2f)"
+            % ((label,) + tuple(position) + tuple(rotation))
+        )
+
+    # Add the molecules
+    for name in atom_data.keys():
+        sample.add_molecule(
+            atom_data[name],
+            positions=positions[name],
+            orientations=orientations[name],
+            name=name,
+        )
+
+
+def add_molecules(filename, molecules=None, **kwargs):
+    """
+    Take a sample and add a load of molecules
+
+    Args:
+        filename (str): The filename of the sample
+        molecules (dict): The molecules
+
+    Returns:
+        object: The test sample
+
+    """
+
+    # Total number of molecules
+    total_number_of_molecules = sum(molecules.values())
+
+    # Open the sample
+    sample = Sample(filename, mode="r+")
+
+    # Add the molecules
+    if total_number_of_molecules == 0:
+        raise RuntimeError("Need at least 1 molecule")
+    elif total_number_of_molecules == 1:
+        name = [key for key, value in molecules.items() if value > 0][0]
+        add_single_molecule(sample, name)
+    else:
+        add_multiple_molecules(sample, molecules)
+
+    # Show some info
+    logger.info(sample.info())
+
+    # Return the sample
+    return sample

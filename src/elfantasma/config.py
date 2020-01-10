@@ -35,7 +35,6 @@ def default():
         """
 
         output: output.h5
-        phantom: 4v5d
 
         sample:
 
@@ -62,29 +61,11 @@ def default():
                 generate: False
                 density: 940
 
-            4v5d:
-                length_x: null
-                length_y: null
-                length_z: null
+            molecules:
 
-            ribosomes_in_lamella:
-                length_x: 2000
-                length_y: 2000
-                length_z: 500
-                number_of_ribosomes: 10
-
-            ribosomes_in_cylinder:
-                radius: 1500
-                length: 10000
-                margin: 500
-                number_of_ribosomes: 100
-
-            single_ribosome_in_ice:
-                box_size: 4000
-                ice_size: 2000
-
-            custom:
-                filename: null
+                4v5d: 0
+                4v1w: 0
+                6qt9: 0
 
         microscope:
 

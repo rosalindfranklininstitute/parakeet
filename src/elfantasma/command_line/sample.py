@@ -62,9 +62,73 @@ def new():
     sample = elfantasma.sample.new(args.output, **config["sample"])
 
 
-def modify():
-    pass
+def add_molecules():
+    """
+    Add molecules to the sample
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Create an ice sample and save it")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="sample.h5",
+        dest="output",
+        help="The filename for the sample file",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Configure some basic logging
+    elfantasma.command_line.configure_logging()
+
+    # Load the configuration
+    config = elfantasma.config.load(args.config)
+
+    # Print some options
+    elfantasma.config.show(config)
+
+    # Create the sample
+    logger.info(f"Writing sample to {args.output}")
+    sample = elfantasma.sample.add_molecules(args.output, **config["sample"])
 
 
 def show():
-    pass
+    """
+    Show the sample information
+
+    """
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Create an ice sample and save it")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="sample.h5",
+        dest="output",
+        help="The filename for the sample file",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Configure some basic logging
+    elfantasma.command_line.configure_logging()
+
+    # Create the sample
+    sample = elfantasma.sample.load(args.output)
+    logger.info(sample.info())

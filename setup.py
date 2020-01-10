@@ -42,7 +42,7 @@ def main():
                 "elfantasma.create_sample=elfantasma.command_line:create_sample",
                 "elfantasma.freeze=elfantasma.command_line:freeze",
                 "elfantasma.sample.new=elfantasma.command_line.sample:new",
-                "elfantasma.sample.modify=elfantasma.command_line.sample:modify",
+                "elfantasma.sample.add_molecules=elfantasma.command_line.sample:add_molecules",
                 "elfantasma.sample.show=elfantasma.command_line.sample:show",
             ]
         },
