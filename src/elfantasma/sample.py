@@ -15,7 +15,7 @@ import logging
 import numpy
 import pandas
 import scipy.constants
-from math import pi, sqrt, floor, ceil
+from math import pi, sqrt, floor
 from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
@@ -92,6 +92,27 @@ def recentre(atom_data, position=None):
 
     # Do the translation
     return translate(atom_data, translation)
+
+
+def number_of_water_molecules(volume, density=940.0):
+    """
+    Compute the number of water molecules
+
+    Args:
+        volume (float): The volume A^3
+        density (float): The density Kg/m^3
+
+    Returns:
+        The number of water molcules
+
+    """
+
+    # Determine the number of waters to place
+    avogadros_number = scipy.constants.Avogadro
+    molar_mass_of_water = 18.01528  # grams / mole
+    density_of_water = density  # kg / m^3
+    mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
+    return int(floor((mass_of_water / molar_mass_of_water) * avogadros_number))
 
 
 class AtomData(object):
@@ -378,14 +399,14 @@ class SampleHDF5Adapter(object):
             for value in self.__handle.values():
                 yield SampleHDF5Adapter.AtomsSubGroup(value)
 
-        def zbins(self):
+        def bins(self):
             """
             Iterate through the z bins
 
             """
             for key in self.keys():
-                z = int(key.split("=")[1].split("A")[0])
-                yield key, z
+                x, y, z = [int(k.split("=")[1]) for k in key.split(";")]
+                yield key, numpy.array((x, y, z))
 
         def number_of_atoms(self):
             """
@@ -729,8 +750,9 @@ class Sample(object):
         # Open the HDF5 file
         self.__handle = SampleHDF5Adapter(filename, mode=mode)
 
-        # The zstep between datasets
-        self.zstep = 10  # A
+        # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
+        # This seems to be a reasonable division size
+        self.step = 500  # A
 
     def close(self):
         """
@@ -739,14 +761,32 @@ class Sample(object):
         """
         self.__handle.close()
 
-    def atoms_dataset_name(self, z):
-        return "Z=%06dA" % z
+    def atoms_dataset_name(self, x):
+        """
+        Get the atom dataset name
 
-    def atoms_dataset_range(self, z0, z1):
-        z0 = int(floor(z0 / float(self.zstep))) * self.zstep
-        z1 = int(ceil(z1 / float(self.zstep))) * self.zstep
-        for z in range(z0, z1, self.zstep):
-            yield z, z + self.zstep
+        """
+        return "X=%06d; Y=%06d; Z=%06d" % tuple(x)
+
+    def atoms_dataset_range(self, x0, x1):
+        """
+        Get the atom dataset range
+
+        Args:
+            x0 (array): The minimum coord
+            x1 (array): The maximum coord
+
+        Yields:
+            tuple: The coordinates of the sub ranges
+
+        """
+        x0 = (numpy.floor(x0 / float(self.step)) * self.step).astype("int32")
+        x1 = (numpy.ceil(x1 / float(self.step)) * self.step).astype("int32")
+        for z in range(x0[2], x1[2], self.step):
+            for y in range(x0[1], x1[1], self.step):
+                for x in range(x0[0], x1[0], self.step):
+                    c = numpy.array((x, y, z))
+                    yield c, c + self.step
 
     @property
     def dimensions(self):
@@ -795,30 +835,29 @@ class Sample(object):
         self.__handle.sample.bounding_box = [(x0, y0, z0), (x1, y1, z1)]
 
         # Get the data bounds
-        z_min = atoms.data["z"].min()
-        z_max = atoms.data["z"].max()
+        coords = atoms.data[["x", "y", "z"]]
 
         # Iterate over dataset ranges
-        for z0, z1 in self.atoms_dataset_range(z_min, z_max):
-            name = self.atoms_dataset_name(z0)
+        for x_min, x_max in self.atoms_dataset_range(coords.min(), coords.max()):
+            name = self.atoms_dataset_name(x_min)
             self.__handle.sample.atoms[name].atoms = atoms.data[
-                (atoms.data["z"] >= z0) & (atoms.data["z"] < z1)
+                ((coords >= x_min) & (coords < x_max)).all(axis=1)
             ]
 
-    def del_atoms(self, z_min, z_max, deleter):
+    def del_atoms(self, x0, x1, deleter):
         """
         Delete atoms in the given range
 
         Args:
-            z_min (float): The minimum z
-            z_max (float): The maximum z
+            x0 (float): The minimum coord
+            x1 (float): The maximum coord
             deleter (func): Check atoms and return only those we want to keep
 
         """
 
         # Iterate over dataset ranges
-        for z0, z1 in self.atoms_dataset_range(z_min, z_max):
-            name = self.atoms_dataset_name(z0)
+        for x_min, x_max in self.atoms_dataset_range(x0, x1):
+            name = self.atoms_dataset_name(x_min)
             atoms = self.__handle.sample.atoms[name].atoms
             self.__handle.sample.atoms[name].atoms = deleter(atoms)
 
@@ -1008,33 +1047,38 @@ class Sample(object):
             object: The atom data
 
         """
-        for name, z in self.__handle.sample.atoms.zbins():
-            yield (z, z + self.zstep), AtomData(
+        for name, x in self.__handle.sample.atoms.bins():
+            yield (x, x + self.step), AtomData(
                 data=self.__handle.sample.atoms[name].atoms
             )
 
-    def get_atoms_in_zrange(self, z0, z1, filter=None):
+    def get_atoms_in_range(self, x0, y1, filter=None):
         """
         Get the subset of atoms within the field of view
 
         Args:
-            z0 (float): The start of the z range
-            z1 (float): The end of the z range
+            x0 (float): The start of the z range
+            x1 (float): The end of the z range
             filter (func): A function to filter the atoms
 
         Returns:
             object: The atom data
 
         """
-        assert z0 < z1
+
+        # Check input
+        assert (x0 < x1).all()
+
+        # Iterate over dataset ranges
         data = pandas.DataFrame()
-        for name, z in self.__handle.sample.atoms.zbins():
-            if z0 <= z + self.zstep and z <= z1:
-                atoms = self.__handle.sample.atoms[name].atoms
-                atoms = atoms[(atoms["z"] >= z0) & (atoms["z"] < z1)]
-                if filter is not None:
-                    atoms = filter(atoms)
-                data = pandas.concat([data, atoms], ignore_index=True)
+        for x_min, x_max in self.atoms_dataset_range(x0, x1):
+            name = self.atoms_dataset_name(x_min)
+            atoms = self.__handle.sample.atoms[name].atoms
+            coords = atoms[["x", "y", "z"]]
+            atoms = atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+            if filter is not None:
+                atoms = filter(atoms)
+            data = pandas.concat([data, atoms], ignore_index=True)
         return AtomData(data=data)
 
     def info(self):
@@ -1110,6 +1154,42 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         object: The sample object
 
     """
+
+    def shape_filter_coordinates(coords, centre, shape):
+        def cube_filter_coordinates(coords, centre, cube):
+            length = cube["length"]
+            x0 = centre - length / 2.0
+            x1 = centre + length / 2.0
+            return coords[((coords >= x0) & (coords < x1)).all(axis=1)]
+
+        def cuboid_filter_coordinates(coords, centre, cuboid):
+            length_x = cuboid["length_x"]
+            length_y = cuboid["length_y"]
+            length_z = cuboid["length_z"]
+            length = numpy.array((length_x, length_y, length_z))
+            x0 = centre - length / 2.0
+            x1 = centre + length / 2.0
+            return coords[((coords >= x0) & (coords < x1)).all(axis=1)]
+
+        def cylinder_filter_coordinates(coords, centre, cylinder):
+            length = cylinder["length"]
+            radius = cylinder["radius"]
+            x0 = centre - length / 2.0
+            x1 = centre + length / 2.0
+            x = coords[:, 0]
+            y = coords[:, 1]
+            z = coords[:, 2]
+            return coords[
+                (x >= x0) & (x < x1) & ((z - centre) ** 2 + (y - centre) ** 2 <= radius)
+            ]
+
+        # Filter the coords
+        return {
+            "cube": cube_filter_coordinates,
+            "cuboid": cuboid_filter_coordinates,
+            "cylinder": cylinder_filter_coordinates,
+        }[shape["type"]](coords, centre, shape[shape["type"]])
+
     # Get the filename of the water.cif file
     filename = elfantasma.data.get_path("water.cif")
 
@@ -1163,15 +1243,17 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     # Compute the total volume in the spheres
     volume_of_spheres = (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
 
-    # Create the grid
+    # Create the grid. The sphere packer takes the grid is (z, y, x) but
+    # because it does slices along Z and we want slices along X we flip the X
+    # and Z grid spec here
     grid = (
-        int(floor(length_z / (2 * van_der_waals_radius))),
-        int(floor(length_y / (2 * van_der_waals_radius))),
         int(floor(length_x / (2 * van_der_waals_radius))),
+        int(floor(length_y / (2 * van_der_waals_radius))),
+        int(floor(length_z / (2 * van_der_waals_radius))),
     )
 
     # Compute the node length and density
-    node_length = max((length_z / grid[0], length_y / grid[1], length_x / grid[2]))
+    node_length = max((length_z / grid[2], length_y / grid[1], length_x / grid[0]))
     sphere_density = number_of_waters / volume
 
     logger.info(
@@ -1197,13 +1279,20 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
 
     # Extract all the data
     logger.info("Generating water positions:")
-    for z_index, z_slice in enumerate(packer):
+    for x_index, x_slice in enumerate(packer):
 
-        # Read the coordinates
+        # Read the coordinates. The Z and X coordinates need to be flipped
+        # again since the sphere packer does slices in Z and we want slices in
+        # X here.
         coords = []
-        for node in z_slice:
+        for node in x_slice:
             coords.extend(node)
         coords = numpy.array(coords, dtype="float32") + offset
+        coords = numpy.flip(coords, axis=1)
+
+        # Filter the coordinates by the shape to ensure no ice is outside the
+        # shape. This is only really necessary for the cylinder shape
+        coords = shape_filter_coordinates(coords, centre, shape)
 
         # Compute the rotation
         rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
@@ -1249,7 +1338,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
 
         # Log some info
         logger.info(
-            "    Z slice %d/%d: Num molecules: %d" % (z_index, len(packer), O.shape[0])
+            "    X slice %d/%d: Num molecules: %d" % (x_index, len(packer), O.shape[0])
         )
 
     # Print some output
@@ -1375,7 +1464,7 @@ def shape_bounding_box(centre, shape):
     def cylinder_bounding_box(cylinder):
         length = cylinder["length"]
         radius = cylinder["radius"]
-        return ((0, 0, 0), (2 * radius, 2 * radius, length))
+        return ((0, 0, 0), (length, 2 * radius, 2 * radius))
 
     # The bounding box
     x0, x1 = numpy.array(
