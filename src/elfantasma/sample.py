@@ -15,6 +15,7 @@ import logging
 import numpy
 import pandas
 import scipy.constants
+import time
 from math import pi, sqrt, floor
 from scipy.spatial.transform import Rotation
 import elfantasma.data
@@ -1279,6 +1280,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
 
     # Extract all the data
     logger.info("Generating water positions:")
+    start_time = time.time()
     for x_index, x_slice in enumerate(packer):
 
         # Read the coordinates. The Z and X coordinates need to be flipped
@@ -1336,9 +1338,14 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         sample.add_atoms(create_atom_data(1, H1))
         sample.add_atoms(create_atom_data(1, H2))
 
+        # The estimates time left
+        time_taken = time.time() - start_time
+        estimated_time = (len(packer) - x_index) * time_taken / (x_index + 1)
+
         # Log some info
         logger.info(
-            "    X slice %d/%d: Num molecules: %d" % (x_index, len(packer), O.shape[0])
+            "    X slice %d/%d: Num molecules: %d (remaining %.d seconds)"
+            % (x_index, len(packer), O.shape[0], estimated_time)
         )
 
     # Print some output

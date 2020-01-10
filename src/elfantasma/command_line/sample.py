@@ -10,6 +10,7 @@
 #
 import argparse
 import logging
+import time
 import elfantasma.io
 import elfantasma.command_line
 import elfantasma.config
@@ -24,6 +25,8 @@ def new():
     Create an ice sample and save it
 
     """
+    st = time.time()
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Create an ice sample and save it")
 
@@ -60,6 +63,7 @@ def new():
     # Create the sample
     logger.info(f"Writing sample to {args.output}")
     sample = elfantasma.sample.new(args.output, **config["sample"])
+    logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
 def add_molecules():
@@ -67,6 +71,8 @@ def add_molecules():
     Add molecules to the sample
 
     """
+    st = time.time()
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Create an ice sample and save it")
 
@@ -103,6 +109,7 @@ def add_molecules():
     # Create the sample
     logger.info(f"Writing sample to {args.output}")
     sample = elfantasma.sample.add_molecules(args.output, **config["sample"])
+    logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
 def show():
