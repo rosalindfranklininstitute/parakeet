@@ -1,182 +1,61 @@
 import numpy
-import os
 import pytest
 import elfantasma.sample
-from math import pi
+from math import sqrt
 
 
 @pytest.fixture
-def sample_4v5d():
-    return elfantasma.sample.new("4v5d")
+def atom_data_4v5d():
+
+    # Get the filename of the 4v5d.cif file
+    filename = elfantasma.data.get_path("4v5d.cif")
+
+    # Get the atom data
+    atoms = elfantasma.sample.AtomData.from_gemmi_file(filename)
+    atoms.data = elfantasma.sample.recentre(atoms.data)
+    return atoms
 
 
-def test_structure(sample_4v5d):
+# def test_get_atom_sigma_sq():
+#     pass
 
-    # Get the sample atom data
-    atom_data = sample_4v5d.structures[0].atom_data
-
-    # Create a new structure
-    structure = elfantasma.sample.Structure(atom_data)
-    assert len(structure.positions) == 0
-    assert len(structure.rotations) == 0
-
-    # Check some characteristics
-    assert structure.num_models == 0
-    assert structure.num_atoms == 0
-    assert numpy.allclose(structure.bounding_box[0], (0, 0, 0))
-    assert numpy.allclose(structure.bounding_box[1], (0, 0, 0))
-
-    # Add a model
-    structure.append([[0, 0, 0]], [[0, 0, 0]])
-
-    # Check some characteristics
-    assert structure.num_models == 1
-    assert structure.num_atoms == 296042
-    assert numpy.allclose(structure.bounding_box[0], (-133.762, -195.798, -190.784))
-    assert numpy.allclose(structure.bounding_box[1], (133.762, 195.798, 190.784))
-
-    # Add a model
-    structure.append([[10, 10, 10]], [[0, 0, 0]])
-
-    # Check some characteristics
-    assert structure.num_models == 2
-    assert structure.num_atoms == 296042 * 2
-    assert numpy.allclose(structure.bounding_box[0], (-133.762, -195.798, -190.784))
-    assert numpy.allclose(structure.bounding_box[1], (143.762, 205.798, 200.784))
-
-    # Add a model
-    structure.append([[200, 200, 200]], [[pi / 2, pi / 2, pi / 2]])
-
-    # Check some characteristics
-    assert structure.num_models == 3
-    assert structure.num_atoms == 296042 * 3
-    assert numpy.allclose(structure.bounding_box[0], (-133.762, -195.798, -190.784))
-    assert numpy.allclose(
-        structure.bounding_box[1], (399.42072897, 342.17062303, 402.50910872)
-    )
-
-    # Translate the structure
-    structure.translate((10, 20, 30))
-
-    # Check the positions
-    assert numpy.allclose(
-        structure.positions, [(10, 20, 30), (20, 30, 40), (210, 220, 230)]
-    )
-
-    # Rotate the structure
-    structure.rotate((pi / 2, 0, 0))
-
-    # Check the rotations
-    assert numpy.allclose(
-        structure.rotations,
-        [(pi / 2, 0, 0), (pi / 2, 0, 0), (-1.48800919, 0, -2.17230367)],
-    )
-
-    # Get the atoms
-    assert len(list(structure.spec_atoms)) == structure.num_atoms
+# def test_get_atom_sigma():
+#     pass
 
 
-def test_sample(tmp_path, sample_4v5d):
+def test_translate(atom_data_4v5d):
+    data = atom_data_4v5d.data
+    coords = data[["x", "y", "z"]].to_numpy()
+    x00 = coords.min(axis=0)
+    x01 = coords.max(axis=0)
+    data = elfantasma.sample.translate(atom_data_4v5d.data, (1, 2, 3))
+    coords = data[["x", "y", "z"]].to_numpy()
+    x10 = coords.min(axis=0)
+    x11 = coords.max(axis=0)
+    numpy.testing.assert_allclose(x10, x00 + (1, 2, 3))
+    numpy.testing.assert_allclose(x11, x01 + (1, 2, 3))
 
-    sample = sample_4v5d
+    # Check dtypes
+    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+        assert data[name].dtype == dtype
 
-    assert sample.num_models == 1
-    assert sample.num_atoms == 296042
-    assert numpy.allclose(sample.sample_bbox[0], (133.762, 195.798, 190.784))
-    assert numpy.allclose(sample.sample_bbox[1], (401.286, 587.394, 572.352))
 
-    sample.resize()
-    sample.recentre()
-    sample.update()
+def test_recentre(atom_data_4v5d):
+    data = elfantasma.sample.recentre(atom_data_4v5d.data)
+    coords = data[["x", "y", "z"]]
+    x0 = coords.min()
+    x1 = coords.max()
+    numpy.testing.assert_allclose((x1 + x0) / 2.0, (0, 0, 0))
 
-    assert numpy.allclose(sample.sample_bbox[0], (1, 1, 1))
-    assert numpy.allclose(sample.sample_bbox[1], sample.box_size - 1)
+    # Check dtypes
+    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+        assert data[name].dtype == dtype
 
-    sample.validate()
 
-    text = sample.info()
-    assert text == (
-        "Sample information:\n"
-        "    # models:      1\n"
-        "    # atoms:       296042\n"
-        "    Min x:         1.00\n"
-        "    Min y:         1.00\n"
-        "    Min z:         1.00\n"
-        "    Max x:         268.52\n"
-        "    Max y:         392.60\n"
-        "    Max z:         382.57\n"
-        "    Sample size x: 267.52\n"
-        "    Sample size y: 391.60\n"
-        "    Sample size z: 381.57\n"
-        "    Box size x:    269.52\n"
-        "    Box size y:    393.60\n"
-        "    Box size z:    383.57"
-    )
+def test_number_of_water_molecules():
 
-    sample.structures[0].append([[10, 10, 10]], [[0, 0, 0]])
-    sample.structures[0].append([[200, 200, 200]], [[pi / 2, pi / 2, pi / 2]])
-
-    sample.update()
-    sample.resize()
-    sample.recentre()
-
-    assert sample.num_models == 3
-    assert sample.num_atoms == 296042 * 3
-    assert numpy.allclose(sample.sample_bbox[0], (1, 1, 1))
-    assert numpy.allclose(sample.sample_bbox[1], sample.box_size - 1)
-
-    sample.translate((10, 10, 10))
-
-    assert numpy.allclose(sample.sample_bbox[0], (11, 11, 11))
-    assert numpy.allclose(sample.sample_bbox[1], sample.box_size - 1 + 10)
-
-    sample.rotate((pi / 2, 0, 0))
-
-    assert numpy.allclose(sample.sample_bbox[0], (11.0, 16.014, 5.986))
-    assert numpy.allclose(sample.sample_bbox[1], (534.18272897, 584.38, 579.366))
-
-    sample.update()
-    sample.resize()
-    sample.recentre()
-
-    assert numpy.allclose(sample.sample_bbox[0], (1, 1, 1))
-    assert numpy.allclose(sample.sample_bbox[1], sample.box_size - 1)
-    assert len(list(sample.spec_atoms)) == 296042 * 3
-
-    sample.append(sample.structures[0])
-
-    assert sample.num_models == 6
-    assert sample.num_atoms == 296042 * 6
-    assert len(list(sample.spec_atoms)) == 296042 * 6
-
-    sample.update()
-    sample.resize()
-    sample.recentre()
-    sample.validate()
-
-    subset = sample.select_atom_data_in_roi([(50, 50), (100, 100)])
-
-    assert len(subset) < sample.num_atoms
-    assert numpy.all(numpy.greater_equal(subset["x"], 50))
-    assert numpy.all(numpy.greater_equal(subset["y"], 50))
-    assert numpy.all(numpy.less_equal(subset["x"], 100))
-    assert numpy.all(numpy.less_equal(subset["y"], 100))
-
-    cif_path = os.path.join(tmp_path, "tmp.cif")
-    pdb_path = os.path.join(tmp_path, "tmp.pdb")
-    pkl_path = os.path.join(tmp_path, "tmp.pickle")
-
-    sample.as_file(cif_path)
-    sample.as_file(pdb_path)
-    sample.as_file(pkl_path)
-
-    assert os.path.exists(cif_path)
-    assert os.path.exists(pdb_path)
-    assert os.path.exists(pkl_path)
-
-    # sample2 = elfantasma.sample.load(cif_path) # Bug in gemmi
-    sample2 = elfantasma.sample.load(pdb_path)
-    sample2 = elfantasma.sample.load(pkl_path)
+    n = elfantasma.sample.number_of_water_molecules(1000 ** 3)
+    assert n == 31422283
 
 
 def test_random_uniform_rotation():
@@ -185,23 +64,360 @@ def test_random_uniform_rotation():
     assert rotations.shape == (10, 3)
 
 
-def test_create_ribosomes_in_lamella_sample():
+def test_distribute_boxes_uniformly():
 
-    sample = elfantasma.sample.create_ribosomes_in_lamella_sample(4000, 4000, 500)
+    positions = elfantasma.sample.distribute_boxes_uniformly(
+        ((0, 0, 0), (1000, 1000, 1000)), [(100, 100, 100), (200, 200, 200)]
+    )
 
-    assert sample.box_size[0] == 4000
-    assert sample.box_size[1] == 4000
-    assert sample.box_size[2] == 500
-
-    sample.validate()
+    assert len(positions) == 2
 
 
-def test_create_ribosomes_in_cylinder_sample():
+def test_shape_bounding_box():
 
-    sample = elfantasma.sample.create_ribosomes_in_cylinder_sample(1500, 500, 10000)
+    b1 = elfantasma.sample.shape_bounding_box(
+        (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
+    )
+    assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
+    assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
 
-    assert sample.box_size[0] == 10000
-    assert sample.box_size[1] == 4000
-    assert sample.box_size[2] == 4000
+    b2 = elfantasma.sample.shape_bounding_box(
+        (0, 0, 0),
+        {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
+    )
+    assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
+    assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
 
-    sample.validate()
+    b3 = elfantasma.sample.shape_bounding_box(
+        (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
+    )
+    assert pytest.approx(b3[0], (-0.5, -2.0, -2.0))
+    assert pytest.approx(b3[1], (0.5, 2.0, 2.0))
+
+
+def test_shape_enclosed_box():
+
+    b1 = elfantasma.sample.shape_enclosed_box(
+        (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
+    )
+    assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
+    assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
+
+    b2 = elfantasma.sample.shape_enclosed_box(
+        (0, 0, 0),
+        {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
+    )
+    assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
+    assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
+
+    b3 = elfantasma.sample.shape_enclosed_box(
+        (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
+    )
+    assert pytest.approx(b3[0], (-0.5, -1 / sqrt(2.0), -1 / sqrt(2.0)))
+    assert pytest.approx(b3[1], (0.5, 1 / sqrt(2.0), 1 / sqrt(2.0)))
+
+
+def test_is_shape_inside_box():
+
+    assert (
+        elfantasma.sample.is_shape_inside_box(
+            (10, 10, 10), (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
+        )
+        == False
+    )
+
+    assert (
+        elfantasma.sample.is_shape_inside_box(
+            (10, 10, 10), (5, 5, 5), {"type": "cube", "cube": {"length": 1}}
+        )
+        == True
+    )
+
+
+def test_is_box_inside_shape():
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (0.1, 0.1, 0.1)),
+            (0, 0, 0),
+            {"type": "cube", "cube": {"length": 1}},
+        )
+        == True
+    )
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (10, 10, 10)),
+            (5, 5, 5),
+            {"type": "cube", "cube": {"length": 1}},
+        )
+        == False
+    )
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (0.1, 0.1, 0.1)),
+            (0, 0, 0),
+            {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
+        )
+        == True
+    )
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (10, 10, 10)),
+            (5, 5, 5),
+            {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
+        )
+        == False
+    )
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (0.3, 0.99 / sqrt(2), 0.99 / sqrt(2))),
+            (0, 0, 0),
+            {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
+        )
+        == True
+    )
+
+    assert (
+        elfantasma.sample.is_box_inside_shape(
+            ((0, 0, 0), (10, 10, 10)),
+            (0, 0, 0),
+            {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
+        )
+        == False
+    )
+
+
+def test_AtomData(atom_data_4v5d):
+
+    # Check rotate doesn't modify types
+    atom_data_4v5d.rotate((0, 0, 1))
+    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+        assert atom_data_4v5d.data[name].dtype == dtype
+
+    # Check translate keeps types
+    atom_data_4v5d.translate((0, 0, 1))
+    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+        assert atom_data_4v5d.data[name].dtype == dtype
+
+
+def test_SampleHDF5Adapter(atom_data_4v5d):
+
+    # Get handle
+    handle = elfantasma.sample.SampleHDF5Adapter("test_SampleHDF5Adapter.h5", "w")
+
+    # Test sample
+    sample = handle.sample
+    bounding_box = ((1, 2, 3), (4, 5, 6))
+    containing_box = ((2, 3, 4), (5, 6, 7))
+    centre = (1, 2, 2)
+    shape = {"type": "cylinder", "cylinder": {"length": 10, "radius": 5}}
+    sample.bounding_box = bounding_box
+    sample.containing_box = containing_box
+    sample.centre = centre
+    sample.shape = shape
+    assert (sample.bounding_box == bounding_box).all()
+    assert (sample.containing_box == containing_box).all()
+    assert (sample.centre == centre).all()
+    assert sample.shape == shape
+
+    # Test molecules
+    molecules = sample.molecules
+    assert len(molecules) == 0
+    my_molecule = molecules["my_molcule"]
+    positions = [(1, 2, 3), (4, 5, 6)]
+    orientations = [(5, 6, 7), (8, 9, 10)]
+    my_molecule.atoms = atom_data_4v5d.data
+    my_molecule.positions = positions
+    my_molecule.orientations = orientations
+    assert my_molecule.atoms.equals(atom_data_4v5d.data)
+    assert (my_molecule.positions == numpy.array(positions)).all()
+    assert (my_molecule.orientations == numpy.array(orientations)).all()
+    assert len(molecules) == 1
+
+    # Test atoms
+    atoms = sample.atoms
+    assert len(atoms) == 0
+    assert atoms.number_of_atoms() == 0
+    atoms_000 = atoms["X=0; Y=0; Z=0"]
+    atoms_001 = atoms["X=0; Y=0; Z=1"]
+    atoms_000.atoms = atom_data_4v5d.data
+    atoms_000.extend(atom_data_4v5d.data)
+    atoms_001.extend(atom_data_4v5d.data)
+    assert len(atoms_000) == atom_data_4v5d.data.shape[0] * 2
+    assert len(atoms_001) == atom_data_4v5d.data.shape[0]
+    assert atoms_001.atoms.equals(atom_data_4v5d.data)
+    assert len(atoms) == 2
+    assert atoms.number_of_atoms() == 3 * atom_data_4v5d.data.shape[0]
+
+    handle.close()
+
+
+def test_Sample(atom_data_4v5d):
+
+    sample = elfantasma.sample.Sample("test_Sample.h5", mode="w")
+
+    assert sample.atoms_dataset_name((1, 2, 3)) == "X=000001; Y=000002; Z=000003"
+    a = list(sample.atoms_dataset_range((1, 2, 3), (3, 4, 5)))
+    assert (a[0][0] == (0, 0, 0)).all()
+    assert (a[0][1] == (500, 500, 500)).all()
+
+    x0 = atom_data_4v5d.data[["x", "y", "z"]].min() + 200
+    x1 = atom_data_4v5d.data[["x", "y", "z"]].max() + 200
+
+    sample.add_molecule(
+        atom_data_4v5d,
+        positions=[(200, 200, 200)],
+        orientations=[(0, 0, 0)],
+        name="4v5d",
+    )
+    sample.containing_box = (0, 0, 0), (400, 400, 400)
+    sample.centre = (200, 200, 200)
+    sample.shape = {"type": "cube", "cube": {"length": 400}}
+
+    assert (sample.bounding_box == (x0, x1)).all()
+    assert (sample.containing_box == ((0, 0, 0), (400, 400, 400))).all()
+    assert sample.molecules == ["4v5d"]
+    assert sample.number_of_molecular_models == 1
+    assert sample.number_of_molecules == 1
+    assert (sample.dimensions == (x1 - x0)).all()
+
+    atoms, positions, orientations = sample.get_molecule("4v5d")
+
+    for name, data in sample.iter_molecules():
+        assert name == "4v5d"
+
+    assert sample.number_of_atoms == atom_data_4v5d.data.shape[0]
+
+    for atoms in sample.iter_atoms():
+        pass
+
+    atoms = sample.get_atoms_in_range((100, 100, 100), (300, 300, 300)).data
+    assert atoms.shape[0] > 0
+    coords = atoms[["x", "y", "z"]].to_numpy()
+    assert ((coords >= (100, 100, 100)) & (coords < (300, 300, 300))).all()
+
+    sample.del_atoms(
+        elfantasma.sample.AtomDeleter(atom_data_4v5d, position=(200, 200, 200))
+    )
+    atoms = sample.get_atoms_in_range((0, 0, 0), (400, 400, 400)).data
+    assert atoms.shape[0] == 0
+
+    sample.add_atoms(atom_data_4v5d)
+
+    sample.info()
+    sample.close()
+
+
+def test_AtomDeleter():
+
+    sample = elfantasma.sample.new(
+        "test_AtomDeleter.h5",
+        box=(50, 50, 50),
+        centre=(25, 25, 25),
+        shape={"type": "cube", "cube": {"length": 50}},
+        ice={"generate": True, "density": 940},
+    )
+
+    atoms = sample.get_atoms_in_range((0, 0, 0), (50, 50, 50))
+    coords = atoms.data[["x", "y", "z"]].to_numpy()
+
+    deleter = elfantasma.sample.AtomDeleter(
+        elfantasma.sample.AtomData(data=atoms.data[((coords - (50, 50, 50)) ** 2) < 20])
+    )
+
+    atoms = deleter(atoms.data)
+    coords = atoms[["x", "y", "z"]].to_numpy()
+    assert ((coords - (50, 50, 50)) ** 2 >= 20).all()
+
+
+def test_load():
+
+    sample = elfantasma.sample.new(
+        "test_load.h5",
+        box=(50, 50, 50),
+        centre=(25, 25, 25),
+        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+    )
+
+    del sample
+
+    sample = elfantasma.sample.load("test_load.h5")
+
+
+def test_new():
+
+    sample = elfantasma.sample.new(
+        "test_new1.h5",
+        box=(50, 50, 50),
+        centre=(25, 25, 25),
+        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+    )
+
+    sample = elfantasma.sample.new(
+        "test_new2.h5",
+        box=(50, 50, 50),
+        centre=(25, 25, 25),
+        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+        ice={"generate": True, "density": 940},
+    )
+
+    atoms = sample.get_atoms_in_range((0, 0, 0), (50, 50, 50))
+
+    coords = atoms.data[["x", "y", "z"]].to_numpy()
+    x = coords[:, 0]
+    y = coords[:, 1]
+    z = coords[:, 2]
+    margin = 2
+    assert len(x) > 0
+    assert ((x >= (5 - margin)) & (x < (45 + margin))).all()
+    assert (((y - 25) ** 2 + (z - 25) ** 2) <= (20 + margin) ** 2).all()
+
+
+def test_add_molecules():
+
+    sample = elfantasma.sample.new(
+        "test_add_molecules.h5",
+        box=(4000, 4000, 4000),
+        centre=(2000, 2000, 2000),
+        shape={"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}},
+    )
+
+    sample.close()
+
+    sample = elfantasma.sample.add_molecules(
+        "test_add_molecules.h5", molecules={"4v5d": 1}
+    )
+
+    assert sample.number_of_molecules == 1
+    assert sample.number_of_molecular_models == 1
+
+    sample = elfantasma.sample.add_molecules(
+        "test_add_molecules.h5", molecules={"4v1w": 10}
+    )
+
+    assert sample.number_of_molecules == 2
+    assert sample.number_of_molecular_models == 11
+
+    sample.close()
+
+    sample = elfantasma.sample.new(
+        "test_add_molecules2.h5",
+        box=(4000, 4000, 4000),
+        centre=(2000, 2000, 2000),
+        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+        ice={"generate": True, "density": 940},
+    )
+
+    sample.shape = {"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}}
+    sample.close()
+
+    sample = elfantasma.sample.add_molecules(
+        "test_add_molecules2.h5", molecules={"4v5d": 1}
+    )
+
+    assert sample.number_of_molecules == 1
+    assert sample.number_of_molecular_models == 1

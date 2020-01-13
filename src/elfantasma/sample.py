@@ -68,8 +68,9 @@ def translate(atom_data, translation):
         translation (array): The translation
 
     """
-    atom_data[["x", "y", "z"]] += translation
-    return atom_data
+    coords = atom_data[["x", "y", "z"]].to_numpy()
+    coords += numpy.array(translation, dtype=coords.dtype)
+    return atom_data.assign(x=coords[:, 0], y=coords[:, 1], z=coords[:, 2])
 
 
 def recentre(atom_data, position=None):
@@ -86,10 +87,13 @@ def recentre(atom_data, position=None):
         position = (0, 0, 0)
 
     # Get the coords
-    coords = atom_data[["x", "y", "z"]]
+    coords = atom_data[["x", "y", "z"]].to_numpy()
 
     # Compute the translation
-    translation = numpy.array(position) - (coords.max() + coords.min()) / 2.0
+    translation = (
+        numpy.array(position, dtype=coords.dtype)
+        - (coords.max(axis=0) + coords.min(axis=0)) / 2.0
+    )
 
     # Do the translation
     return translate(atom_data, translation)
@@ -114,6 +118,269 @@ def number_of_water_molecules(volume, density=940.0):
     density_of_water = density  # kg / m^3
     mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
     return int(floor((mass_of_water / molar_mass_of_water) * avogadros_number))
+
+
+def random_uniform_rotation(size=1):
+    """
+    Return a uniform rotation vector sampled on a sphere
+
+    Args:
+        size (int): The number of vectors
+
+    Returns:
+        vector: The rotation vector
+
+    """
+    u1 = numpy.random.uniform(0, 1, size=size)
+    u2 = numpy.random.uniform(0, 1, size=size)
+    u3 = numpy.random.uniform(0, 1, size=size)
+    theta = numpy.arccos(2 * u1 - 1)
+    phi = 2 * pi * u2
+    x = numpy.sin(theta) * numpy.cos(phi)
+    y = numpy.sin(theta) * numpy.sin(phi)
+    z = numpy.cos(theta)
+    vector = numpy.array((x, y, z)).T
+    vector *= 2 * pi * u3.reshape((u3.size, 1))
+    return vector
+
+
+def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
+    """
+    Find n random non overlapping positions for cuboids within a volume
+
+    Args:
+        volume_box (array): The size of the volume
+        boxes (array): The list of boxes
+        max_tries (int): The maximum tries per cube
+
+    Returns:
+        list: A list of centre positions
+
+    """
+
+    # Cast to numpy array
+    volume_lower, volume_upper = numpy.array(volume_box)
+    boxes = numpy.array(boxes)
+
+    # Check if the cube overlaps with any other
+    def overlapping(positions, box_sizes, q, q_size):
+        for p, p_size in zip(positions, box_sizes):
+            p0 = p - p_size / 2
+            p1 = p + p_size / 2
+            q0 = q - q_size / 2
+            q1 = q + q_size / 2
+            if not (
+                q0[0] > p1[0]
+                or q1[0] < p0[0]
+                or q0[1] > p1[1]
+                or q1[1] < p0[1]
+                or q0[2] > p1[2]
+                or q1[2] < p0[2]
+            ):
+                return True
+        return False
+
+    # Loop until we have added the boxes
+    positions = []
+    box_sizes = []
+    for box_size in boxes:
+
+        # The bounds to search in
+        lower = volume_lower + box_size / 2
+        upper = volume_upper - box_size / 2
+        assert lower[0] < upper[0]
+        assert lower[1] < upper[1]
+        assert lower[2] < upper[2]
+
+        # Try to add the box
+        num_tries = 0
+        while True:
+            q = numpy.random.uniform(lower, upper)
+            if len(positions) == 0 or not overlapping(
+                positions, box_sizes, q, box_size
+            ):
+                positions.append(q)
+                box_sizes.append(box_size)
+                break
+            num_tries += 1
+            if num_tries > max_tries:
+                raise RuntimeError(f"Unable to place cube of size {box_size}")
+
+    # Return the cube positions
+    return positions
+
+
+def shape_bounding_box(centre, shape):
+    """
+    Compute the shape bounding box
+
+    Args:
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        array: bounding box
+
+    """
+
+    def cube_bounding_box(cube):
+        length = cube["length"]
+        return ((0, 0, 0), (length, length, length))
+
+    def cuboid_bounding_box(cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return ((0, 0, 0), (length_x, length_y, length_z))
+
+    def cylinder_bounding_box(cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return ((0, 0, 0), (length, 2 * radius, 2 * radius))
+
+    # The bounding box
+    x0, x1 = numpy.array(
+        {
+            "cube": cube_bounding_box,
+            "cuboid": cuboid_bounding_box,
+            "cylinder": cylinder_bounding_box,
+        }[shape["type"]](shape[shape["type"]])
+    )
+
+    # The offset
+    offset = centre - (x1 + x0) / 2.0
+
+    # Return the bounding box
+    return (x0 + offset, x1 + offset)
+
+
+def shape_enclosed_box(centre, shape):
+    """
+    Compute the shape enclosed box
+
+    Args:
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        array: enclosed box
+
+    """
+
+    def cube_enclosed_box(cube):
+        length = cube["length"]
+        return ((0, 0, 0), (length, length, length))
+
+    def cuboid_enclosed_box(cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return ((0, 0, 0), (length_x, length_y, length_z))
+
+    def cylinder_enclosed_box(cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return ((0, 0, 0), (length, radius / sqrt(2), radius / sqrt(2)))
+
+    # The enclosed box
+    x0, x1 = numpy.array(
+        {
+            "cube": cube_enclosed_box,
+            "cuboid": cuboid_enclosed_box,
+            "cylinder": cylinder_enclosed_box,
+        }[shape["type"]](shape[shape["type"]])
+    )
+
+    # The offset
+    offset = centre - (x1 + x0) / 2.0
+
+    # Return the bounding box
+    return (x0 + offset, x1 + offset)
+
+
+def is_shape_inside_box(box, centre, shape):
+    """
+    Check if the shape is inside the bounding box
+
+    Args:
+        box (array): The bounding box
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        bool: Is the shape inside the box
+
+    """
+
+    # Get the shape bounding box
+    (x0, y0, z0), (x1, y1, z1) = shape_bounding_box(centre, shape)
+
+    # Check the bounding box is inside the containing box
+    return (
+        x0 >= 0
+        and y0 >= 0
+        and z0 >= 0
+        and x1 <= box[0]
+        and y1 <= box[1]
+        and z1 <= box[2]
+    )
+
+
+def is_box_inside_shape(box, centre, shape):
+    """
+    Check if the box is inside the shape
+
+    Args:
+        box (array): The bounding box
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        bool: Is the box is inside shape
+
+    """
+
+    def is_box_inside_cube(x0, x1, centre, cube):
+        length = cube["length"]
+        return (
+            x0[0] >= centre[0] - length / 2.0
+            and x0[1] >= centre[1] - length / 2.0
+            and x0[2] >= centre[2] - length / 2.0
+            and x1[0] <= centre[0] + length / 2.0
+            and x1[1] <= centre[1] + length / 2.0
+            and x1[2] <= centre[2] + length / 2.0
+        )
+
+    def is_box_inside_cuboid(x0, x1, centre, cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return (
+            x0[0] >= centre[0] - length_x / 2.0
+            and x0[1] >= centre[1] - length_y / 2.0
+            and x0[2] >= centre[2] - length_z / 2.0
+            and x1[0] <= centre[0] + length_x / 2.0
+            and x1[1] <= centre[1] + length_y / 2.0
+            and x1[2] <= centre[2] + length_z / 2.0
+        )
+
+    def is_box_inside_cylinder(x0, x1, centre, cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return (
+            (x0[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x0[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and x0[0] >= centre[0] - length / 2.0
+            and x1[0] < centre[0] + length / 2.0
+        )
+
+    return {
+        "cube": is_box_inside_cube,
+        "cuboid": is_box_inside_cuboid,
+        "cylinder": is_box_inside_cylinder,
+    }[shape["type"]](box[0], box[1], centre, shape[shape["type"]])
 
 
 class AtomData(object):
@@ -171,8 +438,8 @@ class AtomData(object):
             vector (array): The rotation vector
 
         """
-        coords = self.data[["x", "y", "z"]]
-        coords = Rotation.from_rotvec(vector).apply(coords).astype("float32")
+        coords = self.data[["x", "y", "z"]].to_numpy()
+        coords = Rotation.from_rotvec(vector).apply(coords).astype(coords.dtype)
         self.data["x"] = coords[:, 0]
         self.data["y"] = coords[:, 1]
         self.data["z"] = coords[:, 2]
@@ -283,7 +550,16 @@ class SampleHDF5Adapter(object):
                 handle (object): The group handle
 
             """
+
+            # Save the handle
             self.__handle = handle
+
+            # Create the datasets
+            if len(self.__handle) == 0:
+                for name, dtype in AtomData.column_data.items():
+                    self.__handle.create_dataset(
+                        name, (0,), maxshape=(None,), dtype=dtype, chunks=True
+                    )
 
         @property
         def atoms(self):
@@ -305,12 +581,16 @@ class SampleHDF5Adapter(object):
 
             """
 
-            # Create the datasets
-            if len(self.__handle) == 0:
-                for name, dtype in AtomData.column_data.items():
-                    self.__handle.create_dataset(
-                        name, (0,), maxshape=(None,), dtype=dtype, chunks=True
-                    )
+            # Check size, resize and set data
+            for name in AtomData.column_data.keys():
+                self.__handle[name].resize((len(data),))
+                self.__handle[name][:] = data[name]
+
+        def extend(self, data):
+            """
+            Set the atom data in the sub group
+
+            """
 
             # Get the size
             i0 = self.__handle["x"].shape[0]
@@ -462,7 +742,7 @@ class SampleHDF5Adapter(object):
             Get the positions
 
             """
-            return self.__handle["positions"]
+            return self.__handle["positions"][:]
 
         @property
         def orientations(self):
@@ -470,7 +750,7 @@ class SampleHDF5Adapter(object):
             Get the orientations
 
             """
-            return self.__handle["orientations"]
+            return self.__handle["orientations"][:]
 
         @atoms.setter
         def atoms(self, data):
@@ -781,8 +1061,12 @@ class Sample(object):
             tuple: The coordinates of the sub ranges
 
         """
-        x0 = (numpy.floor(x0 / float(self.step)) * self.step).astype("int32")
-        x1 = (numpy.ceil(x1 / float(self.step)) * self.step).astype("int32")
+        x0 = (numpy.floor(numpy.array(x0) / float(self.step)) * self.step).astype(
+            "int32"
+        )
+        x1 = (numpy.ceil(numpy.array(x1) / float(self.step)) * self.step).astype(
+            "int32"
+        )
         for z in range(x0[2], x1[2], self.step):
             for y in range(x0[1], x1[1], self.step):
                 for x in range(x0[0], x1[0], self.step):
@@ -841,23 +1125,21 @@ class Sample(object):
         # Iterate over dataset ranges
         for x_min, x_max in self.atoms_dataset_range(coords.min(), coords.max()):
             name = self.atoms_dataset_name(x_min)
-            self.__handle.sample.atoms[name].atoms = atoms.data[
-                ((coords >= x_min) & (coords < x_max)).all(axis=1)
-            ]
+            self.__handle.sample.atoms[name].extend(
+                atoms.data[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+            )
 
-    def del_atoms(self, x0, x1, deleter):
+    def del_atoms(self, deleter):
         """
         Delete atoms in the given range
 
         Args:
-            x0 (float): The minimum coord
-            x1 (float): The maximum coord
             deleter (func): Check atoms and return only those we want to keep
 
         """
 
         # Iterate over dataset ranges
-        for x_min, x_max in self.atoms_dataset_range(x0, x1):
+        for x_min, x_max in self.atoms_dataset_range(deleter.x0, deleter.x1):
             name = self.atoms_dataset_name(x_min)
             atoms = self.__handle.sample.atoms[name].atoms
             self.__handle.sample.atoms[name].atoms = deleter(atoms)
@@ -1015,7 +1297,7 @@ class Sample(object):
 
         """
         return (
-            AtomData(data=self.__handle.sample.molcules[name].atoms),
+            AtomData(data=self.__handle.sample.molecules[name].atoms),
             self.__handle.sample.molecules[name].positions,
             self.__handle.sample.molecules[name].orientations,
         )
@@ -1053,7 +1335,7 @@ class Sample(object):
                 data=self.__handle.sample.atoms[name].atoms
             )
 
-    def get_atoms_in_range(self, x0, y1, filter=None):
+    def get_atoms_in_range(self, x0, x1, filter=None):
         """
         Get the subset of atoms within the field of view
 
@@ -1067,6 +1349,10 @@ class Sample(object):
 
         """
 
+        # Cast input
+        x0 = numpy.array(x0)
+        x1 = numpy.array(x1)
+
         # Check input
         assert (x0 < x1).all()
 
@@ -1076,7 +1362,7 @@ class Sample(object):
             name = self.atoms_dataset_name(x_min)
             atoms = self.__handle.sample.atoms[name].atoms
             coords = atoms[["x", "y", "z"]]
-            atoms = atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+            atoms = atoms[((coords >= x0) & (coords < x1)).all(axis=1)]
             if filter is not None:
                 atoms = filter(atoms)
             data = pandas.concat([data, atoms], ignore_index=True)
@@ -1118,28 +1404,132 @@ class Sample(object):
         return "\n".join(lines)
 
 
-def random_uniform_rotation(size=1):
+class AtomDeleter(object):
     """
-    Return a uniform rotation vector sampled on a sphere
+    A class to delete atoms so we can place a molecule
+
+    Create a grid with the molecule atom positions. Then test the atom
+    positions in the sample to and only select those atoms which don't fall on
+    molecule atom positions.
+
+    """
+
+    def __init__(self, atoms, position=(0, 0, 0), rotation=(0, 0, 0)):
+        """
+        Create the grid
+
+        Args:
+            atoms (object): the molcule atoms
+            position (array): The molecule position
+            rotation (array): The molecule rotation
+
+        """
+
+        # Compute the transformed coordinates
+        coords = (
+            Rotation.from_rotvec(rotation).apply(atoms.data[["x", "y", "z"]]) + position
+        )
+
+        # The min and max coordinates
+        self.x0 = numpy.floor(numpy.min(coords, axis=0))
+        self.x1 = numpy.ceil(numpy.max(coords, axis=0))
+
+        # The size of the box in A
+        self.size = self.x1 - self.x0
+
+        # The grid size
+        self.grid_cell_size = 2.0  # 2 A
+        min_distance = 4 / self.grid_cell_size  # The distance at which to delete atoms
+
+        # The dimensions of the grid
+        grid_shape = numpy.ceil(self.size / self.grid_cell_size).astype("uint32")
+
+        # Allocate the grid
+        self.grid = numpy.ones(shape=grid_shape, dtype="bool")
+
+        # Get the indices and set the grid values. The fill in any holes using
+        # a morphological fill. The distance transform finds the distance to
+        # any zero holes so in this case we need to set the nodes with protein
+        # to False then compute the distance and then set any nodes within a
+        # given distance to True. So the mask is True where we want to delete
+        # atoms.
+        indices = numpy.floor((coords - self.x0) / self.grid_cell_size).astype("int32")
+        index_x = indices[:, 0]
+        index_y = indices[:, 1]
+        index_z = indices[:, 2]
+        assert (indices >= 0).all()
+        self.grid[index_x, index_y, index_z] = False
+        self.grid = (
+            scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
+        )
+        self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
+        logger.info("Filled grid with atom positions:")
+        logger.info("    x0: %g" % self.x0[0])
+        logger.info("    y0: %g" % self.x0[1])
+        logger.info("    z0: %g" % self.x0[2])
+        logger.info("    x1: %g" % self.x1[0])
+        logger.info("    y1: %g" % self.x1[1])
+        logger.info("    z1: %g" % self.x1[2])
+        logger.info("    num elements: %d" % self.grid.size)
+        logger.info("    num filled: %d" % numpy.count_nonzero(self.grid))
+
+    def __call__(self, atoms):
+        """
+        Select atoms that don't fall on the molecule atom positions
+
+        Args:
+            atoms (object): The atoms to select from
+
+        Returns:
+            object: The selected atoms
+
+        """
+
+        # Get the atom coords
+        coords = atoms[["x", "y", "z"]]
+
+        # Compute the indices
+        indices = (
+            numpy.floor((coords - self.x0) / self.grid_cell_size)
+            .astype("int32")
+            .to_numpy()
+        )
+        # The coordinates inside the grid
+        inside_grid = ((indices >= 0) & (indices < self.grid.shape)).all(axis=1)
+
+        # The selection
+        selection = numpy.zeros(shape=coords.shape[0], dtype="bool")
+        selection[~inside_grid] = True
+
+        # Compute the selection
+        indices_inside_grid = indices[inside_grid]
+        index_x = indices_inside_grid[:, 0]
+        index_y = indices_inside_grid[:, 1]
+        index_z = indices_inside_grid[:, 2]
+        selection[inside_grid] = self.grid[index_x, index_y, index_z] == False
+
+        # Print some info
+        logger.info(
+            "Deleted %d/%d atoms" % (numpy.count_nonzero(selection), coords.shape[0])
+        )
+
+        # Return the atoms
+        return atoms[selection]
+
+
+def load(filename, mode="r"):
+    """
+    Load the sample
 
     Args:
-        size (int): The number of vectors
+        filename (str): The filename of the sample
+        mode (str): The opening mode
 
     Returns:
-        vector: The rotation vector
+        object: The test sample
 
     """
-    u1 = numpy.random.uniform(0, 1, size=size)
-    u2 = numpy.random.uniform(0, 1, size=size)
-    u3 = numpy.random.uniform(0, 1, size=size)
-    theta = numpy.arccos(2 * u1 - 1)
-    phi = 2 * pi * u2
-    x = numpy.sin(theta) * numpy.cos(phi)
-    y = numpy.sin(theta) * numpy.sin(phi)
-    z = numpy.cos(theta)
-    vector = numpy.array((x, y, z)).T
-    vector *= 2 * pi * u3.reshape((u3.size, 1))
-    return vector
+    return Sample(filename, mode=mode)
 
 
 def add_ice(sample, centre=None, shape=None, density=940.0):
@@ -1181,7 +1571,9 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             y = coords[:, 1]
             z = coords[:, 2]
             return coords[
-                (x >= x0) & (x < x1) & ((z - centre) ** 2 + (y - centre) ** 2 <= radius)
+                (x >= x0[0])
+                & (x < x1[0])
+                & ((z - centre[2]) ** 2 + (y - centre[1]) ** 2 <= radius)
             ]
 
         # Filter the coords
@@ -1190,6 +1582,9 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             "cuboid": cuboid_filter_coordinates,
             "cylinder": cylinder_filter_coordinates,
         }[shape["type"]](coords, centre, shape[shape["type"]])
+
+    # Cast input
+    centre = numpy.array(centre)
 
     # Get the filename of the water.cif file
     filename = elfantasma.data.get_path("water.cif")
@@ -1355,302 +1750,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     return sample
 
 
-def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
-    """
-    Find n random non overlapping positions for cuboids within a volume
-
-    Args:
-        volume_box (array): The size of the volume
-        boxes (array): The list of boxes
-        max_tries (int): The maximum tries per cube
-
-    Returns:
-        list: A list of centre positions
-
-    """
-
-    # Cast to numpy array
-    volume_lower, volume_upper = numpy.array(volume_box)
-    boxes = numpy.array(boxes)
-
-    # Check if the cube overlaps with any other
-    def overlapping(positions, box_sizes, q, q_size):
-        for p, p_size in zip(positions, box_sizes):
-            p0 = p - p_size / 2
-            p1 = p + p_size / 2
-            q0 = q - q_size / 2
-            q1 = q + q_size / 2
-            if not (
-                q0[0] > p1[0]
-                or q1[0] < p0[0]
-                or q0[1] > p1[1]
-                or q1[1] < p0[1]
-                or q0[2] > p1[2]
-                or q1[2] < p0[2]
-            ):
-                return True
-        return False
-
-    # Loop until we have added the boxes
-    positions = []
-    box_sizes = []
-    for box_size in boxes:
-
-        # The bounds to search in
-        lower = volume_lower + box_size / 2
-        upper = volume_upper - box_size / 2
-        assert lower[0] < upper[0]
-        assert lower[1] < upper[1]
-        assert lower[2] < upper[2]
-
-        # Try to add the box
-        num_tries = 0
-        while True:
-            q = numpy.random.uniform(lower, upper)
-            if len(positions) == 0 or not overlapping(
-                positions, box_sizes, q, box_size
-            ):
-                positions.append(q)
-                box_sizes.append(box_size)
-                break
-            num_tries += 1
-            if num_tries > max_tries:
-                raise RuntimeError(f"Unable to place cube of size {box_size}")
-
-    # Return the cube positions
-    return positions
-
-
-def random_uniform_rotation(size=1):
-    """
-    Return a uniform rotation vector sampled on a sphere
-
-    Args:
-        size (int): The number of vectors
-
-    Returns:
-        vector: The rotation vector
-
-    """
-    u1 = numpy.random.uniform(0, 1, size=size)
-    u2 = numpy.random.uniform(0, 1, size=size)
-    u3 = numpy.random.uniform(0, 1, size=size)
-    theta = numpy.arccos(2 * u1 - 1)
-    phi = 2 * pi * u2
-    x = numpy.sin(theta) * numpy.cos(phi)
-    y = numpy.sin(theta) * numpy.sin(phi)
-    z = numpy.cos(theta)
-    vector = numpy.array((x, y, z)).T
-    vector *= 2 * pi * u3.reshape((u3.size, 1))
-    return vector
-
-
-def shape_bounding_box(centre, shape):
-    """
-    Compute the shape bounding box
-
-    Args:
-        centre (array): The centre of the shape
-        shape (object): The shape
-
-    Returns:
-        array: bounding box
-
-    """
-
-    def cube_bounding_box(cube):
-        length = cube["length"]
-        return ((0, 0, 0), (length, length, length))
-
-    def cuboid_bounding_box(cuboid):
-        length_x = cuboid["length_x"]
-        length_y = cuboid["length_y"]
-        length_z = cuboid["length_z"]
-        return ((0, 0, 0), (length_x, length_y, length_z))
-
-    def cylinder_bounding_box(cylinder):
-        length = cylinder["length"]
-        radius = cylinder["radius"]
-        return ((0, 0, 0), (length, 2 * radius, 2 * radius))
-
-    # The bounding box
-    x0, x1 = numpy.array(
-        {
-            "cube": cube_bounding_box,
-            "cuboid": cuboid_bounding_box,
-            "cylinder": cylinder_bounding_box,
-        }[shape["type"]](shape[shape["type"]])
-    )
-
-    # The offset
-    offset = centre - (x1 + x0) / 2.0
-
-    # Return the bounding box
-    return (x0 + offset, x1 + offset)
-
-
-def shape_enclosed_box(centre, shape):
-    """
-    Compute the shape enclosed box
-
-    Args:
-        centre (array): The centre of the shape
-        shape (object): The shape
-
-    Returns:
-        array: enclosed box
-
-    """
-
-    def cube_enclosed_box(cube):
-        length = cube["length"]
-        return ((0, 0, 0), (length, length, length))
-
-    def cuboid_enclosed_box(cuboid):
-        length_x = cuboid["length_x"]
-        length_y = cuboid["length_y"]
-        length_z = cuboid["length_z"]
-        return ((0, 0, 0), (length_x, length_y, length_z))
-
-    def cylinder_enclosed_box(cylinder):
-        length = cylinder["length"]
-        radius = cylinder["radius"]
-        return ((0, 0, 0), (length, sqrt(2) * radius, sqrt(2) * radius))
-
-    # The enclosed box
-    x0, x1 = numpy.array(
-        {
-            "cube": cube_enclosed_box,
-            "cuboid": cuboid_enclosed_box,
-            "cylinder": cylinder_enclosed_box,
-        }[shape["type"]](shape[shape["type"]])
-    )
-
-    # The offset
-    offset = centre - (x1 + x0) / 2.0
-
-    # Return the bounding box
-    return (x0 + offset, x1 + offset)
-
-
-def is_shape_inside_box(box, centre, shape):
-    """
-    Check if the shape is inside the bounding box
-
-    Args:
-        box (array): The bounding box
-        centre (array): The centre of the shape
-        shape (object): The shape
-
-    Returns:
-        bool: Is the shape inside the box
-
-    """
-
-    # Get the shape bounding box
-    (x0, y0, z0), (x1, y1, z1) = shape_bounding_box(centre, shape)
-
-    # Check the bounding box is inside the containing box
-    return (
-        x0 >= 0
-        and y0 >= 0
-        and z0 >= 0
-        and x1 <= box[0]
-        and y1 <= box[1]
-        and z1 <= box[2]
-    )
-
-
-def is_box_inside_shape(box, centre, shape):
-    """
-    Check if the box is inside the shape
-
-    Args:
-        box (array): The bounding box
-        centre (array): The centre of the shape
-        shape (object): The shape
-
-    Returns:
-        bool: Is the box is inside shape
-
-    """
-
-    def is_box_inside_cube(x0, x1, centre, cube):
-        length = cube["length"]
-        return (
-            x0[0] >= centre[0] - length / 2.0
-            and x0[1] >= centre[1] - length / 2.0
-            and x0[2] >= centre[2] - length / 2.0
-            and x1[0] <= centre[0] + length / 2.0
-            and x1[1] <= centre[1] + length / 2.0
-            and x1[2] <= centre[2] + length / 2.0
-        )
-
-    def is_box_inside_cuboid(x0, x1, centre, cuboid):
-        length_x = cuboid["length_x"]
-        length_y = cuboid["length_y"]
-        length_z = cuboid["length_z"]
-        return (
-            x0[0] >= centre[0] - length_x / 2.0
-            and x0[1] >= centre[1] - length_y / 2.0
-            and x0[2] >= centre[2] - length_z / 2.0
-            and x1[0] <= centre[0] + length_x / 2.0
-            and x1[1] <= centre[1] + length_y / 2.0
-            and x1[2] <= centre[2] + length_z / 2.0
-        )
-
-    def is_box_inside_cylinder(x0, x1, centre, cylinder):
-        length = cylinder["length"]
-        radius = cylinder["radius"]
-        return (
-            (x0[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x0[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
-            and x0[0] >= centre - length / 2.0
-            and x1[0] < centre + length / 2.0
-        )
-
-    return {
-        "cube": is_box_inside_cube,
-        "cuboid": is_box_inside_cuboid,
-        "cylinder": is_box_inside_cylinder,
-    }[shape["type"]](box[0], box[1], centre, shape[shape["type"]])
-
-
-def dimensions_are_valid(box, centre, shape):
-    """
-    Check the dimensions are valid
-
-    Args:
-        box (array): The containing box
-        centre (array): The centre of the sample in the box
-        shape (object): The shape of the object
-
-    Returns:
-        bool: Are the dimensions valid
-
-    """
-
-    # Return if the shape is inside the bounding box
-    return is_shape_inside_box(box, centre, shape)
-
-
-def load(filename, mode="r"):
-    """
-    Load the sample
-
-    Args:
-        filename (str): The filename of the sample
-        mode (str): The opening mode
-
-    Returns:
-        object: The test sample
-
-    """
-    return Sample(filename, mode=mode)
-
-
 def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
     """
     Create the sample
@@ -1668,7 +1767,7 @@ def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
     """
 
     # Check the dimensions are valid
-    assert dimensions_are_valid(box, centre, shape)
+    assert is_shape_inside_box(box, centre, shape)
 
     # Create the sample
     sample = Sample(filename, mode="w")
@@ -1679,11 +1778,14 @@ def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
     sample.shape = shape
 
     # Add some ice
-    if ice["generate"]:
+    if ice is not None and ice["generate"]:
         add_ice(sample, centre, shape, ice["density"])
 
     # Print some info
     logger.info(sample.info())
+
+    # Get the sample
+    return sample
 
 
 def add_single_molecule(sample, name):
@@ -1738,13 +1840,13 @@ def add_single_molecule(sample, name):
         )
     )
 
+    # Delete the atoms where we want to place the molecules
+    sample.del_atoms(AtomDeleter(atoms, sample.centre, (0, 0, 0)))
+
     # Add the molecule
     sample.add_molecule(
         atoms, positions=[sample.centre], orientations=[(0, 0, 0)], name=name
     )
-
-    # Print some information
-    logger.info(sample.info())
 
     # Return the sample
     return sample
@@ -1821,6 +1923,9 @@ def add_multiple_molecules(sample, molecules):
         # Construct arrays
         positions[label].append(position)
         orientations[label].append(rotation)
+
+        # Delete the atoms where we want to place the molecules
+        sample.del_atoms(AtomDeleter(atom_data[label], position, rotation))
 
         # Print some info
         logger.info(
