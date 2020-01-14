@@ -542,24 +542,26 @@ class SampleHDF5Adapter(object):
 
         """
 
-        def __init__(self, handle):
+        def __init__(self, handle, name):
             """
             Save the group handle
 
             Args:
                 handle (object): The group handle
+                name (str): The dataset name
 
             """
 
             # Save the handle
             self.__handle = handle
+            self.name = name
 
             # Create the datasets
-            if len(self.__handle) == 0:
-                for name, dtype in AtomData.column_data.items():
-                    self.__handle.create_dataset(
-                        name, (0,), maxshape=(None,), dtype=dtype, chunks=True
-                    )
+            if name not in self.__handle:
+                dtype = [(key, value) for key, value in AtomData.column_data.items()]
+                self.__handle.create_dataset(
+                    name, (0,), maxshape=(None,), dtype=dtype, chunks=True
+                )
 
         @property
         def atoms(self):
@@ -567,12 +569,7 @@ class SampleHDF5Adapter(object):
             Return the atom data in the atom sub group
 
             """
-            return pandas.DataFrame(
-                dict(
-                    (name, pandas.Series(self.__handle[name][:]))
-                    for name in AtomData.column_data
-                )
-            )
+            return pandas.DataFrame.from_records(self.__handle[self.name][:])
 
         @atoms.setter
         def atoms(self, data):
@@ -582,25 +579,22 @@ class SampleHDF5Adapter(object):
             """
 
             # Check size, resize and set data
-            for name in AtomData.column_data.keys():
-                self.__handle[name].resize((len(data),))
-                self.__handle[name][:] = data[name]
+            self.__handle[self.name].resize((len(data),))
+            self.__handle[self.name][:] = data.to_records()
 
         def extend(self, data):
             """
             Set the atom data in the sub group
 
             """
-
             # Get the size
-            i0 = self.__handle["x"].shape[0]
-            i1 = i0 + data["x"].shape[0]
+            i0 = self.__handle[self.name].shape[0]
+            i1 = i0 + data.shape[0]
 
             # Check size, resize and set data
-            for name in AtomData.column_data.keys():
-                assert i0 == self.__handle[name].shape[0]
-                self.__handle[name].resize((i1,))
-                self.__handle[name][i0:i1] = data[name]
+            assert i0 == self.__handle[self.name].shape[0]
+            self.__handle[self.name].resize((i1,))
+            self.__handle[self.name][i0:i1] = data.to_records()
 
         def __len__(self):
             """
@@ -609,7 +603,7 @@ class SampleHDF5Adapter(object):
             """
             if len(self.__handle) == 0:
                 return 0
-            return self.__handle["x"].shape[0]
+            return self.__handle[self.name].shape[0]
 
     class AtomsGroup(object):
         """
@@ -646,9 +640,7 @@ class SampleHDF5Adapter(object):
                 object: The subgroup
 
             """
-            if item not in self.__handle:
-                self.__handle.create_group(item)
-            return SampleHDF5Adapter.AtomsSubGroup(self.__handle[item])
+            return SampleHDF5Adapter.AtomsSubGroup(self.__handle, item)
 
         def __iter__(self):
             """
@@ -669,16 +661,16 @@ class SampleHDF5Adapter(object):
             Iterate through the names and the subgroups
 
             """
-            for key, value in self.__handle.items():
-                yield key, SampleHDF5Adapter.AtomsSubGroup(value)
+            for key in self.__handle.keys():
+                yield key, SampleHDF5Adapter.AtomsSubGroup(self.__handle, key)
 
         def values(self):
             """
             Iterate through the subgroups
 
             """
-            for value in self.__handle.values():
-                yield SampleHDF5Adapter.AtomsSubGroup(value)
+            for key in self.__handle.keys():
+                yield SampleHDF5Adapter.AtomsSubGroup(self.__handle, key)
 
         def bins(self):
             """
@@ -1033,7 +1025,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 500  # A
+        self.step = 100  # A
 
     def close(self):
         """
@@ -1072,6 +1064,29 @@ class Sample(object):
                 for x in range(x0[0], x1[0], self.step):
                     c = numpy.array((x, y, z))
                     yield c, c + self.step
+
+    def atoms_dataset_range_3d(self, x0, x1):
+        """
+        Get the atom dataset range
+
+        Args:
+            x0 (array): The minimum coord
+            x1 (array): The maximum coord
+
+        Yields:
+            tuple: The coordinates of the sub ranges
+
+        """
+        x0 = (numpy.floor(numpy.array(x0) / float(self.step)) * self.step).astype(
+            "int32"
+        )
+        x1 = (numpy.ceil(numpy.array(x1) / float(self.step)) * self.step).astype(
+            "int32"
+        )
+        shape = numpy.floor((x1 - x0) / self.step).astype("int32")
+        X, Y, Z = numpy.mgrid[0 : shape[0], 0 : shape[1], 0 : shape[2]]
+        indices = numpy.vstack((X.flatten(), Y.flatten(), Z.flatten())).T
+        return indices, x0 + indices * self.step
 
     @property
     def dimensions(self):
@@ -1120,14 +1135,19 @@ class Sample(object):
         self.__handle.sample.bounding_box = [(x0, y0, z0), (x1, y1, z1)]
 
         # Get the data bounds
-        coords = atoms.data[["x", "y", "z"]]
+        coords = atoms.data[["x", "y", "z"]].to_numpy()
 
-        # Iterate over dataset ranges
-        for x_min, x_max in self.atoms_dataset_range(coords.min(), coords.max()):
-            name = self.atoms_dataset_name(x_min)
-            self.__handle.sample.atoms[name].extend(
-                atoms.data[((coords >= x_min) & (coords < x_max)).all(axis=1)]
-            )
+        # Get the grid index and coordinates
+        grid_index, x_min = self.atoms_dataset_range_3d(
+            coords.min(axis=0), coords.max(axis=0)
+        )
+
+        # Compute the index of each coordinate
+        index = numpy.floor((coords - x_min[0]) / self.step).astype("int32")
+        for i, x in zip(grid_index, x_min):
+            name = self.atoms_dataset_name(x)
+            data = atoms.data[(index == i).all(axis=1)]
+            self.__handle.sample.atoms[name].extend(data)
 
     def del_atoms(self, deleter):
         """
@@ -1404,6 +1424,93 @@ class Sample(object):
         return "\n".join(lines)
 
 
+class AtomSliceExtractor(object):
+    """
+    A class to select atoms given a rotation and translation
+
+    """
+
+    class Slice(object):
+        """
+        A class to keep the slice result
+
+        """
+
+        def __init__(self, data, x_min, x_max):
+            self.data = data
+            self.x_min = x_min
+            self.x_max = x_max
+
+    def __init__(self, sample, translation, rotation, x0, x1, thickness=10):
+        """
+        Preprocess the slices
+
+        The sample will be translated along the X axis and then rotated. All
+        atoms within the range x0 -> x1 will then be extracted in a number of
+        slices of given thickness
+
+        Args:
+            sample (object): The sample object
+            translation (array): The translation along X
+            rotation (array): The rotation around the X axis
+            x0 (array): The (x, y) minimum coordinate
+            x1 (array): The (x, y) maximum coordinate
+            thickness (float): The slice thickness in A
+
+        """
+
+        # Set the items
+        self.sample = sample
+        self.translation = translation
+        self.rotation = rotation
+        self.x0 = x0
+        self.x1 = x1
+        self.thickness = thickness
+
+    def __getitem__(self, index):
+        """
+        Get the slice of atom data
+
+        """
+
+        # Check the index
+        assert index >= 0 and index < self.__num_slices
+
+        # Loop through the ranges and extract the data
+        data = pandas.DataFrame()
+        for x0, x1 in self.__ranges[index]:
+            pandas.concat(
+                [
+                    data,
+                    self.sample.get_atoms_in_range(x0, x1, filter=filter_atoms).data,
+                ],
+                ignore_index=True,
+            )
+
+        # Compute the box
+        x_min = numpy.min(self.__ranges[index], axis=0)
+        x_max = numpy.max(self.__ranges[index], axis=0)
+
+        # Return the slice
+        return Slice(AtomData(data=data), x_min, xmax)
+
+    def __len__(self):
+        """
+        Returns:
+            int: The number of slices
+
+        """
+        return self.__num_slices
+
+    def __iter__(self):
+        """
+        Iterate through the slices
+
+        """
+        for i in range(self.__num_slices):
+            return self[i]
+
+
 class AtomDeleter(object):
     """
     A class to delete atoms so we can place a molecule
@@ -1676,6 +1783,8 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     # Extract all the data
     logger.info("Generating water positions:")
     start_time = time.time()
+    max_buffer = 100_000_000
+    data_buffer = []
     for x_index, x_slice in enumerate(packer):
 
         # Read the coordinates. The Z and X coordinates need to be flipped
@@ -1714,24 +1823,27 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             charge = new_array(coords.shape[0], "charge", 0)
 
             # Return the data frame
-            return AtomData(
-                data=pandas.DataFrame(
-                    {
-                        "atomic_number": atomic_number,
-                        "x": coords[:, 0],
-                        "y": coords[:, 1],
-                        "z": coords[:, 2],
-                        "sigma": sigma,
-                        "occupancy": occupancy,
-                        "charge": charge,
-                    }
-                )
+            return pandas.DataFrame(
+                {
+                    "atomic_number": atomic_number,
+                    "x": coords[:, 0],
+                    "y": coords[:, 1],
+                    "z": coords[:, 2],
+                    "sigma": sigma,
+                    "occupancy": occupancy,
+                    "charge": charge,
+                }
             )
 
         # Add the sample atoms
-        sample.add_atoms(create_atom_data(8, O))
-        sample.add_atoms(create_atom_data(1, H1))
-        sample.add_atoms(create_atom_data(1, H2))
+        data_buffer.append(create_atom_data(8, O))
+        data_buffer.append(create_atom_data(1, H1))
+        data_buffer.append(create_atom_data(1, H2))
+        if sum(b.shape[0] for b in data_buffer) > max_buffer:
+            sample.add_atoms(
+                AtomData(data=pandas.concat(data_buffer, ignore_index=True))
+            )
+            data_buffer = []
 
         # The estimates time left
         time_taken = time.time() - start_time
@@ -1742,6 +1854,12 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             "    X slice %d/%d: Num molecules: %d (remaining %.d seconds)"
             % (x_index, len(packer), O.shape[0], estimated_time)
         )
+
+    # Add anything remaining in the data buffer
+    if len(data_buffer) > 0:
+        print("Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
+        sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
+        data_buffer = []
 
     # Print some output
     logger.info(f"Sphere packer: Num unplaced:  {packer.num_unplaced_samples()}")

@@ -40,11 +40,11 @@ def new():
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
-        "-o",
-        "--output",
+        "-s",
+        "--sample",
         type=str,
         default="sample.h5",
-        dest="output",
+        dest="sample",
         help="The filename for the sample file",
     )
 
@@ -61,8 +61,8 @@ def new():
     elfantasma.config.show(config)
 
     # Create the sample
-    logger.info(f"Writing sample to {args.output}")
-    sample = elfantasma.sample.new(args.output, **config["sample"])
+    logger.info(f"Writing sample to {args.sample}")
+    sample = elfantasma.sample.new(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -86,11 +86,11 @@ def add_molecules():
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
-        "-o",
-        "--output",
+        "-s",
+        "--sample",
         type=str,
         default="sample.h5",
-        dest="output",
+        dest="sample",
         help="The filename for the sample file",
     )
 
@@ -107,9 +107,13 @@ def add_molecules():
     elfantasma.config.show(config)
 
     # Create the sample
-    logger.info(f"Writing sample to {args.output}")
-    sample = elfantasma.sample.add_molecules(args.output, **config["sample"])
+    logger.info(f"Writing sample to {args.sample}")
+    sample = elfantasma.sample.add_molecules(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
+
+
+def mill():
+    pass
 
 
 def show():
@@ -122,11 +126,11 @@ def show():
 
     # Add some command line arguments
     parser.add_argument(
-        "-o",
-        "--output",
+        "-s",
+        "--sample",
         type=str,
         default="sample.h5",
-        dest="output",
+        dest="sample",
         help="The filename for the sample file",
     )
 
@@ -137,5 +141,5 @@ def show():
     elfantasma.command_line.configure_logging()
 
     # Create the sample
-    sample = elfantasma.sample.load(args.output)
+    sample = elfantasma.sample.load(args.sample)
     logger.info(sample.info())

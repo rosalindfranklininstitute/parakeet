@@ -263,7 +263,7 @@ def test_Sample(atom_data_4v5d):
     assert sample.atoms_dataset_name((1, 2, 3)) == "X=000001; Y=000002; Z=000003"
     a = list(sample.atoms_dataset_range((1, 2, 3), (3, 4, 5)))
     assert (a[0][0] == (0, 0, 0)).all()
-    assert (a[0][1] == (500, 500, 500)).all()
+    assert (a[0][1] == (sample.step, sample.step, sample.step)).all()
 
     x0 = atom_data_4v5d.data[["x", "y", "z"]].min() + 200
     x1 = atom_data_4v5d.data[["x", "y", "z"]].max() + 200
