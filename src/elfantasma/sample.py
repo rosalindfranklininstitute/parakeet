@@ -716,17 +716,7 @@ class SampleHDF5Adapter(object):
             Get the atoms
 
             """
-
-            # Get the atoms group
-            group = self.__handle["atoms"]
-
-            # Create a pandas data frame
-            return pandas.DataFrame(
-                dict(
-                    (name, pandas.Series(group[name][:]))
-                    for name in AtomData.column_data
-                )
-            )
+            return pandas.DataFrame.from_records(self.__handle["atoms"][:])
 
         @property
         def positions(self):
@@ -750,13 +740,10 @@ class SampleHDF5Adapter(object):
             Set the atom data
 
             """
-
-            # Create the atom data group
-            group = self.__handle.create_group("atoms")
-
-            # Set the columns
-            for name, dtype in AtomData.column_data.items():
-                group.create_dataset(name, data=data[name], dtype=dtype, chunks=True)
+            dtype = [(key, value) for key, value in AtomData.column_data.items()]
+            self.__handle.create_dataset(
+                "atoms", data=data.to_records(), dtype=dtype, chunks=True
+            )
 
         @positions.setter
         def positions(self, positions):
@@ -1144,9 +1131,21 @@ class Sample(object):
 
         # Compute the index of each coordinate
         index = numpy.floor((coords - x_min[0]) / self.step).astype("int32")
-        for i, x in zip(grid_index, x_min):
-            name = self.atoms_dataset_name(x)
-            data = atoms.data[(index == i).all(axis=1)]
+        size = numpy.max(grid_index, axis=0) + 1
+        index = index[:, 2] + index[:, 1] * size[2] + index[:, 0] * size[2] * size[1]
+
+        # Create an index list for each subgroup by splitting the sorted indices
+        sorted_index = numpy.argsort(index)
+        split_index, splits = numpy.unique(index[sorted_index], return_index=True)
+        index_list = numpy.split(sorted_index, splits[1:])
+
+        # Ensure the number is correct
+        assert sum(map(len, index_list)) == atoms.data.shape[0]
+
+        # Add the atoms to the subgroups
+        for i in range(len(split_index)):
+            name = self.atoms_dataset_name(x_min[split_index[i]])
+            data = atoms.data.iloc[index_list[i]]
             self.__handle.sample.atoms[name].extend(data)
 
     def del_atoms(self, deleter):
@@ -1783,7 +1782,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     # Extract all the data
     logger.info("Generating water positions:")
     start_time = time.time()
-    max_buffer = 100_000_000
+    max_buffer = 10_000_000
     data_buffer = []
     for x_index, x_slice in enumerate(packer):
 
