@@ -1922,14 +1922,11 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     data_buffer = []
     for x_index, x_slice in enumerate(packer):
 
-        # Read the coordinates. The Z and X coordinates need to be flipped
-        # again since the sphere packer does slices in Z and we want slices in
-        # X here.
+        # Read the coordinates.
         coords = []
         for node in x_slice:
             coords.extend(node)
         coords = numpy.array(coords, dtype="float32") + offset
-        coords = numpy.flip(coords, axis=1)
 
         # Filter the coordinates by the shape to ensure no ice is outside the
         # shape. This is only really necessary for the cylinder shape
