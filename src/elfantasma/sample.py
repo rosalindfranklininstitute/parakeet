@@ -16,7 +16,7 @@ import numpy
 import pandas
 import scipy.constants
 import time
-from math import pi, sqrt, floor
+from math import pi, sqrt, floor, ceil
 from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
@@ -425,9 +425,10 @@ class AtomData(object):
                 )
             )
         else:
-            column_names = list(data.keys())
-            for name in AtomData.column_data:
-                assert name in column_names
+            if len(data) > 0:
+                column_names = list(data.keys())
+                for name in AtomData.column_data:
+                    assert name in column_names
             self.data = data
 
     def rotate(self, vector):
@@ -1341,6 +1342,16 @@ class Sample(object):
         """
         return self.__handle.sample.atoms.number_of_atoms()
 
+    def iter_atom_groups(self):
+        """
+        Iterate over the atom groups
+
+        Yields:
+            object: The atom group
+
+        """
+        return self.__handle.sample.atoms.bins()
+
     def iter_atoms(self):
         """
         Iterate over the atoms
@@ -1353,6 +1364,13 @@ class Sample(object):
             yield (x, x + self.step), AtomData(
                 data=self.__handle.sample.atoms[name].atoms
             )
+
+    def get_atoms_in_group(self, name):
+        """
+        Get the atoms in the group
+
+        """
+        return AtomData(data=self.__handle.sample.atoms[name].atoms)
 
     def get_atoms_in_range(self, x0, x1, filter=None):
         """
@@ -1436,7 +1454,7 @@ class AtomSliceExtractor(object):
         """
 
         def __init__(self, data, x_min, x_max):
-            self.data = data
+            self.atoms = data
             self.x_min = x_min
             self.x_max = x_max
 
@@ -1450,13 +1468,26 @@ class AtomSliceExtractor(object):
 
         Args:
             sample (object): The sample object
-            translation (array): The translation along X
-            rotation (array): The rotation around the X axis
+            translation (float): The translation along X
+            rotation (float): The rotation around the X axis
             x0 (array): The (x, y) minimum coordinate
             x1 (array): The (x, y) maximum coordinate
             thickness (float): The slice thickness in A
 
         """
+
+        # Check if the rectangles overlaps with each other
+        def overlapping(a0, a1, b0, b1):
+            if not (
+                a0[0] > b1[0]
+                or a1[0] < b0[0]
+                or a0[1] > b1[1]
+                or a1[1] < b0[1]
+                or a0[2] > b1[2]
+                or a1[2] < b0[2]
+            ):
+                return True
+            return False
 
         # Set the items
         self.sample = sample
@@ -1466,32 +1497,99 @@ class AtomSliceExtractor(object):
         self.x1 = x1
         self.thickness = thickness
 
+        # Loop through the atom groups
+        group_coords = []
+        group_names = []
+        for name, xmin in self.sample.iter_atom_groups():
+            xmax = xmin + self.sample.step
+
+            # The coordinates of the corners of the group
+            y = numpy.array(
+                [
+                    (xmin[0], xmin[1], xmin[2]),
+                    (xmin[0], xmin[1], xmax[2]),
+                    (xmin[0], xmax[1], xmin[2]),
+                    (xmin[0], xmax[1], xmax[2]),
+                    (xmax[0], xmin[1], xmin[2]),
+                    (xmax[0], xmin[1], xmax[2]),
+                    (xmax[0], xmax[1], xmin[2]),
+                    (xmax[0], xmax[1], xmax[2]),
+                ]
+            )
+
+            # Rotate the group and translate the corners of the group and
+            # append to the list of groupd
+            group_names.append(name)
+            group_coords.append(
+                Rotation.from_rotvec((rotation, 0, 0)).apply(y) + (translation, 0, 0)
+            )
+
+        # Compute the min and max coordinates of all the rotated groups and
+        # compute the number of slices we will have
+        group_coords = numpy.array(group_coords)
+        min_x = numpy.min(group_coords.reshape((-1, 3)), axis=0)
+        max_x = numpy.max(group_coords.reshape((-1, 3)), axis=0)
+        self.min_z = min_x[2]
+        self.max_z = max_x[2]
+        num_slices = ceil((self.max_z - self.min_z) / thickness)
+
+        # Loop through the groups. Compute the minimum and maximum coordinates
+        # of the group and create a new box. Loop through the slices and check
+        # if the box overlaps with the slice box. If it does then add the name
+        # of the group to the list of groups in that slice.
+        self.__groups_in_slice = defaultdict(list)
+        for name, group in zip(group_names, group_coords):
+            min_x = numpy.min(group, axis=0)
+            max_x = numpy.max(group, axis=0)
+            for i in range(num_slices):
+                z0 = self.min_z + i * thickness
+                z1 = self.min_z + (i + 1) * thickness
+                if overlapping(min_x, max_x, (x0[0], x0[1], z0), (x1[0], x1[1], z1)):
+                    self.__groups_in_slice[i].append(name)
+
     def __getitem__(self, index):
         """
         Get the slice of atom data
 
+        Args:
+            index (int): The slice index
+
+        Returns:
+            object: The slice
+
         """
 
+        # Get the min and max coordinate of the slice
+        z0 = self.min_z + index * self.thickness
+        z1 = self.min_z + (index + 1) * self.thickness
+        x_min = (self.x0[0], self.x0[1], z0)
+        x_max = (self.x1[0], self.x1[1], z1)
+
+        # Rotate and translate the atoms and select only those atoms within the
+        # slice
+        def filter_atoms(atoms):
+            coords = atoms[["x", "y", "z"]].to_numpy()
+            coords = Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords) + (
+                self.translation,
+                0,
+                0,
+            )
+            atoms[["x", "y", "z"]] = coords
+            return atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+
         # Check the index
-        assert index >= 0 and index < self.__num_slices
+        assert index >= 0 and index < len(self.__groups_in_slice)
 
         # Loop through the ranges and extract the data
         data = pandas.DataFrame()
-        for x0, x1 in self.__ranges[index]:
-            pandas.concat(
-                [
-                    data,
-                    self.sample.get_atoms_in_range(x0, x1, filter=filter_atoms).data,
-                ],
+        for name in self.__groups_in_slice[index]:
+            data = pandas.concat(
+                [data, filter_atoms(self.sample.get_atoms_in_group(name).data)],
                 ignore_index=True,
             )
 
-        # Compute the box
-        x_min = numpy.min(self.__ranges[index], axis=0)
-        x_max = numpy.max(self.__ranges[index], axis=0)
-
         # Return the slice
-        return Slice(AtomData(data=data), x_min, xmax)
+        return AtomSliceExtractor.Slice(AtomData(data=data), x_min, x_max)
 
     def __len__(self):
         """
@@ -1499,15 +1597,15 @@ class AtomSliceExtractor(object):
             int: The number of slices
 
         """
-        return self.__num_slices
+        return len(self.__groups_in_slice)
 
     def __iter__(self):
         """
         Iterate through the slices
 
         """
-        for i in range(self.__num_slices):
-            return self[i]
+        for i in range(len(self)):
+            yield self[i]
 
 
 class AtomDeleter(object):
@@ -1839,6 +1937,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         data_buffer.append(create_atom_data(1, H1))
         data_buffer.append(create_atom_data(1, H2))
         if sum(b.shape[0] for b in data_buffer) > max_buffer:
+            logger.info("    Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
             sample.add_atoms(
                 AtomData(data=pandas.concat(data_buffer, ignore_index=True))
             )
@@ -1856,7 +1955,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
 
     # Add anything remaining in the data buffer
     if len(data_buffer) > 0:
-        print("Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
+        logger.info("    Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
         sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
         data_buffer = []
 

@@ -1,4 +1,5 @@
 import numpy
+import os
 import pytest
 import elfantasma.sample
 from math import sqrt
@@ -204,10 +205,12 @@ def test_AtomData(atom_data_4v5d):
         assert atom_data_4v5d.data[name].dtype == dtype
 
 
-def test_SampleHDF5Adapter(atom_data_4v5d):
+def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
 
     # Get handle
-    handle = elfantasma.sample.SampleHDF5Adapter("test_SampleHDF5Adapter.h5", "w")
+    handle = elfantasma.sample.SampleHDF5Adapter(
+        os.path.join(tmp_path, "test_SampleHDF5Adapter.h5"), "w"
+    )
 
     # Test sample
     sample = handle.sample
@@ -256,9 +259,11 @@ def test_SampleHDF5Adapter(atom_data_4v5d):
     handle.close()
 
 
-def test_Sample(atom_data_4v5d):
+def test_Sample(tmp_path, atom_data_4v5d):
 
-    sample = elfantasma.sample.Sample("test_Sample.h5", mode="w")
+    sample = elfantasma.sample.Sample(
+        os.path.join(tmp_path, "test_Sample.h5"), mode="w"
+    )
 
     assert sample.atoms_dataset_name((1, 2, 3)) == "X=000001; Y=000002; Z=000003"
     a = list(sample.atoms_dataset_range((1, 2, 3), (3, 4, 5)))
@@ -312,10 +317,34 @@ def test_Sample(atom_data_4v5d):
     sample.close()
 
 
-def test_AtomDeleter():
+def test_AtomSliceExtractor(tmp_path):
 
     sample = elfantasma.sample.new(
-        "test_AtomDeleter.h5",
+        os.path.join(tmp_path, "test_AtomSliceExtractor.h5"),
+        box=(50, 50, 50),
+        centre=(25, 25, 25),
+        shape={"type": "cube", "cube": {"length": 40}},
+        ice={"generate": True, "density": 940},
+    )
+
+    extractor = elfantasma.sample.AtomSliceExtractor(sample, 0, 0.1, (0, 0), (50, 50))
+
+    num_atoms = 0
+    for zslice in extractor:
+        coords = zslice.atoms.data[["x", "y", "z"]].to_numpy()
+        assert (zslice.x_max[0] - zslice.x_min[0]) == pytest.approx(50)
+        assert (zslice.x_max[1] - zslice.x_min[1]) == pytest.approx(50)
+        assert (zslice.x_max[2] - zslice.x_min[2]) == pytest.approx(10)
+        assert ((coords >= zslice.x_min) & (coords < zslice.x_max)).all(axis=1).all()
+        num_atoms += zslice.atoms.data.shape[0]
+
+    assert num_atoms == sample.number_of_atoms
+
+
+def test_AtomDeleter(tmp_path):
+
+    sample = elfantasma.sample.new(
+        os.path.join(tmp_path, "test_AtomDeleter.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
         shape={"type": "cube", "cube": {"length": 50}},
@@ -334,10 +363,10 @@ def test_AtomDeleter():
     assert ((coords - (50, 50, 50)) ** 2 >= 20).all()
 
 
-def test_load():
+def test_load(tmp_path):
 
     sample = elfantasma.sample.new(
-        "test_load.h5",
+        os.path.join(tmp_path, "test_load.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
         shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
@@ -345,20 +374,20 @@ def test_load():
 
     del sample
 
-    sample = elfantasma.sample.load("test_load.h5")
+    sample = elfantasma.sample.load(os.path.join(tmp_path, "test_load.h5"))
 
 
-def test_new():
+def test_new(tmp_path):
 
     sample = elfantasma.sample.new(
-        "test_new1.h5",
+        os.path.join(tmp_path, "test_new1.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
         shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
     )
 
     sample = elfantasma.sample.new(
-        "test_new2.h5",
+        os.path.join(tmp_path, "test_new2.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
         shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
@@ -377,10 +406,10 @@ def test_new():
     assert (((y - 25) ** 2 + (z - 25) ** 2) <= (20 + margin) ** 2).all()
 
 
-def test_add_molecules():
+def test_add_molecules(tmp_path):
 
     sample = elfantasma.sample.new(
-        "test_add_molecules.h5",
+        os.path.join(tmp_path, "test_add_molecules.h5"),
         box=(4000, 4000, 4000),
         centre=(2000, 2000, 2000),
         shape={"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}},
@@ -389,14 +418,14 @@ def test_add_molecules():
     sample.close()
 
     sample = elfantasma.sample.add_molecules(
-        "test_add_molecules.h5", molecules={"4v5d": 1}
+        os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"4v5d": 1}
     )
 
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
 
     sample = elfantasma.sample.add_molecules(
-        "test_add_molecules.h5", molecules={"4v1w": 10}
+        os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"4v1w": 10}
     )
 
     assert sample.number_of_molecules == 2
@@ -405,7 +434,7 @@ def test_add_molecules():
     sample.close()
 
     sample = elfantasma.sample.new(
-        "test_add_molecules2.h5",
+        os.path.join(tmp_path, "test_add_molecules2.h5"),
         box=(4000, 4000, 4000),
         centre=(2000, 2000, 2000),
         shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
@@ -416,7 +445,7 @@ def test_add_molecules():
     sample.close()
 
     sample = elfantasma.sample.add_molecules(
-        "test_add_molecules2.h5", molecules={"4v5d": 1}
+        os.path.join(tmp_path, "test_add_molecules2.h5"), molecules={"4v5d": 1}
     )
 
     assert sample.number_of_molecules == 1

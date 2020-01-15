@@ -35,15 +35,16 @@ def main():
         test_suite="tests",
         entry_points={
             "console_scripts": [
-                "elfantasma=elfantasma.command_line:main",
                 "elfantasma.read_pdb=elfantasma.command_line:read_pdb",
-                "elfantasma.convert=elfantasma.command_line:convert",
                 "elfantasma.show_config=elfantasma.command_line:show_config_main",
-                "elfantasma.create_sample=elfantasma.command_line:create_sample",
-                "elfantasma.freeze=elfantasma.command_line:freeze",
+                "elfantasma.convert=elfantasma.command_line:export",
                 "elfantasma.sample.new=elfantasma.command_line.sample:new",
                 "elfantasma.sample.add_molecules=elfantasma.command_line.sample:add_molecules",
+                "elfantasma.sample.mill=elfantasma.command_line.sample:mill",
                 "elfantasma.sample.show=elfantasma.command_line.sample:show",
+                "elfantasma.simulate.exit_wave=elfantasma.command_line.simulate:exit_wave",
+                "elfantasma.simulate.optics=elfantasma.command_line.simulate:optics",
+                "elfantasma.simulate.image=elfantasma.command_line.simulate:image",
             ]
         },
         extras_require={
