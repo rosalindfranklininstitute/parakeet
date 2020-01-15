@@ -419,6 +419,211 @@ class ExitWaveImageSimulator(object):
         return (index, angle, image)
 
 
+class OpticsImageSimulator(object):
+    """
+    A class to do the actual simulation
+
+    The simulation is structured this way because the input data to the
+    simulation is large enough that it makes an overhead to creating the
+    individual processes.
+
+    """
+
+    def __init__(
+        self, microscope=None, exit_wave=None, scan=None, simulation=None, device="gpu"
+    ):
+        self.microscope = microscope
+        self.exit_wave = exit_wave
+        self.scan = scan
+        self.simulation = simulation
+        self.device = device
+
+    def __call__(self, index):
+        """
+        Simulate a single frame
+
+        Args:
+            simulation (object): The simulation object
+            index (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Get the rotation angle
+        angle = self.scan.angles[index]
+        position = self.scan.positions[index]
+
+        # Check the angle and position
+        assert abs(angle - self.exit_wave.angle[index]) < 1e7
+        assert (numpy.abs(position - self.exit_wave.position[index]) < 1e7).all()
+
+        # The field of view
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        pixel_size = self.microscope.detector.pixel_size
+        x_fov = nx * pixel_size
+        y_fov = ny * pixel_size
+        offset = self.simulation["margin"] * pixel_size
+
+        # Get the specimen atoms
+        logger.info(f"Simulating image {index}")
+
+        # Set the rotation angle
+        # input_multislice.spec_rot_theta = angle
+        # input_multislice.spec_rot_u0 = simulation.scan.axis
+
+        # Create the sample extractor
+        # x0 = (0, 0)
+        # x1 = (x_fov + position, y_fov)
+        # thickness = 10
+        # extractor = elfantasma.sample.AtomSliceExtractor(
+        #     self.sample, angle, position, x0, x1, thickness
+        # )
+
+        # Create the multem system configuration
+        system_conf = create_system_configuration(self.device)
+
+        # Create the multem input multislice object
+        input_multislice = create_input_multislice(
+            self.microscope,
+            self.simulation["slice_thickness"],
+            self.simulation["margin"],
+            "HRTEM",
+        )
+
+        # Set the specimen size
+        input_multislice.spec_lx = x_fov + offset * 2
+        input_multislice.spec_ly = y_fov + offset * 2
+        input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+
+        # Set the input wave
+        margin = self.simulation["margin"]
+        user_defined_wave = numpy.zeros(
+            shape=(ny + 2 * margin, nx + 2 * margin), dtype=numpy.complex64
+        )
+        j0 = margin
+        i0 = margin
+        j1 = user_defined_wave.shape[0] - margin
+        i1 = user_defined_wave.shape[1] - margin
+        user_defined_wave[j0:j1, i0:i1] = self.exit_wave.data[index]
+        input_multislice.iw_type = "User_Define_Wave"
+        input_multislice.iw_psi = list(user_defined_wave.T.flatten())
+        input_multislice.iw_x = [0.5 * input_multislice.spec_lx]
+        input_multislice.iw_y = [0.5 * input_multislice.spec_ly]
+        input_multislice.spec_atoms = multem.AtomList(
+            [
+                (
+                    1,
+                    input_multislice.spec_lx / 2.0,
+                    input_multislice.spec_ly / 2.0,
+                    input_multislice.spec_lz / 2.0,
+                    0.088,
+                    1,
+                    0,
+                    0,
+                )
+            ]
+        )
+
+        # Run the simulation
+        output_multislice = multem.simulate(system_conf, input_multislice)
+
+        # Get the ideal image data
+        # Multem outputs data in column major format. In C++ and Python we
+        # generally deal with data in row major format so we must do a
+        # transpose here.
+        image = numpy.array(output_multislice.data[0].m2psi_tot).T
+
+        # Remove margin
+        j0 = margin
+        i0 = margin
+        j1 = image.shape[0] - margin
+        i1 = image.shape[1] - margin
+        assert margin >= 0
+        assert i1 > i0
+        assert j1 > j0
+        image = image[j0:j1, i0:i1]
+        psi_tot = numpy.abs(image) ** 2
+        logger.info(
+            "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
+        )
+
+        # Compute the image scaled with Poisson noise
+        return (index, angle, image)
+
+
+class ImageSimulator(object):
+    """
+    A class to do the actual simulation
+
+    The simulation is structured this way because the input data to the
+    simulation is large enough that it makes an overhead to creating the
+    individual processes.
+
+    """
+
+    def __init__(
+        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu"
+    ):
+        self.microscope = microscope
+        self.optics = optics
+        self.scan = scan
+        self.simulation = simulation
+        self.device = device
+
+    def __call__(self, index):
+        """
+        Simulate a single frame
+
+        Args:
+            simulation (object): The simulation object
+            index (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Get the rotation angle
+        angle = self.scan.angles[index]
+        position = self.scan.positions[index]
+
+        # Check the angle and position
+        assert abs(angle - self.optics.angle[index]) < 1e7
+        assert (numpy.abs(position - self.optics.position[index]) < 1e7).all()
+
+        # The field of view
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        pixel_size = self.microscope.detector.pixel_size
+        x_fov = nx * pixel_size
+        y_fov = ny * pixel_size
+
+        # Get the specimen atoms
+        logger.info(f"Simulating image {index}")
+
+        # Compute the number of counts per pixel
+        N = (
+            self.microscope.beam.electrons_per_angstrom
+            / self.microscope.detector.pixel_size
+        )
+
+        # Compute the new image
+        image = self.optics.data[index] / numpy.mean(self.optics.data[index])
+        image = numpy.random.poisson(image * N)
+
+        # Print some info
+        logger.info(
+            "    Image min/max/mean: %d/%d/%d"
+            % (numpy.min(image), numpy.max(image), numpy.mean(image))
+        )
+
+        # Compute the image scaled with Poisson noise
+        return (index, angle, image)
+
+
 def exit_wave(
     microscope=None, sample=None, scan=None, device="gpu", simulation=None, cluster=None
 ):
@@ -446,6 +651,79 @@ def exit_wave(
         simulate_image=ExitWaveImageSimulator(
             microscope=microscope,
             sample=sample,
+            scan=scan,
+            simulation=simulation,
+            device=device,
+        ),
+    )
+
+
+def optics(
+    microscope=None,
+    exit_wave=None,
+    scan=None,
+    device="gpu",
+    simulation=None,
+    cluster=None,
+):
+    """
+    Create the simulation
+
+    Args:
+        microscope (object); The microscope object
+        exit_wave (object): The exit_wave object
+        scan (object): The scan object
+        device (str): The device to use
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
+
+    """
+
+    # Create the simulation
+    return Simulation(
+        image_size=(microscope.detector.nx, microscope.detector.ny),
+        scan=scan,
+        cluster=cluster,
+        simulate_image=OpticsImageSimulator(
+            microscope=microscope,
+            exit_wave=exit_wave,
+            scan=scan,
+            simulation=simulation,
+            device=device,
+        ),
+    )
+
+
+def image(
+    microscope=None, optics=None, scan=None, device="gpu", simulation=None, cluster=None
+):
+    """
+    Create the simulation
+
+    Args:
+        microscope (object); The microscope object
+        optics (object): The optics object
+        scan (object): The scan object
+        device (str): The device to use
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
+
+    """
+
+    # Create the simulation
+    return Simulation(
+        image_size=(microscope.detector.nx, microscope.detector.ny),
+        scan=scan,
+        cluster=cluster,
+        simulate_image=ImageSimulator(
+            microscope=microscope,
+            optics=optics,
             scan=scan,
             simulation=simulation,
             device=device,

@@ -37,7 +37,7 @@ def main():
             "console_scripts": [
                 "elfantasma.read_pdb=elfantasma.command_line:read_pdb",
                 "elfantasma.show_config=elfantasma.command_line:show_config_main",
-                "elfantasma.convert=elfantasma.command_line:export",
+                "elfantasma.export=elfantasma.command_line:export",
                 "elfantasma.sample.new=elfantasma.command_line.sample:new",
                 "elfantasma.sample.add_molecules=elfantasma.command_line.sample:add_molecules",
                 "elfantasma.sample.mill=elfantasma.command_line.sample:mill",

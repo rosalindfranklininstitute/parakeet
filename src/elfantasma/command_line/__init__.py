@@ -231,7 +231,7 @@ def show_config_main():
     elfantasma.config.show(config, full=True)
 
 
-def convert(argv=None):
+def export(argv=None):
     """
     Convert the input file type to a different file type
 

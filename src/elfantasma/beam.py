@@ -17,7 +17,11 @@ class Beam(object):
     """
 
     def __init__(
-        self, energy=300, energy_spread=0, acceleration_voltage_spread=0, flux=None
+        self,
+        energy=300,
+        energy_spread=0,
+        acceleration_voltage_spread=0,
+        electrons_per_angstrom=30,
     ):
         """
         Initialise the beam
@@ -26,16 +30,21 @@ class Beam(object):
             energy (float): The beam energy (keV)
             energy_spread (float): dE / E where dE is the 1/e half width
             acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
-            flux (float): The flux (electrons / per second / per pixel(
+            electrons_per_angstrom (float): The number of electrons per angstrom
 
         """
         self.energy = energy
         self.energy_spread = energy_spread
         self.acceleration_voltage_spread = acceleration_voltage_spread
-        self.flux = flux
+        self.electrons_per_angstrom = electrons_per_angstrom
 
 
-def new(energy=None, energy_spread=None, acceleration_voltage_spread=None, flux=None):
+def new(
+    energy=None,
+    energy_spread=None,
+    acceleration_voltage_spread=None,
+    electrons_per_angstrom=None,
+):
     """
     Create a beam
 
@@ -43,7 +52,7 @@ def new(energy=None, energy_spread=None, acceleration_voltage_spread=None, flux=
         energy (float): The beam energy (keV)
         energy_spread (float): dE / E where dE is the 1/e half width
         acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
-        flux (float): The flux (electrons / per second / per pixel)
+        electrons_per_angstrom (float): The number of electrons per angstrom
 
     Returns:
         object: The beam object
@@ -53,5 +62,5 @@ def new(energy=None, energy_spread=None, acceleration_voltage_spread=None, flux=
         energy=energy,
         energy_spread=energy_spread,
         acceleration_voltage_spread=acceleration_voltage_spread,
-        flux=flux,
+        electrons_per_angstrom=electrons_per_angstrom,
     )

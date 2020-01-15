@@ -73,7 +73,7 @@ def default():
                 energy: 300
                 energy_spread: 0.33e-6
                 acceleration_voltage_spread: 0.8e-6
-                flux: null
+                electrons_per_angstrom: 30
 
             objective_lens:
                 m: 0
