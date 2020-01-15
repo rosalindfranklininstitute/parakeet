@@ -77,6 +77,9 @@ def create_system_configuration(device):
     else:
         system_conf.device = "host"
 
+    # Print some output
+    logger.info("Simulating using %s" % system_conf.device)
+
     # Return the system configuration
     return system_conf
 
@@ -341,7 +344,7 @@ class ExitWaveImageSimulator(object):
         # Create the sample extractor
         x0 = (0, 0)
         x1 = (x_fov + position, y_fov)
-        thickness = 10
+        thickness = self.simulation["division_thickness"]
         extractor = elfantasma.sample.AtomSliceExtractor(
             self.sample, angle, position, x0, x1, thickness
         )
@@ -366,9 +369,14 @@ class ExitWaveImageSimulator(object):
         if len(extractor) == 1:
 
             # Set the atoms in the input after translating them for the offset
-            input_multislice.spec_atoms = (
-                extractor[0].atoms.translate((offset, offset, 0)).to_multem()
+            zslice = extractor[0]
+            logger.info(
+                "    Simulating z slice %f -> %f with %d atoms"
+                % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
             )
+            input_multislice.spec_atoms = zslice.atoms.translate(
+                (offset, offset, 0)
+            ).to_multem()
 
             # Run the simulation
             output_multislice = multem.simulate(system_conf, input_multislice)

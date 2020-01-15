@@ -1815,7 +1815,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             return coords[
                 (x >= x0[0])
                 & (x < x1[0])
-                & ((z - centre[2]) ** 2 + (y - centre[1]) ** 2 <= radius)
+                & ((z - centre[2]) ** 2 + (y - centre[1]) ** 2 <= radius ** 2)
             ]
 
         # Filter the coords
@@ -1853,9 +1853,9 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         length = shape["cylinder"]["length"]
         radius = shape["cylinder"]["radius"]
         volume = pi * radius ** 2 * length
-        length_x = 2 * radius
+        length_x = length
         length_y = 2 * radius
-        length_z = length
+        length_z = 2 * radius
     else:
         raise RuntimeError("Unknown shape")
 

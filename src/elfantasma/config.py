@@ -77,7 +77,7 @@ def default():
 
             objective_lens:
                 m: 0
-                c_10: 20
+                c_10: 20000
                 c_12: 0.0
                 phi_12: 0.0
                 c_21: 0.0
@@ -127,7 +127,7 @@ def default():
         simulation:
             slice_thickness: 3.0
             margin: 100
-            num_slices: 1
+            division_thickness: 100
 
         cluster:
             method: null
