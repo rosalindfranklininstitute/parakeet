@@ -21,6 +21,11 @@ from scipy.spatial.transform import Rotation
 import elfantasma.data
 import elfantasma.freeze
 
+try:
+    import multem
+except ImportError:
+    pass
+
 numpy.random.seed(0)
 
 # Get the logger
@@ -439,11 +444,13 @@ class AtomData(object):
             vector (array): The rotation vector
 
         """
-        coords = self.data[["x", "y", "z"]].to_numpy()
-        coords = Rotation.from_rotvec(vector).apply(coords).astype(coords.dtype)
-        self.data["x"] = coords[:, 0]
-        self.data["y"] = coords[:, 1]
-        self.data["z"] = coords[:, 2]
+        if len(self.data) > 0:
+            coords = self.data[["x", "y", "z"]].to_numpy()
+            coords = Rotation.from_rotvec(vector).apply(coords).astype(coords.dtype)
+            self.data["x"] = coords[:, 0]
+            self.data["y"] = coords[:, 1]
+            self.data["z"] = coords[:, 2]
+        return self
 
     def translate(self, translation):
         """
@@ -453,7 +460,9 @@ class AtomData(object):
             translation (array): The translation
 
         """
-        self.data[["x", "y", "z"]] += numpy.array(translation)
+        if len(self.data) > 0:
+            self.data[["x", "y", "z"]] += numpy.array(translation)
+        return self
 
     def to_multem(self):
         """
@@ -463,6 +472,8 @@ class AtomData(object):
             object: A multem atom list
 
         """
+        if len(self.data) == 0:
+            return multem.AtomList()
         return multem.AtomList(
             zip(
                 self.data["atomic_number"],
@@ -471,7 +482,7 @@ class AtomData(object):
                 self.data["z"],
                 self.data["sigma"],
                 self.data["occupancy"],
-                (0 for i in range(self.data.shape[0])),
+                [int(0) for i in range(self.data.shape[0])],
                 self.data["charge"],
             )
         )
@@ -1590,24 +1601,30 @@ class AtomSliceExtractor(object):
         # slice
         def filter_atoms(atoms):
             coords = atoms[["x", "y", "z"]].to_numpy()
-            coords = Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords) + (
-                self.translation,
-                0,
-                0,
-            )
-            atoms[["x", "y", "z"]] = coords
+            coords = (
+                Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords)
+                + (self.translation, 0, 0)
+            ).astype("float32")
+            atoms["x"] = coords[:, 0]
+            atoms["y"] = coords[:, 1]
+            atoms["z"] = coords[:, 2]
             return atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
 
         # Check the index
         assert index >= 0 and index < len(self.__groups_in_slice)
 
         # Loop through the ranges and extract the data
-        data = pandas.DataFrame()
+        data = []
         for name in self.__groups_in_slice[index]:
-            data = pandas.concat(
-                [data, filter_atoms(self.sample.get_atoms_in_group(name).data)],
-                ignore_index=True,
-            )
+            atoms = filter_atoms(self.sample.get_atoms_in_group(name).data)
+            if len(atoms) > 0:
+                data.append(atoms)
+
+        # Cat data
+        if len(data) > 0:
+            data = pandas.concat(data)
+        else:
+            data = pandas.DataFrame()
 
         # Return the slice
         return AtomSliceExtractor.Slice(AtomData(data=data), x_min, x_max)

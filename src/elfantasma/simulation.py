@@ -61,8 +61,6 @@ def create_system_configuration(device):
     """
     assert device in ["cpu", "gpu"]
 
-    return None
-
     # Initialise the system configuration
     system_conf = multem.SystemConfiguration()
 
@@ -96,11 +94,6 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
         object: The input multislice object
 
     """
-
-    class A(object):
-        pass
-
-    return A()
 
     # Initialise the input and system configuration
     input_multislice = multem.Input()
@@ -350,7 +343,7 @@ class ExitWaveImageSimulator(object):
         x1 = (x_fov + position, y_fov)
         thickness = 10
         extractor = elfantasma.sample.AtomSliceExtractor(
-            sample, angle, position, x0, x1, thickness
+            self.sample, angle, position, x0, x1, thickness
         )
 
         # Create the multem system configuration
@@ -367,7 +360,7 @@ class ExitWaveImageSimulator(object):
         # Set the specimen size
         input_multislice.spec_lx = x_fov + offset * 2
         input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = self.sample.box_size[2]
+        input_multislice.spec_lz = self.sample.containing_box[1][2]
 
         # Either slice or don't
         if len(extractor) == 1:
@@ -383,19 +376,18 @@ class ExitWaveImageSimulator(object):
         else:
 
             # Slice the specimen atoms
-            spec_slices = list(
-                self.slice_atom_data(
-                    atom_data, input_multislice.spec_lz, simulation.num_slices
-                )
-            )
-
             def slice_generator(extractor):
                 for zslice in extractor:
-                    yield (
-                        zslice.x_min,
-                        zslice.x_max - zslice.x_min,
+                    logger.info(
+                        "    Simulating z slice %f -> %f with %d atoms"
+                        % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+                    )
+                    x = (
+                        zslice.x_min[2],
+                        zslice.x_max[2] - zslice.x_min[2],
                         zslice.atoms.translate((offset, offset, 0)).to_multem(),
                     )
+                    yield x
 
             # Run the simulation
             output_multislice = multem.simulate(
@@ -409,7 +401,7 @@ class ExitWaveImageSimulator(object):
         image = numpy.array(output_multislice.data[0].psi_coh).T
 
         # Remove margin
-        margin = simulation.margin
+        margin = self.simulation["margin"]
         j0 = margin
         i0 = margin
         j1 = image.shape[0] - margin
@@ -418,10 +410,13 @@ class ExitWaveImageSimulator(object):
         assert i1 > i0
         assert j1 > j0
         image = image[j0:j1, i0:i1]
-        logger.info("Ideal image min/max: %f/%f" % (numpy.min(image), numpy.max(image)))
+        psi_tot = numpy.abs(image) ** 2
+        logger.info(
+            "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
+        )
 
         # Compute the image scaled with Poisson noise
-        return (i, angle, image)
+        return (index, angle, image)
 
 
 def exit_wave(
