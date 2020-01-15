@@ -196,13 +196,14 @@ class NexusWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
-    def __init__(self, filename, shape):
+    def __init__(self, filename, shape, dtype="float32"):
         """
         Initialise the writer
 
         Args:
             filename (str): The filename
             shape (tuple): The shape of the data
+            dtype (object): The data type of the data
 
         """
 
@@ -221,7 +222,7 @@ class NexusWriter(Writer):
         # Create the detector
         detector = instrument.create_group("detector")
         detector.attrs["NX_class"] = "NXdetector"
-        detector.create_dataset("data", shape=shape, dtype=numpy.float32)
+        detector.create_dataset("data", shape=shape, dtype=dtype)
         detector["image_key"] = numpy.zeros(shape=shape[0])
 
         # Create the sample
@@ -455,13 +456,14 @@ class Reader(object):
             raise RuntimeError(f"File with unknown extension: {filename}")
 
 
-def new(filename, shape=None, vmin=None, vmax=None):
+def new(filename, shape=None, dtype=None, vmin=None, vmax=None):
     """
     Create a new file for writing
 
     Args:
         filename (str): The output filename
         shape (tuple): The output shape
+        dtype (object): The data type (only used with NexusWriter)
         vmin (int): The minimum value (only used in ImageWriter)
         vmax (int): The maximum value (only used in ImageWriter)
 
@@ -473,7 +475,7 @@ def new(filename, shape=None, vmin=None, vmax=None):
     if extension in [".mrc"]:
         return MrcFileWriter(filename, shape)
     elif extension in [".h5", ".hdf5", ".nx", ".nxs", ".nexus", "nxtomo"]:
-        return NexusWriter(filename, shape)
+        return NexusWriter(filename, shape, dtype)
     elif extension in [".png", ".jpg", ".jpeg"]:
         return ImageWriter(filename, shape, vmin, vmax)
     else:

@@ -34,8 +34,6 @@ def default():
     return yaml.safe_load(
         """
 
-        output: output.h5
-
         sample:
 
             box: [ 4000, 4000, 4000 ]
@@ -127,10 +125,8 @@ def default():
         device: gpu
 
         simulation:
-            type: HRTEM
             slice_thickness: 3.0
             margin: 100
-            freeze: False
             num_slices: 1
 
         cluster:

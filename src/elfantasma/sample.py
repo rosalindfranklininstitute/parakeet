@@ -455,6 +455,27 @@ class AtomData(object):
         """
         self.data[["x", "y", "z"]] += numpy.array(translation)
 
+    def to_multem(self):
+        """
+        Convert to a multem atom list
+
+        Returns:
+            object: A multem atom list
+
+        """
+        return multem.AtomList(
+            zip(
+                self.data["atomic_number"],
+                self.data["x"],
+                self.data["y"],
+                self.data["z"],
+                self.data["sigma"],
+                self.data["occupancy"],
+                (0 for i in range(self.data.shape[0])),
+                self.data["charge"],
+            )
+        )
+
     @classmethod
     def from_gemmi_structure(Class, structure):
         """
