@@ -1045,7 +1045,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 100  # A
+        self.step = 500  # A
 
     def close(self):
         """
@@ -1922,11 +1922,12 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     data_buffer = []
     for x_index, x_slice in enumerate(packer):
 
-        # Read the coordinates.
+        # Read the coordinates. The packer goes along the z axis so we need to
+        # flip the coordinates since we want x slices
         coords = []
         for node in x_slice:
             coords.extend(node)
-        coords = numpy.array(coords, dtype="float32") + offset
+        coords = numpy.flip(numpy.array(coords, dtype="float32"), axis=1) + offset
 
         # Filter the coordinates by the shape to ensure no ice is outside the
         # shape. This is only really necessary for the cylinder shape
