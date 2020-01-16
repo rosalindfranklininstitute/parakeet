@@ -11,6 +11,7 @@
 
 import logging
 import numpy
+import pandas
 import warnings
 import elfantasma.config
 import elfantasma.freeze
@@ -382,20 +383,48 @@ class ExitWaveImageSimulator(object):
             output_multislice = multem.simulate(system_conf, input_multislice)
 
         else:
+            import time
 
             # Slice the specimen atoms
             def slice_generator(extractor):
-                for zslice in extractor:
+
+                # Get the data from the data buffer and return
+                def prepare(data_buffer):
+                    
+                    # Extract the data
+                    atoms = elfantasma.sample.AtomData(
+                        data=pandas.concat([d.atoms.data for d in data_buffer])
+                    )
+                    z_min = min([d.x_min[2] for d in data_buffer])
+                    z_max = max([d.x_max[2] for d in data_buffer])
+
+                    # Print some info
                     logger.info(
                         "    Simulating z slice %f -> %f with %d atoms"
-                        % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+                        % (z_min, z_max, atoms.data.shape[0])
                     )
-                    x = (
-                        zslice.x_min[2],
-                        zslice.x_max[2] - zslice.x_min[2],
-                        zslice.atoms.translate((offset, offset, 0)).to_multem(),
+
+                    # Return the Z-min, Z-max and atoms
+                    return (
+                        z_min,
+                        z_max,
+                        atoms.translate((offset, offset, 0)).to_multem(),
                     )
-                    yield x
+
+                # Loop through the slices and gather atoms until we have more
+                # than the maximum buffer size
+                max_buffer = 10_000_000
+                data_buffer = []
+                for zslice in extractor:
+                    data_buffer.append(zslice)
+                    if sum(d.atoms.data.shape[0] for d in data_buffer) > max_buffer:
+                        yield prepare(data_buffer)
+                        data_buffer = []
+
+                # Simulate from the final buffer
+                if len(data_buffer) > 0:
+                    yield prepare(data_buffer)
+                    data_buffer = []
 
             # Run the simulation
             output_multislice = multem.simulate(
