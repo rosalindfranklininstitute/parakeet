@@ -1523,8 +1523,9 @@ class AtomSliceExtractor(object):
 
         # Set the items
         self.sample = sample
+        self.centre = sample.centre
         self.translation = translation
-        self.rotation = rotation
+        self.rotation = rotation * pi / 180.0
         self.x0 = x0
         self.x1 = x1
         self.thickness = thickness
@@ -1553,7 +1554,9 @@ class AtomSliceExtractor(object):
             # append to the list of groupd
             group_names.append(name)
             group_coords.append(
-                Rotation.from_rotvec((rotation, 0, 0)).apply(y) + (translation, 0, 0)
+                Rotation.from_rotvec((self.rotation, 0, 0)).apply(y - self.centre)
+                + self.centre
+                + (self.translation, 0, 0)
             )
 
         # Compute the min and max coordinates of all the rotated groups and
@@ -1561,9 +1564,9 @@ class AtomSliceExtractor(object):
         group_coords = numpy.array(group_coords)
         min_x = numpy.min(group_coords.reshape((-1, 3)), axis=0)
         max_x = numpy.max(group_coords.reshape((-1, 3)), axis=0)
-        self.min_z = min_x[2]
+        self.min_z = max(0, min_x[2])
         self.max_z = max_x[2]
-        num_slices = ceil((self.max_z - self.min_z) / thickness)
+        num_slices = ceil((self.max_z - self.min_z) / self.thickness)
 
         # Loop through the groups. Compute the minimum and maximum coordinates
         # of the group and create a new box. Loop through the slices and check
@@ -1602,7 +1605,8 @@ class AtomSliceExtractor(object):
         def filter_atoms(atoms):
             coords = atoms[["x", "y", "z"]].to_numpy()
             coords = (
-                Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords)
+                Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords - self.centre)
+                + self.centre
                 + (self.translation, 0, 0)
             ).astype("float32")
             atoms["x"] = coords[:, 0]

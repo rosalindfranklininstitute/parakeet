@@ -347,7 +347,12 @@ class ExitWaveImageSimulator(object):
         x1 = (x_fov + position, y_fov)
         thickness = self.simulation["division_thickness"]
         extractor = elfantasma.sample.AtomSliceExtractor(
-            self.sample, angle, position, x0, x1, thickness
+            sample=self.sample,
+            translation=position,
+            rotation=angle,
+            x0=x0,
+            x1=x1,
+            thickness=thickness,
         )
 
         # Create the multem system configuration
@@ -389,7 +394,7 @@ class ExitWaveImageSimulator(object):
 
                 # Get the data from the data buffer and return
                 def prepare(data_buffer):
-                    
+
                     # Extract the data
                     atoms = elfantasma.sample.AtomData(
                         data=pandas.concat([d.atoms.data for d in data_buffer])
@@ -404,12 +409,11 @@ class ExitWaveImageSimulator(object):
                         % (z_min, z_max, atoms.data.shape[0])
                     )
 
+                    # Cast the atoms
+                    atoms = atoms.translate((offset, offset, 0)).to_multem()
+
                     # Return the Z-min, Z-max and atoms
-                    return (
-                        z_min,
-                        z_max,
-                        atoms.translate((offset, offset, 0)).to_multem(),
-                    )
+                    return (z_min, z_max, atoms)
 
                 # Loop through the slices and gather atoms until we have more
                 # than the maximum buffer size. There seems to be an overhead
@@ -540,7 +544,7 @@ class OpticsImageSimulator(object):
 
         # Set the input wave
         margin = self.simulation["margin"]
-        user_defined_wave = numpy.zeros(
+        user_defined_wave = numpy.ones(
             shape=(ny + 2 * margin, nx + 2 * margin), dtype=numpy.complex64
         )
         j0 = margin
