@@ -383,7 +383,6 @@ class ExitWaveImageSimulator(object):
             output_multislice = multem.simulate(system_conf, input_multislice)
 
         else:
-            import time
 
             # Slice the specimen atoms
             def slice_generator(extractor):
@@ -397,6 +396,7 @@ class ExitWaveImageSimulator(object):
                     )
                     z_min = min([d.x_min[2] for d in data_buffer])
                     z_max = max([d.x_max[2] for d in data_buffer])
+                    assert z_min < z_max
 
                     # Print some info
                     logger.info(
@@ -412,7 +412,10 @@ class ExitWaveImageSimulator(object):
                     )
 
                 # Loop through the slices and gather atoms until we have more
-                # than the maximum buffer size
+                # than the maximum buffer size. There seems to be an overhead
+                # to the simulation code so it's better to have as many atoms
+                # as possible before calling. Doing this is much fast than
+                # simulating with only a small number of atoms.
                 max_buffer = 10_000_000
                 data_buffer = []
                 for zslice in extractor:
