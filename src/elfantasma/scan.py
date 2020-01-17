@@ -60,7 +60,7 @@ def new(
     stop_angle=0,
     step_angle=0,
     start_pos=0,
-    stop_pos=0,
+    step_pos=0,
     exposure_time=1,
 ):
     """
@@ -72,7 +72,7 @@ def new(
         stop_angle (float): The stopping angle (deg)
         step_angle (float): The angle step (deg)
         start_pos (float): The starting position (A)
-        stop_pos (float): The stopping position (A)
+        step_pos (float): The step in position (A)
         exposure_time (float): The exposure time (seconds)
 
     Returns:
@@ -87,7 +87,7 @@ def new(
         return Scan(axis=axis, angles=angles, positions=positions)
     elif mode == "helical_scan":
         angles = numpy.arange(start_angle, stop_angle, step_angle)
-        step_pos = (stop_pos - start_pos) / len(angles)
+        stop_pos = start_pos + step_pos * len(angles)
         positions = numpy.arange(start_pos, stop_pos, step_pos)
         return Scan(
             axis=axis, angles=angles, positions=positions, exposure_time=exposure_time

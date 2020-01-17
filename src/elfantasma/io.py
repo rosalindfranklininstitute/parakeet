@@ -376,7 +376,66 @@ class Reader(object):
         self.position = position
         self.shape = data.shape
 
-    @classmethod
+    @property
+    def start_angle(self):
+        """
+        Returns:
+            float: the start angle
+        
+        """
+        return self.angle[0]
+
+    @property
+    def stop_angle(self):
+        """
+        Returns:
+            float: The stop angle
+
+        """
+        return self.angle[-1]
+
+    @property
+    def step_angle(self):
+        """
+        Returns:
+            float: The stop angle
+
+        """
+        tol = 1e-7
+        step = (self.angle[-1] - self.angle[0]) / len(self.angle)
+        assert all(abs((b-a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:]))
+        return step
+    
+    @property
+    def start_position(self):
+        """
+        Returns:
+            float: the start position
+        
+        """
+        return self.position[0]
+
+    @property
+    def stop_position(self):
+        """
+        Returns:
+            float: The stop position
+
+        """
+        return self.position[-1]
+
+    @property
+    def step_position(self):
+        """
+        Returns:
+            float: The stop position
+
+        """
+        tol = 1e-7
+        step = (self.position[-1] - self.position[0]) / len(self.position)
+        assert all(abs((b-a) - step) < tol for a, b in zip(self.position[0:-1], self.position[1:]))
+        return step
+
     def from_mrcfile(Class, filename):
         """
         Read the simulated data from a mrc file

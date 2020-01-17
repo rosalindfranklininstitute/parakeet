@@ -259,6 +259,45 @@ def shape_bounding_box(centre, shape):
     return (x0 + offset, x1 + offset)
 
 
+def shape_bounding_cylinder(centre, shape):
+    """
+    Compute the shape cylinder
+
+    Args:
+        centre (array): The centre of the shape
+        shape (object): The shape
+
+    Returns:
+        array: bounding cylinder
+
+    """
+
+    def cube_bounding_cylinder(cube):
+        length = cube["length"]
+        return (length, sqrt(length**2+length**2))
+
+    def cuboid_bounding_cylinder(cuboid):
+        length_x = cuboid["length_x"]
+        length_y = cuboid["length_y"]
+        length_z = cuboid["length_z"]
+        return (length_x, sqrt(length_y**2+length_z**2))
+
+    def cylinder_bounding_cylinder(cylinder):
+        length = cylinder["length"]
+        radius = cylinder["radius"]
+        return (length, radius)
+
+    # The bounding box
+    length, radius = {
+            "cube": cube_bounding_cylinder,
+            "cuboid": cuboid_bounding_cylinder,
+            "cylinder": cylinder_bounding_cylinder,
+        }[shape["type"]](shape[shape["type"]])
+
+    # Return the bounding box
+    return (centre, length, radius)
+
+
 def shape_enclosed_box(centre, shape):
     """
     Compute the shape enclosed box
@@ -1292,6 +1331,22 @@ class Sample(object):
 
         """
         self.__handle.sample.shape = shape
+
+    @property
+    def shape_box(self):
+        """
+        Return the shape box
+
+        """
+        return shape_bounding_box(self.centre, self.shape)
+
+    @property
+    def shape_radius(self):
+        """
+        Return a radius
+
+        """
+        return shape_bounding_cylinder(self.centre, self.shape)[2]
 
     @property
     def bounding_box(self):

@@ -331,9 +331,10 @@ class ExitWaveImageSimulator(object):
         nx = self.microscope.detector.nx
         ny = self.microscope.detector.ny
         pixel_size = self.microscope.detector.pixel_size
+        margin = self.simulation["margin"]
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
-        offset = self.simulation["margin"] * pixel_size
+        offset = margin * pixel_size
 
         # Get the specimen atoms
         logger.info(f"Simulating image {index}")
@@ -343,8 +344,8 @@ class ExitWaveImageSimulator(object):
         # input_multislice.spec_rot_u0 = simulation.scan.axis
 
         # Create the sample extractor
-        x0 = (0, 0)
-        x1 = (x_fov, y_fov)
+        x0 = (-offset, -offset)
+        x1 = (x_fov+offset, y_fov+offset)
         thickness = self.simulation["division_thickness"]
         extractor = elfantasma.sample.AtomSliceExtractor(
             sample=self.sample,
@@ -444,16 +445,7 @@ class ExitWaveImageSimulator(object):
         # transpose here.
         image = numpy.array(output_multislice.data[0].psi_coh).T
 
-        # Remove margin
-        margin = self.simulation["margin"]
-        j0 = margin
-        i0 = margin
-        j1 = image.shape[0] - margin
-        i1 = image.shape[1] - margin
-        assert margin >= 0
-        assert i1 > i0
-        assert j1 > j0
-        image = image[j0:j1, i0:i1]
+        # Print some info
         psi_tot = numpy.abs(image) ** 2
         logger.info(
             "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
@@ -509,22 +501,11 @@ class OpticsImageSimulator(object):
         pixel_size = self.microscope.detector.pixel_size
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
-        offset = self.simulation["margin"] * pixel_size
+        margin = self.simulation["margin"]
+        offset = margin * pixel_size
 
         # Get the specimen atoms
         logger.info(f"Simulating image {index}")
-
-        # Set the rotation angle
-        # input_multislice.spec_rot_theta = angle
-        # input_multislice.spec_rot_u0 = simulation.scan.axis
-
-        # Create the sample extractor
-        # x0 = (0, 0)
-        # x1 = (x_fov + position, y_fov)
-        # thickness = 10
-        # extractor = elfantasma.sample.AtomSliceExtractor(
-        #     self.sample, angle, position, x0, x1, thickness
-        # )
 
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
@@ -543,15 +524,8 @@ class OpticsImageSimulator(object):
         input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
         # Set the input wave
-        margin = self.simulation["margin"]
-        user_defined_wave = numpy.ones(
-            shape=(ny + 2 * margin, nx + 2 * margin), dtype=numpy.complex64
-        )
-        j0 = margin
-        i0 = margin
-        j1 = user_defined_wave.shape[0] - margin
-        i1 = user_defined_wave.shape[1] - margin
-        user_defined_wave[j0:j1, i0:i1] = self.exit_wave.data[index]
+        user_defined_wave = self.exit_wave.data[index]
+        assert user_defined_wave.shape == (ny + 2 * margin, nx + 2 * margin)
         input_multislice.iw_type = "User_Define_Wave"
         input_multislice.iw_psi = list(user_defined_wave.T.flatten())
         input_multislice.iw_x = [0.5 * input_multislice.spec_lx]
@@ -689,7 +663,7 @@ def exit_wave(
 
     # Create the simulation
     return Simulation(
-        image_size=(microscope.detector.nx, microscope.detector.ny),
+        image_size=(microscope.detector.nx+2*simulation["margin"], microscope.detector.ny+2*simulation["margin"]),
         scan=scan,
         cluster=cluster,
         simulate_image=ExitWaveImageSimulator(

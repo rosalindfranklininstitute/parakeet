@@ -119,7 +119,7 @@ def default():
             stop_angle: 360
             step_angle: 10
             start_pos: 0
-            stop_pos: 0
+            step_pos: auto
             exposure_time: 1
 
         device: gpu

@@ -16,6 +16,7 @@ import elfantasma.io
 import elfantasma.command_line
 import elfantasma.config
 import elfantasma.sample
+from math import pi
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -115,7 +116,12 @@ def exit_wave():
     sample = elfantasma.sample.load(args.sample)
 
     # Create the scan
+    if config["scan"]["step_pos"] == "auto":
+        radius = sample.shape_radius
+        config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
     scan = elfantasma.scan.new(**config["scan"])
+    if scan.positions[-1] > sample.containing_box[1][2]:
+        raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
     simulation = elfantasma.simulation.exit_wave(
@@ -232,6 +238,11 @@ def optics():
     exit_wave = elfantasma.io.open(args.exit_wave)
 
     # Create the scan
+    config["scan"]["start_angle"] = exit_wave.start_angle
+    config["scan"]["start_pos"] = exit_wave.start_position
+    config["scan"]["step_angle"] = exit_wave.step_angle
+    config["scan"]["stop_angle"] = exit_wave.stop_angle
+    config["scan"]["step_pos"] = exit_wave.step_position
     scan = elfantasma.scan.new(**config["scan"])
 
     # Create the simulation
@@ -308,12 +319,17 @@ def image():
     # Create the microscope
     microscope = elfantasma.microscope.new(**config["microscope"])
 
-    # Create the scan
-    scan = elfantasma.scan.new(**config["scan"])
-
     # Create the exit wave data
     logger.info(f"Loading sample from {args.optics}")
     optics = elfantasma.io.open(args.optics)
+
+    # Create the scan
+    config["scan"]["start_angle"] = optics.start_angle
+    config["scan"]["start_pos"] = optics.start_position
+    config["scan"]["step_angle"] = optics.step_angle
+    config["scan"]["stop_angle"] = optics.stop_angle
+    config["scan"]["step_pos"] = optics.step_position
+    scan = elfantasma.scan.new(**config["scan"])
 
     # Create the simulation
     simulation = elfantasma.simulation.image(
