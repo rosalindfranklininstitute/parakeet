@@ -246,9 +246,10 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, image = self.simulate_image(i)
+                _, angle, position, image = self.simulate_image(i)
                 writer.data[i, :, :] = image
                 writer.angle[i] = angle
+                writer.position[i] = (position, 0, 0)
         else:
 
             # Set the maximum number of workers
@@ -276,11 +277,12 @@ class Simulation(object):
                 for j, future in enumerate(elfantasma.futures.as_completed(futures)):
 
                     # Get the result
-                    i, angle, image = future.result()
+                    i, angle, position, image = future.result()
 
                     # Set the output in the writer
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
+                    writer.position[i] = (position, 0, 0)
 
                     # Write some info
                     vmin = numpy.min(image)
@@ -345,7 +347,7 @@ class ExitWaveImageSimulator(object):
 
         # Create the sample extractor
         x0 = (-offset, -offset)
-        x1 = (x_fov+offset, y_fov+offset)
+        x1 = (x_fov + offset, y_fov + offset)
         thickness = self.simulation["division_thickness"]
         extractor = elfantasma.sample.AtomSliceExtractor(
             sample=self.sample,
@@ -452,7 +454,7 @@ class ExitWaveImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, image)
+        return (index, angle, position, image)
 
 
 class OpticsImageSimulator(object):
@@ -569,7 +571,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, image)
+        return (index, angle, position, image)
 
 
 class ImageSimulator(object):
@@ -639,7 +641,7 @@ class ImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, image)
+        return (index, angle, position, image)
 
 
 def exit_wave(
@@ -663,7 +665,10 @@ def exit_wave(
 
     # Create the simulation
     return Simulation(
-        image_size=(microscope.detector.nx+2*simulation["margin"], microscope.detector.ny+2*simulation["margin"]),
+        image_size=(
+            microscope.detector.nx + 2 * simulation["margin"],
+            microscope.detector.ny + 2 * simulation["margin"],
+        ),
         scan=scan,
         cluster=cluster,
         simulate_image=ExitWaveImageSimulator(

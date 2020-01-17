@@ -402,10 +402,12 @@ class Reader(object):
 
         """
         tol = 1e-7
-        step = (self.angle[-1] - self.angle[0]) / len(self.angle)
-        assert all(abs((b-a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:]))
+        step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
+        assert all(
+            abs((b - a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:])
+        )
         return step
-    
+
     @property
     def start_position(self):
         """
@@ -413,7 +415,7 @@ class Reader(object):
             float: the start position
         
         """
-        return self.position[0]
+        return self.position[0][0]
 
     @property
     def stop_position(self):
@@ -422,7 +424,7 @@ class Reader(object):
             float: The stop position
 
         """
-        return self.position[-1]
+        return self.position[-1][0]
 
     @property
     def step_position(self):
@@ -432,8 +434,13 @@ class Reader(object):
 
         """
         tol = 1e-7
-        step = (self.position[-1] - self.position[0]) / len(self.position)
-        assert all(abs((b-a) - step) < tol for a, b in zip(self.position[0:-1], self.position[1:]))
+        step = (self.position[-1, 0] - self.position[0, 0]) / (
+            self.position.shape[0] - 1
+        )
+        assert all(
+            abs((b - a) - step) < tol
+            for a, b in zip(self.position[0:-1, 0], self.position[1:0])
+        )
         return step
 
     def from_mrcfile(Class, filename):
