@@ -381,7 +381,7 @@ class Reader(object):
         """
         Returns:
             float: the start angle
-        
+
         """
         return self.angle[0]
 
@@ -413,7 +413,7 @@ class Reader(object):
         """
         Returns:
             float: the start position
-        
+
         """
         return self.position[0][0]
 
@@ -443,6 +443,7 @@ class Reader(object):
         )
         return step
 
+    @classmethod
     def from_mrcfile(Class, filename):
         """
         Read the simulated data from a mrc file

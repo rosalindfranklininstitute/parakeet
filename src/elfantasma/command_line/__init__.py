@@ -253,11 +253,11 @@ def export(argv=None):
         help="The output filename",
     )
     parser.add_argument(
-        "--electrons_per_pixel",
-        type=float,
-        default=None,
-        dest="electrons_per_pixel",
-        help="Multiply data by this value and get Poisson pixel counts",
+        "--transpose",
+        type=bool,
+        default=False,
+        dest="transpose",
+        help="Transpose the data",
     )
 
     # Parse the arguments
@@ -288,22 +288,21 @@ def export(argv=None):
             )
         writer.vmin = min(min_image)
         writer.vmax = max(max_image)
-        if args.electrons_per_pixel is not None:
-            writer.vmin *= args.electons_per_pixel
-            writer.vmax *= args.electons_per_pixel
         logger.info("Min: %f" % writer.vmin)
         logger.info("Max: %f" % writer.vmax)
 
     # Write the data
     for i in range(reader.shape[0]):
         logger.info(f"    Copying image {i}")
-        if args.electrons_per_pixel is None:
-            image = reader.data[i, :, :]
-        else:
-            image = numpy.random.poisson(electrons_per_pixel * reader.data[i, :, :])
+        image = reader.data[i, :, :]
+        angle = reader.angle[i]
+        position = reader.position[i]
+        if args.transpose:
+            image = image.T
+            position = (position[1], position[0], position[2])
         writer.data[i, :, :] = image
-        writer.angle[i] = reader.angle[i]
-        writer.position[i] = reader.position[i]
+        writer.angle[i] = angle
+        writer.position[i] = position
 
 
 def read_pdb():
