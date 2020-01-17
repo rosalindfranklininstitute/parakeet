@@ -344,7 +344,7 @@ class ExitWaveImageSimulator(object):
 
         # Create the sample extractor
         x0 = (0, 0)
-        x1 = (x_fov + position, y_fov)
+        x1 = (x_fov, y_fov)
         thickness = self.simulation["division_thickness"]
         extractor = elfantasma.sample.AtomSliceExtractor(
             sample=self.sample,

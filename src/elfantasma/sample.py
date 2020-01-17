@@ -285,7 +285,10 @@ def shape_enclosed_box(centre, shape):
     def cylinder_enclosed_box(cylinder):
         length = cylinder["length"]
         radius = cylinder["radius"]
-        return ((0, 0, 0), (length, radius / sqrt(2), radius / sqrt(2)))
+        return (
+            (0, radius * (1 - 1 / sqrt(2)), radius * (1 - 1 / sqrt(2))),
+            (length, radius * (1 + 1 / sqrt(2)), radius * (1 + 1 / sqrt(2))),
+        )
 
     # The enclosed box
     x0, x1 = numpy.array(
@@ -1470,6 +1473,16 @@ class Sample(object):
             "    Centre z:      %.2f" % self.centre[2],
             "    Shape:         %s" % str(self.shape),
         ]
+        for name, molecule in self.iter_molecules():
+            molecule_lines = [
+                "    Molecule: %s" % name,
+                "        Positions:\n%s"
+                % "\n".join(["%s%s" % (" " * 12, str(p)) for p in molecule[1]]),
+                "        Orientations:\n%s"
+                % "\n".join(["%s%s" % (" " * 12, str(o)) for o in molecule[2]]),
+            ]
+            lines.extend(molecule_lines)
+
         return "\n".join(lines)
 
 
@@ -1556,7 +1569,7 @@ class AtomSliceExtractor(object):
             group_coords.append(
                 Rotation.from_rotvec((self.rotation, 0, 0)).apply(y - self.centre)
                 + self.centre
-                + (self.translation, 0, 0)
+                - (self.translation, 0, 0)
             )
 
         # Compute the min and max coordinates of all the rotated groups and
@@ -1607,12 +1620,13 @@ class AtomSliceExtractor(object):
             coords = (
                 Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords - self.centre)
                 + self.centre
-                + (self.translation, 0, 0)
+                - (self.translation, 0, 0)
             ).astype("float32")
             atoms["x"] = coords[:, 0]
             atoms["y"] = coords[:, 1]
             atoms["z"] = coords[:, 2]
-            return atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+            atoms = atoms[((coords >= x_min) & (coords < x_max)).all(axis=1)]
+            return atoms
 
         # Check the index
         assert index >= 0 and index < len(self.__groups_in_slice)
@@ -2170,8 +2184,8 @@ def add_multiple_molecules(sample, molecules):
     ):
 
         # Get atom data bounds
-        x0 = box[0] + sample.centre
-        x1 = box[1] + sample.centre
+        x0 = position - box / 2.0
+        x1 = position + box / 2.0
 
         # Check the coords
         assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
