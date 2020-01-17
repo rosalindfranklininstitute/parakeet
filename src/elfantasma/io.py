@@ -129,19 +129,30 @@ class MrcFileWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
-    def __init__(self, filename, shape):
+    def __init__(self, filename, shape, dtype="uint8"):
         """
         Initialise the writer
 
         Args:
             filename (str): The filename
             shape (tuple): The shape of the data
+            dtype (str): The data type
 
         """
 
+        # Get the mrc mode
+        mrc_mode = {
+            "int8": 0,
+            "int16": 1,
+            "float32": 2,
+            "complex64": 4,
+            "uint16": 6,
+            "int32": 1,  # Convert to int16
+        }
+
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
-            filename, shape=shape, mrc_mode=6, overwrite=True
+            filename, shape=shape, mrc_mode=mrc_mode[dtype], overwrite=True
         )
 
         # Setup the extended header
@@ -540,7 +551,7 @@ def new(filename, shape=None, dtype=None, vmin=None, vmax=None):
     """
     extension = os.path.splitext(filename)[1].lower()
     if extension in [".mrc"]:
-        return MrcFileWriter(filename, shape)
+        return MrcFileWriter(filename, shape, dtype)
     elif extension in [".h5", ".hdf5", ".nx", ".nxs", ".nexus", "nxtomo"]:
         return NexusWriter(filename, shape, dtype)
     elif extension in [".png", ".jpg", ".jpeg"]:

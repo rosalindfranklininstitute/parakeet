@@ -295,7 +295,7 @@ def export(argv=None):
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(args.output, shape=shape)
+    writer = elfantasma.io.new(args.output, shape=shape, dtype=reader.data.dtype.name)
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
