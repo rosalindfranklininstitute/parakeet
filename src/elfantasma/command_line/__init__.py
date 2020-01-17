@@ -22,7 +22,7 @@ import elfantasma.scan
 import elfantasma.simulation
 
 # Get the logger
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def configure_logging():
@@ -259,6 +259,13 @@ def export(argv=None):
         dest="transpose",
         help="Transpose the data",
     )
+    parser.add_argument(
+        "--rotation_range",
+        type=str,
+        default=None,
+        dest="rotation_range",
+        help="Select a rotation range",
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -270,6 +277,19 @@ def export(argv=None):
     logger.info(f"Reading data from {args.filename}")
     reader = elfantasma.io.open(args.filename)
 
+    # Get the shape and indices to read
+    if args.rotation_range is not None:
+        args.rotation_range = tuple(map(int, args.rotation_range.split(",")))
+        indices = []
+        for i in range(reader.shape[0]):
+            angle = reader.angle[i]
+            if angle >= args.rotation_range[0] and angle < args.rotation_range[1]:
+                indices.append(i)
+            else:
+                logger.info(f"    Skipping image {i} because angle is out of range")
+    else:
+        indices = range(reader.shape[0])
+
     # Create the write
     logger.info(f"Writing data to {args.output}")
     writer = elfantasma.io.new(args.output, shape=reader.data.shape)
@@ -279,7 +299,7 @@ def export(argv=None):
         logger.info("Computing min and max of dataset:")
         min_image = []
         max_image = []
-        for i in range(reader.shape[0]):
+        for i in indices:
             min_image.append(numpy.min(reader.data[i, :, :]))
             max_image.append(numpy.max(reader.data[i, :, :]))
             logger.info(
@@ -292,7 +312,7 @@ def export(argv=None):
         logger.info("Max: %f" % writer.vmax)
 
     # Write the data
-    for i in range(reader.shape[0]):
+    for i in indices:
         logger.info(f"    Copying image {i}")
         image = reader.data[i, :, :]
         angle = reader.angle[i]
