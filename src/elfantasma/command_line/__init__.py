@@ -288,11 +288,14 @@ def export(argv=None):
             else:
                 logger.info(f"    Skipping image {i} because angle is out of range")
     else:
-        indices = range(reader.shape[0])
+        indices = list(range(reader.shape[0]))
+
+    # Set the dataset shape
+    shape = (len(indices), reader.data.shape[1], reader.data.shape[2])
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(args.output, shape=reader.data.shape)
+    writer = elfantasma.io.new(args.output, shape=shape)
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
@@ -312,17 +315,17 @@ def export(argv=None):
         logger.info("Max: %f" % writer.vmax)
 
     # Write the data
-    for i in indices:
-        logger.info(f"    Copying image {i}")
+    for j, i in enumerate(indices):
+        logger.info(f"    Copying image {i} -> image {j}")
         image = reader.data[i, :, :]
         angle = reader.angle[i]
         position = reader.position[i]
         if args.transpose:
             image = image.T
             position = (position[1], position[0], position[2])
-        writer.data[i, :, :] = image
-        writer.angle[i] = angle
-        writer.position[i] = position
+        writer.data[j, :, :] = image
+        writer.angle[j] = angle
+        writer.position[j] = position
 
 
 def read_pdb():
