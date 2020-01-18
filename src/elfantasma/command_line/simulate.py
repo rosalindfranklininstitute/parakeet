@@ -120,7 +120,7 @@ def exit_wave():
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
     scan = elfantasma.scan.new(**config["scan"])
-    if scan.positions[-1] > sample.containing_box[1][2]:
+    if scan.positions[-1] > sample.containing_box[1][0]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
