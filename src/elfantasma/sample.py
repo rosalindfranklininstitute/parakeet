@@ -2024,7 +2024,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
 
             # Create the new arrays
             atomic_number = new_array(coords.shape[0], "atomic_number", atomic_number)
-            sigma = new_array(coords.shape[0], "sigma", 0.088)
+            sigma = new_array(coords.shape[0], "sigma", 0.085)
             occupancy = new_array(coords.shape[0], "occupancy", 1.0)
             charge = new_array(coords.shape[0], "charge", 0)
 
