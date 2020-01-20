@@ -12,6 +12,7 @@
 import logging
 import numpy
 import pandas
+import time
 import warnings
 import elfantasma.config
 import elfantasma.freeze
@@ -437,8 +438,12 @@ class ExitWaveImageSimulator(object):
                     data_buffer = []
 
             # Run the simulation
+            st = time.time()
             output_multislice = multem.simulate(
                 system_conf, input_multislice, slice_generator(extractor)
+            )
+            logger.info(
+                "    Image %d simulated in %d seconds" % (index, time.time() - st)
             )
 
         # Get the ideal image data
