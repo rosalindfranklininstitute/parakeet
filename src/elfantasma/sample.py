@@ -1746,15 +1746,18 @@ class AtomDeleter(object):
         )
 
         # The min and max coordinates
-        self.x0 = numpy.floor(numpy.min(coords, axis=0))
-        self.x1 = numpy.ceil(numpy.max(coords, axis=0))
+        border = 5  # A
+        self.x0 = numpy.floor(numpy.min(coords, axis=0)) - border
+        self.x1 = numpy.ceil(numpy.max(coords, axis=0)) + border
 
         # The size of the box in A
         self.size = self.x1 - self.x0
 
         # The grid size
         self.grid_cell_size = 2.0  # 2 A
-        min_distance = 4 / self.grid_cell_size  # The distance at which to delete atoms
+        min_distance = (
+            5.0 / self.grid_cell_size
+        )  # The distance at which to delete atoms
 
         # The dimensions of the grid
         grid_shape = numpy.ceil(self.size / self.grid_cell_size).astype("uint32")
@@ -1777,6 +1780,7 @@ class AtomDeleter(object):
         self.grid = (
             scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
         )
+        self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
         logger.info("Filled grid with atom positions:")
         logger.info("    x0: %g" % self.x0[0])
