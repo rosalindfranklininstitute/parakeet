@@ -266,6 +266,9 @@ def export(argv=None):
         dest="rotation_range",
         help="Select a rotation range",
     )
+    parser.add_argument(
+        "--roi", type=str, default=None, dest="roi", help="Select a region of interest"
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -290,8 +293,16 @@ def export(argv=None):
     else:
         indices = list(range(reader.shape[0]))
 
+    # Get the region of interest
+    if args.roi is not None:
+        x0, y0, x1, y1 = tuple(map(int, args.roi.split(",")))
+        assert x1 > x0
+        assert y1 > y0
+    else:
+        x0, y0, x1, y1 = 0, 0, reader.data.shape[2], reader.data.shape[1]
+
     # Set the dataset shape
-    shape = (len(indices), reader.data.shape[1], reader.data.shape[2])
+    shape = (len(indices), y1 - y0, x1 - x0)
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
@@ -303,8 +314,8 @@ def export(argv=None):
         min_image = []
         max_image = []
         for i in indices:
-            min_image.append(numpy.min(reader.data[i, :, :]))
-            max_image.append(numpy.max(reader.data[i, :, :]))
+            min_image.append(numpy.min(reader.data[i, y0:y1, x0:x1]))
+            max_image.append(numpy.max(reader.data[i, y0:y1, x0:x1]))
             logger.info(
                 "    Reading image %d: min/max: %.2f/%.2f"
                 % (i, min_image[-1], max_image[-1])
@@ -317,7 +328,8 @@ def export(argv=None):
     # Write the data
     for j, i in enumerate(indices):
         logger.info(f"    Copying image {i} -> image {j}")
-        image = reader.data[i, :, :]
+        image = reader.data[i, y0:y1, x0:x1]
+        print(image.shape)
         angle = reader.angle[i]
         position = reader.position[i]
         if args.transpose:
