@@ -1829,7 +1829,8 @@ class AtomDeleter(object):
 
         # Print some info
         logger.info(
-            "Deleted %d/%d atoms" % (numpy.count_nonzero(selection), coords.shape[0])
+            "Deleted %d/%d atoms"
+            % (len(selection) - numpy.count_nonzero(selection), coords.shape[0])
         )
 
         # Return the atoms
