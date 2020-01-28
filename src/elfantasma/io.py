@@ -468,22 +468,27 @@ class Reader(object):
         handle = mrcfile.mmap(filename, "r")
 
         # Check the header info
-        assert handle.header.exttyp == b"FEI1"
-        assert handle.extended_header.dtype == mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
-        assert len(handle.extended_header.shape) == 1
-        assert handle.extended_header.shape[0] == handle.data.shape[0]
+        if handle.header.exttyp == b"FEI1":
+            assert (
+                handle.extended_header.dtype == mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
+            )
+            assert len(handle.extended_header.shape) == 1
+            assert handle.extended_header.shape[0] == handle.data.shape[0]
 
-        # Read the angles
-        angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
-        for i in range(handle.extended_header.shape[0]):
-            angle[i] = handle.extended_header[i]["Tilt axis angle"]
+            # Read the angles
+            angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
+            for i in range(handle.extended_header.shape[0]):
+                angle[i] = handle.extended_header[i]["Tilt axis angle"]
 
-        # Read the positions
-        position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
-        for i in range(handle.extended_header.shape[0]):
-            position[i, 0] = handle.extended_header[i]["X-Stage"]
-            position[i, 1] = handle.extended_header[i]["Y-Stage"]
-            position[i, 2] = handle.extended_header[i]["Z-Stage"]
+            # Read the positions
+            position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
+            for i in range(handle.extended_header.shape[0]):
+                position[i, 0] = handle.extended_header[i]["X-Stage"]
+                position[i, 1] = handle.extended_header[i]["Y-Stage"]
+                position[i, 2] = handle.extended_header[i]["Z-Stage"]
+        else:
+            angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
+            position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
 
         # Create the reader
         return Reader(handle, handle.data, angle, position)
