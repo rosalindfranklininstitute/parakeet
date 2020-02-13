@@ -529,6 +529,24 @@ class AtomData(object):
             )
         )
 
+    def rows(self):
+        """
+        Iterate through atoms rows
+
+        Yield:
+            tuple: atom data
+
+        """
+        return zip(
+            self.data["atomic_number"],
+            self.data["x"],
+            self.data["y"],
+            self.data["z"],
+            self.data["sigma"],
+            self.data["occupancy"],
+            self.data["charge"],
+        )
+
     @classmethod
     def from_gemmi_structure(Class, structure):
         """
@@ -603,6 +621,47 @@ class AtomData(object):
         return Class.from_gemmi_structure(
             gemmi.make_structure_from_chemcomp_block(gemmi.cif.read(filename)[0])
         )
+
+    @classmethod
+    def from_text_file(Class, filename):
+        """
+        Read the sample from a text file
+
+        Args:
+            filename (str): The input filename
+
+        Returns:
+            object: The Sample object
+
+        """
+
+        # The column order
+        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge"]
+
+        # Iterate through the atoms
+        def iterate_atoms(infile):
+            for line in infile.readlines():
+                tokens = line.split()
+                yield (
+                    int(tokens[0]),
+                    float(tokens[1]),
+                    float(tokens[2]),
+                    float(tokens[3]),
+                    float(tokens[4]),
+                    float(tokens[5]),
+                    int(tokens[6]),
+                )
+
+        # Create a dictionary of column data
+        def create_atom_data(infile):
+            return dict(
+                (name, pandas.Series(data, dtype=AtomData.column_data[name]))
+                for data, name in zip(zip(*iterate_atoms(infile)), column_info)
+            )
+
+        # Return the atom data
+        with open(filename, "r") as infile:
+            return AtomData(data=pandas.DataFrame(create_atom_data(infile)))
 
 
 class SampleHDF5Adapter(object):
@@ -1087,7 +1146,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 500  # A
+        self.step = 1000  # A
 
     def close(self):
         """
@@ -1216,12 +1275,16 @@ class Sample(object):
 
         # Ensure the number is correct
         assert sum(map(len, index_list)) == atoms.data.shape[0]
+        # assert numpy.max(split_index) < len(x_min)
 
         # Add the atoms to the subgroups
         for i in range(len(split_index)):
-            name = self.atoms_dataset_name(x_min[split_index[i]])
-            data = atoms.data.iloc[index_list[i]]
-            self.__handle.sample.atoms[name].extend(data)
+            try:
+                name = self.atoms_dataset_name(x_min[split_index[i]])
+                data = atoms.data.iloc[index_list[i]]
+                self.__handle.sample.atoms[name].extend(data)
+            except Exception:
+                print("SKIPPING: ", i)
 
     def del_atoms(self, deleter):
         """
@@ -1454,6 +1517,21 @@ class Sample(object):
             yield (x, x + self.step), AtomData(
                 data=self.__handle.sample.atoms[name].atoms
             )
+
+    def get_atoms(self):
+        """
+        Get all the atoms
+
+        Returns:
+            object: The atom data
+
+        """
+
+        # Iterate over dataset ranges
+        data = pandas.DataFrame()
+        for (x0, x1), atoms in self.iter_atoms():
+            data = pandas.concat([data, atoms.data], ignore_index=True)
+        return AtomData(data=data)
 
     def get_atoms_in_group(self, name):
         """

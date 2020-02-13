@@ -350,3 +350,80 @@ def image():
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def simple():
+    """
+    Simulate the image
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Simulate the image")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="output.h5",
+        dest="output",
+        help="The filename for the output",
+    )
+    parser.add_argument(
+        "atoms",
+        type=str,
+        default=None,
+        nargs="?",
+        help="The filename for the input atoms",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Configure some basic logging
+    elfantasma.command_line.configure_logging()
+
+    # Load the full configuration
+    config = elfantasma.config.load(args.config)
+
+    # Print some options
+    elfantasma.config.show(config)
+
+    # Create the microscope
+    microscope = elfantasma.microscope.new(**config["microscope"])
+
+    # Create the exit wave data
+    logger.info(f"Loading sample from {args.atoms}")
+    atoms = elfantasma.sample.AtomData.from_text_file(args.atoms)
+
+    # Create the simulation
+    simulation = elfantasma.simulation.simple(
+        microscope=microscope,
+        atoms=atoms,
+        device=config["device"],
+        simulation=config["simulation"],
+    )
+
+    # Create the writer
+    logger.info(f"Opening file: {args.output}")
+    writer = elfantasma.io.new(
+        args.output, shape=simulation.shape, dtype=numpy.complex64
+    )
+
+    # Run the simulation
+    simulation.run(writer)
+
+    # Write some timing stats
+    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

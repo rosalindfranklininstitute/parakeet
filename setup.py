@@ -45,6 +45,7 @@ def main():
                 "elfantasma.simulate.exit_wave=elfantasma.command_line.simulate:exit_wave",
                 "elfantasma.simulate.optics=elfantasma.command_line.simulate:optics",
                 "elfantasma.simulate.image=elfantasma.command_line.simulate:image",
+                "elfantasma.simulate.simple=elfantasma.command_line.simulate:simple",
             ]
         },
         extras_require={
