@@ -152,15 +152,22 @@ class MrcFileWriter(Writer):
 
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
-            filename, shape=shape, mrc_mode=mrc_mode[dtype], overwrite=True
+            filename, shape=(0, 0, 0), mrc_mode=mrc_mode[dtype], overwrite=True
         )
 
         # Setup the extended header
         extended_header = numpy.zeros(
             shape=shape[0], dtype=mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
         )
+
+        # Set the header
         self.handle.set_extended_header(extended_header)
         self.handle.header.exttyp = "FEI1"
+
+        # Now resize the data
+        self.handle._open_memmap(dtype, shape)
+        self.handle.update_header_from_data()
+        self.handle.flush()
 
         # Set the data array
         self._data = self.handle.data
