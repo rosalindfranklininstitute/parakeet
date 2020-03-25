@@ -332,12 +332,14 @@ def export(argv=None):
         print(image.shape)
         angle = reader.angle[i]
         position = reader.position[i]
+        pixel_size = reader.pixel_size[i]
         if args.transpose:
             image = image.T
             position = (position[1], position[0], position[2])
         writer.data[j, :, :] = image
         writer.angle[j] = angle
         writer.position[j] = position
+        writer.pixel_size[j] = pixel_size
 
 
 def read_pdb():

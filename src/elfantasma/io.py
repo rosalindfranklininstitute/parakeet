@@ -30,6 +30,14 @@ class Writer(object):
         return self._data.shape
 
     @property
+    def dtype(self):
+        """
+        The dtype property
+
+        """
+        return self._data.dtype
+
+    @property
     def data(self):
         """
         The data property
@@ -52,6 +60,14 @@ class Writer(object):
 
         """
         return self._position
+
+    @property
+    def pixel_size(self):
+        """
+        The pixel size property
+
+        """
+        return self._pixel_size
 
     @property
     def is_mrcfile_writer(self):
@@ -129,6 +145,37 @@ class MrcFileWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
+    class PixelSizeProxy(object):
+        """
+        Proxy interface to pixel sizes
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+            n = len(self.handle.extended_header)
+            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
+
+        def __setitem__(self, item, data):
+
+            # Set the items
+            def setitem_internal(j, i, d):
+                if i == 0:
+                    self.handle.extended_header[j]["Pixel size X"] = d
+                elif i == 1:
+                    self.handle.extended_header[j]["Pixel size Y"] = d
+
+            # Get the indices from the item
+            x = self.x[item]
+            y = self.y[item]
+
+            # Set the item
+            if isinstance(x, numpy.ndarray):
+                for j, i, d in zip(y, x, data):
+                    setitem_internal(j, i, d)
+            else:
+                setitem_internal(y, x, data)
+
     def __init__(self, filename, shape, dtype="uint8"):
         """
         Initialise the writer
@@ -173,6 +220,7 @@ class MrcFileWriter(Writer):
         self._data = self.handle.data
         self._angle = MrcFileWriter.AngleProxy(self.handle)
         self._position = MrcFileWriter.PositionProxy(self.handle)
+        self._pixel_size = MrcFileWriter.PixelSizeProxy(self.handle)
 
 
 class NexusWriter(Writer):
@@ -214,6 +262,37 @@ class NexusWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
+    class PixelSizeProxy(object):
+        """
+        Proxy interface to pixel_size
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+            n = self.handle["x_pixel_size"].shape[0]
+            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
+
+        def __setitem__(self, item, data):
+
+            # Set the items
+            def setitem_internal(j, i, s):
+                if i == 0:
+                    self.handle["x_pixel_size"][j] = s
+                elif i == 1:
+                    self.handle["y_pixel_size"][j] = s
+
+            # Get the indices from the item
+            x = self.x[item]
+            y = self.y[item]
+
+            # Set the item
+            if isinstance(x, numpy.ndarray):
+                for j, i, d in zip(y, x, data):
+                    setitem_internal(j, i, d)
+            else:
+                setitem_internal(y, x, data)
+
     def __init__(self, filename, shape, dtype="float32"):
         """
         Initialise the writer
@@ -242,6 +321,8 @@ class NexusWriter(Writer):
         detector.attrs["NX_class"] = "NXdetector"
         detector.create_dataset("data", shape=shape, dtype=dtype)
         detector["image_key"] = numpy.zeros(shape=shape[0])
+        detector["x_pixel_size"] = numpy.zeros(shape=shape[0])
+        detector["y_pixel_size"] = numpy.zeros(shape=shape[0])
 
         # Create the sample
         sample = entry.create_group("sample")
@@ -265,6 +346,7 @@ class NexusWriter(Writer):
         self._data = data["data"]
         self._angle = data["rotation_angle"]
         self._position = NexusWriter.PositionProxy(data)
+        self._pixel_size = NexusWriter.PixelSizeProxy(detector)
 
 
 class ImageWriter(Writer):
@@ -301,6 +383,12 @@ class ImageWriter(Writer):
             assert data.shape[0] == self.shape[1]
             assert data.shape[1] == self.shape[2]
 
+            # Convert to squared amplitude
+            if numpy.iscomplexobj(data):
+                data = numpy.abs(data) ** 2
+                self.vmin = None
+                self.vmax = None
+
             # Compute scale factors to put between 0 and 255
             if self.vmin is None:
                 vmin = numpy.min(data)
@@ -334,6 +422,7 @@ class ImageWriter(Writer):
         # Create dummy arrays for angle and position
         self._angle = numpy.zeros(shape=shape[0], dtype=numpy.float32)
         self._position = numpy.zeros(shape=(shape[0], 3), dtype=numpy.float32)
+        self._pixel_size = numpy.zeros(shape=(shape[0], 2), dtype=numpy.float32)
 
     @property
     def vmin(self):
@@ -374,7 +463,7 @@ class Reader(object):
 
     """
 
-    def __init__(self, handle, data, angle, position):
+    def __init__(self, handle, data, angle, position, pixel_size):
         """
         Initialise the data
 
@@ -382,17 +471,22 @@ class Reader(object):
             data (array): The data array
             angle (array): The angle array
             position (array): The position array
+            pixel_size (array): The pixel size array
 
         """
         # Check the size
         assert len(angle) == data.shape[0], "Inconsistent dimensions"
         assert len(position) == data.shape[0], "Inconsistent dimensions"
+        assert len(pixel_size) == data.shape[0], "Inconsistent dimensions"
 
         # Set the array
+        self.handle = handle
         self.data = data
         self.angle = angle
         self.position = position
+        self.pixel_size = pixel_size
         self.shape = data.shape
+        self.dtype = data.dtype
 
     @property
     def start_angle(self):
@@ -421,9 +515,9 @@ class Reader(object):
         """
         tol = 1e-7
         step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
-        assert all(
-            abs((b - a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:])
-        )
+        # assert all(
+        #     abs((b - a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:])
+        # )
         return step
 
     @property
@@ -482,6 +576,16 @@ class Reader(object):
             assert len(handle.extended_header.shape) == 1
             assert handle.extended_header.shape[0] == handle.data.shape[0]
 
+            # Read the pixel size
+            pixel_size = numpy.zeros(
+                shape=(handle.data.shape[0], 2), dtype=numpy.float32
+            )
+            for i in range(handle.extended_header.shape[0]):
+                pixel_size[i] = (
+                    handle.extended_header[i]["Pixel size X"],
+                    handle.extended_header[i]["Pixel size Y"],
+                )
+
             # Read the angles
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             for i in range(handle.extended_header.shape[0]):
@@ -496,9 +600,10 @@ class Reader(object):
         else:
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
+            pixel_size = numpy.zeros(shape=handle.data.shape[0], dtype=numpy.float32)
 
         # Create the reader
-        return Reader(handle, handle.data, angle, position)
+        return Reader(handle, handle.data, angle, position, pixel_size)
 
     @classmethod
     def from_nexus(Class, filename):
@@ -518,15 +623,27 @@ class Reader(object):
         assert entry.attrs["NX_class"] == "NXentry"
         assert entry["definition"][()] == "NXtomo"
 
-        # Get the data
+        # Get the data and detector
         data = entry["data"]
+        detector = entry["instrument"]["detector"]
 
+        # Get the positions
         position = numpy.array(
             (data["x_translation"], data["y_translation"], data["z_translation"])
         ).T
 
+        # Get the pixel size
+        if "x_pixel_size" and "y_pixel_size" in detector:
+            pixel_size = numpy.array(
+                (detector["x_pixel_size"], detector["y_pixel_size"])
+            ).T
+        else:
+            pixel_size = numpy.zeros(shape=(position.shape[0], 2))
+
         # Create the reader
-        return Reader(handle, data["data"], data["rotation_angle"], position)
+        return Reader(
+            handle, data["data"], data["rotation_angle"], position, pixel_size
+        )
 
     @classmethod
     def from_file(Class, filename):
