@@ -1146,7 +1146,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 1000  # A
+        self.step = 500  # A
 
     def close(self):
         """
@@ -2158,7 +2158,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
     return sample
 
 
-def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
+def new(filename, box=None, centre=None, shape=None, ice=None, coords=None, **kwargs):
     """
     Create the sample
 
@@ -2168,6 +2168,7 @@ def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
         centre (list): The centering of the sample in the box
         shape (object): The shape of the sample
         ice (object): The ice description
+        coords_filename (object): The coordinates
 
     Returns:
         object: The test sample
@@ -2188,6 +2189,20 @@ def new(filename, box=None, centre=None, shape=None, ice=None, **kwargs):
     # Add some ice
     if ice is not None and ice["generate"]:
         add_ice(sample, centre, shape, ice["density"])
+
+    # Add atoms from coordinates file
+    if coords is not None and coords["filename"]:
+        atoms = AtomData.from_gemmi_file(coords["filename"])
+        if coords["recentre"]:
+            atoms.data = recentre(atoms.data)
+            position = sample.centre
+        else:
+            position = (0, 0, 0)
+
+        # Add the molecule
+        sample.add_molecule(
+            atoms, positions=[position], orientations=[(0, 0, 0)], name=None
+        )
 
     # Print some info
     logger.info(sample.info())
