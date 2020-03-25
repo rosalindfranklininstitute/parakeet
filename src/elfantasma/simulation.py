@@ -639,6 +639,7 @@ class ImageSimulator(object):
 
         # Compute the new image
         image = self.optics.data[index] / numpy.mean(self.optics.data[index])
+        numpy.random.seed(int(time.time()))
         image = numpy.random.poisson(image * N)
 
         # Print some info
