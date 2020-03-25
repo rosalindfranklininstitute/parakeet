@@ -181,11 +181,13 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
 
     # defocus spread function
-    input_multislice.obj_lens_dsf_sigma = defocus_spread(
-        microscope.lens.c_c,
-        microscope.beam.energy_spread,
-        microscope.lens.current_spread,
-        microscope.beam.acceleration_voltage_spread,
+    input_multislice.obj_lens_dsf_sigma = multem.iehwgd_to_sigma(
+        defocus_spread(
+            microscope.lens.c_c * 1e-3 / 1e-10,  # Convert from mm to A
+            microscope.beam.energy_spread,
+            microscope.lens.current_spread,
+            microscope.beam.acceleration_voltage_spread,
+        )
     )
 
     # zero defocus reference
