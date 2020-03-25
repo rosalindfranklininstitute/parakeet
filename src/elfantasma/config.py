@@ -36,6 +36,10 @@ def default():
 
         sample:
 
+            coords:
+                filename: null
+                recentre: False
+
             box: [ 4000, 4000, 4000 ]
 
             centre: [ 2000, 2000, 2000 ]
