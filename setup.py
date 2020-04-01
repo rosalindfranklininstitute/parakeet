@@ -42,6 +42,7 @@ def main():
                 "elfantasma.sample.add_molecules=elfantasma.command_line.sample:add_molecules",
                 "elfantasma.sample.mill=elfantasma.command_line.sample:mill",
                 "elfantasma.sample.show=elfantasma.command_line.sample:show",
+                "elfantasma.simulate.projected_potential=elfantasma.command_line.simulate:projected_potential",
                 "elfantasma.simulate.exit_wave=elfantasma.command_line.simulate:exit_wave",
                 "elfantasma.simulate.optics=elfantasma.command_line.simulate:optics",
                 "elfantasma.simulate.image=elfantasma.command_line.simulate:image",

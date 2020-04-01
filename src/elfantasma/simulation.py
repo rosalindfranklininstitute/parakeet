@@ -10,6 +10,7 @@
 #
 
 import logging
+import h5py
 import numpy
 import pandas
 import time
@@ -231,7 +232,7 @@ class Simulation(object):
         nz = len(self.scan)
         return (nz, ny, nx)
 
-    def run(self, writer):
+    def run(self, writer=None):
         """
         Run the simulation
 
@@ -241,7 +242,8 @@ class Simulation(object):
         """
 
         # Check the shape of the writer
-        assert writer.shape == self.shape
+        if writer:
+            assert writer.shape == self.shape
 
         # If we are executing in a single process just do a for loop
         if self.cluster["method"] is None:
@@ -250,9 +252,10 @@ class Simulation(object):
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
                 _, angle, position, image = self.simulate_image(i)
-                writer.data[i, :, :] = image
-                writer.angle[i] = angle
-                writer.position[i] = (position, 0, 0)
+                if writer:
+                    writer.data[i, :, :] = image
+                    writer.angle[i] = angle
+                    writer.position[i] = (position, 0, 0)
         else:
 
             # Set the maximum number of workers
@@ -283,9 +286,10 @@ class Simulation(object):
                     i, angle, position, image = future.result()
 
                     # Set the output in the writer
-                    writer.data[i, :, :] = image
-                    writer.angle[i] = angle
-                    writer.position[i] = (position, 0, 0)
+                    if writer:
+                        writer.data[i, :, :] = image
+                        writer.angle[i] = angle
+                        writer.position[i] = (position, 0, 0)
 
                     # Write some info
                     vmin = numpy.min(image)
@@ -294,6 +298,127 @@ class Simulation(object):
                         "    Processed job: %d (%d/%d); image min/max: %.2f/%.2f"
                         % (i + 1, j + 1, self.shape[0], vmin, vmax)
                     )
+
+
+class ProjectedPotentialSimulator(object):
+    """
+    A class to do the actual simulation
+
+    The simulation is structured this way because the input data to the
+    simulation is large enough that it makes an overhead to creating the
+    individual processes.
+
+    """
+
+    def __init__(
+        self, microscope=None, sample=None, scan=None, simulation=None, device="gpu"
+    ):
+        self.microscope = microscope
+        self.sample = sample
+        self.scan = scan
+        self.simulation = simulation
+        self.device = device
+
+    def __call__(self, index):
+        """
+        Simulate a single frame
+
+        Args:
+            simulation (object): The simulation object
+            index (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Get the rotation angle
+        angle = self.scan.angles[index]
+        position = self.scan.positions[index]
+
+        # The field of view
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        pixel_size = self.microscope.detector.pixel_size
+        margin = self.simulation["margin"]
+        x_fov = nx * pixel_size
+        y_fov = ny * pixel_size
+        offset = margin * pixel_size
+
+        # Get the specimen atoms
+        logger.info(f"Simulating image {index}")
+
+        # Set the rotation angle
+        # input_multislice.spec_rot_theta = angle
+        # input_multislice.spec_rot_u0 = simulation.scan.axis
+
+        # Create the sample extractor
+        x0 = (-offset, -offset)
+        x1 = (x_fov + offset, y_fov + offset)
+        thickness = self.simulation["division_thickness"]
+        extractor = elfantasma.sample.AtomSliceExtractor(
+            sample=self.sample,
+            translation=position,
+            rotation=angle,
+            x0=x0,
+            x1=x1,
+            thickness=thickness,
+        )
+
+        # Create the multem system configuration
+        system_conf = create_system_configuration(self.device)
+
+        # Create the multem input multislice object
+        input_multislice = create_input_multislice(
+            self.microscope,
+            self.simulation["slice_thickness"],
+            self.simulation["margin"],
+            "EWRS",
+        )
+
+        # Set the specimen size
+        input_multislice.spec_lx = x_fov + offset * 2
+        input_multislice.spec_ly = y_fov + offset * 2
+        input_multislice.spec_lz = self.sample.containing_box[1][2]
+
+        # Either slice or don't
+        assert len(extractor) == 1
+
+        # Set the atoms in the input after translating them for the offset
+        zslice = extractor[0]
+        logger.info(
+            "    Simulating z slice %f -> %f with %d atoms"
+            % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+        )
+        input_multislice.spec_atoms = zslice.atoms.translate(
+            (offset, offset, 0)
+        ).to_multem()
+
+        # Get the potential and thickness
+        handle = h5py.File("projected_potential_%d.h5" % index, mode="w")
+        thickness = handle.create_dataset(
+            "thickness", (0,), dtype="float32", maxshape=(None,)
+        )
+        potential = handle.create_dataset(
+            "potential", (0, 0, 0), dtype="float32", maxshape=(None, None, None)
+        )
+
+        def callback(z0, z1, V):
+            print("Calculating potential for slice: %.2f -> %.2f" % (z0, z1))
+            V = numpy.array(V)
+            number = thickness.shape[0]
+            thickness.resize((number + 1,))
+            potential.resize((number + 1, V.shape[0], V.shape[1]))
+            thickness[number] = z1 - z0
+            potential[number, :, :] = V
+
+        # Run the simulation
+        output_multislice = multem.compute_projected_potential(
+            system_conf, input_multislice, callback
+        )
+
+        # Compute the image scaled with Poisson noise
+        return (index, angle, position, None)
 
 
 class ExitWaveImageSimulator(object):
@@ -391,8 +516,16 @@ class ExitWaveImageSimulator(object):
             ).to_multem()
 
             # Run the simulation
-            output_multislice = multem.simulate(system_conf, input_multislice)
-
+            # input_multislice.thick_type = "Through_Thick"
+            # input_multislice.thick = numpy.arange(0, input_multislice.spec_lz, 5)
+            print(1)
+            output_multislice = multem.compute_projected_potential(
+                system_conf, input_multislice
+            )
+            print(2)
+            print(numpy.array(output_multislice.data).shape)
+            for i in range(len(output_multislice.data)):
+                print(output_multislice.thick[i])
         else:
 
             # Slice the specimen atoms
@@ -741,6 +874,43 @@ class SimpleImageSimulator(object):
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, image)
+
+
+def projected_potential(
+    microscope=None, sample=None, scan=None, device="gpu", simulation=None, cluster=None
+):
+    """
+    Create the simulation
+
+    Args:
+        microscope (object); The microscope object
+        sample (object): The sample object
+        scan (object): The scan object
+        device (str): The device to use
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
+
+    """
+
+    # Create the simulation
+    return Simulation(
+        image_size=(
+            microscope.detector.nx + 2 * simulation["margin"],
+            microscope.detector.ny + 2 * simulation["margin"],
+        ),
+        scan=scan,
+        cluster=cluster,
+        simulate_image=ProjectedPotentialSimulator(
+            microscope=microscope,
+            sample=sample,
+            scan=scan,
+            simulation=simulation,
+            device=device,
+        ),
+    )
 
 
 def exit_wave(
