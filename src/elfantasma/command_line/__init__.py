@@ -253,11 +253,11 @@ def export(argv=None):
         help="The output filename",
     )
     parser.add_argument(
-        "--transpose",
+        "--rot90",
         type=bool,
         default=False,
-        dest="transpose",
-        help="Transpose the data",
+        dest="rot90",
+        help="Rotate the image 90deg counter clockwise",
     )
     parser.add_argument(
         "--rotation_range",
@@ -333,8 +333,8 @@ def export(argv=None):
         angle = reader.angle[i]
         position = reader.position[i]
         pixel_size = reader.pixel_size[i]
-        if args.transpose:
-            image = image.T
+        if args.rot90:
+            image = numpy.rot90(image)
             position = (position[1], position[0], position[2])
         writer.data[j, :, :] = image
         writer.angle[j] = angle
