@@ -269,6 +269,13 @@ def export(argv=None):
     parser.add_argument(
         "--roi", type=str, default=None, dest="roi", help="Select a region of interest"
     )
+    parser.add_argument(
+        "--squared",
+        type=bool,
+        default=False,
+        dest="squared",
+        help="Square values to output. Useful for complex data",
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -301,12 +308,18 @@ def export(argv=None):
     else:
         x0, y0, x1, y1 = 0, 0, reader.data.shape[2], reader.data.shape[1]
 
+    # If squared and dtype is complex then change to float
+    if args.squared:
+        dtype = "float64"
+    else:
+        dtype = reader.data.dtype.name
+
     # Set the dataset shape
     shape = (len(indices), y1 - y0, x1 - x0)
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(args.output, shape=shape, dtype=reader.data.dtype.name)
+    writer = elfantasma.io.new(args.output, shape=shape, dtype=dtype)
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
@@ -336,6 +349,8 @@ def export(argv=None):
         if args.rot90:
             image = numpy.rot90(image)
             position = (position[1], position[0], position[2])
+        if args.squared:
+            image = numpy.abs(image) ** 2
         writer.data[j, :, :] = image
         writer.angle[j] = angle
         writer.position[j] = position
