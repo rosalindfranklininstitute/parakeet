@@ -187,15 +187,14 @@ class MrcFileWriter(Writer):
 
         """
 
+        # Convert 32bit int
+        if dtype == "int32":
+            dtype = "int16"
+        elif dtype == "uint32":
+            dtype = "uint16"
+
         # Get the mrc mode
-        mrc_mode = {
-            "int8": 0,
-            "int16": 1,
-            "float32": 2,
-            "complex64": 4,
-            "uint16": 6,
-            "int32": 1,  # Convert to int16
-        }
+        mrc_mode = {"int8": 0, "int16": 1, "float32": 2, "complex64": 4, "uint16": 6}
 
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
