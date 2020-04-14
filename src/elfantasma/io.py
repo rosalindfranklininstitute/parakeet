@@ -187,11 +187,13 @@ class MrcFileWriter(Writer):
 
         """
 
-        # Convert 32bit int
+        # Convert 32bit int and 64bit float
         if dtype == "int32":
             dtype = "int16"
         elif dtype == "uint32":
             dtype = "uint16"
+        elif dtype == "float64":
+            dtype = "float32"
 
         # Get the mrc mode
         mrc_mode = {"int8": 0, "int16": 1, "float32": 2, "complex64": 4, "uint16": 6}
