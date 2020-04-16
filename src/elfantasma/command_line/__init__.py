@@ -270,11 +270,11 @@ def export(argv=None):
         "--roi", type=str, default=None, dest="roi", help="Select a region of interest"
     )
     parser.add_argument(
-        "--squared",
-        type=bool,
-        default=False,
-        dest="squared",
-        help="Square values to output. Useful for complex data",
+        "--complex_mode",
+        choices=["complex", "real", "imaginary", "amplitude", "phase", "square"],
+        default="complex",
+        dest="complex_mode",
+        help="How to treat complex numbers",
     )
 
     # Parse the arguments
@@ -309,7 +309,7 @@ def export(argv=None):
         x0, y0, x1, y1 = 0, 0, reader.data.shape[2], reader.data.shape[1]
 
     # If squared and dtype is complex then change to float
-    if args.squared:
+    if args.complex_mode != "complex":
         dtype = "float64"
     else:
         dtype = reader.data.dtype.name
@@ -341,16 +341,29 @@ def export(argv=None):
     # Write the data
     for j, i in enumerate(indices):
         logger.info(f"    Copying image {i} -> image {j}")
+
+        # Get the image info
         image = reader.data[i, y0:y1, x0:x1]
-        print(image.shape)
         angle = reader.angle[i]
         position = reader.position[i]
         pixel_size = reader.pixel_size[i]
+
+        # Rotate if necessary
         if args.rot90:
             image = numpy.rot90(image)
             position = (position[1], position[0], position[2])
-        if args.squared:
-            image = numpy.abs(image) ** 2
+
+        # Transform if necessary
+        image = {
+            "complex": lambda x: x,
+            "real": lambda x: numpy.real(x),
+            "imaginary": lambda x: numpy.imag(x),
+            "amplitude": lambda x: numpy.abs(x),
+            "phase": lambda x: numpy.angle(x),
+            "square": lambda x: numpy.abs(x) ** 2,
+        }[args.complex_mode](image)
+
+        # Write the image info
         writer.data[j, :, :] = image
         writer.angle[j] = angle
         writer.position[j] = position
