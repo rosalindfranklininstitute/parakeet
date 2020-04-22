@@ -47,6 +47,7 @@ def main():
                 "elfantasma.simulate.optics=elfantasma.command_line.simulate:optics",
                 "elfantasma.simulate.image=elfantasma.command_line.simulate:image",
                 "elfantasma.simulate.simple=elfantasma.command_line.simulate:simple",
+                "elfantasma.simulate.ctf=elfantasma.command_line.simulate:ctf",
             ]
         },
         extras_require={
