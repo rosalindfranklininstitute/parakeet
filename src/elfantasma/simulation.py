@@ -148,8 +148,8 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
 
     # Condenser lens
     # source spread function
-    # ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
-    # input_multislice.obj_lens_ssf_sigma = ssf_sigma
+    ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
+    input_multislice.cond_lens_ssf_sigma = ssf_sigma
 
     # Objective lens
     input_multislice.obj_lens_m = microscope.lens.m
@@ -229,8 +229,15 @@ class Simulation(object):
         """
         nx = self.image_size[0]
         ny = self.image_size[1]
-        nz = len(self.scan)
+        nz = 1
+        if self.scan is not None:
+            nz = len(self.scan)
         return (nz, ny, nx)
+
+    def angles(self):
+        if self.scan is None:
+            return [0]
+        return self.scan.angles
 
     def run(self, writer=None):
         """
@@ -246,16 +253,17 @@ class Simulation(object):
             assert writer.shape == self.shape
 
         # If we are executing in a single process just do a for loop
-        if self.cluster["method"] is None:
-            for i, angle in enumerate(self.scan.angles):
+        if self.cluster is None or self.cluster["method"] is None:
+            for i, angle in enumerate(self.angles()):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, position, image = self.simulate_image(i)
+                _, angle, position, pixel_size, image = self.simulate_image(i)
                 if writer:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
                     writer.position[i] = (position, 0, 0)
+                    writer.pixel_size[i] = pixel_size
         else:
 
             # Set the maximum number of workers
@@ -283,13 +291,14 @@ class Simulation(object):
                 for j, future in enumerate(elfantasma.futures.as_completed(futures)):
 
                     # Get the result
-                    i, angle, position, image = future.result()
+                    i, angle, position, pixel_size, image = future.result()
 
                     # Set the output in the writer
                     if writer:
                         writer.data[i, :, :] = image
                         writer.angle[i] = angle
                         writer.position[i] = (position, 0, 0)
+                        writer.pixel_size[i] = pixel_size
 
                     # Write some info
                     vmin = numpy.min(image)
@@ -418,7 +427,7 @@ class ProjectedPotentialSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, None)
+        return (index, angle, position, pixel_size, None)
 
 
 class ExitWaveImageSimulator(object):
@@ -516,16 +525,17 @@ class ExitWaveImageSimulator(object):
             ).to_multem()
 
             # Run the simulation
+            output_multislice = multem.simulate(system_conf, input_multislice)
             # input_multislice.thick_type = "Through_Thick"
             # input_multislice.thick = numpy.arange(0, input_multislice.spec_lz, 5)
-            print(1)
-            output_multislice = multem.compute_projected_potential(
-                system_conf, input_multislice
-            )
-            print(2)
-            print(numpy.array(output_multislice.data).shape)
-            for i in range(len(output_multislice.data)):
-                print(output_multislice.thick[i])
+            # print(1)
+            # output_multislice = multem.compute_projected_potential(
+            #     system_conf, input_multislice
+            # )
+            # print(2)
+            # print(numpy.array(output_multislice.data).shape)
+            # for i in range(len(output_multislice.data)):
+            #     print(output_multislice.thick[i])
         else:
 
             # Slice the specimen atoms
@@ -594,7 +604,7 @@ class ExitWaveImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, pixel_size, image)
 
 
 class OpticsImageSimulator(object):
@@ -711,7 +721,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, pixel_size, image)
 
 
 class ImageSimulator(object):
@@ -772,7 +782,7 @@ class ImageSimulator(object):
 
         # Compute the new image
         image = self.optics.data[index] / numpy.mean(self.optics.data[index])
-        numpy.random.seed(int(time.time()))
+        numpy.random.seed(index)
         image = numpy.random.poisson(image * N)
 
         # Print some info
@@ -782,7 +792,67 @@ class ImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, pixel_size, image)
+
+
+class CTFSimulator(object):
+    """
+    A class to do the actual simulation
+
+    The simulation is structured this way because the input data to the
+    simulation is large enough that it makes an overhead to creating the
+    individual processes.
+
+    """
+
+    def __init__(self, microscope=None, simulation=None):
+        self.microscope = microscope
+        self.simulation = simulation
+
+    def __call__(self, index):
+        """
+        Simulate a single frame
+
+        Args:
+            simulation (object): The simulation object
+            index (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # The field of view
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        pixel_size = self.microscope.detector.pixel_size
+        x_fov = nx * pixel_size
+        y_fov = ny * pixel_size
+
+        # Create the multem system configuration
+        system_conf = create_system_configuration("cpu")
+
+        # Create the multem input multislice object
+        input_multislice = create_input_multislice(
+            self.microscope,
+            self.simulation["slice_thickness"],
+            self.simulation["margin"],
+            "HRTEM",
+        )
+        input_multislice.nx = nx
+        input_multislice.ny = ny
+
+        # Set the specimen size
+        input_multislice.spec_lx = x_fov
+        input_multislice.spec_ly = y_fov
+        input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+
+        # Run the simulation
+        image = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
+        image = numpy.fft.fftshift(image)
+
+        # Compute the image scaled with Poisson noise
+        return (index, 0, 0, pixel_size, image)
 
 
 class SimpleImageSimulator(object):
@@ -873,7 +943,7 @@ class SimpleImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, pixel_size, image)
 
 
 def projected_potential(
@@ -1055,4 +1125,28 @@ def simple(microscope=None, atoms=None, device="gpu", simulation=None):
             simulation=simulation,
             device=device,
         ),
+    )
+
+
+def ctf(microscope=None, simulation=None):
+    """
+    Create the simulation
+
+    Args:
+        microscope (object); The microscope object
+        exit_wave (object): The exit_wave object
+        scan (object): The scan object
+        device (str): The device to use
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
+
+    """
+
+    # Create the simulation
+    return Simulation(
+        image_size=(microscope.detector.nx, microscope.detector.ny),
+        simulate_image=CTFSimulator(microscope=microscope, simulation=simulation),
     )
