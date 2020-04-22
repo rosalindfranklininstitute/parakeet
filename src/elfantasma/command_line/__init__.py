@@ -278,6 +278,13 @@ def export(argv=None):
         dest="complex_mode",
         help="How to treat complex numbers",
     )
+    parser.add_argument(
+        "--interlace",
+        type=int,
+        default=None,
+        dest="interlace",
+        help="Interlace the scan",
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -301,6 +308,15 @@ def export(argv=None):
                 logger.info(f"    Skipping image {i} because angle is out of range")
     else:
         indices = list(range(reader.shape[0]))
+
+    # Interlace the images
+    if args.interlace is not None and args.interlace > 1:
+        interlaced_indices = []
+        for i in range(args.interlace):
+            interlaced_indices.extend(
+                [indices[j] for j in range(i, len(indices), args.interlace)]
+            )
+        indices = interlaced_indices
 
     # Get the region of interest
     if args.roi is not None:
