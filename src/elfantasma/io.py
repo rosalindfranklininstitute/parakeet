@@ -208,11 +208,12 @@ class MrcFileWriter(Writer):
             shape=shape[0], dtype=mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
         )
 
-        # Set the header
-        self.handle.set_extended_header(extended_header)
+        # Set the extended header
+        self.handle._check_writeable()
+        self.handle._close_data()
+        self.handle._extended_header = extended_header
+        self.handle.header.nsymbt = extended_header.nbytes
         self.handle.header.exttyp = "FEI1"
-
-        # Now resize the data
         self.handle._open_memmap(dtype, shape)
         self.handle.update_header_from_data()
         self.handle.flush()
