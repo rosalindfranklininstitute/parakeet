@@ -246,7 +246,10 @@ def exit_wave():
     # Create the writer
     logger.info(f"Opening file: {args.exit_wave}")
     writer = elfantasma.io.new(
-        args.exit_wave, shape=simulation.shape, dtype=numpy.complex64
+        args.exit_wave,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.complex64,
     )
 
     # Run the simulation
@@ -367,7 +370,12 @@ def optics():
 
     # Create the writer
     logger.info(f"Opening file: {args.optics}")
-    writer = elfantasma.io.new(args.optics, shape=simulation.shape, dtype=numpy.float32)
+    writer = elfantasma.io.new(
+        args.optics,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.float32,
+    )
 
     # Run the simulation
     simulation.run(writer)
@@ -428,7 +436,10 @@ def ctf():
     # Create the writer
     logger.info(f"Opening file: {args.output}")
     writer = elfantasma.io.new(
-        args.output, shape=simulation.shape, dtype=numpy.complex64
+        args.output,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.complex64,
     )
 
     # Run the simulation
@@ -515,7 +526,12 @@ def image():
 
     # Create the writer
     logger.info(f"Opening file: {args.image}")
-    writer = elfantasma.io.new(args.image, shape=simulation.shape, dtype=numpy.int32)
+    writer = elfantasma.io.new(
+        args.image,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.int32,
+    )
 
     # Run the simulation
     simulation.run(writer)
@@ -591,7 +607,10 @@ def simple():
     # Create the writer
     logger.info(f"Opening file: {args.output}")
     writer = elfantasma.io.new(
-        args.output, shape=simulation.shape, dtype=numpy.complex64
+        args.output,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.complex64,
     )
 
     # Run the simulation

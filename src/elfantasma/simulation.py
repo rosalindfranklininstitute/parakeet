@@ -204,7 +204,9 @@ class Simulation(object):
 
     """
 
-    def __init__(self, image_size, scan=None, cluster=None, simulate_image=None):
+    def __init__(
+        self, image_size, pixel_size, scan=None, cluster=None, simulate_image=None
+    ):
         """
         Initialise the simulation
 
@@ -215,6 +217,7 @@ class Simulation(object):
             simulate_image (func): The image simulation function
 
         """
+        self.pixel_size = pixel_size
         self.image_size = image_size
         self.scan = scan
         self.cluster = cluster
@@ -258,12 +261,11 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, position, pixel_size, image = self.simulate_image(i)
+                _, angle, position, image = self.simulate_image(i)
                 if writer:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
                     writer.position[i] = (position, 0, 0)
-                    writer.pixel_size[i] = pixel_size
         else:
 
             # Set the maximum number of workers
@@ -291,14 +293,13 @@ class Simulation(object):
                 for j, future in enumerate(elfantasma.futures.as_completed(futures)):
 
                     # Get the result
-                    i, angle, position, pixel_size, image = future.result()
+                    i, angle, position, image = future.result()
 
                     # Set the output in the writer
                     if writer:
                         writer.data[i, :, :] = image
                         writer.angle[i] = angle
                         writer.position[i] = (position, 0, 0)
-                        writer.pixel_size[i] = pixel_size
 
                     # Write some info
                     vmin = numpy.min(image)
@@ -427,7 +428,7 @@ class ProjectedPotentialSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, pixel_size, None)
+        return (index, angle, position, None)
 
 
 class ExitWaveImageSimulator(object):
@@ -604,7 +605,7 @@ class ExitWaveImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, pixel_size, image)
+        return (index, angle, position, image)
 
 
 class OpticsImageSimulator(object):
@@ -721,7 +722,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, pixel_size, image)
+        return (index, angle, position, image)
 
 
 class ImageSimulator(object):
@@ -792,7 +793,7 @@ class ImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, pixel_size, image)
+        return (index, angle, position, image)
 
 
 class CTFSimulator(object):
@@ -852,7 +853,7 @@ class CTFSimulator(object):
         image = numpy.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
-        return (index, 0, 0, pixel_size, image)
+        return (index, 0, 0, image)
 
 
 class SimpleImageSimulator(object):
@@ -943,7 +944,7 @@ class SimpleImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, pixel_size, image)
+        return (index, angle, position, image)
 
 
 def projected_potential(
@@ -971,6 +972,7 @@ def projected_potential(
             microscope.detector.nx + 2 * simulation["margin"],
             microscope.detector.ny + 2 * simulation["margin"],
         ),
+        pixel_size=microscope.detector.pixel_size,
         scan=scan,
         cluster=cluster,
         simulate_image=ProjectedPotentialSimulator(
@@ -1008,6 +1010,7 @@ def exit_wave(
             microscope.detector.nx + 2 * simulation["margin"],
             microscope.detector.ny + 2 * simulation["margin"],
         ),
+        pixel_size=microscope.detector.pixel_size,
         scan=scan,
         cluster=cluster,
         simulate_image=ExitWaveImageSimulator(
@@ -1047,6 +1050,7 @@ def optics(
     # Create the simulation
     return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
+        pixel_size=microscope.detector.pixel_size,
         scan=scan,
         cluster=cluster,
         simulate_image=OpticsImageSimulator(
@@ -1081,6 +1085,7 @@ def image(
     # Create the simulation
     return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
+        pixel_size=microscope.detector.pixel_size,
         scan=scan,
         cluster=cluster,
         simulate_image=ImageSimulator(
@@ -1116,6 +1121,7 @@ def simple(microscope=None, atoms=None, device="gpu", simulation=None):
             microscope.detector.nx + 2 * simulation["margin"],
             microscope.detector.ny + 2 * simulation["margin"],
         ),
+        pixel_size=microscope.detector.pixel_size,
         scan=scan,
         cluster={"method": None},
         simulate_image=SimpleImageSimulator(
@@ -1148,5 +1154,6 @@ def ctf(microscope=None, simulation=None):
     # Create the simulation
     return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
+        pixel_size=microscope.detector.pixel_size,
         simulate_image=CTFSimulator(microscope=microscope, simulation=simulation),
     )

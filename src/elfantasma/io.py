@@ -93,6 +93,13 @@ class Writer(object):
         """
         return isinstance(self, ImageWriter)
 
+    def update(self):
+        """
+        Update if anything needs to be done
+
+        """
+        pass
+
 
 class MrcFileWriter(Writer):
     """
@@ -145,44 +152,14 @@ class MrcFileWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
-    class PixelSizeProxy(object):
-        """
-        Proxy interface to pixel sizes
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = len(self.handle.extended_header)
-            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle.extended_header[j]["Pixel size X"] = d
-                elif i == 1:
-                    self.handle.extended_header[j]["Pixel size Y"] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, numpy.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
-    def __init__(self, filename, shape, dtype="uint8"):
+    def __init__(self, filename, shape, pixel_size, dtype="uint8"):
         """
         Initialise the writer
 
         Args:
             filename (str): The filename
             shape (tuple): The shape of the data
+            pixel_size (float): The pixel size
             dtype (str): The data type
 
         """
@@ -218,11 +195,31 @@ class MrcFileWriter(Writer):
         self.handle.update_header_from_data()
         self.handle.flush()
 
+        # Set the pixel size
+        self.handle.voxel_size = pixel_size
+        for i in range(self.handle.extended_header.shape[0]):
+            self.handle.extended_header[i]["Pixel size X"] = pixel_size
+            self.handle.extended_header[i]["Pixel size Y"] = pixel_size
+
         # Set the data array
         self._data = self.handle.data
         self._angle = MrcFileWriter.AngleProxy(self.handle)
         self._position = MrcFileWriter.PositionProxy(self.handle)
-        self._pixel_size = MrcFileWriter.PixelSizeProxy(self.handle)
+
+    @property
+    def pixel_size(self):
+        """
+        The pixel size
+
+        """
+        return self.handle.voxel_size[0]
+
+    def update(self):
+        """
+        Update before closing
+
+        """
+        self.handle.update_header_stats()
 
 
 class NexusWriter(Writer):
@@ -264,44 +261,14 @@ class NexusWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
-    class PixelSizeProxy(object):
-        """
-        Proxy interface to pixel_size
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = self.handle["x_pixel_size"].shape[0]
-            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, s):
-                if i == 0:
-                    self.handle["x_pixel_size"][j] = s
-                elif i == 1:
-                    self.handle["y_pixel_size"][j] = s
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, numpy.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
-    def __init__(self, filename, shape, dtype="float32"):
+    def __init__(self, filename, shape, pixel_size, dtype="float32"):
         """
         Initialise the writer
 
         Args:
             filename (str): The filename
             shape (tuple): The shape of the data
+            pixel_size (float): The pixel size
             dtype (object): The data type of the data
 
         """
@@ -323,8 +290,8 @@ class NexusWriter(Writer):
         detector.attrs["NX_class"] = "NXdetector"
         detector.create_dataset("data", shape=shape, dtype=dtype)
         detector["image_key"] = numpy.zeros(shape=shape[0])
-        detector["x_pixel_size"] = numpy.zeros(shape=shape[0])
-        detector["y_pixel_size"] = numpy.zeros(shape=shape[0])
+        detector["x_pixel_size"] = numpy.full(shape=shape[0], fill_value=pixel_size)
+        detector["y_pixel_size"] = numpy.full(shape=shape[0], fill_value=pixel_size)
 
         # Create the sample
         sample = entry.create_group("sample")
@@ -348,7 +315,14 @@ class NexusWriter(Writer):
         self._data = data["data"]
         self._angle = data["rotation_angle"]
         self._position = NexusWriter.PositionProxy(data)
-        self._pixel_size = NexusWriter.PixelSizeProxy(detector)
+
+    @property
+    def pixel_size(self):
+        """
+        Return the pixel size
+
+        """
+        return self.handle["instrument"]["detector"]["x_pixel_size"][0]
 
 
 class ImageWriter(Writer):
@@ -424,7 +398,7 @@ class ImageWriter(Writer):
         # Create dummy arrays for angle and position
         self._angle = numpy.zeros(shape=shape[0], dtype=numpy.float32)
         self._position = numpy.zeros(shape=(shape[0], 3), dtype=numpy.float32)
-        self._pixel_size = numpy.zeros(shape=(shape[0], 2), dtype=numpy.float32)
+        self._pixel_size = 0
 
     @property
     def vmin(self):
@@ -473,13 +447,12 @@ class Reader(object):
             data (array): The data array
             angle (array): The angle array
             position (array): The position array
-            pixel_size (array): The pixel size array
+            pixel_size (float): The pixel size array
 
         """
         # Check the size
         assert len(angle) == data.shape[0], "Inconsistent dimensions"
         assert len(position) == data.shape[0], "Inconsistent dimensions"
-        assert len(pixel_size) == data.shape[0], "Inconsistent dimensions"
 
         # Set the array
         self.handle = handle
@@ -578,16 +551,6 @@ class Reader(object):
             assert len(handle.extended_header.shape) == 1
             assert handle.extended_header.shape[0] == handle.data.shape[0]
 
-            # Read the pixel size
-            pixel_size = numpy.zeros(
-                shape=(handle.data.shape[0], 2), dtype=numpy.float32
-            )
-            for i in range(handle.extended_header.shape[0]):
-                pixel_size[i] = (
-                    handle.extended_header[i]["Pixel size X"],
-                    handle.extended_header[i]["Pixel size Y"],
-                )
-
             # Read the angles
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             for i in range(handle.extended_header.shape[0]):
@@ -602,7 +565,9 @@ class Reader(object):
         else:
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
-            pixel_size = numpy.zeros(shape=handle.data.shape[0], dtype=numpy.float32)
+
+        # Get the pixel size
+        pixel_size = handle.voxel_size["x"]
 
         # Create the reader
         return Reader(handle, handle.data, angle, position, pixel_size)
@@ -635,12 +600,7 @@ class Reader(object):
         ).T
 
         # Get the pixel size
-        if "x_pixel_size" and "y_pixel_size" in detector:
-            pixel_size = numpy.array(
-                (detector["x_pixel_size"], detector["y_pixel_size"])
-            ).T
-        else:
-            pixel_size = numpy.zeros(shape=(position.shape[0], 2))
+        pixel_size = detector["x_pixel_size"][0]
 
         # Create the reader
         return Reader(
@@ -665,13 +625,14 @@ class Reader(object):
             raise RuntimeError(f"File with unknown extension: {filename}")
 
 
-def new(filename, shape=None, dtype=None, vmin=None, vmax=None):
+def new(filename, shape=None, pixel_size=None, dtype=None, vmin=None, vmax=None):
     """
     Create a new file for writing
 
     Args:
         filename (str): The output filename
         shape (tuple): The output shape
+        pixel_size (tuple): The pixel size
         dtype (object): The data type (only used with NexusWriter)
         vmin (int): The minimum value (only used in ImageWriter)
         vmax (int): The maximum value (only used in ImageWriter)
@@ -682,9 +643,9 @@ def new(filename, shape=None, dtype=None, vmin=None, vmax=None):
     """
     extension = os.path.splitext(filename)[1].lower()
     if extension in [".mrc"]:
-        return MrcFileWriter(filename, shape, dtype)
+        return MrcFileWriter(filename, shape, pixel_size, dtype)
     elif extension in [".h5", ".hdf5", ".nx", ".nxs", ".nexus", "nxtomo"]:
-        return NexusWriter(filename, shape, dtype)
+        return NexusWriter(filename, shape, pixel_size, dtype)
     elif extension in [".png", ".jpg", ".jpeg"]:
         return ImageWriter(filename, shape, vmin, vmax)
     else:

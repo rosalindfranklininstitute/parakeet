@@ -194,7 +194,9 @@ def main():
 
     # Create the writer
     logger.info(f"Opening file: {config['output']}")
-    writer = elfantasma.io.new(config["output"], shape=simulation.shape)
+    writer = elfantasma.io.new(
+        config["output"], shape=simulation.shape, pixel_size=simulation.pixel_size
+    )
 
     # Run the simulation
     simulation.run(writer)
@@ -319,7 +321,9 @@ def export(argv=None):
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(args.output, shape=shape, dtype=dtype)
+    writer = elfantasma.io.new(
+        args.output, shape=shape, pixel_size=reader.pixel_size, dtype=dtype
+    )
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
@@ -346,7 +350,6 @@ def export(argv=None):
         image = reader.data[i, y0:y1, x0:x1]
         angle = reader.angle[i]
         position = reader.position[i]
-        pixel_size = reader.pixel_size[i]
 
         # Rotate if necessary
         if args.rot90:
@@ -367,7 +370,9 @@ def export(argv=None):
         writer.data[j, :, :] = image
         writer.angle[j] = angle
         writer.position[j] = position
-        writer.pixel_size[j] = pixel_size
+
+    # Update the writer
+    writer.update()
 
 
 def read_pdb():
