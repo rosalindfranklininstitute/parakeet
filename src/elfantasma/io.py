@@ -117,7 +117,7 @@ class MrcFileWriter(Writer):
             self.handle = handle
 
         def __setitem__(self, item, data):
-            self.handle.extended_header[item]["Tilt axis angle"] = data
+            self.handle.extended_header[item]["Alpha tilt"] = data
 
     class PositionProxy(object):
         """
@@ -200,6 +200,7 @@ class MrcFileWriter(Writer):
         for i in range(self.handle.extended_header.shape[0]):
             self.handle.extended_header[i]["Pixel size X"] = pixel_size
             self.handle.extended_header[i]["Pixel size Y"] = pixel_size
+            self.handle.extended_header[i]["Application"] = "RFI Simulation"
 
         # Set the data array
         self._data = self.handle.data
@@ -554,7 +555,7 @@ class Reader(object):
             # Read the angles
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             for i in range(handle.extended_header.shape[0]):
-                angle[i] = handle.extended_header[i]["Tilt axis angle"]
+                angle[i] = handle.extended_header[i]["Alpha tilt"]
 
             # Read the positions
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
