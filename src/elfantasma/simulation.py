@@ -525,18 +525,67 @@ class ExitWaveImageSimulator(object):
                 (offset, offset, 0)
             ).to_multem()
 
-            # Run the simulation
-            output_multislice = multem.simulate(system_conf, input_multislice)
-            # input_multislice.thick_type = "Through_Thick"
-            # input_multislice.thick = numpy.arange(0, input_multislice.spec_lz, 5)
-            # print(1)
-            # output_multislice = multem.compute_projected_potential(
-            #     system_conf, input_multislice
-            # )
-            # print(2)
-            # print(numpy.array(output_multislice.data).shape)
-            # for i in range(len(output_multislice.data)):
-            #     print(output_multislice.thick[i])
+            if self.simulation["ice"] == True:
+
+                # Create the masker
+                masker = multem.Masker(
+                    input_multislice.nx, input_multislice.ny, pixel_size
+                )
+
+                # Get the sample centre
+                shape = self.sample.shape
+                centre = self.sample.centre
+
+                # Set the shape
+                if shape["type"] == "cube":
+                    length = shape["cube"]["length"]
+                    masker.set_cuboid(
+                        (
+                            offset + centre[0] - length / 2,
+                            offset + centre[1] - length / 2,
+                            centre[2] - length / 2,
+                        ),
+                        (length, length, length),
+                    )
+                elif shape["type"] == "cuboid":
+                    length_x = shape["length_x"]
+                    length_y = shape["length_y"]
+                    length_z = shape["length_z"]
+                    masker.set_cuboid(
+                        (
+                            offset + centre[0] - length_x / 2,
+                            offset + centre[1] - length_y / 2,
+                            centre[2] - length_z / 2,
+                        ),
+                        (length_x, length_y, length_z),
+                    )
+                elif shape["type"] == "cylinder":
+                    radius = shape["cylinder"]["radius"]
+                    length = shape["cylinder"]["length"]
+                    masker.set_cylinder(
+                        (
+                            offset + centre[0] - length / 2,
+                            offset + centre[1] - radius,
+                            centre[2] - radius,
+                        ),
+                        length,
+                        radius,
+                    )
+
+                # Rotate
+                origin = (offset + centre[0], offset + centre[1], centre[2])
+                masker.set_rotation(origin, angle)
+
+                # Run the simulation
+                output_multislice = multem.simulate(
+                    system_conf, input_multislice, masker
+                )
+
+            else:
+
+                # Run the simulation
+                output_multislice = multem.simulate(system_conf, input_multislice)
+
         else:
 
             # Slice the specimen atoms

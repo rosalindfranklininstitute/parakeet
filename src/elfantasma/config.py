@@ -132,6 +132,7 @@ def default():
             slice_thickness: 3.0
             margin: 100
             division_thickness: 100
+            ice: False
 
         cluster:
             method: null
