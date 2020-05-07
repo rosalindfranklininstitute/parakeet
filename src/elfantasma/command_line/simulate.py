@@ -22,7 +22,7 @@ from math import pi
 logger = logging.getLogger(__name__)
 
 
-def projected_potential():
+def projected_potential(args=None):
     """
     Simulate the projected potential from the sample
 
@@ -78,7 +78,7 @@ def projected_potential():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     elfantasma.command_line.configure_logging()
@@ -132,7 +132,7 @@ def projected_potential():
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def exit_wave():
+def exit_wave(args=None):
     """
     Simulate the exit wave from the sample
 
@@ -196,7 +196,7 @@ def exit_wave():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     elfantasma.command_line.configure_logging()
@@ -259,7 +259,7 @@ def exit_wave():
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def optics():
+def optics(args=None):
     """
     Simulate the optics
 
@@ -321,7 +321,7 @@ def optics():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     elfantasma.command_line.configure_logging()
@@ -354,8 +354,8 @@ def optics():
     config["scan"]["start_angle"] = exit_wave.start_angle
     config["scan"]["start_pos"] = exit_wave.start_position
     config["scan"]["step_angle"] = exit_wave.step_angle
-    config["scan"]["stop_angle"] = exit_wave.stop_angle
     config["scan"]["step_pos"] = exit_wave.step_position
+    config["scan"]["num_images"] = exit_wave.num_images
     scan = elfantasma.scan.new(**config["scan"])
 
     # Create the simulation
@@ -384,7 +384,7 @@ def optics():
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def ctf():
+def ctf(args=None):
     """
     Simulate the ctf
 
@@ -414,7 +414,7 @@ def ctf():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     elfantasma.command_line.configure_logging()
@@ -449,7 +449,7 @@ def ctf():
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def image():
+def image(args=None):
     """
     Simulate the image with noise
 
@@ -488,7 +488,7 @@ def image():
     )
 
     # Parse the arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     elfantasma.command_line.configure_logging()
@@ -510,8 +510,8 @@ def image():
     config["scan"]["start_angle"] = optics.start_angle
     config["scan"]["start_pos"] = optics.start_position
     config["scan"]["step_angle"] = optics.step_angle
-    config["scan"]["stop_angle"] = optics.stop_angle
     config["scan"]["step_pos"] = optics.step_position
+    config["scan"]["num_images"] = optics.num_images
     scan = elfantasma.scan.new(**config["scan"])
 
     # Create the simulation

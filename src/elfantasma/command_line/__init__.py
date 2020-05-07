@@ -335,6 +335,10 @@ def export(argv=None):
     # Set the dataset shape
     shape = (len(indices), y1 - y0, x1 - x0)
 
+    # If rotating, then rotate shape
+    if args.rot90:
+        shape = (shape[0], shape[2], shape[1])
+
     # Create the write
     logger.info(f"Writing data to {args.output}")
     writer = elfantasma.io.new(

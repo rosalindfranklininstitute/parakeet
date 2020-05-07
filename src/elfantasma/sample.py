@@ -325,8 +325,8 @@ def shape_enclosed_box(centre, shape):
         length = cylinder["length"]
         radius = cylinder["radius"]
         return (
-            (0, radius * (1 - 1 / sqrt(2)), radius * (1 - 1 / sqrt(2))),
-            (length, radius * (1 + 1 / sqrt(2)), radius * (1 + 1 / sqrt(2))),
+            (radius * (1 - 1 / sqrt(2)), 0, radius * (1 - 1 / sqrt(2))),
+            (radius * (1 + 1 / sqrt(2)), length, radius * (1 + 1 / sqrt(2))),
         )
 
     # The enclosed box
@@ -415,12 +415,12 @@ def is_box_inside_shape(box, centre, shape):
         length = cylinder["length"]
         radius = cylinder["radius"]
         return (
-            (x0[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[1] - centre[1]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x0[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[1] - centre[1]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
-            and x0[0] >= centre[0] - length / 2.0
-            and x1[0] < centre[0] + length / 2.0
+            (x0[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
+            and (x0[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and (x1[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            and x0[1] >= centre[1] - length / 2.0
+            and x1[1] < centre[1] + length / 2.0
         )
 
     return {
@@ -1751,9 +1751,9 @@ class AtomSliceExtractor(object):
         def filter_atoms(atoms):
             coords = atoms[["x", "y", "z"]].to_numpy()
             coords = (
-                Rotation.from_rotvec((self.rotation, 0, 0)).apply(coords - self.centre)
+                Rotation.from_rotvec((0, self.rotation, 0)).apply(coords - self.centre)
                 + self.centre
-                - (self.translation, 0, 0)
+                - (0, self.translation, 0)
             ).astype("float32")
             atoms["x"] = coords[:, 0]
             atoms["y"] = coords[:, 1]
@@ -1963,15 +1963,15 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         def cylinder_filter_coordinates(coords, centre, cylinder):
             length = cylinder["length"]
             radius = cylinder["radius"]
-            x0 = centre - length / 2.0
-            x1 = centre + length / 2.0
+            y0 = centre - length / 2.0
+            y1 = centre + length / 2.0
             x = coords[:, 0]
             y = coords[:, 1]
             z = coords[:, 2]
             return coords[
-                (x >= x0[0])
-                & (x < x1[0])
-                & ((z - centre[2]) ** 2 + (y - centre[1]) ** 2 <= radius ** 2)
+                (y >= y0[0])
+                & (y < y1[0])
+                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius ** 2)
             ]
 
         # Filter the coords
@@ -2009,8 +2009,8 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         length = shape["cylinder"]["length"]
         radius = shape["cylinder"]["radius"]
         volume = pi * radius ** 2 * length
-        length_x = length
-        length_y = 2 * radius
+        length_x = 2 * radius
+        length_y = length
         length_z = 2 * radius
     else:
         raise RuntimeError("Unknown shape")

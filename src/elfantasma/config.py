@@ -118,12 +118,12 @@ def default():
 
         scan:
             mode: still
-            axis: [1,0,0]
+            axis: [0,1,0]
             start_angle: 0
-            stop_angle: 360
             step_angle: 10
             start_pos: 0
             step_pos: auto
+            num_images: 1
             exposure_time: 1
 
         device: gpu

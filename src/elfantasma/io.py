@@ -531,6 +531,15 @@ class Reader(object):
         )
         return step
 
+    @property
+    def num_images(self):
+        """
+        Returns:
+            int: The number of images
+
+        """
+        return len(self.angle)
+
     @classmethod
     def from_mrcfile(Class, filename):
         """

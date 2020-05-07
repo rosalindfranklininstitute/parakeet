@@ -29,7 +29,7 @@ class Scan(object):
 
         """
         if axis is None:
-            self.axis = (1, 0, 0)
+            self.axis = (0, 1, 0)
         else:
             self.axis = axis
         if angles is None:
@@ -55,12 +55,12 @@ class Scan(object):
 
 def new(
     mode="still",
-    axis=(1, 0, 0),
+    axis=(0, 1, 0),
     start_angle=0,
-    stop_angle=0,
     step_angle=0,
     start_pos=0,
     step_pos=0,
+    num_images=1,
     exposure_time=1,
 ):
     """
@@ -69,10 +69,10 @@ def new(
     Args:
         axis (array): The rotation axis
         start_angle (float): The starting angle (deg)
-        stop_angle (float): The stopping angle (deg)
         step_angle (float): The angle step (deg)
         start_pos (float): The starting position (A)
         step_pos (float): The step in position (A)
+        num_images (int): The number of images
         exposure_time (float): The exposure time (seconds)
 
     Returns:
@@ -82,13 +82,14 @@ def new(
     if mode == "still":
         return Scan(axis=axis, angles=[start_angle], positions=[start_pos])
     elif mode == "tilt_series":
-        angles = numpy.arange(start_angle, stop_angle, step_angle)
-        positions = numpy.zeros(shape=len(angles), dtype=numpy.float32) + start_pos
+        angles = start_angle + step_angle * numpy.arange(num_images)
+        positions = numpy.full(
+            shape=len(angles), fill_value=start_pos, dtype=numpy.float32
+        )
         return Scan(axis=axis, angles=angles, positions=positions)
     elif mode == "helical_scan":
-        angles = numpy.arange(start_angle, stop_angle, step_angle)
-        stop_pos = start_pos + step_pos * len(angles)
-        positions = numpy.arange(start_pos, stop_pos, step_pos)
+        angles = start_angle + step_angle * numpy.arange(num_images)
+        positions = start_pos + step_pos * numpy.arange(num_images)
         return Scan(
             axis=axis, angles=angles, positions=positions, exposure_time=exposure_time
         )

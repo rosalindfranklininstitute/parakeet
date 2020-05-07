@@ -356,7 +356,7 @@ class ProjectedPotentialSimulator(object):
         offset = margin * pixel_size
 
         # Get the specimen atoms
-        logger.info(f"Simulating image {index}")
+        logger.info(f"Simulating image {index+1}")
 
         # Set the rotation angle
         # input_multislice.spec_rot_theta = angle
@@ -477,7 +477,7 @@ class ExitWaveImageSimulator(object):
         offset = margin * pixel_size
 
         # Get the specimen atoms
-        logger.info(f"Simulating image {index}")
+        logger.info(f"Simulating image {index+1}")
 
         # Set the rotation angle
         # input_multislice.spec_rot_theta = angle
@@ -564,8 +564,8 @@ class ExitWaveImageSimulator(object):
                     length = shape["cylinder"]["length"]
                     masker.set_cylinder(
                         (
-                            offset + centre[0] - length / 2,
-                            offset + centre[1] - radius,
+                            offset + centre[0] - radius,
+                            offset + centre[1] - length / 2,
                             centre[2] - radius,
                         ),
                         length,
@@ -707,7 +707,7 @@ class OpticsImageSimulator(object):
         offset = margin * pixel_size
 
         # Get the specimen atoms
-        logger.info(f"Simulating image {index}")
+        logger.info(f"Simulating image {index+1}")
 
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
@@ -740,7 +740,7 @@ class OpticsImageSimulator(object):
                     input_multislice.spec_ly / 2.0,
                     input_multislice.spec_lz / 2.0,
                     0.088,
-                    1,
+                    0,
                     0,
                     0,
                 )
@@ -822,7 +822,7 @@ class ImageSimulator(object):
         y_fov = ny * pixel_size
 
         # Get the specimen atoms
-        logger.info(f"Simulating image {index}")
+        logger.info(f"Simulating image {index+1}")
 
         # Compute the number of counts per pixel
         N = (
@@ -947,7 +947,7 @@ class SimpleImageSimulator(object):
         offset = margin * pixel_size
 
         # Get the specimen atoms
-        logger.info(f"Simulating image {index}")
+        logger.info(f"Simulating image {index+1}")
 
         # Set the rotation angle
         # input_multislice.spec_rot_theta = angle
