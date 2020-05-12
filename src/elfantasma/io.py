@@ -135,11 +135,9 @@ class MrcFileWriter(Writer):
             # Set the items
             def setitem_internal(j, i, d):
                 if i == 0:
-                    self.handle.extended_header[j]["X-Stage"] = d
+                    self.handle.extended_header[j]["Shift X"] = d
                 elif i == 1:
-                    self.handle.extended_header[j]["Y-Stage"] = d
-                elif i == 2:
-                    self.handle.extended_header[j]["Z-Stage"] = d
+                    self.handle.extended_header[j]["Shift Y"] = d
 
             # Get the indices from the item
             x = self.x[item]
@@ -569,9 +567,9 @@ class Reader(object):
             # Read the positions
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
             for i in range(handle.extended_header.shape[0]):
-                position[i, 0] = handle.extended_header[i]["X-Stage"]
-                position[i, 1] = handle.extended_header[i]["Y-Stage"]
-                position[i, 2] = handle.extended_header[i]["Z-Stage"]
+                position[i, 0] = handle.extended_header[i]["Shift X"]
+                position[i, 1] = handle.extended_header[i]["Shift Y"]
+                position[i, 2] = 0
         else:
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
