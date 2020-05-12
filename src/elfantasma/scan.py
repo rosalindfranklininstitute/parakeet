@@ -80,18 +80,18 @@ def new(
 
     """
     if mode == "still":
-        return Scan(axis=axis, angles=[start_angle], positions=[start_pos])
+        angles = [start_angle]
+        positions = [start_pos]
     elif mode == "tilt_series":
         angles = start_angle + step_angle * numpy.arange(num_images)
         positions = numpy.full(
             shape=len(angles), fill_value=start_pos, dtype=numpy.float32
         )
-        return Scan(axis=axis, angles=angles, positions=positions)
     elif mode == "helical_scan":
         angles = start_angle + step_angle * numpy.arange(num_images)
         positions = start_pos + step_pos * numpy.arange(num_images)
-        return Scan(
-            axis=axis, angles=angles, positions=positions, exposure_time=exposure_time
-        )
     else:
         raise RuntimeError(f"Scan mode not recognised: {mode}")
+    return Scan(
+        axis=axis, angles=angles, positions=positions, exposure_time=exposure_time
+    )

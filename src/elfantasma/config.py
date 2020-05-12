@@ -115,6 +115,7 @@ def default():
                 nx: 4000
                 ny: 4000
                 pixel_size: 1
+                dqe: True
 
         scan:
             mode: still
