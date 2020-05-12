@@ -198,8 +198,8 @@ class MrcFileWriter(Writer):
         # Set the pixel size
         self.handle.voxel_size = pixel_size
         for i in range(self.handle.extended_header.shape[0]):
-            self.handle.extended_header[i]["Pixel size X"] = pixel_size
-            self.handle.extended_header[i]["Pixel size Y"] = pixel_size
+            self.handle.extended_header[i]["Pixel size X"] = pixel_size * 1e-10
+            self.handle.extended_header[i]["Pixel size Y"] = pixel_size * 1e-10
             self.handle.extended_header[i]["Application"] = "RFI Simulation"
 
         # Set the data array
