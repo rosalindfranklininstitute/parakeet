@@ -261,12 +261,20 @@ def export(argv=None):
         dest="rot90",
         help="Rotate the image 90deg counter clockwise",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--rotation_range",
         type=str,
         default=None,
         dest="rotation_range",
         help="Select a rotation range",
+    )
+    group.add_argument(
+        "--select_images",
+        type=str,
+        default=None,
+        dest="select_images",
+        help="Select a range of images (start,stop,step)",
     )
     parser.add_argument(
         "--roi", type=str, default=None, dest="roi", help="Select a region of interest"
@@ -305,6 +313,14 @@ def export(argv=None):
     reader = elfantasma.io.open(args.filename)
 
     # Get the shape and indices to read
+    if args.select_images is not None:
+        logger.info("Selecting image range %s" % args.select_images)
+        item = tuple(map(int, args.select_images.split(",")))
+        indices = list(range(*item))
+    else:
+        indices = list(range(reader.shape[0]))
+
+    # Get the shape and indices to read
     if args.rotation_range is not None:
         args.rotation_range = tuple(map(int, args.rotation_range.split(",")))
         indices = []
@@ -314,8 +330,6 @@ def export(argv=None):
                 indices.append(i)
             else:
                 logger.info(f"    Skipping image {i} because angle is out of range")
-    else:
-        indices = list(range(reader.shape[0]))
 
     # Interlace the images
     if args.interlace is not None and args.interlace > 1:
