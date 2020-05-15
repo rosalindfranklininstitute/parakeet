@@ -548,9 +548,9 @@ class ExitWaveImageSimulator(object):
                         (length, length, length),
                     )
                 elif shape["type"] == "cuboid":
-                    length_x = shape["length_x"]
-                    length_y = shape["length_y"]
-                    length_z = shape["length_z"]
+                    length_x = shape["cuboid"]["length_x"]
+                    length_y = shape["cuboid"]["length_y"]
+                    length_z = shape["cuboid"]["length_z"]
                     masker.set_cuboid(
                         (
                             offset + centre[0] - length_x / 2,

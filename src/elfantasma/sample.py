@@ -241,7 +241,7 @@ def shape_bounding_box(centre, shape):
     def cylinder_bounding_box(cylinder):
         length = cylinder["length"]
         radius = cylinder["radius"]
-        return ((0, 0, 0), (length, 2 * radius, 2 * radius))
+        return ((0, 0, 0), (2 * radius, length, 2 * radius))
 
     # The bounding box
     x0, x1 = numpy.array(

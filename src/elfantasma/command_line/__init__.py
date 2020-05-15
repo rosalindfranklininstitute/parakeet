@@ -273,7 +273,15 @@ def export(argv=None):
     )
     parser.add_argument(
         "--complex_mode",
-        choices=["complex", "real", "imaginary", "amplitude", "phase", "square"],
+        choices=[
+            "complex",
+            "real",
+            "imaginary",
+            "amplitude",
+            "phase",
+            "phase_unwrap",
+            "square",
+        ],
         default="complex",
         dest="complex_mode",
         help="How to treat complex numbers",
@@ -383,6 +391,7 @@ def export(argv=None):
             "imaginary": lambda x: numpy.imag(x),
             "amplitude": lambda x: numpy.abs(x),
             "phase": lambda x: numpy.angle(x),
+            "phase_unwrap": lambda x: numpy.unwrap(numpy.angle(x)),
             "square": lambda x: numpy.abs(x) ** 2,
         }[args.complex_mode](image)
 
