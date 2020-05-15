@@ -16,6 +16,7 @@ import pandas
 import time
 import warnings
 import elfantasma.config
+import elfantasma.dqe
 import elfantasma.freeze
 import elfantasma.futures
 import elfantasma.sample
@@ -825,15 +826,34 @@ class ImageSimulator(object):
         logger.info(f"Simulating image {index+1}")
 
         # Compute the number of counts per pixel
-        N = (
+        electrons_per_pixel = (
             self.microscope.beam.electrons_per_angstrom
             / self.microscope.detector.pixel_size
         )
 
-        # Compute the new image
-        image = self.optics.data[index] / numpy.mean(self.optics.data[index])
+        # Compute the electrons per pixel second
+        electrons_per_second = electrons_per_pixel / self.scan.exposure_time
+        energy = self.microscope.beam.energy
+
+        # Get the image
+        image = self.optics.data[index]
+
+        # Apply the dqe in Fourier space
+        if self.microscope.detector.dqe:
+            dqe = elfantasma.dqe.DQETable().dqe_fs(
+                energy, electrons_per_second, image.shape
+            )
+            dqe = numpy.fft.fftshift(dqe)
+            fft_image = numpy.fft.fft2(image)
+            fft_image *= dqe
+            image = numpy.real(numpy.fft.ifft2(fft_image))
+
+        # Normalize so that the average pixel value is 1.0
+        image = image / numpy.mean(image)
+
+        # Add Poisson noise
         numpy.random.seed(index)
-        image = numpy.random.poisson(image * N)
+        image = numpy.random.poisson(image * electrons_per_pixel)
 
         # Print some info
         logger.info(
