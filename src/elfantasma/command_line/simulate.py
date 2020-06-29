@@ -230,7 +230,7 @@ def exit_wave(args=None):
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
     scan = elfantasma.scan.new(**config["scan"])
-    if scan.positions[-1] > sample.containing_box[1][0]:
+    if scan.positions[-1] > sample.containing_box[1][1]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
@@ -480,11 +480,11 @@ def image(args=None):
     )
     parser.add_argument(
         "-i",
-        "--exit_wave",
+        "--image",
         type=str,
         default="image.h5",
         dest="image",
-        help="The filename for the exit wave",
+        help="The filename for the image",
     )
 
     # Parse the arguments

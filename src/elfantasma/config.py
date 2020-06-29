@@ -78,6 +78,7 @@ def default():
                 energy_spread: 0.33e-6
                 acceleration_voltage_spread: 0.8e-6
                 electrons_per_angstrom: 30
+                drift: null
 
             objective_lens:
                 m: 0
@@ -111,6 +112,8 @@ def default():
                 c_c: 2.7
                 current_spread: 0.33e-6
 
+            phase_plate: false
+
             detector:
                 nx: 4000
                 ny: 4000
@@ -132,6 +135,7 @@ def default():
         simulation:
             slice_thickness: 3.0
             margin: 100
+            padding: 100
             division_thickness: 100
             ice: False
 

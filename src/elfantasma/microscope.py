@@ -19,7 +19,9 @@ class Microscope(object):
 
     """
 
-    def __init__(self, model=None, beam=None, lens=None, detector=None):
+    def __init__(
+        self, model=None, beam=None, lens=None, detector=None, phase_plate=False
+    ):
         """
         Initialise the detector
 
@@ -28,15 +30,17 @@ class Microscope(object):
             beam (object): The beam object
             lens (object): The lens object
             detector (object): The detector object
+            phase_plate (bool): The phase plate
 
         """
         self.model = model
         self.beam = beam
         self.lens = lens
         self.detector = detector
+        self.phase_plate = phase_plate
 
 
-def new(model=None, beam=None, objective_lens=None, detector=None):
+def new(model=None, beam=None, objective_lens=None, detector=None, phase_plate=False):
     """
     Make a new detector
 
@@ -45,6 +49,7 @@ def new(model=None, beam=None, objective_lens=None, detector=None):
         beam (dict): The beam parameters
         objective_lens (dict): The objective lens parameters
         detector (dict): The detector parameters
+        phase_plate (bool): The phase plate
 
     Returns:
         obj: The detector object
@@ -75,4 +80,6 @@ def new(model=None, beam=None, objective_lens=None, detector=None):
         raise RuntimeError("Unknown microscope model")
 
     # Return the miroscope object
-    return Microscope(model=model, beam=beam, lens=lens, detector=detector)
+    return Microscope(
+        model=model, beam=beam, lens=lens, detector=detector, phase_plate=phase_plate
+    )

@@ -233,6 +233,26 @@ def show_config_main():
     elfantasma.config.show(config, full=True)
 
 
+def rebin(data, shape):
+    """
+    Rebin a multidimensional array
+
+    Args:
+        data (array): The input array
+        shape (tuple): The new shape
+
+    """
+
+    # Get pairs of (shape, bin factor) for each dimension
+    factors = numpy.array([(d, c // d) for d, c in zip(shape, data.shape)])
+
+    # Rebin the array
+    data = data.reshape(factors.flatten())
+    for i in range(len(shape)):
+        data = data.sum(-1 * (i + 1))
+    return data
+
+
 def export(argv=None):
     """
     Convert the input file type to a different file type
@@ -301,6 +321,9 @@ def export(argv=None):
         dest="interlace",
         help="Interlace the scan",
     )
+    parser.add_argument(
+        "--rebin", type=int, default=1, dest="rebin", help="The rebinned factor"
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -361,10 +384,17 @@ def export(argv=None):
     if args.rot90:
         shape = (shape[0], shape[2], shape[1])
 
+    # Rebin
+    if args.rebin != 1:
+        shape = (shape[0], shape[1] // args.rebin, shape[2] // args.rebin)
+        pixel_size = reader.pixel_size * args.rebin
+    else:
+        pixel_size = reader.pixel_size
+
     # Create the write
     logger.info(f"Writing data to {args.output}")
     writer = elfantasma.io.new(
-        args.output, shape=shape, pixel_size=reader.pixel_size, dtype=dtype
+        args.output, shape=shape, pixel_size=pixel_size, dtype=dtype
     )
 
     # If converting to images, determine min and max
@@ -408,6 +438,11 @@ def export(argv=None):
             "phase_unwrap": lambda x: numpy.unwrap(numpy.angle(x)),
             "square": lambda x: numpy.abs(x) ** 2,
         }[args.complex_mode](image)
+
+        # Rebin the array
+        if args.rebin != 1:
+            new_shape = numpy.array(image.shape) // args.rebin
+            image = rebin(image, new_shape)
 
         # Write the image info
         writer.data[j, :, :] = image

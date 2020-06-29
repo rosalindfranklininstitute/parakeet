@@ -62,6 +62,14 @@ class Writer(object):
         return self._position
 
     @property
+    def shift(self):
+        """
+        The shift property
+
+        """
+        return self._shift
+
+    @property
     def pixel_size(self):
         """
         The pixel size property
@@ -161,21 +169,25 @@ class MrcFileWriter(Writer):
             dtype (str): The data type
 
         """
+        # Get the dtype
+        dtype = numpy.dtype(dtype)
 
         # Convert 32bit int and 64bit float
         if dtype == "int32":
-            dtype = "int16"
+            dtype = numpy.dtype(numpy.int16)
         elif dtype == "uint32":
-            dtype = "uint16"
+            dtype = numpy.dtype(numpy.uint16)
         elif dtype == "float64":
-            dtype = "float32"
-
-        # Get the mrc mode
-        mrc_mode = {"int8": 0, "int16": 1, "float32": 2, "complex64": 4, "uint16": 6}
+            dtype = numpy.dtype(numpy.float32)
+        elif dtype == "complex128":
+            dtype = numpy.dtype(numpy.complex64)
 
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
-            filename, shape=(0, 0, 0), mrc_mode=mrc_mode[dtype], overwrite=True
+            filename,
+            shape=(0, 0, 0),
+            mrc_mode=mrcfile.utils.mode_from_dtype(dtype),
+            overwrite=True,
         )
 
         # Setup the extended header
@@ -226,6 +238,37 @@ class NexusWriter(Writer):
     Write to a nexus file
 
     """
+
+    class ShiftProxy(object):
+        """
+        Proxy interface to positions
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+            n = self.handle["x_shift"].shape[0]
+            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
+
+        def __setitem__(self, item, data):
+
+            # Set the items
+            def setitem_internal(j, i, d):
+                if i == 0:
+                    self.handle["x_shift"][j] = d
+                elif i == 1:
+                    self.handle["y_shift"][j] = d
+
+            # Get the indices from the item
+            x = self.x[item]
+            y = self.y[item]
+
+            # Set the item
+            if isinstance(x, numpy.ndarray):
+                for j, i, d in zip(y, x, data):
+                    setitem_internal(j, i, d)
+            else:
+                setitem_internal(y, x, data)
 
     class PositionProxy(object):
         """
@@ -300,6 +343,8 @@ class NexusWriter(Writer):
         sample.create_dataset("x_translation", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("y_translation", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("z_translation", shape=(shape[0],), dtype=numpy.float32)
+        sample.create_dataset("x_shift", shape=(shape[0],), dtype=numpy.float32)
+        sample.create_dataset("y_shift", shape=(shape[0],), dtype=numpy.float32)
 
         # Create the data
         data = entry.create_group("data")
@@ -308,12 +353,15 @@ class NexusWriter(Writer):
         data["x_translation"] = sample["x_translation"]
         data["y_translation"] = sample["y_translation"]
         data["z_translation"] = sample["z_translation"]
+        data["x_shift"] = sample["x_shift"]
+        data["y_shift"] = sample["y_shift"]
         data["image_key"] = detector["image_key"]
 
         # Set the data ptr
         self._data = data["data"]
         self._angle = data["rotation_angle"]
         self._position = NexusWriter.PositionProxy(data)
+        self._shift = NexusWriter.ShiftProxy(data)
 
     @property
     def pixel_size(self):

@@ -21,7 +21,8 @@ import elfantasma.freeze
 import elfantasma.futures
 import elfantasma.sample
 import warnings
-from math import sqrt
+from math import sqrt, pi
+from scipy.spatial.transform import Rotation
 
 # Try to input MULTEM
 try:
@@ -120,7 +121,7 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.potential_slicing = "dz_Proj"
 
     # Electron-Phonon interaction model
-    input_multislice.pn_model = "Still_Atom"
+    input_multislice.pn_model = "Still_Atom"  # "Frozen_Phonon"
     input_multislice.pn_coh_contrib = 0
     input_multislice.pn_single_conf = False
     input_multislice.pn_nconf = 50
@@ -181,6 +182,10 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     input_multislice.obj_lens_phi_56 = microscope.lens.phi_56
     input_multislice.obj_lens_inner_aper_ang = microscope.lens.inner_aper_ang
     input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
+
+    # Do we have a phase plate
+    if microscope.phase_plate:
+        input_multislice.phase_shift = pi / 2.0
 
     # defocus spread function
     input_multislice.obj_lens_dsf_sigma = multem.iehwgd_to_sigma(
@@ -262,11 +267,13 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, position, image = self.simulate_image(i)
+                _, angle, position, image, shift = self.simulate_image(i)
                 if writer:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
-                    writer.position[i] = (position, 0, 0)
+                    writer.position[i] = (0, position, 0)
+                    if shift:
+                        writer.shift[i] = shift
         else:
 
             # Set the maximum number of workers
@@ -300,7 +307,7 @@ class Simulation(object):
                     if writer:
                         writer.data[i, :, :] = image
                         writer.angle[i] = angle
-                        writer.position[i] = (position, 0, 0)
+                        writer.position[i] = (0, position, 0)
 
                     # Write some info
                     vmin = numpy.min(image)
@@ -429,7 +436,7 @@ class ProjectedPotentialSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, None)
+        return (index, angle, position, None, None)
 
 
 class ExitWaveImageSimulator(object):
@@ -464,38 +471,49 @@ class ExitWaveImageSimulator(object):
 
         """
 
+        # Get the specimen atoms
+        logger.info(f"Simulating image {index+1}")
+
         # Get the rotation angle
         angle = self.scan.angles[index]
         position = self.scan.positions[index]
+
+        # Add the beam drift
+        if self.microscope.beam.drift:
+            shiftx, shifty = numpy.random.normal(0, self.microscope.beam.drift, size=2)
+            logger.info("Adding drift of %f, %f " % (shiftx, shifty))
+        else:
+            shiftx = 0
+            shifty = 0
 
         # The field of view
         nx = self.microscope.detector.nx
         ny = self.microscope.detector.ny
         pixel_size = self.microscope.detector.pixel_size
         margin = self.simulation["margin"]
+        padding = self.simulation["padding"]
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
-        offset = margin * pixel_size
-
-        # Get the specimen atoms
-        logger.info(f"Simulating image {index+1}")
+        margin_offset = margin * pixel_size
+        padding_offset = padding * pixel_size
+        offset = (padding + margin) * pixel_size
 
         # Set the rotation angle
         # input_multislice.spec_rot_theta = angle
         # input_multislice.spec_rot_u0 = simulation.scan.axis
 
         # Create the sample extractor
-        x0 = (-offset, -offset)
-        x1 = (x_fov + offset, y_fov + offset)
+        x0 = (-margin_offset, position - margin_offset)
+        x1 = (x_fov + margin_offset, position + y_fov + margin_offset)
         thickness = self.simulation["division_thickness"]
-        extractor = elfantasma.sample.AtomSliceExtractor(
-            sample=self.sample,
-            translation=position,
-            rotation=angle,
-            x0=x0,
-            x1=x1,
-            thickness=thickness,
-        )
+        # extractor = elfantasma.sample.AtomSliceExtractor(
+        #    sample=self.sample,
+        #    translation=position,
+        #    rotation=angle,
+        #    x0=x0,
+        #    x1=x1,
+        #    thickness=thickness,
+        # )
 
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
@@ -504,7 +522,7 @@ class ExitWaveImageSimulator(object):
         input_multislice = create_input_multislice(
             self.microscope,
             self.simulation["slice_thickness"],
-            self.simulation["margin"],
+            self.simulation["margin"] + self.simulation["padding"],
             "EWRS",
         )
 
@@ -514,17 +532,33 @@ class ExitWaveImageSimulator(object):
         input_multislice.spec_lz = self.sample.containing_box[1][2]
 
         # Either slice or don't
-        if len(extractor) == 1:
+        if True:  # len(extractor) == 1:
 
             # Set the atoms in the input after translating them for the offset
-            zslice = extractor[0]
-            logger.info(
-                "    Simulating z slice %f -> %f with %d atoms"
-                % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
-            )
-            input_multislice.spec_atoms = zslice.atoms.translate(
+            # zslice = extractor[0]
+            atoms = self.sample.get_atoms_in_fov(x0, x1)
+            logger.info("Simulating with %d atoms" % atoms.data.shape[0])
+            # logger.info(
+            #     "    Simulating z slice %f -> %f with %d atoms"
+            #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+            # )
+
+            coords = atoms.data[["x", "y", "z"]].to_numpy()
+            coords = (
+                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                    coords - self.sample.centre
+                )
+                + self.sample.centre
+                - (shiftx, shifty + position, 0)
+            ).astype("float32")
+            atoms.data["x"] = coords[:, 0]
+            atoms.data["y"] = coords[:, 1]
+            atoms.data["z"] = coords[:, 2]
+
+            input_multislice.spec_atoms = atoms.translate(
                 (offset, offset, 0)
             ).to_multem()
+            logger.info("   Got spec atoms")
 
             if self.simulation["ice"] == True:
 
@@ -536,14 +570,19 @@ class ExitWaveImageSimulator(object):
                 # Get the sample centre
                 shape = self.sample.shape
                 centre = self.sample.centre
+                centre = (
+                    centre[0] + offset - shiftx,
+                    centre[1] + offset - shifty - position,
+                    centre[2],
+                )
 
                 # Set the shape
                 if shape["type"] == "cube":
                     length = shape["cube"]["length"]
                     masker.set_cuboid(
                         (
-                            offset + centre[0] - length / 2,
-                            offset + centre[1] - length / 2,
+                            centre[0] - length / 2,
+                            centre[1] - length / 2,
                             centre[2] - length / 2,
                         ),
                         (length, length, length),
@@ -554,8 +593,8 @@ class ExitWaveImageSimulator(object):
                     length_z = shape["cuboid"]["length_z"]
                     masker.set_cuboid(
                         (
-                            offset + centre[0] - length_x / 2,
-                            offset + centre[1] - length_y / 2,
+                            centre[0] - length_x / 2,
+                            centre[1] - length_y / 2,
                             centre[2] - length_z / 2,
                         ),
                         (length_x, length_y, length_z),
@@ -565,8 +604,8 @@ class ExitWaveImageSimulator(object):
                     length = shape["cylinder"]["length"]
                     masker.set_cylinder(
                         (
-                            offset + centre[0] - radius,
-                            offset + centre[1] - length / 2,
+                            centre[0] - radius,
+                            centre[1] - length / 2,
                             centre[2] - radius,
                         ),
                         length,
@@ -574,7 +613,7 @@ class ExitWaveImageSimulator(object):
                     )
 
                 # Rotate
-                origin = (offset + centre[0], offset + centre[1], centre[2])
+                origin = centre
                 masker.set_rotation(origin, angle)
 
                 # Run the simulation
@@ -585,6 +624,7 @@ class ExitWaveImageSimulator(object):
             else:
 
                 # Run the simulation
+                logger.info("Simulating")
                 output_multislice = multem.simulate(system_conf, input_multislice)
 
         else:
@@ -647,6 +687,7 @@ class ExitWaveImageSimulator(object):
         # generally deal with data in row major format so we must do a
         # transpose here.
         image = numpy.array(output_multislice.data[0].psi_coh).T
+        image = image[padding:-padding, padding:-padding]
 
         # Print some info
         psi_tot = numpy.abs(image) ** 2
@@ -655,7 +696,7 @@ class ExitWaveImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, image, (shiftx, shifty))
 
 
 class OpticsImageSimulator(object):
@@ -772,7 +813,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, image, None)
 
 
 class ImageSimulator(object):
@@ -828,7 +869,7 @@ class ImageSimulator(object):
         # Compute the number of counts per pixel
         electrons_per_pixel = (
             self.microscope.beam.electrons_per_angstrom
-            / self.microscope.detector.pixel_size
+            * self.microscope.detector.pixel_size ** 2
         )
 
         # Compute the electrons per pixel second
@@ -857,12 +898,12 @@ class ImageSimulator(object):
 
         # Print some info
         logger.info(
-            "    Image min/max/mean: %d/%d/%d"
+            "    Image min/max/mean: %d/%d/%.2g"
             % (numpy.min(image), numpy.max(image), numpy.mean(image))
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, image, None)
 
 
 class CTFSimulator(object):
@@ -922,7 +963,7 @@ class CTFSimulator(object):
         image = numpy.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
-        return (index, 0, 0, image)
+        return (index, 0, 0, image, None)
 
 
 class SimpleImageSimulator(object):
@@ -1013,7 +1054,7 @@ class SimpleImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image)
+        return (index, angle, position, image, None)
 
 
 def projected_potential(

@@ -43,10 +43,7 @@ def get_atom_sigma_sq(atom):
         float: The positional sigma (sqrt(b_iso))
 
     """
-    if atom.has_anisou():
-        b_iso = atom.b_iso_from_aniso()
-    else:
-        b_iso = atom.b_iso
+    b_iso = atom.b_iso
     return b_iso / (8 * pi ** 2)
 
 
@@ -569,13 +566,14 @@ class AtomData(object):
                 for chain in model:
                     for residue in chain:
                         for atom in residue:
+                            assert atom.element.atomic_number > 0
                             yield (
                                 atom.element.atomic_number,
                                 atom.pos.x,
                                 atom.pos.y,
                                 atom.pos.z,
                                 get_atom_sigma(atom),
-                                atom.occ,
+                                1.0,  # atom.occ,
                                 atom.charge,
                             )
 
@@ -1146,7 +1144,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 500  # A
+        self.step = 100000  # A
 
     def close(self):
         """
@@ -1422,6 +1420,17 @@ class Sample(object):
         """
         return self.__handle.sample.bounding_box
 
+    @bounding_box.setter
+    def bounding_box(self, b):
+        """
+        The bounding box
+
+        Returns:
+            tuple: lower, upper - the bounding box coordinates
+
+        """
+        self.__handle.sample.bounding_box = b
+
     @property
     def molecules(self):
         """
@@ -1572,6 +1581,32 @@ class Sample(object):
                 atoms = filter(atoms)
             data = pandas.concat([data, atoms], ignore_index=True)
         return AtomData(data=data)
+
+    def get_atoms_in_fov(self, x0, x1):
+        """
+        Get the subset of atoms within the field of view
+
+        Args:
+            x0 (float): The start of the z range
+            x1 (float): The end of the z range
+
+        Returns:
+            object: The atom data
+
+        """
+
+        # Cast input
+        x0 = numpy.array(x0)
+        x1 = numpy.array(x1)
+
+        # Check input
+        assert (x0 < x1).all()
+
+        # Iterate over dataset ranges
+        atoms = self.get_atoms().data
+        coords = atoms[["x", "y"]]
+        atoms = atoms[((coords >= x0) & (coords < x1)).all(axis=1)]
+        return AtomData(data=atoms)
 
     def info(self):
         """
@@ -1860,6 +1895,10 @@ class AtomDeleter(object):
         )
         self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
+        import mrcfile
+
+        outfile = mrcfile.new("temp.mrc", overwrite=True)
+        outfile.set_data(self.grid.astype("int8"))
         logger.info("Filled grid with atom positions:")
         logger.info("    x0: %g" % self.x0[0])
         logger.info("    y0: %g" % self.x0[1])
@@ -1930,7 +1969,7 @@ def load(filename, mode="r"):
     return Sample(filename, mode=mode)
 
 
-def add_ice(sample, centre=None, shape=None, density=940.0):
+def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     """
     Create a sample with just a load of water molecules
 
@@ -2031,78 +2070,44 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
         floor((mass_of_water / molar_mass_of_water) * avogadros_number)
     )
 
-    # Van der Waals radius of water
-    van_der_waals_radius = 2.7 / 2.0  # A
+    # Uniform random or packed
+    if not pack:
 
-    # Compute the total volume in the spheres
-    volume_of_spheres = (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
+        # The water filename
+        filename = elfantasma.data.get_path("water.cif")
 
-    # Create the grid. The sphere packer takes the grid is (z, y, x) but
-    # because it does slices along Z and we want slices along X we flip the X
-    # and Z grid spec here
-    grid = (
-        int(floor(length_x / (2 * van_der_waals_radius))),
-        int(floor(length_y / (2 * van_der_waals_radius))),
-        int(floor(length_z / (2 * van_der_waals_radius))),
-    )
+        # Get the water coords
+        single_water = elfantasma.sample.AtomData.from_ligand_file(filename)
+        atoms = single_water.data[0:3]
+        water_coords = atoms[["x", "y", "z"]].copy()
 
-    # Compute the node length and density
-    node_length = max((length_z / grid[2], length_y / grid[1], length_x / grid[0]))
-    sphere_density = number_of_waters / volume
+        # Min = 0
+        water_coords -= water_coords.min()
 
-    logger.info(
-        f"Initialising Sphere Packer:\n"
-        f"    Length X:           {length_x} A\n"
-        f"    Length Y:           {length_y} A\n"
-        f"    Length Z:           {length_z} A\n"
-        f"    Volume:             {volume} A^3\n"
-        f"    Density of water:   {density_of_water} Kg/m^3\n"
-        f"    Mass of water:      {mass_of_water} g\n"
-        f"    Number of waters:   {number_of_waters}\n"
-        f"    Mean diameter:      {2*van_der_waals_radius} A\n"
-        f"    Volume filled:      {100*volume_of_spheres/volume} %\n"
-        f"    Packer grid:        ({grid[0]}, {grid[1]}, {grid[2]})\n"
-        f"    Grid node length:   {node_length} A\n"
-        f"    Density of spheres: {sphere_density} #/A^3\n"
-    )
+        # Translation
+        x = numpy.random.uniform(offset_x, offset_x + length_x, size=number_of_waters)
+        y = numpy.random.uniform(offset_y, offset_y + length_y, size=number_of_waters)
+        z = numpy.random.uniform(offset_z, offset_z + length_z, size=number_of_waters)
+        translation = numpy.array((x, y, z)).T
 
-    # Create the sphere packer
-    packer = elfantasma.freeze.SpherePacker(
-        grid, node_length, sphere_density, van_der_waals_radius, max_iter=10
-    )
-
-    # Extract all the data
-    logger.info("Generating water positions:")
-    start_time = time.time()
-    max_buffer = 10_000_000
-    data_buffer = []
-    for x_index, x_slice in enumerate(packer):
-
-        # Read the coordinates. The packer goes along the z axis so we need to
-        # flip the coordinates since we want x slices
-        coords = []
-        for node in x_slice:
-            coords.extend(node)
-        coords = numpy.flip(numpy.array(coords, dtype="float32"), axis=1) + offset
-
-        # Filter the coordinates by the shape to ensure no ice is outside the
-        # shape. This is only really necessary for the cylinder shape
-        coords = shape_filter_coordinates(coords, centre, shape)
-
-        # Compute the rotation
-        rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
+        # Random orientations
+        rotation = Rotation.from_rotvec(random_uniform_rotation(number_of_waters))
 
         # Rotate the Hydrogens around the Oxygen and translate
-        O = rotation.apply(water_coords.iloc[0].copy()) + coords
-        H1 = rotation.apply(water_coords.iloc[1].copy()) + coords
-        H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
+        O = rotation.apply(water_coords.iloc[0].copy()) + translation
+        H1 = rotation.apply(water_coords.iloc[1].copy()) + translation
+        H2 = rotation.apply(water_coords.iloc[2].copy()) + translation
 
         def create_atom_data(atomic_number, coords):
 
             # Create a new array
             def new_array(size, name, value):
                 return (
-                    numpy.zeros(shape=(size,), dtype=AtomData.column_data[name]) + value
+                    numpy.zeros(
+                        shape=(size,),
+                        dtype=elfantasma.sample.AtomData.column_data[name],
+                    )
+                    + value
                 )
 
             # Create the new arrays
@@ -2125,34 +2130,146 @@ def add_ice(sample, centre=None, shape=None, density=940.0):
             )
 
         # Add the sample atoms
+        data_buffer = []
         data_buffer.append(create_atom_data(8, O))
         data_buffer.append(create_atom_data(1, H1))
         data_buffer.append(create_atom_data(1, H2))
-        if sum(b.shape[0] for b in data_buffer) > max_buffer:
+
+        sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
+
+    else:
+
+        # Van der Waals radius of water
+        van_der_waals_radius = 2.7 / 2.0  # A
+
+        # Compute the total volume in the spheres
+        volume_of_spheres = (
+            (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
+        )
+
+        # Create the grid. The sphere packer takes the grid is (z, y, x) but
+        # because it does slices along Z and we want slices along X we flip the X
+        # and Z grid spec here
+        grid = (
+            int(floor(length_x / (2 * van_der_waals_radius))),
+            int(floor(length_y / (2 * van_der_waals_radius))),
+            int(floor(length_z / (2 * van_der_waals_radius))),
+        )
+
+        # Compute the node length and density
+        node_length = max((length_z / grid[2], length_y / grid[1], length_x / grid[0]))
+        sphere_density = number_of_waters / volume
+
+        logger.info(
+            f"Initialising Sphere Packer:\n"
+            f"    Length X:           {length_x} A\n"
+            f"    Length Y:           {length_y} A\n"
+            f"    Length Z:           {length_z} A\n"
+            f"    Volume:             {volume} A^3\n"
+            f"    Density of water:   {density_of_water} Kg/m^3\n"
+            f"    Mass of water:      {mass_of_water} g\n"
+            f"    Number of waters:   {number_of_waters}\n"
+            f"    Mean diameter:      {2*van_der_waals_radius} A\n"
+            f"    Volume filled:      {100*volume_of_spheres/volume} %\n"
+            f"    Packer grid:        ({grid[0]}, {grid[1]}, {grid[2]})\n"
+            f"    Grid node length:   {node_length} A\n"
+            f"    Density of spheres: {sphere_density} #/A^3\n"
+        )
+
+        # Create the sphere packer
+        packer = elfantasma.freeze.SpherePacker(
+            grid, node_length, sphere_density, van_der_waals_radius, max_iter=10
+        )
+
+        # Extract all the data
+        logger.info("Generating water positions:")
+        start_time = time.time()
+        max_buffer = 10_000_000
+        data_buffer = []
+        for x_index, x_slice in enumerate(packer):
+
+            # Read the coordinates. The packer goes along the z axis so we need to
+            # flip the coordinates since we want x slices
+            coords = []
+            for node in x_slice:
+                coords.extend(node)
+            coords = numpy.flip(numpy.array(coords, dtype="float32"), axis=1) + offset
+
+            # Filter the coordinates by the shape to ensure no ice is outside the
+            # shape. This is only really necessary for the cylinder shape
+            coords = shape_filter_coordinates(coords, centre, shape)
+
+            # Compute the rotation
+            rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
+
+            # Rotate the Hydrogens around the Oxygen and translate
+            O = rotation.apply(water_coords.iloc[0].copy()) + coords
+            H1 = rotation.apply(water_coords.iloc[1].copy()) + coords
+            H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
+
+            def create_atom_data(atomic_number, coords):
+
+                # Create a new array
+                def new_array(size, name, value):
+                    return (
+                        numpy.zeros(shape=(size,), dtype=AtomData.column_data[name])
+                        + value
+                    )
+
+                # Create the new arrays
+                atomic_number = new_array(
+                    coords.shape[0], "atomic_number", atomic_number
+                )
+                sigma = new_array(coords.shape[0], "sigma", 0.085)
+                occupancy = new_array(coords.shape[0], "occupancy", 1.0)
+                charge = new_array(coords.shape[0], "charge", 0)
+
+                # Return the data frame
+                return pandas.DataFrame(
+                    {
+                        "atomic_number": atomic_number,
+                        "x": coords[:, 0],
+                        "y": coords[:, 1],
+                        "z": coords[:, 2],
+                        "sigma": sigma,
+                        "occupancy": occupancy,
+                        "charge": charge,
+                    }
+                )
+
+            # Add the sample atoms
+            data_buffer.append(create_atom_data(8, O))
+            data_buffer.append(create_atom_data(1, H1))
+            data_buffer.append(create_atom_data(1, H2))
+            if sum(b.shape[0] for b in data_buffer) > max_buffer:
+                logger.info(
+                    "    Writing %d atoms" % sum(b.shape[0] for b in data_buffer)
+                )
+                sample.add_atoms(
+                    AtomData(data=pandas.concat(data_buffer, ignore_index=True))
+                )
+                data_buffer = []
+
+            # The estimates time left
+            time_taken = time.time() - start_time
+            estimated_time = (len(packer) - x_index) * time_taken / (x_index + 1)
+
+            # Log some info
+            logger.info(
+                "    X slice %d/%d: Num molecules: %d (remaining %.d seconds)"
+                % (x_index, len(packer), O.shape[0], estimated_time)
+            )
+
+        # Add anything remaining in the data buffer
+        if len(data_buffer) > 0:
             logger.info("    Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
             sample.add_atoms(
                 AtomData(data=pandas.concat(data_buffer, ignore_index=True))
             )
             data_buffer = []
 
-        # The estimates time left
-        time_taken = time.time() - start_time
-        estimated_time = (len(packer) - x_index) * time_taken / (x_index + 1)
-
-        # Log some info
-        logger.info(
-            "    X slice %d/%d: Num molecules: %d (remaining %.d seconds)"
-            % (x_index, len(packer), O.shape[0], estimated_time)
-        )
-
-    # Add anything remaining in the data buffer
-    if len(data_buffer) > 0:
-        logger.info("    Writing %d atoms" % sum(b.shape[0] for b in data_buffer))
-        sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
-        data_buffer = []
-
-    # Print some output
-    logger.info(f"Sphere packer: Num unplaced:  {packer.num_unplaced_samples()}")
+        # Print some output
+        logger.info(f"Sphere packer: Num unplaced:  {packer.num_unplaced_samples()}")
 
     # Return the sample
     return sample
@@ -2263,12 +2380,17 @@ def add_single_molecule(sample, name):
         )
     )
 
+    position = sample.centre
+    # z = sample.bounding_box[0][2]
+    # z = z - coords["z"].max()
+    # position[2] = z
+
     # Delete the atoms where we want to place the molecules
-    sample.del_atoms(AtomDeleter(atoms, sample.centre, (0, 0, 0)))
+    sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))
 
     # Add the molecule
     sample.add_molecule(
-        atoms, positions=[sample.centre], orientations=[(0, 0, 0)], name=name
+        atoms, positions=[position], orientations=[(0, 0, 0)], name=name
     )
 
     # Return the sample
@@ -2399,3 +2521,78 @@ def add_molecules(filename, molecules=None, **kwargs):
 
     # Return the sample
     return sample
+
+
+def mill(filename, box=None, centre=None, shape=None, **kwargs):
+    """
+    Mill the sample
+
+    """
+
+    def shape_filter_coordinates(coords, centre, shape):
+        def cube_filter_coordinates(coords, centre, cube):
+            length = cube["length"]
+            x0 = centre - length / 2.0
+            x1 = centre + length / 2.0
+            return ((coords >= x0) & (coords < x1)).all(axis=1)
+
+        def cuboid_filter_coordinates(coords, centre, cuboid):
+            length_x = cuboid["length_x"]
+            length_y = cuboid["length_y"]
+            length_z = cuboid["length_z"]
+            length = numpy.array((length_x, length_y, length_z))
+            x0 = centre - length / 2.0
+            x1 = centre + length / 2.0
+            return ((coords >= x0) & (coords < x1)).all(axis=1)
+
+        def cylinder_filter_coordinates(coords, centre, cylinder):
+            length = cylinder["length"]
+            radius = cylinder["radius"]
+            y0 = centre - length / 2.0
+            y1 = centre + length / 2.0
+            x = coords[:, 0]
+            y = coords[:, 1]
+            z = coords[:, 2]
+            return (
+                (y >= y0[0])
+                & (y < y1[0])
+                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius ** 2)
+            )
+
+        # Filter the coords
+        return {
+            "cube": cube_filter_coordinates,
+            "cuboid": cuboid_filter_coordinates,
+            "cylinder": cylinder_filter_coordinates,
+        }[shape["type"]](coords, centre, shape[shape["type"]])
+
+    class Deleter(object):
+        def __init__(self, sample):
+            self.sample = sample
+            self.x0, self.x1 = self.sample.bounding_box
+
+        def __call__(self, atoms):
+            selection = shape_filter_coordinates(
+                atoms[["x", "y", "z"]], self.sample.centre, self.sample.shape
+            )
+            return atoms[selection]
+
+    # Open the sample
+    sample = Sample(filename, mode="r+")
+
+    # Set the sample box and shape
+    sample.containing_box = ((0, 0, 0), box)
+    sample.centre = centre
+    sample.shape = shape
+
+    # Delete the atoms
+    sample.del_atoms(Deleter(sample))
+
+    atoms = sample.get_atoms()
+    coords = atoms.data[["x", "y", "z"]]
+    x0 = coords.min()
+    x1 = coords.max()
+    sample.bounding_box = (x0, x1)
+
+    # Print some info
+    logger.info(sample.info())

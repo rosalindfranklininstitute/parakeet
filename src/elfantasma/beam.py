@@ -22,6 +22,7 @@ class Beam(object):
         energy_spread=0,
         acceleration_voltage_spread=0,
         electrons_per_angstrom=30,
+        drift=None,
     ):
         """
         Initialise the beam
@@ -31,12 +32,14 @@ class Beam(object):
             energy_spread (float): dE / E where dE is the 1/e half width
             acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
             electrons_per_angstrom (float): The number of electrons per angstrom
+            drift (float): The beam drift sigma (A)
 
         """
         self.energy = energy
         self.energy_spread = energy_spread
         self.acceleration_voltage_spread = acceleration_voltage_spread
         self.electrons_per_angstrom = electrons_per_angstrom
+        self.drift = drift
 
 
 def new(
@@ -44,6 +47,7 @@ def new(
     energy_spread=None,
     acceleration_voltage_spread=None,
     electrons_per_angstrom=None,
+    drift=None,
 ):
     """
     Create a beam
@@ -53,6 +57,7 @@ def new(
         energy_spread (float): dE / E where dE is the 1/e half width
         acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
         electrons_per_angstrom (float): The number of electrons per angstrom
+        drift (float): The beam drift sigma (A)
 
     Returns:
         object: The beam object
@@ -63,4 +68,5 @@ def new(
         energy_spread=energy_spread,
         acceleration_voltage_spread=acceleration_voltage_spread,
         electrons_per_angstrom=electrons_per_angstrom,
+        drift=drift,
     )
