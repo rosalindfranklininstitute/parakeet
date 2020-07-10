@@ -13,6 +13,7 @@ import gemmi
 import logging
 import numpy
 import time
+import scipy.signal
 import elfantasma.io
 import elfantasma.config
 import elfantasma.microscope
@@ -242,14 +243,15 @@ def rebin(data, shape):
         shape (tuple): The new shape
 
     """
-
     # Get pairs of (shape, bin factor) for each dimension
     factors = numpy.array([(d, c // d) for d, c in zip(shape, data.shape)])
 
     # Rebin the array
-    data = data.reshape(factors.flatten())
-    for i in range(len(shape)):
-        data = data.sum(-1 * (i + 1))
+    for i in range(len(factors)):
+        data = scipy.signal.decimate(data, factors[i][1], axis=i)
+    # data = data.reshape(factors.flatten())
+    # for i in range(len(shape)):
+    #     data = data.sum(-1 * (i + 1))
     return data
 
 

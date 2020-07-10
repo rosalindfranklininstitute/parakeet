@@ -122,6 +122,7 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
 
     # Electron-Phonon interaction model
     input_multislice.pn_model = "Still_Atom"  # "Frozen_Phonon"
+    # input_multislice.pn_model = "Frozen_Phonon"
     input_multislice.pn_coh_contrib = 0
     input_multislice.pn_single_conf = False
     input_multislice.pn_nconf = 50
@@ -531,6 +532,16 @@ class ExitWaveImageSimulator(object):
         input_multislice.spec_ly = y_fov + offset * 2
         input_multislice.spec_lz = self.sample.containing_box[1][2]
 
+        # Compute the B factor
+        if self.simulation["radiation_damage_model"]:
+            sigma_B = sqrt(
+                self.simulation["sensitivity_coefficient"]
+                * self.microscope.beam.electrons_per_angstrom
+                * (index + 1)
+            )
+        else:
+            sigma_B = 0
+
         # Either slice or don't
         if True:  # len(extractor) == 1:
 
@@ -542,6 +553,9 @@ class ExitWaveImageSimulator(object):
             #     "    Simulating z slice %f -> %f with %d atoms"
             #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
             # )
+
+            # Set atom sigma
+            atoms.data["sigma"] = sigma_B
 
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
