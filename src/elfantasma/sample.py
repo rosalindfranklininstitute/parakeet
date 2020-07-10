@@ -2345,7 +2345,7 @@ def add_single_molecule(sample, name):
     logger.info("Adding single %s molecule" % name)
 
     # Get the filename of the 4v5d.cif file
-    filename = elfantasma.data.get_path("%s.cif" % name)
+    filename = elfantasma.data.get_pdb(name)
 
     # Get the atom data
     atoms = AtomData.from_gemmi_file(filename)
@@ -2430,7 +2430,7 @@ def add_multiple_molecules(sample, molecules):
         logger.info("Adding %d %s molecules" % (number, name))
 
         # Get the filename of the 4v5d.cif file
-        filename = elfantasma.data.get_path("%s.cif" % name)
+        filename = elfantasma.data.get_pdb(name)
 
         # Get the atom data
         atoms = AtomData.from_gemmi_file(filename)

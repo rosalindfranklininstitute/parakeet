@@ -138,6 +138,8 @@ def default():
             padding: 100
             division_thickness: 100
             ice: False
+            radiation_damage_model: False
+            sensitivity_coefficient: 0.014
 
         cluster:
             method: null
