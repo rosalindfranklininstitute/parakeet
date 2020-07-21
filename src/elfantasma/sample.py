@@ -567,13 +567,15 @@ class AtomData(object):
                     for residue in chain:
                         for atom in residue:
                             assert atom.element.atomic_number > 0
+                            # if atom.element.atomic_number == 1:
+                            #    continue
                             yield (
                                 atom.element.atomic_number,
                                 atom.pos.x,
                                 atom.pos.y,
                                 atom.pos.z,
                                 get_atom_sigma(atom),
-                                1.0,  # atom.occ,
+                                atom.occ,
                                 atom.charge,
                             )
 
@@ -2380,21 +2382,21 @@ def add_single_molecule(sample, name):
         )
     )
 
-    position = sample.centre
+    # position = sample.centre
     # z = sample.bounding_box[0][2]
     # z = z - coords["z"].max()
     # position[2] = z
 
-    # Delete the atoms where we want to place the molecules
-    sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))
+    # # Delete the atoms where we want to place the molecules
+    # sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))
 
-    # Add the molecule
-    sample.add_molecule(
-        atoms, positions=[position], orientations=[(0, 0, 0)], name=name
-    )
+    # # Add the molecule
+    # sample.add_molecule(
+    #     atoms, positions=[position], orientations=[(0, 0, 0)], name=name
+    # )
 
-    # Return the sample
-    return sample
+    # # Return the sample
+    # return sample
 
 
 def add_multiple_molecules(sample, molecules):
@@ -2420,14 +2422,14 @@ def add_multiple_molecules(sample, molecules):
     all_orientations = []
 
     # Generate the orientations and boxes
-    for name, number in molecules.items():
+    for name, items in molecules.items():
 
         # Skip if number is zero
-        if number == 0:
+        if len(items) == 0:
             continue
 
         # Print some info
-        logger.info("Adding %d %s molecules" % (number, name))
+        logger.info("Adding %d %s molecules" % (len(items), name))
 
         # Get the filename of the 4v5d.cif file
         filename = elfantasma.data.get_pdb(name)
@@ -2439,17 +2441,23 @@ def add_multiple_molecules(sample, molecules):
 
         # Generate some random orientations
         logger.info("    Generating random orientations")
-        for rotation in Rotation.from_rotvec(random_uniform_rotation(number)):
+        for item in items:
+            rotation = item.get("orientation", None)
+            if rotation is None:
+                rotation = random_uniform_rotation(1)[0]
+            rotation = Rotation.from_rotvec(rotation)
             coords = rotation.apply(atoms.data[["x", "y", "z"]])
             all_orientations.append(rotation.as_rotvec())
+            all_positions.append(item.get("position", None))
             all_boxes.append(numpy.max(coords, axis=0) - numpy.min(coords, axis=0))
             all_labels.append(name)
 
     # Put the molecules in the sample
     logger.info("Placing molecules:")
-    all_positions = distribute_boxes_uniformly(
-        shape_enclosed_box(sample.centre, sample.shape), all_boxes
-    )
+    if any(p is None for p in all_positions):
+        all_positions = distribute_boxes_uniformly(
+            shape_enclosed_box(sample.centre, sample.shape), all_boxes
+        )
 
     # Set the positions and orientations by molecule
     positions = defaultdict(list)
@@ -2501,20 +2509,33 @@ def add_molecules(filename, molecules=None, **kwargs):
 
     """
 
-    # Total number of molecules
-    total_number_of_molecules = sum(molecules.values())
+    # Convert to list of positions/orientations
+    temp = {}
+    for key, value in molecules.items():
+        if isinstance(value, int):
+            temp[key] = [{} for i in range(value)]
+        else:
+            temp[key] = value
+    molecules = temp
+
+    # The total number of molecules
+    total_number_of_molecules = sum(map(len, molecules.values()))
 
     # Open the sample
     sample = Sample(filename, mode="r+")
 
-    # Add the molecules
+    # Put the molecule in the centre if only one
     if total_number_of_molecules == 0:
         raise RuntimeError("Need at least 1 molecule")
     elif total_number_of_molecules == 1:
-        name = [key for key, value in molecules.items() if value > 0][0]
-        add_single_molecule(sample, name)
-    else:
-        add_multiple_molecules(sample, molecules)
+        key = [key for key, value in molecules.items() if len(value) > 0][0]
+        if molecules[key][0].get("position", None) is None:
+            molecules[key][0]["position"] = sample.centre
+        if molecules[key][0].get("orientation", None) is None:
+            molecules[key][0]["orientation"] = (0, 0, 0)
+
+    # Add the molecules
+    add_multiple_molecules(sample, molecules)
 
     # Show some info
     logger.info(sample.info())
