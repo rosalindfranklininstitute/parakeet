@@ -907,7 +907,7 @@ class ImageSimulator(object):
         image = image / numpy.mean(image)
 
         # Add Poisson noise
-        numpy.random.seed(index)
+        # numpy.random.seed(index)
         image = numpy.random.poisson(image * electrons_per_pixel)
 
         # Print some info
