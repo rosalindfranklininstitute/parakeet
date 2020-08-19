@@ -311,6 +311,7 @@ def export(argv=None):
             "phase",
             "phase_unwrap",
             "square",
+            "imaginary_square",
         ],
         default="complex",
         dest="complex_mode",
@@ -439,6 +440,7 @@ def export(argv=None):
             "phase": lambda x: numpy.angle(x),
             "phase_unwrap": lambda x: numpy.unwrap(numpy.angle(x)),
             "square": lambda x: numpy.abs(x) ** 2,
+            "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
         }[args.complex_mode](image)
 
         # Rebin the array
