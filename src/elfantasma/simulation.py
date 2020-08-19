@@ -199,7 +199,8 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     )
 
     # zero defocus reference
-    input_multislice.obj_lens_zero_defocus_type = "Last"
+    input_multislice.cond_lens_zero_defocus_type = "Middle"
+    input_multislice.obj_lens_zero_defocus_type = "Middle"
 
     # Return the input multislice object
     return input_multislice
@@ -568,6 +569,7 @@ class ExitWaveImageSimulator(object):
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
+            # atoms.data = atoms.data.append(elfantasma.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
             input_multislice.spec_atoms = atoms.translate(
                 (offset, offset, 0)
@@ -782,35 +784,41 @@ class OpticsImageSimulator(object):
         input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
         # Set the input wave
-        user_defined_wave = self.exit_wave.data[index]
-        assert user_defined_wave.shape == (ny + 2 * margin, nx + 2 * margin)
-        input_multislice.iw_type = "User_Define_Wave"
-        input_multislice.iw_psi = list(user_defined_wave.T.flatten())
-        input_multislice.iw_x = [0.5 * input_multislice.spec_lx]
-        input_multislice.iw_y = [0.5 * input_multislice.spec_ly]
-        input_multislice.spec_atoms = multem.AtomList(
-            [
-                (
-                    1,
-                    input_multislice.spec_lx / 2.0,
-                    input_multislice.spec_ly / 2.0,
-                    input_multislice.spec_lz / 2.0,
-                    0.088,
-                    0,
-                    0,
-                    0,
-                )
-            ]
-        )
+        psi = self.exit_wave.data[index]
 
-        # Run the simulation
-        output_multislice = multem.simulate(system_conf, input_multislice)
+        # Compute and apply the CTF
+        ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
+        psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
+        image = numpy.abs(psi) ** 2
+
+        # assert user_defined_wave.shape == (ny + 2 * margin, nx + 2 * margin)
+        # input_multislice.iw_type = "User_Define_Wave"
+        # input_multislice.iw_psi = list(user_defined_wave.T.flatten())
+        # input_multislice.iw_x = [0.5 * input_multislice.spec_lx]
+        # input_multislice.iw_y = [0.5 * input_multislice.spec_ly]
+        # input_multislice.spec_atoms = multem.AtomList(
+        #     [
+        #         (
+        #             1,
+        #             input_multislice.spec_lx / 2.0,
+        #             input_multislice.spec_ly / 2.0,
+        #             input_multislice.spec_lz / 2.0,
+        #             0.088,
+        #             0,
+        #             0,
+        #             0,
+        #         )
+        #     ]
+        # )
+
+        # # Run the simulation
+        # output_multislice = multem.simulate(system_conf, input_multislice)
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = numpy.array(output_multislice.data[0].m2psi_tot).T
+        # image = numpy.array(output_multislice.data[0].m2psi_tot).T
 
         # Remove margin
         j0 = margin
@@ -821,10 +829,7 @@ class OpticsImageSimulator(object):
         assert i1 > i0
         assert j1 > j0
         image = image[j0:j1, i0:i1]
-        psi_tot = numpy.abs(image) ** 2
-        logger.info(
-            "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
-        )
+        logger.info("Ideal image min/max: %f/%f" % (numpy.min(image), numpy.max(image)))
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, image, None)
