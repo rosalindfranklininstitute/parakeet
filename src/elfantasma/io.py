@@ -536,7 +536,10 @@ class Reader(object):
 
         """
         tol = 1e-7
-        step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
+        if len(self.angle) == 1:
+            step = 1
+        else:
+            step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
         # assert all(
         #     abs((b - a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:])
         # )
