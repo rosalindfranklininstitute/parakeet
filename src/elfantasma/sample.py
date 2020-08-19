@@ -1861,7 +1861,7 @@ class AtomDeleter(object):
         )
 
         # The min and max coordinates
-        border = 5  # A
+        border = 1  # A
         self.x0 = numpy.floor(numpy.min(coords, axis=0)) - border
         self.x1 = numpy.ceil(numpy.max(coords, axis=0)) + border
 
@@ -1869,9 +1869,9 @@ class AtomDeleter(object):
         self.size = self.x1 - self.x0
 
         # The grid size
-        self.grid_cell_size = 2.0  # 2 A
+        self.grid_cell_size = 1.0  # 2 A
         min_distance = (
-            5.0 / self.grid_cell_size
+            1.0 / self.grid_cell_size
         )  # The distance at which to delete atoms
 
         # The dimensions of the grid
@@ -1879,6 +1879,13 @@ class AtomDeleter(object):
 
         # Allocate the grid
         self.grid = numpy.ones(shape=grid_shape, dtype="bool")
+        # self.grid = ~self.grid
+        # X, Y, Z = numpy.mgrid[0:grid_shape[0],0:grid_shape[1],0:grid_shape[2]]
+        # R = numpy.sqrt((X-grid_shape[0]/2)**2+(Y-grid_shape[1]/2)**2+(Z-grid_shape[2]/2)**2)
+        # r = abs(self.x0[0] - self.x1[0])
+        # print(R.max(), grid_shape[0]/2.0)
+        # self.grid = R < (grid_shape[0]/2.0)
+        # return
 
         # Get the indices and set the grid values. The fill in any holes using
         # a morphological fill. The distance transform finds the distance to
@@ -1892,6 +1899,11 @@ class AtomDeleter(object):
         index_z = indices[:, 2]
         assert (indices >= 0).all()
         self.grid[index_x, index_y, index_z] = False
+        self.grid = ~self.grid
+        # from matplotlib import pylab
+        # pylab.imshow(self.grid[:,:,grid_shape[2]//2])
+        # pylab.show()
+        return
         self.grid = (
             scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
         )
@@ -2383,20 +2395,20 @@ def add_single_molecule(sample, name):
     )
 
     # position = sample.centre
-    # z = sample.bounding_box[0][2]
-    # z = z - coords["z"].max()
-    # position[2] = z
+    z = sample.bounding_box[0][2]
+    z = z - coords["z"].max()
+    position[2] = z
 
-    # # Delete the atoms where we want to place the molecules
-    # sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))
+    # Delete the atoms where we want to place the molecules
+    sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))
 
-    # # Add the molecule
-    # sample.add_molecule(
-    #     atoms, positions=[position], orientations=[(0, 0, 0)], name=name
-    # )
+    # Add the molecule
+    sample.add_molecule(
+        atoms, positions=[position], orientations=[(0, 0, 0)], name=name
+    )
 
-    # # Return the sample
-    # return sample
+    # Return the sample
+    return sample
 
 
 def add_multiple_molecules(sample, molecules):
