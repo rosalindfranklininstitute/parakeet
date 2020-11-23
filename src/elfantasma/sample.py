@@ -567,6 +567,7 @@ class AtomData(object):
                     for residue in chain:
                         for atom in residue:
                             assert atom.element.atomic_number > 0
+                            print(atom.occ)
                             # if atom.element.atomic_number == 1:
                             #    continue
                             yield (
@@ -1606,8 +1607,9 @@ class Sample(object):
 
         # Iterate over dataset ranges
         atoms = self.get_atoms().data
-        coords = atoms[["x", "y"]]
-        atoms = atoms[((coords >= x0) & (coords < x1)).all(axis=1)]
+        if len(atoms) > 0:
+            coords = atoms[["x", "y"]]
+            atoms = atoms[((coords >= x0) & (coords < x1)).all(axis=1)]
         return AtomData(data=atoms)
 
     def info(self):
@@ -1871,7 +1873,7 @@ class AtomDeleter(object):
         # The grid size
         self.grid_cell_size = 1.0  # 2 A
         min_distance = (
-            1.0 / self.grid_cell_size
+            2.0 / self.grid_cell_size
         )  # The distance at which to delete atoms
 
         # The dimensions of the grid
@@ -1903,10 +1905,11 @@ class AtomDeleter(object):
         # from matplotlib import pylab
         # pylab.imshow(self.grid[:,:,grid_shape[2]//2])
         # pylab.show()
-        return
+
         self.grid = (
             scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
         )
+        return
         self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
         import mrcfile
@@ -2099,9 +2102,24 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         water_coords -= water_coords.min()
 
         # Translation
-        x = numpy.random.uniform(offset_x, offset_x + length_x, size=number_of_waters)
-        y = numpy.random.uniform(offset_y, offset_y + length_y, size=number_of_waters)
-        z = numpy.random.uniform(offset_z, offset_z + length_z, size=number_of_waters)
+        if shape["type"] != "cylinder":
+            x = numpy.random.uniform(
+                offset_x, offset_x + length_x, size=number_of_waters
+            )
+            y = numpy.random.uniform(
+                offset_y, offset_y + length_y, size=number_of_waters
+            )
+            z = numpy.random.uniform(
+                offset_z, offset_z + length_z, size=number_of_waters
+            )
+        else:
+            r = radius * numpy.sqrt(numpy.random.uniform(0, 1, size=number_of_waters))
+            t = numpy.random.uniform(0, 2 * pi, size=number_of_waters)
+            x = centre_x + r * numpy.cos(t)
+            y = numpy.random.uniform(
+                offset_y, offset_y + length_z, size=number_of_waters
+            )
+            z = centre_z + r * numpy.sin(t)
         translation = numpy.array((x, y, z)).T
 
         # Random orientations
@@ -2583,9 +2601,9 @@ def mill(filename, box=None, centre=None, shape=None, **kwargs):
             radius = cylinder["radius"]
             y0 = centre - length / 2.0
             y1 = centre + length / 2.0
-            x = coords[:, 0]
-            y = coords[:, 1]
-            z = coords[:, 2]
+            x = coords["x"]
+            y = coords["y"]
+            z = coords["z"]
             return (
                 (y >= y0[0])
                 & (y < y1[0])

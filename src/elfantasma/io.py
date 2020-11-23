@@ -139,7 +139,7 @@ class MrcFileWriter(Writer):
             self.x, self.y = numpy.meshgrid(numpy.arange(0, 3), numpy.arange(0, n))
 
         def __setitem__(self, item, data):
-
+            print(item, data)
             # Set the items
             def setitem_internal(j, i, d):
                 if i == 0:
@@ -552,7 +552,7 @@ class Reader(object):
             float: the start position
 
         """
-        return self.position[0][0]
+        return self.position[0][1]
 
     @property
     def stop_position(self):
@@ -561,7 +561,7 @@ class Reader(object):
             float: The stop position
 
         """
-        return self.position[-1][0]
+        return self.position[-1][1]
 
     @property
     def step_position(self):
@@ -571,12 +571,12 @@ class Reader(object):
 
         """
         tol = 1e-7
-        step = (self.position[-1, 0] - self.position[0, 0]) / (
+        step = (self.position[-1, 1] - self.position[0, 1]) / (
             self.position.shape[0] - 1
         )
         assert all(
             abs((b - a) - step) < tol
-            for a, b in zip(self.position[0:-1, 0], self.position[1:0])
+            for a, b in zip(self.position[0:-1, 1], self.position[1:1])
         )
         return step
 

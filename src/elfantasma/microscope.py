@@ -64,14 +64,14 @@ def new(model=None, beam=None, objective_lens=None, detector=None, phase_plate=F
     # Override the parameters for the different microscope models
     if model == "krios":
         beam.energy = 300
-        beam.energy_spread = 0.33 * 1e-6
+        beam.energy_spread = 2.66 * 1e-6
         beam.acceleration_voltage_spread = 0.8 * 1e-6
         lens.c_30 = 2.7
         lens.c_c = 2.7
         lens.current_spread = 0.33 * 1e-6
     elif model == "talos":
         beam.energy = 200
-        beam.energy_spread = 0.33 * 1e-6
+        beam.energy_spread = 2.66 * 1e-6
         beam.acceleration_voltage_spread = 0.8 * 1e-6
         lens.c_30 = 2.7
         lens.c_c = 2.7

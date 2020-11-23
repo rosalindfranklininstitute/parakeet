@@ -75,7 +75,7 @@ def default():
 
             beam:
                 energy: 300
-                energy_spread: 0.33e-6
+                energy_spread: 2.66e-6
                 acceleration_voltage_spread: 0.8e-6
                 electrons_per_angstrom: 30
                 drift: null
@@ -118,7 +118,7 @@ def default():
                 nx: 4000
                 ny: 4000
                 pixel_size: 1
-                dqe: True
+                dqe: False
 
         scan:
             mode: still
@@ -139,6 +139,7 @@ def default():
             division_thickness: 100
             ice: False
             radiation_damage_model: False
+            inelastic_zero_loss_model: False
             sensitivity_coefficient: 0.014
 
         cluster:

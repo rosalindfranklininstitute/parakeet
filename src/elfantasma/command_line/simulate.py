@@ -513,6 +513,8 @@ def image(args=None):
     config["scan"]["step_pos"] = optics.step_position
     config["scan"]["num_images"] = optics.num_images
     scan = elfantasma.scan.new(**config["scan"])
+    scan.angles = [optics.angle[i] for i in range(optics.data.shape[0])]
+    scan.positions = [optics.position[i, 1] for i in range(optics.data.shape[0])]
 
     # Create the simulation
     simulation = elfantasma.simulation.image(
@@ -530,7 +532,7 @@ def image(args=None):
         args.image,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
-        dtype=numpy.int32,
+        dtype=numpy.float32,
     )
 
     # Run the simulation

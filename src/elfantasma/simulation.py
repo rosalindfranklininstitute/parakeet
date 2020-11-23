@@ -21,7 +21,7 @@ import elfantasma.freeze
 import elfantasma.futures
 import elfantasma.sample
 import warnings
-from math import sqrt, pi
+from math import sqrt, pi, cos, exp
 from scipy.spatial.transform import Rotation
 
 # Try to input MULTEM
@@ -558,17 +558,18 @@ class ExitWaveImageSimulator(object):
             # Set atom sigma
             atoms.data["sigma"] = sigma_B
 
-            coords = atoms.data[["x", "y", "z"]].to_numpy()
-            coords = (
-                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
-                    coords - self.sample.centre
-                )
-                + self.sample.centre
-                - (shiftx, shifty + position, 0)
-            ).astype("float32")
-            atoms.data["x"] = coords[:, 0]
-            atoms.data["y"] = coords[:, 1]
-            atoms.data["z"] = coords[:, 2]
+            if len(atoms.data) > 0:
+                coords = atoms.data[["x", "y", "z"]].to_numpy()
+                coords = (
+                    Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                        coords - self.sample.centre
+                    )
+                    + self.sample.centre
+                    - (shiftx, shifty + position, 0)
+                ).astype("float32")
+                atoms.data["x"] = coords[:, 0]
+                atoms.data["y"] = coords[:, 1]
+                atoms.data["z"] = coords[:, 2]
             # atoms.data = atoms.data.append(elfantasma.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
             input_multislice.spec_atoms = atoms.translate(
@@ -891,6 +892,14 @@ class ImageSimulator(object):
             * self.microscope.detector.pixel_size ** 2
         )
 
+        # Fewer electrons allowed through
+        if self.simulation["inelastic_zero_loss_model"]:
+            TINY = 1e-10
+            thickness = 1500 / (cos(pi * angle / 180.0) + TINY)
+            mean_free_path = 3150  # A for Amorphous Ice at 300 keV
+            electrons_per_pixel *= exp(-thickness / mean_free_path)
+            print(thickness, electrons_per_pixel)
+
         # Compute the electrons per pixel second
         electrons_per_second = electrons_per_pixel / self.scan.exposure_time
         energy = self.microscope.beam.energy
@@ -900,6 +909,7 @@ class ImageSimulator(object):
 
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
+            logger.info("Applying DQE")
             dqe = elfantasma.dqe.DQETable().dqe_fs(
                 energy, electrons_per_second, image.shape
             )
@@ -913,16 +923,20 @@ class ImageSimulator(object):
 
         # Add Poisson noise
         # numpy.random.seed(index)
-        image = numpy.random.poisson(image * electrons_per_pixel)
+        image = numpy.random.poisson(image * electrons_per_pixel).astype("float64")
 
         # Print some info
         logger.info(
-            "    Image min/max/mean: %d/%d/%.2g"
+            "    Image min/max/mean: %g/%g/%.2g"
             % (numpy.min(image), numpy.max(image), numpy.mean(image))
         )
 
+        # Normalize image again
+        # if electrons_per_pixel > 0:
+        #     image = image / electrons_per_pixel
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, None)
+        return (index, angle, position, image.astype("float32"), None)
 
 
 class CTFSimulator(object):
