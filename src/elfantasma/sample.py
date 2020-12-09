@@ -237,7 +237,7 @@ def shape_bounding_box(centre, shape):
 
     def cylinder_bounding_box(cylinder):
         length = cylinder["length"]
-        radius = cylinder["radius"]
+        radius = numpy.mean(cylinder["radius"])
         return ((0, 0, 0), (2 * radius, length, 2 * radius))
 
     # The bounding box
@@ -320,7 +320,7 @@ def shape_enclosed_box(centre, shape):
 
     def cylinder_enclosed_box(cylinder):
         length = cylinder["length"]
-        radius = cylinder["radius"]
+        radius = numpy.mean(cylinder["radius"])
         return (
             (radius * (1 - 1 / sqrt(2)), 0, radius * (1 - 1 / sqrt(2))),
             (radius * (1 + 1 / sqrt(2)), length, radius * (1 + 1 / sqrt(2))),
@@ -410,7 +410,7 @@ def is_box_inside_shape(box, centre, shape):
 
     def is_box_inside_cylinder(x0, x1, centre, cylinder):
         length = cylinder["length"]
-        radius = cylinder["radius"]
+        radius = numpy.mean(cylinder["radius"])
         return (
             (x0[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
             and (x1[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
