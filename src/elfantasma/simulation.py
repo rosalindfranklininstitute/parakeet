@@ -619,19 +619,21 @@ class ExitWaveImageSimulator(object):
                 elif shape["type"] == "cylinder":
                     radius = shape["cylinder"]["radius"]
                     length = shape["cylinder"]["length"]
+                    offset_x = shape["cylinder"]["offset_x"]
+                    offset_z = shape["cylinder"]["offset_z"]
+                    axis = shape["cylinder"]["axis"]
                     masker.set_cylinder(
-                        (
-                            centre[0] - radius,
-                            centre[1] - length / 2,
-                            centre[2] - radius,
-                        ),
+                        (centre[0], centre[1] - length / 2, centre[2]),
+                        axis,
                         length,
-                        radius,
+                        list(radius),
+                        list(offset_x),
+                        list(offset_z),
                     )
 
                 # Rotate
                 origin = centre
-                masker.set_rotation(origin, angle)
+                masker.set_rotation(origin, (0, angle * pi / 180.0, 0))
 
                 # Run the simulation
                 output_multislice = multem.simulate(
