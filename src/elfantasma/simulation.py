@@ -919,6 +919,7 @@ class ImageSimulator(object):
             image = numpy.real(numpy.fft.ifft2(fft_image))
 
         # Normalize so that the average pixel value is 1.0
+        image = numpy.clip(image, 0, None)
         image = image / numpy.mean(image)
 
         # Add Poisson noise
