@@ -255,6 +255,5 @@ def show(config, full=False):
     if full == False:
         config = difference(default(), config)
     logger.info(
-        "Configuration:\n%s"
-        % "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
+        "\n".join([f"    {line}" for line in yaml.dump(config, indent=4).split("\n")])
     )
