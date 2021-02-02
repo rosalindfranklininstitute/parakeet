@@ -139,7 +139,7 @@ class MrcFileWriter(Writer):
             self.x, self.y = numpy.meshgrid(numpy.arange(0, 3), numpy.arange(0, n))
 
         def __setitem__(self, item, data):
-            print(item, data)
+
             # Set the items
             def setitem_internal(j, i, d):
                 if i == 0:

@@ -567,7 +567,6 @@ class AtomData(object):
                     for residue in chain:
                         for atom in residue:
                             assert atom.element.atomic_number > 0
-                            print(atom.occ)
                             # if atom.element.atomic_number == 1:
                             #    continue
                             yield (
@@ -1072,6 +1071,8 @@ class SampleHDF5Adapter(object):
 
             # Get the shape
             shape = self.__handle["shape"][0]
+            if isinstance(shape, bytes):
+                shape = shape.decode("utf-8")
             return {
                 "type": shape,
                 shape: dict(list(self.__handle["shape"].attrs.items())),
