@@ -1070,14 +1070,9 @@ class SampleHDF5Adapter(object):
                 return {}
 
             # Get the shape
-<<<<<<< HEAD
-            shape = self.__handle["shape"][0].decode("utf-8")
-            print(shape)
-=======
             shape = self.__handle["shape"][0]
             if isinstance(shape, bytes):
                 shape = shape.decode("utf-8")
->>>>>>> 54bc3bdeaae55a52ebd0f441e6a6d355388d7f7b
             return {
                 "type": shape,
                 shape: dict(list(self.__handle["shape"].attrs.items())),

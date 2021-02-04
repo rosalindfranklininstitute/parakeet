@@ -239,8 +239,7 @@ def load(config=None, command_line=None):
 
     # Get the configuration
     config = deepmerge(default(), deepmerge(config_file, command_line))
-    print(config)
-    
+
     # Return the config
     return config
 

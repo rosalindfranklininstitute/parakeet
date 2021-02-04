@@ -650,14 +650,10 @@ class Reader(object):
         # Get the entry
         entry = handle["entry"]
         assert entry.attrs["NX_class"] == "NXentry"
-<<<<<<< HEAD
-        assert entry["definition"][()].decode('utf-8') == "NXtomo"
-=======
         definition = entry["definition"][()]
         if isinstance(definition, bytes):
             definition = definition.decode("utf-8")
         assert definition == "NXtomo"
->>>>>>> 54bc3bdeaae55a52ebd0f441e6a6d355388d7f7b
 
         # Get the data and detector
         data = entry["data"]
