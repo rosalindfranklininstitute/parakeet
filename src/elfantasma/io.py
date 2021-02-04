@@ -139,7 +139,7 @@ class MrcFileWriter(Writer):
             self.x, self.y = numpy.meshgrid(numpy.arange(0, 3), numpy.arange(0, n))
 
         def __setitem__(self, item, data):
-            print(item, data)
+
             # Set the items
             def setitem_internal(j, i, d):
                 if i == 0:
@@ -571,13 +571,16 @@ class Reader(object):
 
         """
         tol = 1e-7
-        step = (self.position[-1, 1] - self.position[0, 1]) / (
-            self.position.shape[0] - 1
-        )
-        assert all(
-            abs((b - a) - step) < tol
-            for a, b in zip(self.position[0:-1, 1], self.position[1:1])
-        )
+        if self.position.shape[0] > 1:
+            step = (self.position[-1, 1] - self.position[0, 1]) / (
+                self.position.shape[0] - 1
+            )
+            assert all(
+                abs((b - a) - step) < tol
+                for a, b in zip(self.position[0:-1, 1], self.position[1:1])
+            )
+        else:
+            step = 0
         return step
 
     @property
@@ -647,7 +650,14 @@ class Reader(object):
         # Get the entry
         entry = handle["entry"]
         assert entry.attrs["NX_class"] == "NXentry"
+<<<<<<< HEAD
         assert entry["definition"][()].decode('utf-8') == "NXtomo"
+=======
+        definition = entry["definition"][()]
+        if isinstance(definition, bytes):
+            definition = definition.decode("utf-8")
+        assert definition == "NXtomo"
+>>>>>>> 54bc3bdeaae55a52ebd0f441e6a6d355388d7f7b
 
         # Get the data and detector
         data = entry["data"]
