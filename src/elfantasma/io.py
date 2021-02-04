@@ -192,7 +192,7 @@ class MrcFileWriter(Writer):
 
         # Setup the extended header
         extended_header = numpy.zeros(
-            shape=shape[0], dtype=mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
+            shape=shape[0], dtype=mrcfile.dtypes.FEI2_EXTENDED_HEADER_DTYPE
         )
 
         # Set the extended header
