@@ -580,7 +580,7 @@ class Reader(object):
                 for a, b in zip(self.position[0:-1, 1], self.position[1:1])
             )
         else:
-            step == 0
+            step = 0
         return step
 
     @property
