@@ -89,7 +89,9 @@ def create_system_configuration(device):
     return system_conf
 
 
-def create_input_multislice(microscope, slice_thickness, margin, simulation_type):
+def create_input_multislice(
+    microscope, slice_thickness, margin, simulation_type, centre=None
+):
     """
     Create the input multislice object
 
@@ -199,8 +201,14 @@ def create_input_multislice(microscope, slice_thickness, margin, simulation_type
     )
 
     # zero defocus reference
-    input_multislice.cond_lens_zero_defocus_type = "Middle"
-    input_multislice.obj_lens_zero_defocus_type = "Middle"
+    if centre is not None:
+        input_multislice.cond_lens_zero_defocus_type = "User_Define"
+        input_multislice.obj_lens_zero_defocus_type = "User_Define"
+        input_multislice.cond_lens_zero_defocus_plane = centre
+        input_multislice.obj_lens_zero_defocus_plane = centre
+    else:
+        input_multislice.cond_lens_zero_defocus_type = "Last"
+        input_multislice.obj_lens_zero_defocus_type = "Last"
 
     # Return the input multislice object
     return input_multislice
@@ -388,12 +396,16 @@ class ProjectedPotentialSimulator(object):
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
 
+        # The Z centre
+        z_centre = self.sample.centre[2]
+
         # Create the multem input multislice object
         input_multislice = create_input_multislice(
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
             "EWRS",
+            z_centre,
         )
 
         # Set the specimen size
@@ -520,12 +532,16 @@ class ExitWaveImageSimulator(object):
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
 
+        # The Z centre
+        z_centre = self.sample.centre[2]
+
         # Create the multem input multislice object
         input_multislice = create_input_multislice(
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"] + self.simulation["padding"],
             "EWRS",
+            z_centre,
         )
 
         # Set the specimen size
