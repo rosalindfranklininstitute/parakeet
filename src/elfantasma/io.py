@@ -14,6 +14,11 @@ import mrcfile
 import os
 import PIL.Image
 
+try:
+    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
+except Exception:
+    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
+
 
 class Writer(object):
     """
@@ -191,9 +196,7 @@ class MrcFileWriter(Writer):
         )
 
         # Setup the extended header
-        extended_header = numpy.zeros(
-            shape=shape[0], dtype=mrcfile.dtypes.FEI2_EXTENDED_HEADER_DTYPE
-        )
+        extended_header = numpy.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
 
         # Set the extended header
         self.handle._check_writeable()
@@ -607,9 +610,7 @@ class Reader(object):
 
         # Check the header info
         if handle.header.exttyp == b"FEI1":
-            assert (
-                handle.extended_header.dtype == mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
-            )
+            assert handle.extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
             assert len(handle.extended_header.shape) == 1
             assert handle.extended_header.shape[0] == handle.data.shape[0]
 
@@ -711,7 +712,7 @@ def new(filename, shape=None, pixel_size=None, dtype=None, vmin=None, vmax=None)
         return MrcFileWriter(filename, shape, pixel_size, dtype)
     elif extension in [".h5", ".hdf5", ".nx", ".nxs", ".nexus", "nxtomo"]:
         return NexusWriter(filename, shape, pixel_size, dtype)
-    elif extension in [".png", ".jpg", ".jpeg"]:
+    elif extension in [".png", ".jpg", ".jpeg", ".tif", ".tiff"]:
         return ImageWriter(filename, shape, vmin, vmax)
     else:
         raise RuntimeError(f"File with unknown extension: {filename}")
