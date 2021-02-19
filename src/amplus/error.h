@@ -8,13 +8,13 @@
  *  This code is distributed under the GPLv3 license, a copy of 
  *  which is included in the root directory of this package.
  */
-#ifndef ELFANTASMA_ERROR_H
-#define ELFANTASMA_ERROR_H
+#ifndef AMPLUS_ERROR_H
+#define AMPLUS_ERROR_H
 
 #include <stdexcept>
 #include <string>
 
-namespace elfantasma {
+namespace amplus {
 
   /**
    * An error class that also prints the file and line number
@@ -37,9 +37,9 @@ namespace elfantasma {
 /**
  * Throw an error if the assertion fails
  */
-#define ELFANTASMA_ASSERT(assertion) \
+#define AMPLUS_ASSERT(assertion) \
   if (!(assertion)) { \
-    throw elfantasma::Error(__FILE__, __LINE__, "ASSERT (" #assertion ") failed"); \
+    throw amplus::Error(__FILE__, __LINE__, "ASSERT (" #assertion ") failed"); \
   }
 
 #endif

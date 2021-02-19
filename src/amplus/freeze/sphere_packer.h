@@ -19,9 +19,9 @@
 #include <random>
 #include <vector>
 #include <chrono>
-#include <elfantasma/error.h>
+#include <amplus/error.h>
 
-namespace elfantasma {
+namespace amplus {
 
   namespace detail {
     
@@ -114,13 +114,13 @@ namespace elfantasma {
       
       iterator operator++() { 
         iterator it = *this; 
-        ELFANTASMA_ASSERT(slice_index_ == packer_.index());
+        AMPLUS_ASSERT(slice_index_ == packer_.index());
         slice_index_ = packer_.next();
         return it; 
       }
       
       iterator operator++(int) { 
-        ELFANTASMA_ASSERT(slice_index_ == packer_.index());
+        AMPLUS_ASSERT(slice_index_ == packer_.index());
         slice_index_ = packer_.next();
         return *this; 
       }
@@ -171,12 +171,12 @@ namespace elfantasma {
           multiplier_(multiplier) {
      
       // Check the input 
-      ELFANTASMA_ASSERT(grid[0] > 0 && grid[1] > 0 && grid[2] > 0);
-      ELFANTASMA_ASSERT(node_length > 2*radius_);
-      ELFANTASMA_ASSERT(density > 0);
-      ELFANTASMA_ASSERT(radius > 0);
-      ELFANTASMA_ASSERT(max_iter > 0);
-      ELFANTASMA_ASSERT(multiplier > 0);
+      AMPLUS_ASSERT(grid[0] > 0 && grid[1] > 0 && grid[2] > 0);
+      AMPLUS_ASSERT(node_length > 2*radius_);
+      AMPLUS_ASSERT(density > 0);
+      AMPLUS_ASSERT(radius > 0);
+      AMPLUS_ASSERT(max_iter > 0);
+      AMPLUS_ASSERT(multiplier > 0);
 
       // Compute the mean number of spheres per node (volume * density)
       node_rate_ = std::pow(node_length, 3) * density;
@@ -223,7 +223,7 @@ namespace elfantasma {
      * @returns The current slice
      */
     reference slice() {
-      ELFANTASMA_ASSERT(index() != 0);
+      AMPLUS_ASSERT(index() != 0);
       return prev_slice_;
     }
 
@@ -283,7 +283,7 @@ namespace elfantasma {
     size_type next() {
       
       // Check the index
-      ELFANTASMA_ASSERT(index() < grid_[0]);
+      AMPLUS_ASSERT(index() < grid_[0]);
 
       // Setup the random number generators
       std::poisson_distribution<> poisson(node_rate_);
@@ -385,9 +385,9 @@ namespace elfantasma {
               // will hopefully put us just outside the circle. If we have moved
               // outside the node then break and discard the point.
               if (min_distance_sq >= closest_distance_sq) {
-                ELFANTASMA_ASSERT(p[0] >= x0 && p[0] < x1);
-                ELFANTASMA_ASSERT(p[1] >= y0 && p[1] < y1);
-                ELFANTASMA_ASSERT(p[2] >= z0 && p[2] < z1);
+                AMPLUS_ASSERT(p[0] >= x0 && p[0] < x1);
+                AMPLUS_ASSERT(p[1] >= y0 && p[1] < y1);
+                AMPLUS_ASSERT(p[2] >= z0 && p[2] < z1);
                 curr_slice_[curr_node].push_back(p);
                 break;
               } else {
