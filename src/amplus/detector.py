@@ -1,5 +1,5 @@
 #
-# elfantasma.detector.py
+# amplus.detector.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #

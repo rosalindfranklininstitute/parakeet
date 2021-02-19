@@ -1,5 +1,5 @@
 #
-# elfantasma.config.py
+# amplus.config.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -22,7 +22,7 @@ def temp_directory():
         str: A temp directory for working in
 
     """
-    return "_elfantasma"
+    return "_amplus"
 
 
 def default():

@@ -1,4 +1,4 @@
-# elfantasma
+# amplus-digital-twin
 > Phantom generator 
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
@@ -36,7 +36,7 @@ The default configuration parameters can be seen by typing the following
 command:
 
 ```sh
-elfantasma.show_config
+amplus.show_config
 ```
 
 This will give some output like the following which can then be copied to a
@@ -149,7 +149,7 @@ Once the configuration file has been generated a new sample file can be created
 with the following command:
 
 ```sh
-elfantasma.sample.new -c config.yaml
+amplus.sample.new -c config.yaml
 ```
 
 This will result in a file "sample.h5" being generated. This file contains
@@ -162,7 +162,7 @@ random locations in the sample volume. This command will update the "sample.h5"
 file with the atomic coordinates but will not generated any new files.
 
 ```sh
-elfantasma.sample.add_molecules -c config.yaml
+amplus.sample.add_molecules -c config.yaml
 ```
 
 ### Simulate EM images
@@ -179,7 +179,7 @@ atoms within the sample needs to be calculated.
 
 
 ```sh
-elfantasma.simulate.exit_wave -c config.yaml
+amplus.simulate.exit_wave -c config.yaml
 ```
 
 This command will generate a file "exit_wave.h5" which will contain the exit
@@ -187,7 +187,7 @@ wave of all tilt angles. The next step is to simulate the micropscope optics
 which is done with the following command:
 
 ```sh
-elfantasma.simulate.optics -c config.yaml
+amplus.simulate.optics -c config.yaml
 ```
 
 This step is much quicker as it only scales with the size of the detector image
@@ -196,7 +196,7 @@ file "optics.h5". Finally, the response of the detector can be simulated with
 the following command:
 
 ```sh
-elfantasma.simulate.image -c config.yaml
+amplus.simulate.image -c config.yaml
 ```
 
 This command will add the detector DQE and the Poisson noise for a given dose
@@ -208,7 +208,7 @@ Typically we cant to output an MRC file for further processing. The hdf5 files
 can easily be exported to MRC by the following command:
 
 ```sh
-elfantasma.export file.h5 -o file.mrc
+amplus.export file.h5 -o file.mrc
 ```
 
 The export command can also be used to rebin the image or select a region of interest. 
@@ -216,11 +216,11 @@ The export command can also be used to rebin the image or select a region of int
 
 ## Issues
 
-Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/elfantasma/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/amplus-digital-twin/issues) to submit bugs or request features.
 
 ## License
 
 Copyright Diamond Light Source and Rosalind Franklin Institute, 2019.
 
-Distributed under the terms of the GPLv3 license, elfantasma is free and open source software.
+Distributed under the terms of the GPLv3 license, amplus-digital-twin is free and open source software.
 

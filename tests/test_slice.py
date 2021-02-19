@@ -1,7 +1,7 @@
 import multem
 import numpy
 import pytest
-import elfantasma.sample
+import amplus.sample
 
 # from matplotlib import pylab
 
@@ -57,7 +57,7 @@ def create_input_multislice(n_phonons, single_phonon_conf=False):
 
 def test_slice():
 
-    sample = elfantasma.sample.new("4v5d")
+    sample = amplus.sample.new("4v5d")
 
     # Create the system configuration
     system_conf = multem.SystemConfiguration()

@@ -15,7 +15,7 @@ def main():
 
     setup(
         package_dir={"": "src"},
-        packages=["elfantasma"],
+        packages=["amplus"],
         install_requires=[
             "dask",
             "distributed",
@@ -35,19 +35,19 @@ def main():
         test_suite="tests",
         entry_points={
             "console_scripts": [
-                "elfantasma.read_pdb=elfantasma.command_line:read_pdb",
-                "elfantasma.show_config=elfantasma.command_line:show_config_main",
-                "elfantasma.export=elfantasma.command_line:export",
-                "elfantasma.sample.new=elfantasma.command_line.sample:new",
-                "elfantasma.sample.add_molecules=elfantasma.command_line.sample:add_molecules",
-                "elfantasma.sample.mill=elfantasma.command_line.sample:mill",
-                "elfantasma.sample.show=elfantasma.command_line.sample:show",
-                "elfantasma.simulate.projected_potential=elfantasma.command_line.simulate:projected_potential",
-                "elfantasma.simulate.exit_wave=elfantasma.command_line.simulate:exit_wave",
-                "elfantasma.simulate.optics=elfantasma.command_line.simulate:optics",
-                "elfantasma.simulate.image=elfantasma.command_line.simulate:image",
-                "elfantasma.simulate.simple=elfantasma.command_line.simulate:simple",
-                "elfantasma.simulate.ctf=elfantasma.command_line.simulate:ctf",
+                "amplus.read_pdb=amplus.command_line:read_pdb",
+                "amplus.show_config=amplus.command_line:show_config_main",
+                "amplus.export=amplus.command_line:export",
+                "amplus.sample.new=amplus.command_line.sample:new",
+                "amplus.sample.add_molecules=amplus.command_line.sample:add_molecules",
+                "amplus.sample.mill=amplus.command_line.sample:mill",
+                "amplus.sample.show=amplus.command_line.sample:show",
+                "amplus.simulate.projected_potential=amplus.command_line.simulate:projected_potential",
+                "amplus.simulate.exit_wave=amplus.command_line.simulate:exit_wave",
+                "amplus.simulate.optics=amplus.command_line.simulate:optics",
+                "amplus.simulate.image=amplus.command_line.simulate:image",
+                "amplus.simulate.simple=amplus.command_line.simulate:simple",
+                "amplus.simulate.ctf=amplus.command_line.simulate:ctf",
             ]
         },
         extras_require={

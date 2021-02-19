@@ -1,5 +1,5 @@
 #
-# elfantasma.simulation.py
+# amplus.simulation.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -15,11 +15,11 @@ import numpy
 import pandas
 import time
 import warnings
-import elfantasma.config
-import elfantasma.dqe
-import elfantasma.freeze
-import elfantasma.futures
-import elfantasma.sample
+import amplus.config
+import amplus.dqe
+import amplus.freeze
+import amplus.futures
+import amplus.sample
 import warnings
 from math import sqrt, pi, cos, exp
 from scipy.spatial.transform import Rotation
@@ -293,7 +293,7 @@ class Simulation(object):
             logger.info("Initialising %d worker threads" % self.cluster["max_workers"])
 
             # Get the futures executor
-            with elfantasma.futures.factory(**self.cluster) as executor:
+            with amplus.futures.factory(**self.cluster) as executor:
 
                 # Copy the data to each worker
                 logger.info("Copying data to workers...")
@@ -308,7 +308,7 @@ class Simulation(object):
                     futures.append(executor.submit(simulate_image, i))
 
                 # Wait for results
-                for j, future in enumerate(elfantasma.futures.as_completed(futures)):
+                for j, future in enumerate(amplus.futures.as_completed(futures)):
 
                     # Get the result
                     i, angle, position, image = future.result()
@@ -384,7 +384,7 @@ class ProjectedPotentialSimulator(object):
         x0 = (-offset, -offset)
         x1 = (x_fov + offset, y_fov + offset)
         thickness = self.simulation["division_thickness"]
-        extractor = elfantasma.sample.AtomSliceExtractor(
+        extractor = amplus.sample.AtomSliceExtractor(
             sample=self.sample,
             translation=position,
             rotation=angle,
@@ -520,7 +520,7 @@ class ExitWaveImageSimulator(object):
         x0 = (-margin_offset, position - margin_offset)
         x1 = (x_fov + margin_offset, position + y_fov + margin_offset)
         thickness = self.simulation["division_thickness"]
-        # extractor = elfantasma.sample.AtomSliceExtractor(
+        # extractor = amplus.sample.AtomSliceExtractor(
         #    sample=self.sample,
         #    translation=position,
         #    rotation=angle,
@@ -586,7 +586,7 @@ class ExitWaveImageSimulator(object):
                 atoms.data["x"] = coords[:, 0]
                 atoms.data["y"] = coords[:, 1]
                 atoms.data["z"] = coords[:, 2]
-            # atoms.data = atoms.data.append(elfantasma.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
+            # atoms.data = atoms.data.append(amplus.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
             input_multislice.spec_atoms = atoms.translate(
                 (offset, offset, 0)
@@ -671,7 +671,7 @@ class ExitWaveImageSimulator(object):
                 def prepare(data_buffer):
 
                     # Extract the data
-                    atoms = elfantasma.sample.AtomData(
+                    atoms = amplus.sample.AtomData(
                         data=pandas.concat([d.atoms.data for d in data_buffer])
                     )
                     z_min = min([d.x_min[2] for d in data_buffer])
@@ -928,7 +928,7 @@ class ImageSimulator(object):
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
             logger.info("Applying DQE")
-            dqe = elfantasma.dqe.DQETable().dqe_fs(
+            dqe = amplus.dqe.DQETable().dqe_fs(
                 energy, electrons_per_second, image.shape
             )
             dqe = numpy.fft.fftshift(dqe)
@@ -1275,7 +1275,7 @@ def simple(microscope=None, atoms=None, device="gpu", simulation=None):
         object: The simulation object
 
     """
-    scan = elfantasma.scan.new("still")
+    scan = amplus.scan.new("still")
 
     # Create the simulation
     return Simulation(

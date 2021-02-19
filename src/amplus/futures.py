@@ -1,5 +1,5 @@
 #
-# elfantasma.futures.py
+# amplus.futures.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -10,7 +10,7 @@
 #
 import dask.distributed
 import dask_jobqueue
-import elfantasma.config
+import amplus.config
 
 # Export this
 as_completed = dask.distributed.as_completed
@@ -44,9 +44,9 @@ def factory(method="sge", max_workers=1):
             project="tomography",
             resource_spec="gpu=1",
             job_extra=["-V"],
-            name="elfantasma",
-            local_directory=elfantasma.config.temp_directory(),
-            log_directory=elfantasma.config.temp_directory(),
+            name="amplus",
+            local_directory=amplus.config.temp_directory(),
+            log_directory=amplus.config.temp_directory(),
         )
 
         # Set the number of worker nodes

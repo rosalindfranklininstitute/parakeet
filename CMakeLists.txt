@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11.0)
 
 # Set the project name
-project(elfantasma CXX)
+project(amplus CXX)
 
 # Set the cmake module path
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -16,7 +16,7 @@ find_package(pybind11 REQUIRED)
 
 # Add a C/C++ extension
 pybind11_add_module(freeze_ext 
-  src/elfantasma/freeze/freeze_ext.cc)
+  src/amplus/freeze/freeze_ext.cc)
 
 # Ensure we are using C++11
 target_compile_features(freeze_ext PUBLIC cxx_std_11)
@@ -35,4 +35,4 @@ target_link_options(freeze_ext
   PUBLIC "$<$<CONFIG:DEBUG>:${COVERAGE_LINK_FLAGS}>")
 
 # Install the python extension
-install(TARGETS freeze_ext LIBRARY DESTINATION src/elfantasma/freeze)
+install(TARGETS freeze_ext LIBRARY DESTINATION src/amplus/freeze)

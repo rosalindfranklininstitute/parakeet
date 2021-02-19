@@ -1,16 +1,16 @@
 import os
 import yaml
-import elfantasma.config
+import amplus.config
 
 
 def test_temp_directory():
 
-    assert elfantasma.config.temp_directory() == "_elfantasma"
+    assert amplus.config.temp_directory() == "_amplus"
 
 
 def test_default():
 
-    config = elfantasma.config.default()
+    config = amplus.config.default()
 
 
 def test_deepmerge():
@@ -42,9 +42,9 @@ def test_deepmerge():
         "K": ["Spam", "Eggs"],
     }
 
-    assert elfantasma.config.deepmerge(a, b) == expected
-    assert elfantasma.config.deepmerge(a, {}) == a
-    assert elfantasma.config.deepmerge({}, b) == b
+    assert amplus.config.deepmerge(a, b) == expected
+    assert amplus.config.deepmerge(a, {}) == a
+    assert amplus.config.deepmerge({}, b) == b
 
 
 def test_difference():
@@ -71,23 +71,23 @@ def test_difference():
         "K": ["Beans"],
     }
 
-    assert elfantasma.config.difference(master, config) == expected
+    assert amplus.config.difference(master, config) == expected
 
 
 def test_load(tmp_path):
 
-    config = elfantasma.config.load()
+    config = amplus.config.load()
 
     filename = os.path.join(tmp_path, "tmp.yaml")
     with open(filename, "w") as outfile:
         yaml.dump(config, outfile)
 
-    config = elfantasma.config.load(filename)
+    config = amplus.config.load(filename)
 
     expected = {"scan": {"axis": [1, 0, 0]}}
-    assert elfantasma.config.difference(config, elfantasma.config.default()) == expected
+    assert amplus.config.difference(config, amplus.config.default()) == expected
 
 
 def test_show():
 
-    elfantasma.config.show({})
+    amplus.config.show({})

@@ -1,5 +1,5 @@
 #
-# elfantasma.microscope.py
+# amplus.microscope.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,9 +8,9 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import elfantasma.beam
-import elfantasma.detector
-import elfantasma.lens
+import amplus.beam
+import amplus.detector
+import amplus.lens
 
 
 class Microscope(object):
@@ -57,9 +57,9 @@ def new(model=None, beam=None, objective_lens=None, detector=None, phase_plate=F
     """
 
     # Construct the basic models from the input
-    beam = elfantasma.beam.new(**beam)
-    lens = elfantasma.lens.new(**objective_lens)
-    detector = elfantasma.detector.new(**detector)
+    beam = amplus.beam.new(**beam)
+    lens = amplus.lens.new(**objective_lens)
+    detector = amplus.detector.new(**detector)
 
     # Override the parameters for the different microscope models
     if model == "krios":

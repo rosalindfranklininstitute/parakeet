@@ -1,5 +1,5 @@
 #
-# elfantasma.beam.py
+# amplus.beam.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #

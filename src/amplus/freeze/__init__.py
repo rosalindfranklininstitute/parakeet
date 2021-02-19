@@ -1,5 +1,5 @@
 #
-# elfantasma.freeze.__init__.py
+# amplus.freeze.__init__.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -14,7 +14,7 @@ import pandas
 import scipy.ndimage.morphology
 from math import ceil, floor
 
-from elfantasma.freeze.freeze_ext import *  # noqa
+from amplus.freeze.freeze_ext import *  # noqa
 
 # Get the logger
 logger = logging.getLogger(__name__)

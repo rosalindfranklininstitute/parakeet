@@ -1,17 +1,17 @@
 import numpy
 import pytest
-import elfantasma.scan
+import amplus.scan
 
 
 def test_still():
-    scan = elfantasma.scan.new(mode="still")
+    scan = amplus.scan.new(mode="still")
     assert scan.axis == (1, 0, 0)
     assert scan.angles == [0]
     assert scan.positions == [0]
 
 
 def test_tilt_series():
-    scan = elfantasma.scan.new(
+    scan = amplus.scan.new(
         mode="tilt_series", axis=(1, 2, 3), start_angle=0, stop_angle=360, step_angle=45
     )
     assert scan.axis == (1, 2, 3)
@@ -20,7 +20,7 @@ def test_tilt_series():
 
 
 def test_helical_scan():
-    scan = elfantasma.scan.new(
+    scan = amplus.scan.new(
         mode="helical_scan",
         axis=(1, 2, 3),
         start_angle=0,
@@ -37,4 +37,4 @@ def test_helical_scan():
 def test_unknown():
 
     with pytest.raises(RuntimeError):
-        scan = elfantasma.scan.new("unknown")
+        scan = amplus.scan.new("unknown")

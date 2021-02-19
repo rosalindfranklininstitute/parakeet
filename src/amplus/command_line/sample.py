@@ -1,5 +1,5 @@
 #
-# elfantasma.command_line.sample.py
+# amplus.command_line.sample.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -11,10 +11,10 @@
 import argparse
 import logging
 import time
-import elfantasma.io
-import elfantasma.command_line
-import elfantasma.config
-import elfantasma.sample
+import amplus.io
+import amplus.command_line
+import amplus.config
+import amplus.sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -52,17 +52,17 @@ def new(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = elfantasma.sample.new(args.sample, **config["sample"])
+    sample = amplus.sample.new(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -98,17 +98,17 @@ def add_molecules(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = elfantasma.sample.add_molecules(args.sample, **config["sample"])
+    sample = amplus.sample.add_molecules(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -144,17 +144,17 @@ def mill(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = elfantasma.sample.mill(args.sample, **config["sample"])
+    sample = amplus.sample.mill(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -180,8 +180,8 @@ def show():
     args = parser.parse_args()
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Create the sample
-    sample = elfantasma.sample.load(args.sample)
+    sample = amplus.sample.load(args.sample)
     logger.info(sample.info())

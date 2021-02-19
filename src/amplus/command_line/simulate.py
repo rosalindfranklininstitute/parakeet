@@ -1,5 +1,5 @@
 #
-# elfantasma.command_line.simulate.py
+# amplus.command_line.simulate.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -12,10 +12,10 @@ import argparse
 import logging
 import numpy
 import time
-import elfantasma.io
-import elfantasma.command_line
-import elfantasma.config
-import elfantasma.sample
+import amplus.io
+import amplus.command_line
+import amplus.config
+import amplus.sample
 from math import pi
 
 # Get the logger
@@ -81,7 +81,7 @@ def projected_potential(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -95,28 +95,28 @@ def projected_potential(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config, command_line)
+    config = amplus.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
-    sample = elfantasma.sample.load(args.sample)
+    sample = amplus.sample.load(args.sample)
 
     # Create the scan
     if config["scan"]["step_pos"] == "auto":
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = elfantasma.scan.new(**config["scan"])
+    scan = amplus.scan.new(**config["scan"])
     if scan.positions[-1] > sample.containing_box[1][0]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
-    simulation = elfantasma.simulation.projected_potential(
+    simulation = amplus.simulation.projected_potential(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -199,7 +199,7 @@ def exit_wave(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -213,28 +213,28 @@ def exit_wave(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config, command_line)
+    config = amplus.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
-    sample = elfantasma.sample.load(args.sample)
+    sample = amplus.sample.load(args.sample)
 
     # Create the scan
     if config["scan"]["step_pos"] == "auto":
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = elfantasma.scan.new(**config["scan"])
+    scan = amplus.scan.new(**config["scan"])
     if scan.positions[-1] > sample.containing_box[1][1]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
-    simulation = elfantasma.simulation.exit_wave(
+    simulation = amplus.simulation.exit_wave(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -245,7 +245,7 @@ def exit_wave(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.exit_wave}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         args.exit_wave,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -324,7 +324,7 @@ def optics(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -338,17 +338,17 @@ def optics(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config, command_line)
+    config = amplus.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.exit_wave}")
-    exit_wave = elfantasma.io.open(args.exit_wave)
+    exit_wave = amplus.io.open(args.exit_wave)
 
     # Create the scan
     config["scan"]["start_angle"] = exit_wave.start_angle
@@ -356,10 +356,10 @@ def optics(args=None):
     config["scan"]["step_angle"] = exit_wave.step_angle
     config["scan"]["step_pos"] = exit_wave.step_position
     config["scan"]["num_images"] = exit_wave.num_images
-    scan = elfantasma.scan.new(**config["scan"])
+    scan = amplus.scan.new(**config["scan"])
 
     # Create the simulation
-    simulation = elfantasma.simulation.optics(
+    simulation = amplus.simulation.optics(
         microscope=microscope,
         exit_wave=exit_wave,
         scan=scan,
@@ -370,7 +370,7 @@ def optics(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.optics}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         args.optics,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -417,25 +417,25 @@ def ctf(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the simulation
-    simulation = elfantasma.simulation.ctf(
+    simulation = amplus.simulation.ctf(
         microscope=microscope, simulation=config["simulation"]
     )
 
     # Create the writer
     logger.info(f"Opening file: {args.output}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         args.output,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -491,20 +491,20 @@ def image(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.optics}")
-    optics = elfantasma.io.open(args.optics)
+    optics = amplus.io.open(args.optics)
 
     # Create the scan
     config["scan"]["start_angle"] = optics.start_angle
@@ -512,12 +512,12 @@ def image(args=None):
     config["scan"]["step_angle"] = optics.step_angle
     config["scan"]["step_pos"] = optics.step_position
     config["scan"]["num_images"] = optics.num_images
-    scan = elfantasma.scan.new(**config["scan"])
+    scan = amplus.scan.new(**config["scan"])
     scan.angles = [optics.angle[i] for i in range(optics.data.shape[0])]
     scan.positions = [optics.position[i, 1] for i in range(optics.data.shape[0])]
 
     # Create the simulation
-    simulation = elfantasma.simulation.image(
+    simulation = amplus.simulation.image(
         microscope=microscope,
         optics=optics,
         scan=scan,
@@ -528,7 +528,7 @@ def image(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.image}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         args.image,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -583,23 +583,23 @@ def simple():
     args = parser.parse_args()
 
     # Configure some basic logging
-    elfantasma.command_line.configure_logging()
+    amplus.command_line.configure_logging()
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config)
+    config = amplus.config.load(args.config)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.atoms}")
-    atoms = elfantasma.sample.AtomData.from_text_file(args.atoms)
+    atoms = amplus.sample.AtomData.from_text_file(args.atoms)
 
     # Create the simulation
-    simulation = elfantasma.simulation.simple(
+    simulation = amplus.simulation.simple(
         microscope=microscope,
         atoms=atoms,
         device=config["device"],
@@ -608,7 +608,7 @@ def simple():
 
     # Create the writer
     logger.info(f"Opening file: {args.output}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         args.output,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,

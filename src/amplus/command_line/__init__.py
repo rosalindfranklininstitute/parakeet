@@ -1,5 +1,5 @@
 #
-# elfantasma.command_line.py
+# amplus.command_line.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -14,13 +14,13 @@ import logging
 import numpy
 import time
 import scipy.signal
-import elfantasma.io
-import elfantasma.config
-import elfantasma.microscope
-import elfantasma.freeze
-import elfantasma.sample
-import elfantasma.scan
-import elfantasma.simulation
+import amplus.io
+import amplus.config
+import amplus.microscope
+import amplus.freeze
+import amplus.sample
+import amplus.scan
+import amplus.simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -43,11 +43,7 @@ def configure_logging():
                 }
             },
             "loggers": {
-                "elfantasma": {
-                    "handlers": ["stream"],
-                    "level": "DEBUG",
-                    "propagate": True,
-                }
+                "amplus": {"handlers": ["stream"], "level": "DEBUG", "propagate": True}
             },
         }
     )
@@ -55,7 +51,7 @@ def configure_logging():
 
 def main():
     """
-    The main interface to elfantasma
+    The main interface to amplus
 
     """
 
@@ -169,22 +165,22 @@ def main():
         command_line["sample"] = {"custom": {"filename": args.sample_custom_filename}}
 
     # Load the full configuration
-    config = elfantasma.config.load(args.config, command_line)
+    config = amplus.config.load(args.config, command_line)
 
     # Print some options
-    elfantasma.config.show(config)
+    amplus.config.show(config)
 
     # Create the microscope
-    microscope = elfantasma.microscope.new(**config["microscope"])
+    microscope = amplus.microscope.new(**config["microscope"])
 
     # Create the sample
-    sample = elfantasma.sample.new(config["phantom"], **config["sample"])
+    sample = amplus.sample.new(config["phantom"], **config["sample"])
 
     # Create the scan
-    scan = elfantasma.scan.new(**config["scan"])
+    scan = amplus.scan.new(**config["scan"])
 
     # Create the simulation
-    simulation = elfantasma.simulation.new(
+    simulation = amplus.simulation.new(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -195,7 +191,7 @@ def main():
 
     # Create the writer
     logger.info(f"Opening file: {config['output']}")
-    writer = elfantasma.io.new(
+    writer = amplus.io.new(
         config["output"], shape=simulation.shape, pixel_size=simulation.pixel_size
     )
 
@@ -228,10 +224,10 @@ def show_config_main():
     configure_logging()
 
     # Parse the arguments
-    config = elfantasma.config.load(parser.parse_args().config)
+    config = amplus.config.load(parser.parse_args().config)
 
     # Print some options
-    elfantasma.config.show(config, full=True)
+    amplus.config.show(config, full=True)
 
 
 def rebin(data, shape):
@@ -336,7 +332,7 @@ def export(argv=None):
 
     # Read the input
     logger.info(f"Reading data from {args.filename}")
-    reader = elfantasma.io.open(args.filename)
+    reader = amplus.io.open(args.filename)
 
     # Get the shape and indices to read
     if args.select_images is not None:
@@ -396,9 +392,7 @@ def export(argv=None):
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = elfantasma.io.new(
-        args.output, shape=shape, pixel_size=pixel_size, dtype=dtype
-    )
+    writer = amplus.io.new(args.output, shape=shape, pixel_size=pixel_size, dtype=dtype)
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
@@ -510,6 +504,6 @@ def read_pdb():
                             atom.pos.z,
                             atom.occ,
                             atom.charge,
-                            elfantasma.sample.get_atom_sigma(atom),
+                            amplus.sample.get_atom_sigma(atom),
                         )
                     )

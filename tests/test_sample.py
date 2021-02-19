@@ -1,7 +1,7 @@
 import numpy
 import os
 import pytest
-import elfantasma.sample
+import amplus.sample
 from math import sqrt
 
 
@@ -9,11 +9,11 @@ from math import sqrt
 def atom_data_4v5d():
 
     # Get the filename of the 4v5d.cif file
-    filename = elfantasma.data.get_path("4v5d.cif")
+    filename = amplus.data.get_path("4v5d.cif")
 
     # Get the atom data
-    atoms = elfantasma.sample.AtomData.from_gemmi_file(filename)
-    atoms.data = elfantasma.sample.recentre(atoms.data)
+    atoms = amplus.sample.AtomData.from_gemmi_file(filename)
+    atoms.data = amplus.sample.recentre(atoms.data)
     return atoms
 
 
@@ -29,7 +29,7 @@ def test_translate(atom_data_4v5d):
     coords = data[["x", "y", "z"]].to_numpy()
     x00 = coords.min(axis=0)
     x01 = coords.max(axis=0)
-    data = elfantasma.sample.translate(atom_data_4v5d.data, (1, 2, 3))
+    data = amplus.sample.translate(atom_data_4v5d.data, (1, 2, 3))
     coords = data[["x", "y", "z"]].to_numpy()
     x10 = coords.min(axis=0)
     x11 = coords.max(axis=0)
@@ -37,37 +37,37 @@ def test_translate(atom_data_4v5d):
     numpy.testing.assert_allclose(x11, x01 + (1, 2, 3))
 
     # Check dtypes
-    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+    for name, dtype in amplus.sample.AtomData.column_data.items():
         assert data[name].dtype == dtype
 
 
 def test_recentre(atom_data_4v5d):
-    data = elfantasma.sample.recentre(atom_data_4v5d.data)
+    data = amplus.sample.recentre(atom_data_4v5d.data)
     coords = data[["x", "y", "z"]]
     x0 = coords.min()
     x1 = coords.max()
     numpy.testing.assert_allclose((x1 + x0) / 2.0, (0, 0, 0))
 
     # Check dtypes
-    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+    for name, dtype in amplus.sample.AtomData.column_data.items():
         assert data[name].dtype == dtype
 
 
 def test_number_of_water_molecules():
 
-    n = elfantasma.sample.number_of_water_molecules(1000 ** 3)
+    n = amplus.sample.number_of_water_molecules(1000 ** 3)
     assert n == 31422283
 
 
 def test_random_uniform_rotation():
 
-    rotations = elfantasma.sample.random_uniform_rotation(size=10)
+    rotations = amplus.sample.random_uniform_rotation(size=10)
     assert rotations.shape == (10, 3)
 
 
 def test_distribute_boxes_uniformly():
 
-    positions = elfantasma.sample.distribute_boxes_uniformly(
+    positions = amplus.sample.distribute_boxes_uniformly(
         ((0, 0, 0), (1000, 1000, 1000)), [(100, 100, 100), (200, 200, 200)]
     )
 
@@ -76,20 +76,20 @@ def test_distribute_boxes_uniformly():
 
 def test_shape_bounding_box():
 
-    b1 = elfantasma.sample.shape_bounding_box(
+    b1 = amplus.sample.shape_bounding_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
     assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
     assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
 
-    b2 = elfantasma.sample.shape_bounding_box(
+    b2 = amplus.sample.shape_bounding_box(
         (0, 0, 0),
         {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
     assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
     assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
 
-    b3 = elfantasma.sample.shape_bounding_box(
+    b3 = amplus.sample.shape_bounding_box(
         (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
     )
     assert pytest.approx(b3[0], (-0.5, -2.0, -2.0))
@@ -98,20 +98,20 @@ def test_shape_bounding_box():
 
 def test_shape_enclosed_box():
 
-    b1 = elfantasma.sample.shape_enclosed_box(
+    b1 = amplus.sample.shape_enclosed_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
     assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
     assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
 
-    b2 = elfantasma.sample.shape_enclosed_box(
+    b2 = amplus.sample.shape_enclosed_box(
         (0, 0, 0),
         {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
     assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
     assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
 
-    b3 = elfantasma.sample.shape_enclosed_box(
+    b3 = amplus.sample.shape_enclosed_box(
         (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
     )
     assert pytest.approx(b3[0], (-0.5, -1 / sqrt(2.0), -1 / sqrt(2.0)))
@@ -121,14 +121,14 @@ def test_shape_enclosed_box():
 def test_is_shape_inside_box():
 
     assert (
-        elfantasma.sample.is_shape_inside_box(
+        amplus.sample.is_shape_inside_box(
             (10, 10, 10), (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
         )
         == False
     )
 
     assert (
-        elfantasma.sample.is_shape_inside_box(
+        amplus.sample.is_shape_inside_box(
             (10, 10, 10), (5, 5, 5), {"type": "cube", "cube": {"length": 1}}
         )
         == True
@@ -138,7 +138,7 @@ def test_is_shape_inside_box():
 def test_is_box_inside_shape():
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (0.1, 0.1, 0.1)),
             (0, 0, 0),
             {"type": "cube", "cube": {"length": 1}},
@@ -147,7 +147,7 @@ def test_is_box_inside_shape():
     )
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (10, 10, 10)),
             (5, 5, 5),
             {"type": "cube", "cube": {"length": 1}},
@@ -156,7 +156,7 @@ def test_is_box_inside_shape():
     )
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (0.1, 0.1, 0.1)),
             (0, 0, 0),
             {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
@@ -165,7 +165,7 @@ def test_is_box_inside_shape():
     )
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (10, 10, 10)),
             (5, 5, 5),
             {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
@@ -174,7 +174,7 @@ def test_is_box_inside_shape():
     )
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (0.3, 0.99 / sqrt(2), 0.99 / sqrt(2))),
             (0, 0, 0),
             {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
@@ -183,7 +183,7 @@ def test_is_box_inside_shape():
     )
 
     assert (
-        elfantasma.sample.is_box_inside_shape(
+        amplus.sample.is_box_inside_shape(
             ((0, 0, 0), (10, 10, 10)),
             (0, 0, 0),
             {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
@@ -196,19 +196,19 @@ def test_AtomData(atom_data_4v5d):
 
     # Check rotate doesn't modify types
     atom_data_4v5d.rotate((0, 0, 1))
-    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+    for name, dtype in amplus.sample.AtomData.column_data.items():
         assert atom_data_4v5d.data[name].dtype == dtype
 
     # Check translate keeps types
     atom_data_4v5d.translate((0, 0, 1))
-    for name, dtype in elfantasma.sample.AtomData.column_data.items():
+    for name, dtype in amplus.sample.AtomData.column_data.items():
         assert atom_data_4v5d.data[name].dtype == dtype
 
 
 def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
 
     # Get handle
-    handle = elfantasma.sample.SampleHDF5Adapter(
+    handle = amplus.sample.SampleHDF5Adapter(
         os.path.join(tmp_path, "test_SampleHDF5Adapter.h5"), "w"
     )
 
@@ -261,9 +261,7 @@ def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
 
 def test_Sample(tmp_path, atom_data_4v5d):
 
-    sample = elfantasma.sample.Sample(
-        os.path.join(tmp_path, "test_Sample.h5"), mode="w"
-    )
+    sample = amplus.sample.Sample(os.path.join(tmp_path, "test_Sample.h5"), mode="w")
 
     assert sample.atoms_dataset_name((1, 2, 3)) == "X=000001; Y=000002; Z=000003"
     a = list(sample.atoms_dataset_range((1, 2, 3), (3, 4, 5)))
@@ -306,7 +304,7 @@ def test_Sample(tmp_path, atom_data_4v5d):
     assert ((coords >= (100, 100, 100)) & (coords < (300, 300, 300))).all()
 
     sample.del_atoms(
-        elfantasma.sample.AtomDeleter(atom_data_4v5d, position=(200, 200, 200))
+        amplus.sample.AtomDeleter(atom_data_4v5d, position=(200, 200, 200))
     )
     atoms = sample.get_atoms_in_range((0, 0, 0), (400, 400, 400)).data
     assert atoms.shape[0] == 0
@@ -319,7 +317,7 @@ def test_Sample(tmp_path, atom_data_4v5d):
 
 def test_AtomSliceExtractor(tmp_path):
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_AtomSliceExtractor.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
@@ -327,7 +325,7 @@ def test_AtomSliceExtractor(tmp_path):
         ice={"generate": True, "density": 940},
     )
 
-    extractor = elfantasma.sample.AtomSliceExtractor(sample, 0, 0.1, (0, 0), (50, 50))
+    extractor = amplus.sample.AtomSliceExtractor(sample, 0, 0.1, (0, 0), (50, 50))
 
     num_atoms = 0
     for zslice in extractor:
@@ -343,7 +341,7 @@ def test_AtomSliceExtractor(tmp_path):
 
 def test_AtomDeleter(tmp_path):
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_AtomDeleter.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
@@ -354,8 +352,8 @@ def test_AtomDeleter(tmp_path):
     atoms = sample.get_atoms_in_range((0, 0, 0), (50, 50, 50))
     coords = atoms.data[["x", "y", "z"]].to_numpy()
 
-    deleter = elfantasma.sample.AtomDeleter(
-        elfantasma.sample.AtomData(data=atoms.data[((coords - (50, 50, 50)) ** 2) < 20])
+    deleter = amplus.sample.AtomDeleter(
+        amplus.sample.AtomData(data=atoms.data[((coords - (50, 50, 50)) ** 2) < 20])
     )
 
     atoms = deleter(atoms.data)
@@ -365,7 +363,7 @@ def test_AtomDeleter(tmp_path):
 
 def test_load(tmp_path):
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_load.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
@@ -374,19 +372,19 @@ def test_load(tmp_path):
 
     del sample
 
-    sample = elfantasma.sample.load(os.path.join(tmp_path, "test_load.h5"))
+    sample = amplus.sample.load(os.path.join(tmp_path, "test_load.h5"))
 
 
 def test_new(tmp_path):
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_new1.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
         shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
     )
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_new2.h5"),
         box=(50, 50, 50),
         centre=(25, 25, 25),
@@ -408,7 +406,7 @@ def test_new(tmp_path):
 
 def test_add_molecules(tmp_path):
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_add_molecules.h5"),
         box=(4000, 4000, 4000),
         centre=(2000, 2000, 2000),
@@ -417,14 +415,14 @@ def test_add_molecules(tmp_path):
 
     sample.close()
 
-    sample = elfantasma.sample.add_molecules(
+    sample = amplus.sample.add_molecules(
         os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"4v5d": 1}
     )
 
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
 
-    sample = elfantasma.sample.add_molecules(
+    sample = amplus.sample.add_molecules(
         os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"4v1w": 10}
     )
 
@@ -433,7 +431,7 @@ def test_add_molecules(tmp_path):
 
     sample.close()
 
-    sample = elfantasma.sample.new(
+    sample = amplus.sample.new(
         os.path.join(tmp_path, "test_add_molecules2.h5"),
         box=(4000, 4000, 4000),
         centre=(2000, 2000, 2000),
@@ -444,7 +442,7 @@ def test_add_molecules(tmp_path):
     sample.shape = {"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}}
     sample.close()
 
-    sample = elfantasma.sample.add_molecules(
+    sample = amplus.sample.add_molecules(
         os.path.join(tmp_path, "test_add_molecules2.h5"), molecules={"4v5d": 1}
     )
 
