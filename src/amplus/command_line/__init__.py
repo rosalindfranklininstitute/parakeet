@@ -400,8 +400,21 @@ def export(argv=None):
         min_image = []
         max_image = []
         for i in indices:
-            min_image.append(numpy.min(reader.data[i, y0:y1, x0:x1]))
-            max_image.append(numpy.max(reader.data[i, y0:y1, x0:x1]))
+
+            # Transform if necessary
+            image = {
+                "complex": lambda x: x,
+                "real": lambda x: numpy.real(x),
+                "imaginary": lambda x: numpy.imag(x),
+                "amplitude": lambda x: numpy.abs(x),
+                "phase": lambda x: numpy.real(numpy.angle(x)),
+                "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
+                "square": lambda x: numpy.abs(x) ** 2,
+                "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
+            }[args.complex_mode](reader.data[i, y0:y1, x0:x1])
+
+            min_image.append(numpy.min(image))
+            max_image.append(numpy.max(image))
             logger.info(
                 "    Reading image %d: min/max: %.2f/%.2f"
                 % (i, min_image[-1], max_image[-1])
@@ -431,8 +444,8 @@ def export(argv=None):
             "real": lambda x: numpy.real(x),
             "imaginary": lambda x: numpy.imag(x),
             "amplitude": lambda x: numpy.abs(x),
-            "phase": lambda x: numpy.angle(x),
-            "phase_unwrap": lambda x: numpy.unwrap(numpy.angle(x)),
+            "phase": lambda x: numpy.real(numpy.angle(x)),
+            "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
             "square": lambda x: numpy.abs(x) ** 2,
             "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
         }[args.complex_mode](image)
