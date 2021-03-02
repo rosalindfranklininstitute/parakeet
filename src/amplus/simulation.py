@@ -22,6 +22,7 @@ import amplus.futures
 import amplus.sample
 import warnings
 from math import sqrt, pi, cos, exp
+from collections.abc import Iterable
 from scipy.spatial.transform import Rotation
 
 # Try to input MULTEM
@@ -634,10 +635,12 @@ class ExitWaveImageSimulator(object):
                     )
                 elif shape["type"] == "cylinder":
                     radius = shape["cylinder"]["radius"]
+                    if not isinstance(radius, Iterable):
+                        radius = [radius]
                     length = shape["cylinder"]["length"]
-                    offset_x = shape["cylinder"]["offset_x"]
-                    offset_z = shape["cylinder"]["offset_z"]
-                    axis = shape["cylinder"]["axis"]
+                    offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
+                    offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
+                    axis = shape["cylinder"].get("axis", (0, 1, 0))
                     masker.set_cylinder(
                         (centre[0], centre[1] - length / 2, centre[2]),
                         axis,
