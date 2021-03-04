@@ -500,7 +500,11 @@ class AtomData(object):
 
         """
         if len(self.data) > 0:
-            self.data[["x", "y", "z"]] += numpy.array(translation)
+            coords = self.data[["x", "y", "z"]].to_numpy()
+            coords += numpy.array(translation, dtype=coords.dtype)
+            self.data["x"] = coords[:, 0]
+            self.data["y"] = coords[:, 1]
+            self.data["z"] = coords[:, 2]
         return self
 
     def to_multem(self):
@@ -515,14 +519,14 @@ class AtomData(object):
             return multem.AtomList()
         return multem.AtomList(
             zip(
-                self.data["atomic_number"],
-                self.data["x"],
-                self.data["y"],
-                self.data["z"],
-                self.data["sigma"],
-                self.data["occupancy"],
+                self.data["atomic_number"].astype("uint8"),
+                self.data["x"].astype("float32"),
+                self.data["y"].astype("float32"),
+                self.data["z"].astype("float32"),
+                self.data["sigma"].astype("float32"),
+                [float(1) for i in range(self.data.shape[0])],
                 [int(0) for i in range(self.data.shape[0])],
-                self.data["charge"],
+                self.data["charge"].astype("uint8"),
             )
         )
 
@@ -567,8 +571,6 @@ class AtomData(object):
                     for residue in chain:
                         for atom in residue:
                             assert atom.element.atomic_number > 0
-                            # if atom.element.atomic_number == 1:
-                            #    continue
                             yield (
                                 atom.element.atomic_number,
                                 atom.pos.x,
@@ -585,7 +587,6 @@ class AtomData(object):
                 (name, pandas.Series(data, dtype=AtomData.column_data[name]))
                 for data, name in zip(zip(*iterate_atoms(structure)), column_info)
             )
-
         # Return the sample with the atom data as a pandas dataframe
         return AtomData(data=pandas.DataFrame(create_atom_data(structure)))
 
@@ -1834,7 +1835,9 @@ class AtomSliceExtractor(object):
 
         """
         for i in range(len(self)):
-            yield self[i]
+            item = self[i]
+            if len(item.atoms.data) > 0:
+                yield self[i]
 
 
 class AtomDeleter(object):
@@ -2412,10 +2415,7 @@ def add_single_molecule(sample, name):
         )
     )
 
-    # position = sample.centre
-    z = sample.bounding_box[0][2]
-    z = z - coords["z"].max()
-    position[2] = z
+    position = sample.centre
 
     # Delete the atoms where we want to place the molecules
     sample.del_atoms(AtomDeleter(atoms, position, (0, 0, 0)))

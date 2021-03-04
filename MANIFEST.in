@@ -1,2 +1,6 @@
-include src/amplus/data/4v5d.cif
-include src/amplus/data/4v1w.cif
+include src/amplus/data/files/4v5d.cif
+include src/amplus/data/files/4v1w.cif
+include src/amplus/data/files/3jb9.cif
+include src/amplus/data/files/6qt9.cif
+include src/amplus/data/files/6z6u.pdb
+include src/amplus/data/files/water.cif

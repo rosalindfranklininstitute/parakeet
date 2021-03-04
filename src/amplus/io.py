@@ -691,7 +691,7 @@ class Reader(object):
             raise RuntimeError(f"File with unknown extension: {filename}")
 
 
-def new(filename, shape=None, pixel_size=None, dtype=None, vmin=None, vmax=None):
+def new(filename, shape=None, pixel_size=1, dtype="float32", vmin=None, vmax=None):
     """
     Create a new file for writing
 
