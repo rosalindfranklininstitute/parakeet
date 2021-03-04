@@ -175,7 +175,7 @@ def test_is_box_inside_shape():
 
     assert (
         amplus.sample.is_box_inside_shape(
-            ((0, 0, 0), (0.3, 0.99 / sqrt(2), 0.99 / sqrt(2))),
+            ((0, 0, 0), (0.99 / sqrt(2), 0.3, 0.99 / sqrt(2))),
             (0, 0, 0),
             {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
         )
@@ -400,8 +400,8 @@ def test_new(tmp_path):
     z = coords[:, 2]
     margin = 2
     assert len(x) > 0
-    assert ((x >= (5 - margin)) & (x < (45 + margin))).all()
-    assert (((y - 25) ** 2 + (z - 25) ** 2) <= (20 + margin) ** 2).all()
+    assert ((y >= (5 - margin)) & (y < (45 + margin))).all()
+    assert (((x - 25) ** 2 + (z - 25) ** 2) <= (20 + margin) ** 2).all()
 
 
 def test_add_molecules(tmp_path):

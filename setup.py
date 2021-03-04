@@ -4,6 +4,7 @@
 # This code is distributed under the BSD license.
 #
 from skbuild import setup
+from setuptools import find_packages
 
 
 def main():
@@ -15,7 +16,7 @@ def main():
 
     setup(
         package_dir={"": "src"},
-        packages=["amplus"],
+        packages=find_packages(where="src"),
         setup_requires=["dask", "pytest-runner"],
         install_requires=[
             "distributed",
