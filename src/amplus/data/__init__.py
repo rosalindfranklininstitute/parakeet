@@ -22,7 +22,7 @@ def get_path(name):
         str: The absolute filename
 
     """
-    return os.path.join(os.path.dirname(__file__), name)
+    return os.path.join(os.path.dirname(__file__), "files", name)
 
 
 def get_pdb(name):

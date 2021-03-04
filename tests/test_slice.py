@@ -57,7 +57,12 @@ def create_input_multislice(n_phonons, single_phonon_conf=False):
 
 def test_slice():
 
-    sample = amplus.sample.new("4v5d")
+    filename = "temp.h5"
+    box = (400, 400, 400)
+    centre = (200, 200, 200)
+    shape = { "type" : "cube", "cube" : { "length":400}}
+    sample = amplus.sample.new(filename, box, centre, shape)
+    amplus.sample.add_single_molecule(sample, "4v5d")
 
     # Create the system configuration
     system_conf = multem.SystemConfiguration()

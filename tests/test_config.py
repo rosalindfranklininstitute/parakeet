@@ -34,8 +34,8 @@ def test_deepmerge():
         "B": "Hello World",
         "C": {
             "D": {"E": False},
-            "F": [1, 2, 3, 4, 5, 6],
-            "G": [{"H": 0.1}, {"H": 0.2}, {"H": 0.3}, {"H": 0.4}],
+            "F": [4, 5, 6],
+            "G": [{"H": 0.3}, {"H": 0.4}],
         },
         "I": "unchanged",
         "J": "also unchanged",
@@ -84,7 +84,7 @@ def test_load(tmp_path):
 
     config = amplus.config.load(filename)
 
-    expected = {"scan": {"axis": [1, 0, 0]}}
+    expected = {'sample': {'box': [4000, 4000, 4000], 'centre': [2000, 2000, 2000]}, 'scan': {'axis': [0, 1, 0]}}
     assert amplus.config.difference(config, amplus.config.default()) == expected
 
 

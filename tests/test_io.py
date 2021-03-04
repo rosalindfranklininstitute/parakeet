@@ -18,7 +18,7 @@ def io_test_data():
     angle = numpy.array([x for x in range(0, shape[0])])
 
     # Generate the positons
-    position = numpy.array([[x, x, x] for x in range(0, shape[0])])
+    position = numpy.array([[x, x, 0] for x in range(0, shape[0])])
 
     # Return the data
     return (data, angle, position)

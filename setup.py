@@ -16,8 +16,8 @@ def main():
     setup(
         package_dir={"": "src"},
         packages=["amplus"],
+        setup_requires=["dask", "pytest-runner"],
         install_requires=[
-            "dask",
             "distributed",
             "dask_jobqueue",
             "gemmi",
@@ -30,7 +30,6 @@ def main():
             "scipy",
             "pyyaml",
         ],
-        setup_requires=["pytest-runner"],
         tests_require=tests_require,
         test_suite="tests",
         entry_points={
