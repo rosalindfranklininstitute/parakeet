@@ -21,7 +21,7 @@ import amplus.freeze
 import amplus.futures
 import amplus.sample
 import warnings
-from math import sqrt, pi, cos, exp
+from math import sqrt, pi, cos, exp, sin
 from collections.abc import Iterable
 from scipy.spatial.transform import Rotation
 
@@ -495,8 +495,17 @@ class ExitWaveImageSimulator(object):
 
         # Add the beam drift
         if self.microscope.beam.drift:
-            shiftx, shifty = numpy.random.normal(0, self.microscope.beam.drift, size=2)
-            logger.info("Adding drift of %f, %f " % (shiftx, shifty))
+            if self.microscope.beam.drift["type"] == "random":
+                shiftx, shifty = numpy.random.normal(
+                    0, self.microscope.beam.drift["magnitude"], size=2
+                )
+                logger.info("Adding drift of %f, %f " % (shiftx, shifty))
+            elif self.microscope.beam.drift["type"] == "sinusoidal":
+                shiftx = sin(angle * pi / 180) * self.microscope.beam.drift["magnitude"]
+                shifty = shiftx
+                logger.info("Adding drift of %f, %f " % (shiftx, shifty))
+            else:
+                raise RuntimeError("Unknown drift type")
         else:
             shiftx = 0
             shifty = 0
