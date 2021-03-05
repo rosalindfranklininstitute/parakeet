@@ -59,6 +59,8 @@ def default():
                     length: 10000
                     radius: 1500
 
+                margin: [ 0, 0, 0 ]
+
             ice:
                 generate: False
                 density: 940
@@ -68,6 +70,11 @@ def default():
                 4v5d: 0
                 4v1w: 0
                 6qt9: 0
+                6z6u: 0
+
+            sputter:
+                element: null
+                thickness: 20
 
         microscope:
 

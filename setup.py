@@ -15,8 +15,7 @@ def main():
     tests_require = ["pytest", "pytest-cov", "mock"]
 
     setup(
-        package_dir={"": "src"},
-        packages=find_packages(where="src"),
+        packages=find_packages(),
         setup_requires=["dask", "pytest-runner"],
         install_requires=[
             "distributed",
@@ -41,6 +40,7 @@ def main():
                 "amplus.sample.new=amplus.command_line.sample:new",
                 "amplus.sample.add_molecules=amplus.command_line.sample:add_molecules",
                 "amplus.sample.mill=amplus.command_line.sample:mill",
+                "amplus.sample.sputter=amplus.command_line.sample:sputter",
                 "amplus.sample.show=amplus.command_line.sample:show",
                 "amplus.simulate.projected_potential=amplus.command_line.simulate:projected_potential",
                 "amplus.simulate.exit_wave=amplus.command_line.simulate:exit_wave",

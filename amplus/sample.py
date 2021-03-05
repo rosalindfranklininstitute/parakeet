@@ -338,8 +338,11 @@ def shape_enclosed_box(centre, shape):
     # The offset
     offset = centre - (x1 + x0) / 2.0
 
+    # The margin
+    margin = numpy.array(shape["margin"])
+
     # Return the bounding box
-    return (x0 + offset, x1 + offset)
+    return (x0 + offset + margin, x1 + offset - margin)
 
 
 def is_shape_inside_box(box, centre, shape):
@@ -587,6 +590,7 @@ class AtomData(object):
                 (name, pandas.Series(data, dtype=AtomData.column_data[name]))
                 for data, name in zip(zip(*iterate_atoms(structure)), column_info)
             )
+
         # Return the sample with the atom data as a pandas dataframe
         return AtomData(data=pandas.DataFrame(create_atom_data(structure)))
 
@@ -1076,6 +1080,7 @@ class SampleHDF5Adapter(object):
                 shape = shape.decode("utf-8")
             return {
                 "type": shape,
+                "margin": self.__handle["shape"].attrs.get("margin", [0, 0, 0]),
                 shape: dict(list(self.__handle["shape"].attrs.items())),
             }
 
@@ -1096,6 +1101,9 @@ class SampleHDF5Adapter(object):
             # Set the shape attributes
             for key, value in shape[shape["type"]].items():
                 self.__handle["shape"].attrs[key] = value
+
+            # Set the margin
+            self.__handle["shape"].attrs["margin"] = shape["margin"]
 
     def __init__(self, filename=None, mode="r"):
         """
@@ -2647,3 +2655,136 @@ def mill(filename, box=None, centre=None, shape=None, **kwargs):
 
     # Print some info
     logger.info(sample.info())
+
+
+def sputter(filename, element=None, thickness=20):
+    """
+    Add a sputter coating to the sample of the desired thickness
+
+    This is very crude and adds atoms at random positions
+
+    Params:
+        atomic_number (int): The atomic number
+        density (float): The density of atoms (g/cm3)
+        thickness (float): The thickness (A)
+
+
+    """
+
+    # Open the sample
+    sample = Sample(filename, mode="r+")
+
+    # Get the sample shape
+    shape = sample.shape
+    centre = sample.centre
+
+    # Set the volume in A^3
+    if shape["type"] == "cube":
+        length = shape["cube"]["length"]
+        length_x = length
+        length_y = length
+        length_z = length
+        sputter_length_x = length_x + thickness * 2
+        sputter_length_y = length_y + thickness * 2
+        sputter_length_z = length_z + thickness * 2
+        shape_volume = length ** 3
+        sputter_volume = (
+            sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
+        )
+    elif shape["type"] == "cuboid":
+        length_x = shape["cuboid"]["length_x"]
+        length_y = shape["cuboid"]["length_y"]
+        length_z = shape["cuboid"]["length_z"]
+        sputter_length_x = length_x + thickness * 2
+        sputter_length_y = length_y + thickness * 2
+        sputter_length_z = length_z + thickness * 2
+        shape_volume = length_x * length_y * length_z
+        sputter_volume = (
+            sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
+        )
+    elif shape["type"] == "cylinder":
+        length = shape["cylinder"]["length"]
+        radius = shape["cylinder"]["radius"]
+        length_x = 2 * radius
+        length_y = length
+        length_z = 2 * radius
+        sputter_length = length + thickness * 2
+        sputter_radius = radius + thickness * 2
+        shape_volume = pi * radius ** 2 * length
+        sputter_volume = pi * sputter_radius ** 2 * sputter_length - shape_volume
+    else:
+        raise RuntimeError("Unknown shape")
+
+    # Determine the number of atoms to place
+    if element is None:
+        return
+    elif element == "C":
+        molar_mass = 12.0107  # grams / mole
+        density = 2.3
+        atomic_number = 6
+    elif element == "Pt":
+        molar_mass = 195.084  # grams / mole
+        density = 21.45
+        atomic_number = 78
+    else:
+        raise RuntimeError("Unknown element %s" % element)
+    avogadros_number = scipy.constants.Avogadro
+    number_density = ((density * 1e-8 ** 3) / molar_mass) * avogadros_number
+    print("Placing %g %s atoms per A^3" % (number_density, element))
+
+    # Get the centre and offset
+    centre_x, centre_y, centre_z = centre
+    offset_x = centre_x - length_x / 2.0
+    offset_y = centre_y - length_y / 2.0
+    offset_z = centre_z - length_z / 2.0
+    offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
+
+    # Translation
+    if shape["type"] != "cylinder":
+        # Generate positions in the thickness range
+        volume = length_x * length_y * thickness
+        number_of_atoms = int(number_density * volume)
+        x = numpy.random.uniform(offset_x, offset_x + length_x, size=number_of_atoms)
+        y = numpy.random.uniform(offset_y, offset_y + length_y, size=number_of_atoms)
+        z = numpy.random.uniform(offset_z - thickness, offset_z, size=number_of_atoms)
+        print("Placed %d atoms" % number_of_atoms)
+        print("WARNING - ONLY APPLYING TO TOP OF SAMPLE")
+    else:
+        raise RuntimeError("Not implemented")
+    position = numpy.array((x, y, z)).T
+
+    def create_atom_data(atomic_number, coords):
+
+        # Create a new array
+        def new_array(size, name, value):
+            return (
+                numpy.zeros(
+                    shape=(size,), dtype=amplus.sample.AtomData.column_data[name]
+                )
+                + value
+            )
+
+        # Create the new arrays
+        atomic_number = new_array(coords.shape[0], "atomic_number", atomic_number)
+        sigma = new_array(coords.shape[0], "sigma", 0.085)
+        occupancy = new_array(coords.shape[0], "occupancy", 1.0)
+        charge = new_array(coords.shape[0], "charge", 0)
+
+        # Return the data frame
+        return pandas.DataFrame(
+            {
+                "atomic_number": atomic_number,
+                "x": coords[:, 0],
+                "y": coords[:, 1],
+                "z": coords[:, 2],
+                "sigma": sigma,
+                "occupancy": occupancy,
+                "charge": charge,
+            }
+        )
+
+    # Add the sample atoms
+    data_buffer = []
+    data_buffer.append(create_atom_data(atomic_number, position))
+
+    sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))

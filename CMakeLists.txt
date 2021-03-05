@@ -16,13 +16,13 @@ find_package(pybind11 REQUIRED)
 
 # Add a C/C++ extension
 pybind11_add_module(freeze_ext 
-  src/amplus/freeze/freeze_ext.cc)
+  amplus/freeze/freeze_ext.cc)
 
 # Ensure we are using C++11
 target_compile_features(freeze_ext PUBLIC cxx_std_11)
 
 # Set the include directory
-target_include_directories(freeze_ext PUBLIC src)
+target_include_directories(freeze_ext PUBLIC .)
 
 # Set the coverage compile and link flags for gcc or clang
 set(COVERAGE_COMPILE_FLAGS -coverage)
@@ -35,4 +35,4 @@ target_link_options(freeze_ext
   PUBLIC "$<$<CONFIG:DEBUG>:${COVERAGE_LINK_FLAGS}>")
 
 # Install the python extension
-install(TARGETS freeze_ext LIBRARY DESTINATION src/amplus/freeze)
+install(TARGETS freeze_ext LIBRARY DESTINATION amplus/freeze)
