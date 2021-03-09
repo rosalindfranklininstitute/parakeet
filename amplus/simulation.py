@@ -19,9 +19,10 @@ import amplus.config
 import amplus.dqe
 import amplus.freeze
 import amplus.futures
+import amplus.inelastic
 import amplus.sample
 import warnings
-from math import sqrt, pi, cos, exp, sin
+from math import sqrt, pi, sin
 from collections.abc import Iterable
 from scipy.spatial.transform import Rotation
 
@@ -514,6 +515,7 @@ class ExitWaveImageSimulator(object):
         nx = self.microscope.detector.nx
         ny = self.microscope.detector.ny
         pixel_size = self.microscope.detector.pixel_size
+        origin = numpy.array(self.microscope.detector.origin)
         margin = self.simulation["margin"]
         padding = self.simulation["padding"]
         x_fov = nx * pixel_size
@@ -527,8 +529,10 @@ class ExitWaveImageSimulator(object):
         # input_multislice.spec_rot_u0 = simulation.scan.axis
 
         # Create the sample extractor
-        x0 = (-margin_offset, position - margin_offset)
-        x1 = (x_fov + margin_offset, position + y_fov + margin_offset)
+        x0 = numpy.array((-margin_offset, position - margin_offset))
+        x1 = numpy.array((x_fov + margin_offset, position + y_fov + margin_offset))
+        x0 += origin
+        x1 += origin
         thickness = self.simulation["division_thickness"]
         # extractor = amplus.sample.AtomSliceExtractor(
         #    sample=self.sample,
@@ -599,7 +603,7 @@ class ExitWaveImageSimulator(object):
             # atoms.data = atoms.data.append(amplus.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
             input_multislice.spec_atoms = atoms.translate(
-                (offset, offset, 0)
+                (offset - origin[0], offset - origin[1], 0)
             ).to_multem()
             logger.info("   Got spec atoms")
 
@@ -614,8 +618,8 @@ class ExitWaveImageSimulator(object):
                 shape = self.sample.shape
                 centre = self.sample.centre
                 centre = (
-                    centre[0] + offset - shiftx,
-                    centre[1] + offset - shifty - position,
+                    centre[0] + offset - shiftx - origin[0],
+                    centre[1] + offset - shifty - position - origin[1],
                     centre[2],
                 )
 
@@ -757,12 +761,19 @@ class OpticsImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, exit_wave=None, scan=None, simulation=None, device="gpu"
+        self,
+        microscope=None,
+        exit_wave=None,
+        scan=None,
+        simulation=None,
+        sample=None,
+        device="gpu",
     ):
         self.microscope = microscope
         self.exit_wave = exit_wave
         self.scan = scan
         self.simulation = simulation
+        self.sample = sample
         self.device = device
 
     def __call__(self, index):
@@ -777,6 +788,31 @@ class OpticsImageSimulator(object):
             tuple: (angle, image)
 
         """
+
+        def compute_image(psi, microscope, simulation, x_fov, y_fov, offset, device):
+
+            # Create the multem system configuration
+            system_conf = create_system_configuration(device)
+
+            # Create the multem input multislice object
+            input_multislice = create_input_multislice(
+                microscope,
+                simulation["slice_thickness"],
+                simulation["margin"],
+                "HRTEM",
+            )
+
+            # Set the specimen size
+            input_multislice.spec_lx = x_fov + offset * 2
+            input_multislice.spec_ly = y_fov + offset * 2
+            input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+
+            # Compute and apply the CTF
+            ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
+            psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
+            image = numpy.abs(psi) ** 2
+
+            return image
 
         # Get the rotation angle
         angle = self.scan.angles[index]
@@ -798,58 +834,138 @@ class OpticsImageSimulator(object):
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
 
-        # Create the multem system configuration
-        system_conf = create_system_configuration(self.device)
-
-        # Create the multem input multislice object
-        input_multislice = create_input_multislice(
-            self.microscope,
-            self.simulation["slice_thickness"],
-            self.simulation["margin"],
-            "HRTEM",
-        )
-
-        # Set the specimen size
-        input_multislice.spec_lx = x_fov + offset * 2
-        input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
-
         # Set the input wave
         psi = self.exit_wave.data[index]
 
-        # Compute and apply the CTF
-        ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
-        psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
-        image = numpy.abs(psi) ** 2
+        # If we do CC correction then set spherical aberration and chromatic
+        # aberration to zero
+        shape = self.sample["shape"]
+        if self.simulation["inelastic_model"] is None:
 
-        # assert user_defined_wave.shape == (ny + 2 * margin, nx + 2 * margin)
-        # input_multislice.iw_type = "User_Define_Wave"
-        # input_multislice.iw_psi = list(user_defined_wave.T.flatten())
-        # input_multislice.iw_x = [0.5 * input_multislice.spec_lx]
-        # input_multislice.iw_y = [0.5 * input_multislice.spec_ly]
-        # input_multislice.spec_atoms = multem.AtomList(
-        #     [
-        #         (
-        #             1,
-        #             input_multislice.spec_lx / 2.0,
-        #             input_multislice.spec_ly / 2.0,
-        #             input_multislice.spec_lz / 2.0,
-        #             0.088,
-        #             0,
-        #             0,
-        #             0,
-        #         )
-        #     ]
-        # )
+            # If no inelastic model just calculate image as normal
+            image = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+            electron_fraction = 1.0
 
-        # # Run the simulation
-        # output_multislice = multem.simulate(system_conf, input_multislice)
+        if self.simulation["inelastic_model"] == "zero_loss":
 
-        # Get the ideal image data
-        # Multem outputs data in column major format. In C++ and Python we
-        # generally deal with data in row major format so we must do a
-        # transpose here.
-        # image = numpy.array(output_multislice.data[0].m2psi_tot).T
+            # Compute the image
+            image = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Calculate the fraction of electrons in the zero loss peak
+            electron_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
+
+            # Scale the image by the fraction of electrons
+            image *= electron_fraction
+
+        elif self.simulation["inelastic_model"] == "mp_loss":
+
+            # Compute the energy and spread of the plasmon peak
+            peak, sigma = amplus.inelastic.most_probable_loss(
+                self.microscope.beam.energy, shape, angle
+            )
+            peak /= 1000.0
+            spread = sigma / (self.microscope.beam.energy * 1000)
+
+            # Add the energy loss
+            self.microscope.beam.energy -= peak
+
+            # Compute the energy spread of the plasmon peak
+            self.microscope.beam.energy_spread += spread
+
+            # Calculate the image
+            image = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Compute the fraction of electrons in the plasmon peak
+            electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+
+            # Scale the image by the fraction of electrons
+            image *= electron_fraction
+
+        elif self.simulation["inelastic_model"] == "unfiltered":
+
+            # Compute the energy and spread of the plasmon peak
+            peak, sigma = amplus.inelastic.most_probable_loss(
+                self.microscope.beam.energy, shape, angle
+            )
+            peak /= 1000.0
+            spread = sigma / (self.microscope.beam.energy * 1000)
+
+            # Compute the zero loss image
+            image1 = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Add the energy loss
+            self.microscope.beam.energy -= peak
+
+            # Compute the energy spread of the plasmon peak
+            self.microscope.beam.energy_spread += spread
+            print("Energy: %f keV" % self.microscope.beam.energy)
+            print("Energy spread: %f ppm" % self.microscope.beam.energy_spread)
+
+            # Compute the MPL image
+            image2 = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Compute the zero loss and mpl image fraction
+            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            electron_fraction = zero_loss_fraction + mp_loss_fraction
+
+            # Add the images incoherently and scale the image by the fraction of electrons
+            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
+
+        elif self.simulation["inelastic_model"] == "cc_corrected":
+
+            # Set the Cs and CC to zero
+            self.microscope.lens.c_30 = 0
+            self.microscope.lens.c_c = 0
+
+            # Compute the energy and spread of the plasmon peak
+            peak, sigma = amplus.inelastic.most_probable_loss(
+                self.microscope.beam.energy, shape, angle
+            )
+            peak /= 1000.0
+            spread = sigma / (self.microscope.beam.energy * 1000)
+
+            # Compute the zero loss image
+            image1 = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Add the energy loss
+            self.microscope.beam.energy -= peak
+
+            # Compute the energy spread of the plasmon peak
+            self.microscope.beam.energy_spread += spread
+            print("Energy: %f keV" % self.microscope.beam.energy)
+            print("Energy spread: %f ppm" % self.microscope.beam.energy_spread)
+
+            # Compute the MPL image
+            image2 = compute_image(
+                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Compute the zero loss and mpl image fraction
+            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            electron_fraction = zero_loss_fraction + mp_loss_fraction
+
+            # Add the images incoherently and scale the image by the fraction of electrons
+            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
+
+        else:
+            raise RuntimeError("Unknown inelastic model")
+
+        # Print the electron fraction
+        print("Electron fraction = %.2f" % electron_fraction)
 
         # Remove margin
         j0 = margin
@@ -860,7 +976,10 @@ class OpticsImageSimulator(object):
         assert i1 > i0
         assert j1 > j0
         image = image[j0:j1, i0:i1]
-        logger.info("Ideal image min/max: %f/%f" % (numpy.min(image), numpy.max(image)))
+        logger.info(
+            "Ideal image min/mean/max: %f/%f/%f"
+            % (numpy.min(image), numpy.mean(image), numpy.max(image))
+        )
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, image, None)
@@ -877,7 +996,7 @@ class ImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu"
+        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu",
     ):
         self.microscope = microscope
         self.optics = optics
@@ -922,14 +1041,6 @@ class ImageSimulator(object):
             * self.microscope.detector.pixel_size ** 2
         )
 
-        # Fewer electrons allowed through
-        if self.simulation["inelastic_zero_loss_model"]:
-            TINY = 1e-10
-            thickness = 1500 / (cos(pi * angle / 180.0) + TINY)
-            mean_free_path = 3150  # A for Amorphous Ice at 300 keV
-            electrons_per_pixel *= exp(-thickness / mean_free_path)
-            print(thickness, electrons_per_pixel)
-
         # Compute the electrons per pixel second
         electrons_per_second = electrons_per_pixel / self.scan.exposure_time
         energy = self.microscope.beam.energy
@@ -950,7 +1061,7 @@ class ImageSimulator(object):
 
         # Normalize so that the average pixel value is 1.0
         image = numpy.clip(image, 0, None)
-        image = image / numpy.mean(image)
+        # image = image / numpy.mean(image) # Dont do this
 
         # Add Poisson noise
         # numpy.random.seed(index)
@@ -1203,6 +1314,7 @@ def optics(
     scan=None,
     device="gpu",
     simulation=None,
+    sample=None,
     cluster=None,
 ):
     """
@@ -1232,13 +1344,19 @@ def optics(
             exit_wave=exit_wave,
             scan=scan,
             simulation=simulation,
+            sample=sample,
             device=device,
         ),
     )
 
 
 def image(
-    microscope=None, optics=None, scan=None, device="gpu", simulation=None, cluster=None
+    microscope=None,
+    optics=None,
+    scan=None,
+    device="gpu",
+    simulation=None,
+    cluster=None,
 ):
     """
     Create the simulation

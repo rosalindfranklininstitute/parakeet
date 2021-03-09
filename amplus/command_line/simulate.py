@@ -365,6 +365,7 @@ def optics(args=None):
         scan=scan,
         device=config["device"],
         simulation=config["simulation"],
+        sample=config["sample"],
         cluster=config["cluster"],
     )
 

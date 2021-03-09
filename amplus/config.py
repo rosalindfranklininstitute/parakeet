@@ -128,6 +128,7 @@ def default():
                 ny: 4000
                 pixel_size: 1
                 dqe: False
+                origin: [ 0, 0 ]
 
         scan:
             mode: still
@@ -148,7 +149,7 @@ def default():
             division_thickness: 100
             ice: False
             radiation_damage_model: False
-            inelastic_zero_loss_model: False
+            inelastic_model: null
             sensitivity_coefficient: 0.014
 
         cluster:

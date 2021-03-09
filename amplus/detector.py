@@ -16,7 +16,7 @@ class Detector(object):
 
     """
 
-    def __init__(self, nx=None, ny=None, pixel_size=None, dqe=True):
+    def __init__(self, nx=None, ny=None, pixel_size=None, origin=None, dqe=True):
         """
         Initialise the detector
 
@@ -24,16 +24,18 @@ class Detector(object):
             nx (int): The size of the detector in X
             ny (int): The size of the detector in Y
             pixel_size (float): The effective size of the pixels in A
+            origin (tuple): The detector origin (A, A)
             dqe (bool): Use the detector DQE
 
         """
         self.nx = nx
         self.ny = ny
         self.pixel_size = pixel_size
+        self.origin = origin
         self.dqe = dqe
 
 
-def new(nx=None, ny=None, pixel_size=None, dqe=True):
+def new(nx=None, ny=None, pixel_size=None, origin=None, dqe=True):
     """
     Make a new detector
 
@@ -41,10 +43,11 @@ def new(nx=None, ny=None, pixel_size=None, dqe=True):
         nx (int): The size of the detector in X
         ny (int): The size of the detector in Y
         pixel_size (float): The effective size of the pixels in A
+        origin (tuple): The detector origin (A, A)
         dqe (bool): Use the detector DQE
 
     Returns:
         obj: The detector object
 
     """
-    return Detector(nx=nx, ny=ny, pixel_size=pixel_size, dqe=dqe)
+    return Detector(nx=nx, ny=ny, pixel_size=pixel_size, origin=origin, dqe=dqe)
