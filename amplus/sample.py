@@ -2722,6 +2722,14 @@ def sputter(filename, element=None, thickness=20):
         molar_mass = 12.0107  # grams / mole
         density = 2.3
         atomic_number = 6
+    elif element == "Ir":
+        molar_mass = 192.217  # grams / mole
+        density = 22.56
+        atomic_number = 77
+    elif element == "Cr":
+        molar_mass = 51.9961  # grams / mole
+        density = 7.15
+        atomic_number = 24
     elif element == "Pt":
         molar_mass = 195.084  # grams / mole
         density = 21.45

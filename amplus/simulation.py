@@ -848,7 +848,7 @@ class OpticsImageSimulator(object):
             )
             electron_fraction = 1.0
 
-        if self.simulation["inelastic_model"] == "zero_loss":
+        elif self.simulation["inelastic_model"] == "zero_loss":
 
             # Compute the image
             image = compute_image(
