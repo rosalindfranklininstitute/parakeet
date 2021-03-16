@@ -48,6 +48,8 @@ def main():
                 "amplus.simulate.image=amplus.command_line.simulate:image",
                 "amplus.simulate.simple=amplus.command_line.simulate:simple",
                 "amplus.simulate.ctf=amplus.command_line.simulate:ctf",
+                "amplus.analyse.reconstruct=amplus.command_line.analyse:reconstruct",
+                "amplus.analyse.average_particles=amplus.command_line.analyse:average_particles",
             ]
         },
         extras_require={

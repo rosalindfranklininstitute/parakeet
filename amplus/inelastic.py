@@ -11,6 +11,10 @@ from math import sqrt, pi, cos, exp, log
 
 
 def zero_loss_fraction(shape, angle):
+    """
+    Compute the zero loss fraction
+
+    """
     TINY = 1e-10
     if shape["type"] == "cube":
         D0 = shape["cube"]["length"]
@@ -26,6 +30,10 @@ def zero_loss_fraction(shape, angle):
 
 
 def mp_loss_fraction(shape, angle):
+    """
+    Compute the inelastic fraction
+
+    """
     TINY = 1e-10
     if shape["type"] == "cube":
         D0 = shape["cube"]["length"]
@@ -41,6 +49,10 @@ def mp_loss_fraction(shape, angle):
 
 
 def fraction_of_electrons(shape, angle, model=None):
+    """
+    Compute the fraction of electrons
+
+    """
     if model is None:
         fraction = 1.0
     elif model == "zero_loss":
@@ -55,6 +67,10 @@ def fraction_of_electrons(shape, angle, model=None):
 
 
 def most_probable_loss(energy, shape, angle):
+    """
+    Compute the MPL peak and sigma
+
+    """
     TINY = 1e-10
     if shape["type"] == "cube":
         D0 = shape["cube"]["length"]
@@ -64,5 +80,6 @@ def most_probable_loss(energy, shape, angle):
         thickness = D0 / (cos(pi * angle / 180.0) + TINY)
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
+    thickness = min(thickness, 100000)  # Maximum 10 um - to avoid issues at high tilt
     peak, fwhm = amplus.landau.mpl_and_fwhm(energy, thickness)
     return peak, fwhm / (2 * sqrt(2 * log(2)))
