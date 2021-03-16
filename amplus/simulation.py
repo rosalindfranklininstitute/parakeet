@@ -9,6 +9,7 @@
 # which is included in the root directory of this package.
 #
 
+import copy
 import logging
 import h5py
 import numpy
@@ -837,6 +838,8 @@ class OpticsImageSimulator(object):
         # Set the input wave
         psi = self.exit_wave.data[index]
 
+        microscope = copy.deepcopy(self.microscope)
+
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero
         shape = self.sample["shape"]
@@ -844,7 +847,7 @@ class OpticsImageSimulator(object):
 
             # If no inelastic model just calculate image as normal
             image = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
             electron_fraction = 1.0
 
@@ -852,7 +855,7 @@ class OpticsImageSimulator(object):
 
             # Compute the image
             image = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Calculate the fraction of electrons in the zero loss peak
@@ -865,20 +868,23 @@ class OpticsImageSimulator(object):
 
             # Compute the energy and spread of the plasmon peak
             peak, sigma = amplus.inelastic.most_probable_loss(
-                self.microscope.beam.energy, shape, angle
+                microscope.beam.energy, shape, angle
             )
             peak /= 1000.0
-            spread = sigma / (self.microscope.beam.energy * 1000)
+            peak = min(peak, microscope.beam.energy * 0.1)
+            spread = sigma / (microscope.beam.energy * 1000)
 
             # Add the energy loss
-            self.microscope.beam.energy -= peak
+            microscope.beam.energy -= peak
 
             # Compute the energy spread of the plasmon peak
-            self.microscope.beam.energy_spread += spread
+            microscope.beam.energy_spread += spread
+            print("Energy: %f keV" % microscope.beam.energy)
+            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
 
             # Calculate the image
             image = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Compute the fraction of electrons in the plasmon peak
@@ -891,27 +897,28 @@ class OpticsImageSimulator(object):
 
             # Compute the energy and spread of the plasmon peak
             peak, sigma = amplus.inelastic.most_probable_loss(
-                self.microscope.beam.energy, shape, angle
+                microscope.beam.energy, shape, angle
             )
             peak /= 1000.0
-            spread = sigma / (self.microscope.beam.energy * 1000)
+            peak = min(peak, microscope.beam.energy * 0.1)
+            spread = sigma / (microscope.beam.energy * 1000)
 
             # Compute the zero loss image
             image1 = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Add the energy loss
-            self.microscope.beam.energy -= peak
+            microscope.beam.energy -= peak
 
             # Compute the energy spread of the plasmon peak
-            self.microscope.beam.energy_spread += spread
-            print("Energy: %f keV" % self.microscope.beam.energy)
-            print("Energy spread: %f ppm" % self.microscope.beam.energy_spread)
+            microscope.beam.energy_spread += spread
+            print("Energy: %f keV" % microscope.beam.energy)
+            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
 
             # Compute the MPL image
             image2 = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Compute the zero loss and mpl image fraction
@@ -925,32 +932,33 @@ class OpticsImageSimulator(object):
         elif self.simulation["inelastic_model"] == "cc_corrected":
 
             # Set the Cs and CC to zero
-            self.microscope.lens.c_30 = 0
-            self.microscope.lens.c_c = 0
+            microscope.lens.c_30 = 0
+            microscope.lens.c_c = 0
 
             # Compute the energy and spread of the plasmon peak
             peak, sigma = amplus.inelastic.most_probable_loss(
-                self.microscope.beam.energy, shape, angle
+                microscope.beam.energy, shape, angle
             )
             peak /= 1000.0
-            spread = sigma / (self.microscope.beam.energy * 1000)
+            peak = min(peak, microscope.beam.energy * 0.1)
+            spread = sigma / (microscope.beam.energy * 1000)
 
             # Compute the zero loss image
             image1 = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Add the energy loss
-            self.microscope.beam.energy -= peak
+            microscope.beam.energy -= peak
 
             # Compute the energy spread of the plasmon peak
-            self.microscope.beam.energy_spread += spread
-            print("Energy: %f keV" % self.microscope.beam.energy)
-            print("Energy spread: %f ppm" % self.microscope.beam.energy_spread)
+            microscope.beam.energy_spread += spread
+            print("Energy: %f keV" % microscope.beam.energy)
+            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
 
             # Compute the MPL image
             image2 = compute_image(
-                psi, self.microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
             # Compute the zero loss and mpl image fraction
