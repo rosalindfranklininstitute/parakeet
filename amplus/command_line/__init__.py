@@ -323,6 +323,20 @@ def export(argv=None):
     parser.add_argument(
         "--rebin", type=int, default=1, dest="rebin", help="The rebinned factor"
     )
+    parser.add_argument(
+        "--vmin",
+        type=float,
+        default=None,
+        dest="vmin",
+        help="The minimum pixel value when exporting to an image",
+    )
+    parser.add_argument(
+        "--vmax",
+        type=float,
+        default=None,
+        dest="vmax",
+        help="The maximum pixel value when exporting to an image",
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -396,33 +410,38 @@ def export(argv=None):
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
-        logger.info("Computing min and max of dataset:")
-        min_image = []
-        max_image = []
-        for i in indices:
+        if args.vmin is None or args.vmax is None:
+            logger.info("Computing min and max of dataset:")
+            min_image = []
+            max_image = []
+            for i in indices:
 
-            # Transform if necessary
-            image = {
-                "complex": lambda x: x,
-                "real": lambda x: numpy.real(x),
-                "imaginary": lambda x: numpy.imag(x),
-                "amplitude": lambda x: numpy.abs(x),
-                "phase": lambda x: numpy.real(numpy.angle(x)),
-                "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
-                "square": lambda x: numpy.abs(x) ** 2,
-                "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
-            }[args.complex_mode](reader.data[i, y0:y1, x0:x1])
+                # Transform if necessary
+                image = {
+                    "complex": lambda x: x,
+                    "real": lambda x: numpy.real(x),
+                    "imaginary": lambda x: numpy.imag(x),
+                    "amplitude": lambda x: numpy.abs(x),
+                    "phase": lambda x: numpy.real(numpy.angle(x)),
+                    "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
+                    "square": lambda x: numpy.abs(x) ** 2,
+                    "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
+                }[args.complex_mode](reader.data[i, y0:y1, x0:x1])
 
-            min_image.append(numpy.min(image))
-            max_image.append(numpy.max(image))
-            logger.info(
-                "    Reading image %d: min/max: %.2f/%.2f"
-                % (i, min_image[-1], max_image[-1])
-            )
-        writer.vmin = min(min_image)
-        writer.vmax = max(max_image)
-        logger.info("Min: %f" % writer.vmin)
-        logger.info("Max: %f" % writer.vmax)
+                min_image.append(numpy.min(image))
+                max_image.append(numpy.max(image))
+                logger.info(
+                    "    Reading image %d: min/max: %.2f/%.2f"
+                    % (i, min_image[-1], max_image[-1])
+                )
+            writer.vmin = min(min_image)
+            writer.vmax = max(max_image)
+            logger.info("Min: %f" % writer.vmin)
+            logger.info("Max: %f" % writer.vmax)
+        if args.vmin:
+            writer.vmin = args.vmin
+        if args.vmax:
+            writer.vmax = args.vmax
 
     # Write the data
     for j, i in enumerate(indices):
