@@ -11,16 +11,11 @@
 import argparse
 import gemmi
 import logging
+import logging.config
 import numpy
-import time
 import scipy.signal
 import amplus.io
 import amplus.config
-import amplus.microscope
-import amplus.freeze
-import amplus.sample
-import amplus.scan
-import amplus.simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -31,6 +26,7 @@ def configure_logging():
     Configure the logging
 
     """
+
     logging.config.dictConfig(
         {
             "version": 1,
@@ -47,187 +43,6 @@ def configure_logging():
             },
         }
     )
-
-
-def main():
-    """
-    The main interface to amplus
-
-    """
-
-    # Get the start time
-    start_time = time.time()
-
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Generate EM phantoms")
-
-    # Add some command line arguments
-    parser.add_argument(
-        "-c",
-        "--config",
-        type=str,
-        default=None,
-        dest="config",
-        help="The yaml file to configure the simulation",
-    )
-    parser.add_argument(
-        "-d",
-        "--device",
-        choices=["cpu", "gpu"],
-        default=None,
-        dest="device",
-        help="Choose the device to use",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default=None,
-        dest="output",
-        help="The filename for the simulation results",
-    )
-    parser.add_argument(
-        "-p",
-        "--phantom",
-        choices=[
-            "4v5d",
-            "ribosomes_in_lamella",
-            "ribosomes_in_cylinder",
-            "single_ribosome_in_ice",
-            "custom",
-        ],
-        default=None,
-        dest="phantom",
-        help="Choose the phantom to generate",
-    )
-    parser.add_argument(
-        "--freeze",
-        type=bool,
-        default=None,
-        dest="freeze",
-        help="Freeze the sample in vitreous ice",
-    )
-    parser.add_argument(
-        "--beam.flux",
-        type=float,
-        default=None,
-        dest="beam_flux",
-        help="The beam flux (None means infinite normalized)",
-    )
-    parser.add_argument(
-        "--cluster.max_workers",
-        type=int,
-        default=None,
-        dest="cluster_max_workers",
-        help="The maximum number of worker processes",
-    )
-    parser.add_argument(
-        "--cluster.method",
-        type=str,
-        choices=["sge"],
-        default=None,
-        dest="cluster_method",
-        help="The cluster method to use",
-    )
-    parser.add_argument(
-        "--sample.custom.filename",
-        type=str,
-        default=None,
-        dest="sample_custom_filename",
-        help="Choose the phantom to generate",
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Configure some basic logging
-    configure_logging()
-
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-    if args.output is not None:
-        command_line["output"] = args.output
-    if args.phantom is not None:
-        command_line["phantom"] = args.phantom
-    if args.freeze is not None:
-        command_line["freeze"] = args.freeze
-    if args.beam_flux is not None:
-        command_line["microscope"] = {"beam": {"flux": args.beam_flux}}
-    if args.cluster_max_workers is not None or args.cluster_method is not None:
-        command_line["cluster"] = {}
-    if args.cluster_max_workers is not None:
-        command_line["cluster"]["max_workers"] = args.cluster_max_workers
-    if args.cluster_method is not None:
-        command_line["cluster"]["method"] = args.cluster_method
-    if args.sample_custom_filename is not None:
-        command_line["sample"] = {"custom": {"filename": args.sample_custom_filename}}
-
-    # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
-
-    # Print some options
-    amplus.config.show(config)
-
-    # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
-
-    # Create the sample
-    sample = amplus.sample.new(config["phantom"], **config["sample"])
-
-    # Create the scan
-    scan = amplus.scan.new(**config["scan"])
-
-    # Create the simulation
-    simulation = amplus.simulation.new(
-        microscope=microscope,
-        sample=sample,
-        scan=scan,
-        device=config["device"],
-        simulation=config["simulation"],
-        cluster=config["cluster"],
-    )
-
-    # Create the writer
-    logger.info(f"Opening file: {config['output']}")
-    writer = amplus.io.new(
-        config["output"], shape=simulation.shape, pixel_size=simulation.pixel_size
-    )
-
-    # Run the simulation
-    simulation.run(writer)
-
-    # Write some timing stats
-    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
-
-
-def show_config_main():
-    """
-    Show the full configuration
-
-    """
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Show the configuration")
-
-    # Add some command line arguments
-    parser.add_argument(
-        "-c",
-        "--config",
-        type=str,
-        default=None,
-        dest="config",
-        help="The yaml file to configure the simulation",
-    )
-
-    # Configure some basic logging
-    configure_logging()
-
-    # Parse the arguments
-    config = amplus.config.load(parser.parse_args().config)
-
-    # Print some options
-    amplus.config.show(config, full=True)
 
 
 def rebin(data, shape):

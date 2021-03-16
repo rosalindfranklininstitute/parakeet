@@ -35,8 +35,9 @@ def main():
         entry_points={
             "console_scripts": [
                 "amplus.read_pdb=amplus.command_line:read_pdb",
-                "amplus.show_config=amplus.command_line:show_config_main",
                 "amplus.export=amplus.command_line:export",
+                "amplus.config.show=amplus.command_line.config:show",
+                "amplus.config.edit=amplus.command_line.config:edit",
                 "amplus.sample.new=amplus.command_line.sample:new",
                 "amplus.sample.add_molecules=amplus.command_line.sample:add_molecules",
                 "amplus.sample.mill=amplus.command_line.sample:mill",

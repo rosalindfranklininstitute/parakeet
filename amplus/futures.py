@@ -8,12 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import dask.distributed
-import dask_jobqueue
 import amplus.config
 
-# Export this
-as_completed = dask.distributed.as_completed
+
+def as_completed(futures):
+    import dask.distributed
+
+    return dask.distributed.as_completed(futures)
 
 
 def factory(method="sge", max_workers=1):
@@ -25,6 +26,8 @@ def factory(method="sge", max_workers=1):
         max_workers (int): The number of worker processes
 
     """
+    import dask_jobqueue
+
     if method == "sge":
 
         # Create the SGECluster object
