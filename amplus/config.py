@@ -85,6 +85,7 @@ def default():
                 energy_spread: 2.66e-6
                 acceleration_voltage_spread: 0.8e-6
                 electrons_per_angstrom: 30
+                source_spread: 0.1
                 drift:
                     type: null
                     magnitude: 0

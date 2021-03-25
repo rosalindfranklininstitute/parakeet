@@ -156,7 +156,9 @@ def create_input_multislice(
 
     # Condenser lens
     # source spread function
-    ssf_sigma = multem.mrad_to_sigma(input_multislice.E_0, 0.02)
+    ssf_sigma = multem.mrad_to_sigma(
+        input_multislice.E_0, microscope.beam.source_spread
+    )
     input_multislice.cond_lens_ssf_sigma = ssf_sigma
 
     # Objective lens
@@ -1004,7 +1006,12 @@ class ImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu",
+        self,
+        microscope=None,
+        optics=None,
+        scan=None,
+        simulation=None,
+        device="gpu",
     ):
         self.microscope = microscope
         self.optics = optics
