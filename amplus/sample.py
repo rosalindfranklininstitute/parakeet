@@ -206,6 +206,7 @@ def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
                 break
             num_tries += 1
             if num_tries > max_tries:
+                print("Number of particles placed = %d" % (len(box_sizes)))
                 raise RuntimeError(f"Unable to place cube of size {box_size}")
 
     # Return the cube positions
