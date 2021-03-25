@@ -15,7 +15,10 @@ import time
 import amplus.io
 import amplus.command_line
 import amplus.config
+import amplus.microscope
 import amplus.sample
+import amplus.scan
+import amplus.simulation
 from math import pi
 
 # Get the logger

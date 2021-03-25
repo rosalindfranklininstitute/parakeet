@@ -15,6 +15,7 @@ import amplus.analyse
 import amplus.io
 import amplus.command_line
 import amplus.config
+import amplus.microscope
 import amplus.sample
 
 # Get the logger
@@ -171,7 +172,10 @@ def average_particles(args=None):
 
     # Do the sub tomogram averaging
     amplus.analyse.average_particles(
-        args.sample, args.rec, args.half1, args.half2,
+        args.sample,
+        args.rec,
+        args.half1,
+        args.half2,
     )
 
     # Write some timing stats
