@@ -225,6 +225,8 @@ def average_particles(sample_filename, rec_filename, half_1_filename, half_2_fil
         print("Saving half 1 to %s" % half_1_filename)
         handle = mrcfile.new(half_1_filename, overwrite=True)
         handle.set_data(half_1)
+        handle.voxel_size = tomo_file.voxel_size
         print("Saving half 2 to %s" % half_2_filename)
         handle = mrcfile.new(half_2_filename, overwrite=True)
         handle.set_data(half_2)
+        handle.voxel_size = tomo_file.voxel_size
