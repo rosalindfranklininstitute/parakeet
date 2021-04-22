@@ -26,7 +26,7 @@ def main():
             "numpy",
             "pandas",
             "pillow",
-            "python-multem",
+            "python-multem @ https://github.com/rosalindfranklininstitute/python-multem/tarball/master#egg=python-multem",
             "scipy",
             "pyyaml",
         ],
