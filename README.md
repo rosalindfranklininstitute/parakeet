@@ -10,7 +10,7 @@ In order to build this package, the following dependencies are required:
 - The CUDA toolkit
 - FFTW
 
-To install from the github repository do the following
+To install from the github repository ensure you have the latest version of pip installed and do the following
 
 ```sh
 export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
