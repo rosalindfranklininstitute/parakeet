@@ -14,7 +14,7 @@ import pandas
 import scipy.ndimage.morphology
 from math import ceil, floor
 
-from amplus.freeze.freeze_ext import *  # noqa
+from amplus_ext import *  # noqa
 
 # Get the logger
 logger = logging.getLogger(__name__)
