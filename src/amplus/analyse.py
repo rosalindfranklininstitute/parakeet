@@ -258,5 +258,5 @@ def refine(sample_filename, rec_filename):
         ncycle=10,
         mode="rigid_body",
         log_filename="fit.log",
-    ):
+    )
 

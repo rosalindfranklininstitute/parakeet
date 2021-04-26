@@ -498,7 +498,7 @@ class ExitWaveImageSimulator(object):
         position = self.scan.positions[index]
 
         # Add the beam drift
-        if self.microscope.beam.drift:
+        if self.microscope.beam.drift and self.microscope.beam.drift["type"] is not None:
             if self.microscope.beam.drift["type"] == "random":
                 shiftx, shifty = numpy.random.normal(
                     0, self.microscope.beam.drift["magnitude"], size=2
