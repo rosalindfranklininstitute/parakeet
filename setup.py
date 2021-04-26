@@ -64,6 +64,7 @@ def main():
             "gemmi",
             "guanaco @ git+https://github.com/rosalindfranklininstitute/guanaco.git@master#egg=guanaco",
             "h5py",
+            "maptools @ git+https://github.com/rosalindfranklininstitute/maptools.git@master#egg=maptools",
             "mrcfile",
             "numpy",
             "pandas",
