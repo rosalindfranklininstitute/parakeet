@@ -71,6 +71,7 @@ def main():
             "python-multem @ git+https://github.com/rosalindfranklininstitute/python-multem.git@master#egg=python-multem",
             "scipy",
             "pyyaml",
+            "pip >= 21.1",
         ],
         tests_require=tests_require,
         test_suite="tests",
