@@ -799,10 +799,7 @@ class OpticsImageSimulator(object):
 
             # Create the multem input multislice object
             input_multislice = create_input_multislice(
-                microscope,
-                simulation["slice_thickness"],
-                simulation["margin"],
-                "HRTEM",
+                microscope, simulation["slice_thickness"], simulation["margin"], "HRTEM"
             )
 
             # Set the specimen size
@@ -1006,12 +1003,7 @@ class ImageSimulator(object):
     """
 
     def __init__(
-        self,
-        microscope=None,
-        optics=None,
-        scan=None,
-        simulation=None,
-        device="gpu",
+        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu"
     ):
         self.microscope = microscope
         self.optics = optics
@@ -1366,12 +1358,7 @@ def optics(
 
 
 def image(
-    microscope=None,
-    optics=None,
-    scan=None,
-    device="gpu",
-    simulation=None,
-    cluster=None,
+    microscope=None, optics=None, scan=None, device="gpu", simulation=None, cluster=None
 ):
     """
     Create the simulation

@@ -171,12 +171,7 @@ def average_particles(args=None):
     amplus.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.average_particles(
-        args.sample,
-        args.rec,
-        args.half1,
-        args.half2,
-    )
+    amplus.analyse.average_particles(args.sample, args.rec, args.half1, args.half2)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

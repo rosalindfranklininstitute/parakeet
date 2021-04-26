@@ -25,13 +25,13 @@ add_subdirectory(pybind11)
 
 # Add a C/C++ extension
 pybind11_add_module(amplus_ext 
-  amplus/freeze/freeze_ext.cc)
+  src/amplus/freeze/freeze_ext.cc)
 
 # Ensure we are using C++11
 target_compile_features(amplus_ext PUBLIC cxx_std_11)
 
 # Set the include directory
-target_include_directories(amplus_ext PUBLIC .)
+target_include_directories(amplus_ext PUBLIC src)
 
 # Install the python extension
 install(TARGETS amplus_ext LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})

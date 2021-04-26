@@ -60,7 +60,7 @@ def test_slice():
     filename = "temp.h5"
     box = (400, 400, 400)
     centre = (200, 200, 200)
-    shape = { "type" : "cube", "cube" : { "length":400}}
+    shape = {"type": "cube", "cube": {"length": 400}}
     sample = amplus.sample.new(filename, box, centre, shape)
     amplus.sample.add_single_molecule(sample, "4v5d")
 
@@ -98,10 +98,10 @@ def test_slice():
     sliced_output = multem.simulate(system_conf, input_multislice, iter(subslices))
 
     # Print the difference
-    a = numpy.abs(numpy.array(output.data[-1].psi_coh))**2
-    b = numpy.abs(numpy.array(sliced_output.data[-1].psi_coh))**2
+    a = numpy.abs(numpy.array(output.data[-1].psi_coh)) ** 2
+    b = numpy.abs(numpy.array(sliced_output.data[-1].psi_coh)) ** 2
     diff = numpy.max(numpy.abs(a - b))
-    #assert diff == pytest.approx(0.0232, rel=1e-2)
+    # assert diff == pytest.approx(0.0232, rel=1e-2)
     # TODO FIX
 
     # fig, (ax1, ax2, ax3) = pylab.subplots(ncols=3)

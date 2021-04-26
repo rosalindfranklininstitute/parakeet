@@ -340,7 +340,7 @@ def shape_enclosed_box(centre, shape):
     offset = centre - (x1 + x0) / 2.0
 
     # The margin
-    margin = numpy.array(shape["margin"])
+    margin = numpy.array(shape.get("margin", (0, 0, 0)))
 
     # Return the bounding box
     return (x0 + offset + margin, x1 + offset - margin)
@@ -1104,7 +1104,7 @@ class SampleHDF5Adapter(object):
                 self.__handle["shape"].attrs[key] = value
 
             # Set the margin
-            self.__handle["shape"].attrs["margin"] = shape["margin"]
+            self.__handle["shape"].attrs["margin"] = shape.get("margin", (0, 0, 0))
 
     def __init__(self, filename=None, mode="r"):
         """
@@ -1158,7 +1158,7 @@ class Sample(object):
 
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
-        self.step = 100000  # A
+        self.step = 100_000  # A
 
     def close(self):
         """

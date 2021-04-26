@@ -55,7 +55,8 @@ def main():
     tests_require = ["pytest", "pytest-cov", "mock"]
 
     setup(
-        packages=find_packages(),
+        package_dir={"": "src"},
+        packages=find_packages(where="src"),
         setup_requires=["dask", "pytest-runner"],
         install_requires=[
             "distributed",
@@ -67,7 +68,7 @@ def main():
             "numpy",
             "pandas",
             "pillow",
-            "python-multem @ git+https://github.com/rosalindfranklininstitute/python-multem.git@master#egg=python-multem", 
+            "python-multem @ git+https://github.com/rosalindfranklininstitute/python-multem.git@master#egg=python-multem",
             "scipy",
             "pyyaml",
         ],

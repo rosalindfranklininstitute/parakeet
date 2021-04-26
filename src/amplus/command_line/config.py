@@ -74,11 +74,7 @@ def edit():
     )
 
     parser.add_argument(
-        "-s",
-        type=str,
-        default="",
-        dest="config",
-        help="The configuration string",
+        "-s", type=str, default="", dest="config", help="The configuration string"
     )
 
     # Parse the command line
