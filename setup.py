@@ -96,6 +96,7 @@ def main():
                 "amplus.simulate.ctf=amplus.command_line.simulate:ctf",
                 "amplus.analyse.reconstruct=amplus.command_line.analyse:reconstruct",
                 "amplus.analyse.average_particles=amplus.command_line.analyse:average_particles",
+                "amplus.analyse.refine=amplus.command_line.analyse:refine",
             ]
         },
         extras_require={

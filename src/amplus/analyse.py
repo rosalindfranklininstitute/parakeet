@@ -9,6 +9,7 @@
 # which is included in the root directory of this package.
 #
 import numpy
+import maptools
 import mrcfile
 import os.path
 import guanaco
@@ -230,3 +231,32 @@ def average_particles(sample_filename, rec_filename, half_1_filename, half_2_fil
         handle = mrcfile.new(half_2_filename, overwrite=True)
         handle.set_data(half_2)
         handle.voxel_size = tomo_file.voxel_size
+
+
+def refine(sample_filename, rec_filename):
+    """
+    Refine the molecule against the map
+
+    """
+
+    # Load the sample
+    sample = amplus.sample.load(sample_filename)
+
+    # Get the molecule name
+    assert sample.number_of_molecules == 1
+    name, _ = list(sample.iter_molecules())[0]
+
+    # Get the PDB filename
+    pdb_filename = amplus.data.get_pdb(name)
+   
+    # Fit the molecule to the map
+    maptools.fit(
+        rec_filename,
+        pdb_filename,
+        output_pdb_filename="refined.pdb",
+        resolution=3,
+        ncycle=10,
+        mode="rigid_body",
+        log_filename="fit.log",
+    ):
+
