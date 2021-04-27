@@ -11,9 +11,10 @@
 
 import copy
 import logging
-import h5py
+import mrcfile
 import numpy
 import pandas
+import scipy.stats
 import time
 import warnings
 import amplus.config
@@ -23,7 +24,7 @@ import amplus.futures
 import amplus.inelastic
 import amplus.sample
 import warnings
-from math import sqrt, pi, sin
+from math import sqrt, pi, sin, floor
 from collections.abc import Iterable
 from scipy.spatial.transform import Rotation
 
@@ -389,14 +390,14 @@ class ProjectedPotentialSimulator(object):
         x0 = (-offset, -offset)
         x1 = (x_fov + offset, y_fov + offset)
         thickness = self.simulation["division_thickness"]
-        extractor = amplus.sample.AtomSliceExtractor(
-            sample=self.sample,
-            translation=position,
-            rotation=angle,
-            x0=x0,
-            x1=x1,
-            thickness=thickness,
-        )
+        # extractor = amplus.sample.AtomSliceExtractor(
+        #     sample=self.sample,
+        #     translation=position,
+        #     rotation=angle,
+        #     x0=x0,
+        #     x1=x1,
+        #     thickness=thickness,
+        # )
 
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)
@@ -419,40 +420,77 @@ class ProjectedPotentialSimulator(object):
         input_multislice.spec_lz = self.sample.containing_box[1][2]
 
         # Either slice or don't
-        assert len(extractor) == 1
+        # assert len(extractor) == 1
 
         # Set the atoms in the input after translating them for the offset
-        zslice = extractor[0]
-        logger.info(
-            "    Simulating z slice %f -> %f with %d atoms"
-            % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
-        )
-        input_multislice.spec_atoms = zslice.atoms.translate(
-            (offset, offset, 0)
+        # zslice = extractor[0]
+        atoms = self.sample.get_atoms_in_fov(x0, x1)
+        logger.info("Simulating with %d atoms" % atoms.data.shape[0])
+        # logger.info(
+        #     "    Simulating z slice %f -> %f with %d atoms"
+        #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+        # )
+
+        # Set atom sigma
+        # atoms.data["sigma"] = sigma_B
+
+        if len(atoms.data) > 0:
+            coords = atoms.data[["x", "y", "z"]].to_numpy()
+            coords = (
+                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                    coords - self.sample.centre
+                )
+                + self.sample.centre
+            ).astype("float32")
+            atoms.data["x"] = coords[:, 0]
+            atoms.data["y"] = coords[:, 1]
+            atoms.data["z"] = coords[:, 2]
+        # atoms.data = atoms.data.append(amplus.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
+
+        origin = (0, 0)
+        input_multislice.spec_atoms = atoms.translate(
+            (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
+        logger.info("   Got spec atoms")
+        # logger.info(
+        #     "    Simulating z slice %f -> %f with %d atoms"
+        #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+        # )
+        # input_multislice.spec_atoms = zslice.atoms.translate(
+        #     (offset, offset, 0)
+        # ).to_multem()
 
         # Get the potential and thickness
-        handle = h5py.File("projected_potential_%d.h5" % index, mode="w")
-        thickness = handle.create_dataset(
-            "thickness", (0,), dtype="float32", maxshape=(None,)
-        )
-        potential = handle.create_dataset(
-            "potential", (0, 0, 0), dtype="float32", maxshape=(None, None, None)
-        )
+        volume_z0 = self.sample.shape_box[0][2]
+        volume_z1 = self.sample.shape_box[1][2]
+        zsize = int(floor(volume_z1 - volume_z0))
+        slice_thickness = self.simulation["slice_thickness"]
+        handle = mrcfile.new("projected_potential_%d.mrc" % index, overwrite=True)
+        handle.voxel_size = (pixel_size, pixel_size, slice_thickness)
+        potential = numpy.zeros(shape=(zsize, ny, nx), dtype="float32")
+        # thickness = handle.create_dataset(
+        #     "thickness", (0,), dtype="float32", maxshape=(None,)
+        # )
+        # potential = handle.create_dataset(
+        #     "potential", (0, 0, 0), dtype="float32", maxshape=(None, None, None)
+        # )
 
         def callback(z0, z1, V):
-            print("Calculating potential for slice: %.2f -> %.2f" % (z0, z1))
             V = numpy.array(V)
-            number = thickness.shape[0]
-            thickness.resize((number + 1,))
-            potential.resize((number + 1, V.shape[0], V.shape[1]))
-            thickness[number] = z1 - z0
-            potential[number, :, :] = V
+            zc = (z0 + z1) / 2.0
+            index = int(floor((zc - volume_z0) / slice_thickness))
+            print(
+                "Calculating potential for slice: %.2f -> %.2f (index: %d)"
+                % (z0, z1, index)
+            )
+            potential[index, :, :] = V[margin:-margin, margin:-margin]
 
         # Run the simulation
         output_multislice = multem.compute_projected_potential(
             system_conf, input_multislice, callback
         )
+
+        handle.set_data(potential)
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, None, None)
@@ -498,7 +536,10 @@ class ExitWaveImageSimulator(object):
         position = self.scan.positions[index]
 
         # Add the beam drift
-        if self.microscope.beam.drift:
+        if (
+            self.microscope.beam.drift
+            and not self.microscope.beam.drift["type"] is None
+        ):
             if self.microscope.beam.drift["type"] == "random":
                 shiftx, shifty = numpy.random.normal(
                     0, self.microscope.beam.drift["magnitude"], size=2
@@ -812,17 +853,35 @@ class OpticsImageSimulator(object):
 
             # Compute and apply the CTF
             ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
+
+            # Compute the B factor for radiation damage
+            if simulation["radiation_damage_model"]:
+                sigma_B = sqrt(
+                    simulation["sensitivity_coefficient"]
+                    * microscope.beam.electrons_per_angstrom
+                    * (index + 1)
+                )
+                pixel_size = microscope.detector.pixel_size
+                Y, X = numpy.mgrid[0 : ctf.shape[0], 0 : ctf.shape[1]]
+                X = (X - ctf.shape[1] // 2) / (pixel_size * ctf.shape[1])
+                Y = (Y - ctf.shape[0] // 2) / (pixel_size * ctf.shape[0])
+                q = numpy.sqrt(X ** 2 + Y ** 2)
+                b_factor_blur = numpy.exp(-2 * pi ** 2 * q ** 2 * sigma_B ** 2)
+                b_factor_blur = numpy.fft.fftshift(b_factor_blur)
+                ctf = ctf * b_factor_blur
+
+            # Compute and apply the CTF
             psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
             image = numpy.abs(psi) ** 2
 
             return image
 
         # Get the rotation angle
-        angle = self.scan.angles[index]
+        angle = self.exit_wave.angle[index]
         position = self.scan.positions[index]
 
         # Check the angle and position
-        assert abs(angle - self.exit_wave.angle[index]) < 1e7
+        # assert abs(angle - self.exit_wave.angle[index]) < 1e7
         assert (numpy.abs(position - self.exit_wave.position[index]) < 1e7).all()
 
         # The field of view
@@ -868,10 +927,23 @@ class OpticsImageSimulator(object):
 
         elif self.simulation["inelastic_model"] == "mp_loss":
 
+            # Set the filter width
+            filter_width = self.simulation["mp_loss_width"]
+
             # Compute the energy and spread of the plasmon peak
             peak, sigma = amplus.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )
+            if filter_width is not None:
+                normal = scipy.stats.norm(loc=0, scale=sigma)
+                inelastic_fraction = normal.cdf(filter_width) - normal.cdf(
+                    -filter_width
+                )
+                sigma = scipy.stats.truncnorm.std(
+                    -filter_width / 2, filter_width / 2, loc=0, scale=sigma
+                )
+            else:
+                inelastic_fraction = 1.0
             peak /= 1000.0
             peak = min(peak, microscope.beam.energy * 0.1)
             spread = sigma / (microscope.beam.energy * 1000)
@@ -883,6 +955,7 @@ class OpticsImageSimulator(object):
             microscope.beam.energy_spread += spread
             print("Energy: %f keV" % microscope.beam.energy)
             print("Energy spread: %f ppm" % microscope.beam.energy_spread)
+            print("Inelastic fraction: % f" % inelastic_fraction)
 
             # Calculate the image
             image = compute_image(
@@ -891,6 +964,7 @@ class OpticsImageSimulator(object):
 
             # Compute the fraction of electrons in the plasmon peak
             electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            electron_fraction *= inelastic_fraction
 
             # Scale the image by the fraction of electrons
             image *= electron_fraction
@@ -1033,11 +1107,11 @@ class ImageSimulator(object):
         """
 
         # Get the rotation angle
-        angle = self.scan.angles[index]
+        angle = self.optics.angle[index]
         position = self.scan.positions[index]
 
         # Check the angle and position
-        assert abs(angle - self.optics.angle[index]) < 1e7
+        # assert abs(angle - self.optics.angle[index]) < 1e7
         assert (numpy.abs(position - self.optics.position[index]) < 1e7).all()
 
         # The field of view
