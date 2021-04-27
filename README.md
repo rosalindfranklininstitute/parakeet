@@ -14,7 +14,7 @@ To install from the github repository ensure you have the latest version of pip 
 
 ```sh
 export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
-python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master#egg=amplus-digital-twin
+python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
 ```
 
 To install from source, clone this repository. The repository has a submodule
