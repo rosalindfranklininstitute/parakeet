@@ -66,7 +66,9 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     )
 
 
-def average_particles(sample_filename, rec_filename, half_1_filename, half_2_filename):
+def average_particles(
+    scan, sample_filename, rec_filename, half_1_filename, half_2_filename
+):
     """
     Average particles to compute averaged reconstruction
 
@@ -170,7 +172,8 @@ def average_particles(sample_filename, rec_filename, half_1_filename, half_2_fil
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            p = position - (centre - size / 2.0)
+            start_position = numpy.array([0, scan["start_pos"], 0])
+            p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(
                 "Particle %d: position = %s, orientation = %s"

@@ -172,6 +172,7 @@ def average_particles(args=None):
 
     # Do the sub tomogram averaging
     amplus.analyse.average_particles(
+        config["scan"],
         args.sample,
         args.rec,
         args.half1,
