@@ -151,6 +151,7 @@ def default():
             ice: False
             radiation_damage_model: False
             inelastic_model: null
+            mp_loss_width: null
             sensitivity_coefficient: 0.014
 
         cluster:
