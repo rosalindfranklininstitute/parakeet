@@ -13,9 +13,11 @@ import gemmi
 import logging
 import logging.config
 import numpy
+import random
 import scipy.signal
 import amplus.io
 import amplus.config
+import amplus.sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -183,13 +185,16 @@ def export(argv=None):
                 logger.info(f"    Skipping image {i} because angle is out of range")
 
     # Interlace the images
-    if args.interlace is not None and args.interlace > 1:
-        interlaced_indices = []
-        for i in range(args.interlace):
-            interlaced_indices.extend(
-                [indices[j] for j in range(i, len(indices), args.interlace)]
-            )
-        indices = interlaced_indices
+    if args.interlace is not None:
+        if args.interlace >= 1:
+            interlaced_indices = []
+            for i in range(args.interlace):
+                interlaced_indices.extend(
+                    [indices[j] for j in range(i, len(indices), args.interlace)]
+                )
+            indices = interlaced_indices
+        else:
+            random.shuffle(indices)
 
     # Get the region of interest
     if args.roi is not None:
