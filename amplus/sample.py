@@ -26,7 +26,7 @@ try:
 except ImportError:
     pass
 
-numpy.random.seed(0)
+# numpy.random.seed(0)
 
 # Get the logger
 logger = logging.getLogger(__name__)
