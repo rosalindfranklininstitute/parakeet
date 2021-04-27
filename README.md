@@ -3,25 +3,56 @@
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
-## Dependencies
-
-The packages depends on the python-multem package being installed. To do this,
-follow the instructions [here](https://github.com/rosalindfranklininstitute/python-multem).
-
 ## Installation
 
-To install from source, clone this repository and then do the following:
+In order to build this package, the following dependencies are required:
+
+- The CUDA toolkit
+- FFTW
+
+To install from the github repository ensure you have the latest version of pip installed and do the following
 
 ```sh
-python setup.py install
+export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master#egg=amplus-digital-twin
+```
+
+To install from source, clone this repository. The repository has a submodule
+for pybind11 so after cloning the repository run
+
+```sh
+git submodule update --init --recursive
+```
+
+Then do the following:
+
+```sh
+export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+python -m pip install .
+```
+
+If you would like to run the tests then, clone this repository and then do the following:
+
+```sh
+export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+python -m pip install .[test]
+```
+
+## Installation for developers
+
+To install for development, clone this repository and then do the following:
+
+```sh
+export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+python -m pip install -e .
 ```
 
 ## Testing
 
-To run the tests, clone this repository and the do the following:
+To run the tests, follow the installation instructions for developers and then do the following:
 
 ```sh
-python setup.py test
+pytest
 ```
 
 ## Usage

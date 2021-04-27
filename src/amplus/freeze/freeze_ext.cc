@@ -18,7 +18,7 @@
 namespace py = pybind11;
 
 
-PYBIND11_MODULE(freeze_ext, m)
+PYBIND11_MODULE(amplus_ext, m)
 {
   py::class_<amplus::SpherePacker>(m, "SpherePacker")
     .def(

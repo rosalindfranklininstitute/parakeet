@@ -225,7 +225,9 @@ def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
     assert (sample.bounding_box == bounding_box).all()
     assert (sample.containing_box == containing_box).all()
     assert (sample.centre == centre).all()
-    assert sample.shape == shape
+    assert sample.shape["type"] == shape["type"]
+    assert sample.shape["cylinder"]["radius"] == shape["cylinder"]["radius"]
+    assert sample.shape["cylinder"]["length"] == shape["cylinder"]["length"]
 
     # Test molecules
     molecules = sample.molecules

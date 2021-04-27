@@ -172,12 +172,68 @@ def average_particles(args=None):
 
     # Do the sub tomogram averaging
     amplus.analyse.average_particles(
-        config["scan"],
-        args.sample,
-        args.rec,
-        args.half1,
-        args.half2,
+        config["scan"], args.sample, args.rec, args.half1, args.half2
     )
+
+    # Write some timing stats
+    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def refine(args=None):
+    """
+    Refine against the model
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Refine map and model")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-s",
+        "--sample",
+        type=str,
+        default="sample.h5",
+        dest="sample",
+        help="The filename for the sample",
+    )
+    parser.add_argument(
+        "-r",
+        "--rec",
+        type=str,
+        default="half1.mrc",
+        dest="rec",
+        help="The filename for the reconstruction",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args(args=args)
+
+    # Configure some basic logging
+    amplus.command_line.configure_logging()
+
+    # Set the command line args in a dict
+    command_line = {}
+
+    # Load the full configuration
+    config = amplus.config.load(args.config, command_line)
+
+    # Print some options
+    amplus.config.show(config)
+
+    # Do the sub tomogram averaging
+    amplus.analyse.refine(args.sample, args.rec)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
