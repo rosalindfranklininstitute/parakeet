@@ -463,10 +463,9 @@ class ProjectedPotentialSimulator(object):
         # Get the potential and thickness
         volume_z0 = self.sample.shape_box[0][2]
         volume_z1 = self.sample.shape_box[1][2]
-        zsize = int(floor(volume_z1 - volume_z0))
         slice_thickness = self.simulation["slice_thickness"]
+        zsize = int(floor((volume_z1 - volume_z0) / slice_thickness))
         handle = mrcfile.new("projected_potential_%d.mrc" % index, overwrite=True)
-        handle.voxel_size = (pixel_size, pixel_size, slice_thickness)
         potential = numpy.zeros(shape=(zsize, ny, nx), dtype="float32")
         # thickness = handle.create_dataset(
         #     "thickness", (0,), dtype="float32", maxshape=(None,)
@@ -483,7 +482,7 @@ class ProjectedPotentialSimulator(object):
                 "Calculating potential for slice: %.2f -> %.2f (index: %d)"
                 % (z0, z1, index)
             )
-            potential[index, :, :] = V[margin:-margin, margin:-margin]
+            potential[index, :, :] = V[margin:-margin, margin:-margin].T
 
         # Run the simulation
         output_multislice = multem.compute_projected_potential(
@@ -491,6 +490,8 @@ class ProjectedPotentialSimulator(object):
         )
 
         handle.set_data(potential)
+        handle.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
+        print(handle.voxel_size)
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, None, None)
@@ -927,44 +928,121 @@ class OpticsImageSimulator(object):
             # Set the filter width
             filter_width = self.simulation["mp_loss_width"]
 
-            # Compute the energy and spread of the plasmon peak
+            # # Compute the energy and spread of the plasmon peak
             peak, sigma = amplus.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )
-            if filter_width is not None:
-                normal = scipy.stats.norm(loc=0, scale=sigma)
-                inelastic_fraction = normal.cdf(filter_width) - normal.cdf(
-                    -filter_width
-                )
-                sigma = scipy.stats.truncnorm.std(
-                    -filter_width / 2, filter_width / 2, loc=0, scale=sigma
-                )
-            else:
-                inelastic_fraction = 1.0
+            # if filter_width is not None:
+            #     normal = scipy.stats.norm(loc=0, scale=sigma)
+            #     inelastic_fraction = normal.cdf(filter_width) - normal.cdf(
+            #         -filter_width
+            #     )
+            #     sigma = scipy.stats.truncnorm.std(
+            #         -filter_width / 2, filter_width / 2, loc=0, scale=sigma
+            #     )
+            # else:
+            #     inelastic_fraction = 1.0
+            # peak /= 1000.0
+            # peak = min(peak, microscope.beam.energy * 0.1)
+            # spread = sigma / (microscope.beam.energy * 1000)
+
+            # # Add the energy loss
+            # microscope.beam.energy -= peak
+
+            # # Compute the energy spread of the plasmon peak
+            # microscope.beam.energy_spread += spread
+            # print("Energy: %f keV" % microscope.beam.energy)
+            # print("Energy spread: %f ppm" % microscope.beam.energy_spread)
+            # print("Inelastic fraction: % f" % inelastic_fraction)
+
+            # # Calculate the image
+            # image = compute_image(
+            #     psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+            # )
+
+            # # Compute the fraction of electrons in the plasmon peak
+            # electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            # electron_fraction *= inelastic_fraction
+
+            # # Scale the image by the fraction of electrons
+            # image *= electron_fraction
+
+            # Compute the energy and spread of the plasmon peak
+            # peak, sigma = amplus.inelastic.most_probable_loss(
+            #     microscope.beam.energy, shape, angle
+            # )
+            # peak /= 1000.0
+            # peak = min(peak, microscope.beam.energy * 0.1)
+            # spread = sigma / (microscope.beam.energy * 1000)
+
+            # Save the energy and energy spread
+            beam_energy = microscope.beam.energy
+            beam_energy_spread = microscope.beam.energy_spread
+            beam_energy_sigma = beam_energy_spread * microscope.beam.energy * 1000
+
+            # Compute the peak and spread
             peak /= 1000.0
             peak = min(peak, microscope.beam.energy * 0.1)
             spread = sigma / (microscope.beam.energy * 1000)
 
-            # Add the energy loss
-            microscope.beam.energy -= peak
+            # Compute the spread using the filter width
+            if filter_width is not None:
+                normal = scipy.stats.norm(loc=0, scale=beam_energy_sigma)
+                elastic_filtered_fraction = normal.cdf(
+                    peak + filter_width / 2
+                ) - normal.cdf(peak - filter_width / 2)
+                elastic_sigma = scipy.stats.truncnorm.std(
+                    peak - filter_width / 2,
+                    peak + filter_width / 2,
+                    loc=0,
+                    scale=beam_energy_sigma,
+                )
+                inelastic_filtered_fraction = normal.cdf(filter_width / 2) - normal.cdf(
+                    -filter_width / 2
+                )
+                inelastic_sigma = scipy.stats.truncnorm.std(
+                    -filter_width / 2, filter_width / 2, loc=0, scale=sigma
+                )
+            else:
+                elastic_filtered_fraction = 1.0
+                elastic_sigma = beam_energy_sigma
+                inelastic_filtered_fraction = 1.0
+                inelastic_sigma = sigma
 
-            # Compute the energy spread of the plasmon peak
-            microscope.beam.energy_spread += spread
-            print("Energy: %f keV" % microscope.beam.energy)
-            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-            print("Inelastic fraction: % f" % inelastic_fraction)
+            # Compute the spread
+            elastic_spread = elastic_sigma / (microscope.beam.energy * 1000)
+            inelastic_spread = inelastic_sigma / (microscope.beam.energy * 1000)
+            microscope.beam.energy_spread = beam_energy_spread + elastic_spread
 
-            # Calculate the image
-            image = compute_image(
+            # Compute the zero loss image
+            image1 = compute_image(
                 psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
             )
 
-            # Compute the fraction of electrons in the plasmon peak
-            electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
-            electron_fraction *= inelastic_fraction
+            # Add the energy loss
+            microscope.beam.energy = beam_energy - peak
 
-            # Scale the image by the fraction of electrons
-            image *= electron_fraction
+            # Compute the energy spread of the plasmon peak
+            microscope.beam.energy_spread = beam_energy_spread + inelastic_spread
+            print("Energy: %f keV" % microscope.beam.energy)
+            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
+
+            # Compute the MPL image
+            image2 = compute_image(
+                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+            )
+
+            # Compute the zero loss and mpl image fraction
+            print(shape, angle)
+            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            electron_fraction = (
+                elastic_filtered_fraction * zero_loss_fraction
+                + inelastic_filtered_fraction * mp_loss_fraction
+            )
+
+            # Add the images incoherently and scale the image by the fraction of electrons
+            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
 
         elif self.simulation["inelastic_model"] == "unfiltered":
 
