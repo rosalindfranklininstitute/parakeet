@@ -69,7 +69,7 @@ def main():
             "numpy",
             "pandas",
             "pillow",
-            "python-multem @ git+https://github.com/rosalindfranklininstitute/python-multem.git@v0.1#egg=python-multem",
+            "python-multem @ git+https://github.com/rosalindfranklininstitute/python-multem.git@master#egg=python-multem",
             "scipy",
             "pyyaml",
         ],
