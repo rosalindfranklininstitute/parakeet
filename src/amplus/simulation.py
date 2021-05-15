@@ -16,7 +16,8 @@ import numpy
 
 # import pandas
 import scipy.stats
-import time
+
+# import time
 import warnings
 import amplus.config
 import amplus.dqe
@@ -770,13 +771,13 @@ class ExitWaveImageSimulator(object):
             #         data_buffer = []
 
             # Run the simulation
-            st = time.time()
-            output_multislice = multem.simulate(
-                system_conf, input_multislice, slice_generator(extractor)
-            )
-            logger.info(
-                "    Image %d simulated in %d seconds" % (index, time.time() - st)
-            )
+            # st = time.time()
+            # output_multislice = multem.simulate(
+            #     system_conf, input_multislice, slice_generator(extractor)
+            # )
+            # logger.info(
+            #     "    Image %d simulated in %d seconds" % (index, time.time() - st)
+            # )
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
