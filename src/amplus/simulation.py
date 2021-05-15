@@ -13,7 +13,8 @@ import copy
 import logging
 import mrcfile
 import numpy
-import pandas
+
+# import pandas
 import scipy.stats
 import time
 import warnings
@@ -311,7 +312,7 @@ class Simulation(object):
                     logger.info(
                         f"    Submitting job: {i+1}/{self.shape[0]} for {angle} degrees"
                     )
-                    futures.append(executor.submit(simulate_image, i))
+                    futures.append(executor.submit(self.simulate_image, i))
 
                 # Wait for results
                 for j, future in enumerate(amplus.futures.as_completed(futures)):
@@ -723,50 +724,50 @@ class ExitWaveImageSimulator(object):
                 output_multislice = multem.simulate(system_conf, input_multislice)
 
         else:
+            pass
+            # # Slice the specimen atoms
+            # def slice_generator(extractor):
 
-            # Slice the specimen atoms
-            def slice_generator(extractor):
+            #     # Get the data from the data buffer and return
+            #     def prepare(data_buffer):
 
-                # Get the data from the data buffer and return
-                def prepare(data_buffer):
+            #         # Extract the data
+            #         atoms = amplus.sample.AtomData(
+            #             data=pandas.concat([d.atoms.data for d in data_buffer])
+            #         )
+            #         z_min = min([d.x_min[2] for d in data_buffer])
+            #         z_max = max([d.x_max[2] for d in data_buffer])
+            #         assert z_min < z_max
 
-                    # Extract the data
-                    atoms = amplus.sample.AtomData(
-                        data=pandas.concat([d.atoms.data for d in data_buffer])
-                    )
-                    z_min = min([d.x_min[2] for d in data_buffer])
-                    z_max = max([d.x_max[2] for d in data_buffer])
-                    assert z_min < z_max
+            #         # Print some info
+            #         logger.info(
+            #             "    Simulating z slice %f -> %f with %d atoms"
+            #             % (z_min, z_max, atoms.data.shape[0])
+            #         )
 
-                    # Print some info
-                    logger.info(
-                        "    Simulating z slice %f -> %f with %d atoms"
-                        % (z_min, z_max, atoms.data.shape[0])
-                    )
+            #         # Cast the atoms
+            #         atoms = atoms.translate((offset, offset, 0)).to_multem()
 
-                    # Cast the atoms
-                    atoms = atoms.translate((offset, offset, 0)).to_multem()
+            #         # Return the Z-min, Z-max and atoms
+            #         return (z_min, z_max, atoms)
 
-                    # Return the Z-min, Z-max and atoms
-                    return (z_min, z_max, atoms)
+            #     # Loop through the slices and gather atoms until we have more
+            #     # than the maximum buffer size. There seems to be an overhead
+            #     # to the simulation code so it's better to have as many atoms
+            #     # as possible before calling. Doing this is much fast than
+            #     # simulating with only a small number of atoms.
+            #     max_buffer = 10_000_000
+            #     data_buffer = []
+            #     for zslice in extractor:
+            #         data_buffer.append(zslice)
+            #         if sum(d.atoms.data.shape[0] for d in data_buffer) > max_buffer:
+            #             yield prepare(data_buffer)
+            #             data_buffer = []
 
-                # Loop through the slices and gather atoms until we have more
-                # than the maximum buffer size. There seems to be an overhead
-                # to the simulation code so it's better to have as many atoms
-                # as possible before calling. Doing this is much fast than
-                # simulating with only a small number of atoms.
-                max_buffer = 10_000_000
-                data_buffer = []
-                for zslice in extractor:
-                    data_buffer.append(zslice)
-                    if sum(d.atoms.data.shape[0] for d in data_buffer) > max_buffer:
-                        yield prepare(data_buffer)
-                        data_buffer = []
-
-                # Simulate from the final buffer
-                if len(data_buffer) > 0:
-                    yield prepare(data_buffer)
-                    data_buffer = []
+            #     # Simulate from the final buffer
+            #     if len(data_buffer) > 0:
+            #         yield prepare(data_buffer)
+            #         data_buffer = []
 
             # Run the simulation
             st = time.time()

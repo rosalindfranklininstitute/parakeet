@@ -27,6 +27,7 @@ def factory(method="sge", max_workers=1):
 
     """
     import dask_jobqueue
+    import dask.distributed
 
     if method == "sge":
 
