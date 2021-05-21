@@ -19,9 +19,9 @@
 #include <random>
 #include <vector>
 #include <chrono>
-#include <amplus/error.h>
+#include <parakeet/error.h>
 
-namespace amplus {
+namespace parakeet {
 
   namespace detail {
     

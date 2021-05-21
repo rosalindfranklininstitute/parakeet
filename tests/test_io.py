@@ -1,7 +1,7 @@
 import numpy
 import os
 import pytest
-import amplus.io
+import parakeet.io
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
 
     data, angle, position = io_test_data
 
-    writer = amplus.io.new(filename, shape=data.shape)
+    writer = parakeet.io.new(filename, shape=data.shape)
     for i in range(data.shape[0]):
         writer.data[i, :, :] = data[i, :, :]
         writer.angle[i] = angle[i]
@@ -52,7 +52,7 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
     # Make sure stuff is written
     writer = None
 
-    reader = amplus.io.open(filename)
+    reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
     assert reader.angle.shape == (10,)
     assert numpy.all(numpy.equal(reader.angle, angle))
@@ -65,7 +65,7 @@ def test_write_nexus(tmp_path, io_test_data):
 
     data, angle, position = io_test_data
 
-    writer = amplus.io.new(filename, shape=data.shape)
+    writer = parakeet.io.new(filename, shape=data.shape)
     for i in range(data.shape[0]):
         writer.data[i, :, :] = data[i, :, :]
         writer.angle[i] = angle[i]
@@ -87,7 +87,7 @@ def test_write_nexus(tmp_path, io_test_data):
     # Make sure stuff is written
     writer = None
 
-    reader = amplus.io.open(filename)
+    reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
     assert reader.angle.shape == (10,)
     assert numpy.all(numpy.equal(reader.angle, angle))
@@ -101,7 +101,7 @@ def test_write_images(tmp_path, io_test_data):
     data, angle, position = io_test_data
 
     def test(vmin, vmax):
-        writer = amplus.io.new(filename, shape=data.shape, vmin=vmin, vmax=vmax)
+        writer = parakeet.io.new(filename, shape=data.shape, vmin=vmin, vmax=vmax)
         for i in range(data.shape[0]):
             writer.data[i, :, :] = data[i, :, :]
             writer.angle[i] = angle[i]
@@ -131,7 +131,7 @@ def test_unknown_image(tmp_path):
     filename = os.path.join(tmp_path, "tmp.unknown")
 
     with pytest.raises(RuntimeError):
-        writer = amplus.io.new(filename, shape=(1, 10, 10))
+        writer = parakeet.io.new(filename, shape=(1, 10, 10))
 
     with pytest.raises(RuntimeError):
-        reader = amplus.io.open(filename)
+        reader = parakeet.io.open(filename)

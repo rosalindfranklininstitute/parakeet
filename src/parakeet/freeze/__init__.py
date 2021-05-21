@@ -1,5 +1,5 @@
 #
-# amplus.freeze.__init__.py
+# parakeet.freeze.__init__.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -14,7 +14,7 @@ import pandas
 import scipy.ndimage.morphology
 from math import ceil, floor
 
-from amplus_ext import *  # noqa
+from parakeet_ext import *  # noqa
 
 # Get the logger
 logger = logging.getLogger(__name__)

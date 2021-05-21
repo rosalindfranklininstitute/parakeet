@@ -1,5 +1,5 @@
 #
-# amplus.command_line.py
+# parakeet.command_line.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -15,9 +15,9 @@ import logging.config
 import numpy
 import random
 import scipy.signal
-import amplus.io
-import amplus.config
-import amplus.sample
+import parakeet.io
+import parakeet.config
+import parakeet.sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -41,7 +41,11 @@ def configure_logging():
                 }
             },
             "loggers": {
-                "amplus": {"handlers": ["stream"], "level": "DEBUG", "propagate": True}
+                "parakeet": {
+                    "handlers": ["stream"],
+                    "level": "DEBUG",
+                    "propagate": True,
+                }
             },
         }
     )
@@ -163,7 +167,7 @@ def export(argv=None):
 
     # Read the input
     logger.info(f"Reading data from {args.filename}")
-    reader = amplus.io.open(args.filename)
+    reader = parakeet.io.open(args.filename)
 
     # Get the shape and indices to read
     if args.select_images is not None:
@@ -226,7 +230,9 @@ def export(argv=None):
 
     # Create the write
     logger.info(f"Writing data to {args.output}")
-    writer = amplus.io.new(args.output, shape=shape, pixel_size=pixel_size, dtype=dtype)
+    writer = parakeet.io.new(
+        args.output, shape=shape, pixel_size=pixel_size, dtype=dtype
+    )
 
     # If converting to images, determine min and max
     if writer.is_image_writer:
@@ -356,6 +362,6 @@ def read_pdb():
                             atom.pos.z,
                             atom.occ,
                             atom.charge,
-                            amplus.sample.get_atom_sigma(atom),
+                            parakeet.sample.get_atom_sigma(atom),
                         )
                     )

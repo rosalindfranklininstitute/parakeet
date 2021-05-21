@@ -1,10 +1,10 @@
-# amplus-digital-twin
+# parakeet-digital-twin
 > Phantom generator 
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/amplus-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/amplus-digital-twin/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/amplus-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/amplus-digital-twin/alerts/)
-[![Building](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/parakeet-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet-digital-twin/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/parakeet-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet-digital-twin/alerts/)
+[![Building](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/actions/workflows/python-package.yml)
 
 ## Installation
 
@@ -17,7 +17,7 @@ To install from the github repository ensure you have the latest version of pip 
 
 ```sh
 export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
-python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
+python -m pip install git+https://github.com/rosalindfranklininstitute/parakeet-digital-twin.git@master
 ```
 
 To install from source, clone this repository. The repository has a submodule
@@ -70,7 +70,7 @@ The default configuration parameters can be seen by typing the following
 command:
 
 ```sh
-amplus.show_config
+parakeet.show_config
 ```
 
 This will give some output like the following which can then be copied to a
@@ -183,7 +183,7 @@ Once the configuration file has been generated a new sample file can be created
 with the following command:
 
 ```sh
-amplus.sample.new -c config.yaml
+parakeet.sample.new -c config.yaml
 ```
 
 This will result in a file "sample.h5" being generated. This file contains
@@ -196,7 +196,7 @@ random locations in the sample volume. This command will update the "sample.h5"
 file with the atomic coordinates but will not generated any new files.
 
 ```sh
-amplus.sample.add_molecules -c config.yaml
+parakeet.sample.add_molecules -c config.yaml
 ```
 
 ### Simulate EM images
@@ -213,7 +213,7 @@ atoms within the sample needs to be calculated.
 
 
 ```sh
-amplus.simulate.exit_wave -c config.yaml
+parakeet.simulate.exit_wave -c config.yaml
 ```
 
 This command will generate a file "exit_wave.h5" which will contain the exit
@@ -221,7 +221,7 @@ wave of all tilt angles. The next step is to simulate the micropscope optics
 which is done with the following command:
 
 ```sh
-amplus.simulate.optics -c config.yaml
+parakeet.simulate.optics -c config.yaml
 ```
 
 This step is much quicker as it only scales with the size of the detector image
@@ -230,7 +230,7 @@ file "optics.h5". Finally, the response of the detector can be simulated with
 the following command:
 
 ```sh
-amplus.simulate.image -c config.yaml
+parakeet.simulate.image -c config.yaml
 ```
 
 This command will add the detector DQE and the Poisson noise for a given dose
@@ -242,7 +242,7 @@ Typically we cant to output an MRC file for further processing. The hdf5 files
 can easily be exported to MRC by the following command:
 
 ```sh
-amplus.export file.h5 -o file.mrc
+parakeet.export file.h5 -o file.mrc
 ```
 
 The export command can also be used to rebin the image or select a region of interest. 
@@ -250,11 +250,11 @@ The export command can also be used to rebin the image or select a region of int
 
 ## Issues
 
-Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/amplus-digital-twin/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/issues) to submit bugs or request features.
 
 ## License
 
 Copyright Diamond Light Source and Rosalind Franklin Institute, 2019.
 
-Distributed under the terms of the GPLv3 license, amplus-digital-twin is free and open source software.
+Distributed under the terms of the GPLv3 license, parakeet-digital-twin is free and open source software.
 

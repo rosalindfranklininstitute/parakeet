@@ -1,17 +1,17 @@
 import numpy
 import pytest
-import amplus.scan
+import parakeet.scan
 
 
 def test_still():
-    scan = amplus.scan.new(mode="still")
+    scan = parakeet.scan.new(mode="still")
     assert scan.axis == (0, 1, 0)
     assert scan.angles == [0]
     assert scan.positions == [0]
 
 
 def test_tilt_series():
-    scan = amplus.scan.new(
+    scan = parakeet.scan.new(
         mode="tilt_series", axis=(1, 2, 3), start_angle=0, num_images=8, step_angle=45
     )
     assert scan.axis == (1, 2, 3)
@@ -20,7 +20,7 @@ def test_tilt_series():
 
 
 def test_helical_scan():
-    scan = amplus.scan.new(
+    scan = parakeet.scan.new(
         mode="helical_scan",
         axis=(1, 2, 3),
         start_angle=0,
@@ -37,4 +37,4 @@ def test_helical_scan():
 def test_unknown():
 
     with pytest.raises(RuntimeError):
-        scan = amplus.scan.new("unknown")
+        scan = parakeet.scan.new("unknown")

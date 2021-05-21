@@ -1,16 +1,16 @@
 import os
 import yaml
-import amplus.config
+import parakeet.config
 
 
 def test_temp_directory():
 
-    assert amplus.config.temp_directory() == "_amplus"
+    assert parakeet.config.temp_directory() == "_parakeet"
 
 
 def test_default():
 
-    config = amplus.config.default()
+    config = parakeet.config.default()
 
 
 def test_deepmerge():
@@ -38,9 +38,9 @@ def test_deepmerge():
         "K": ["Spam", "Eggs"],
     }
 
-    assert amplus.config.deepmerge(a, b) == expected
-    assert amplus.config.deepmerge(a, {}) == a
-    assert amplus.config.deepmerge({}, b) == b
+    assert parakeet.config.deepmerge(a, b) == expected
+    assert parakeet.config.deepmerge(a, {}) == a
+    assert parakeet.config.deepmerge({}, b) == b
 
 
 def test_difference():
@@ -67,18 +67,18 @@ def test_difference():
         "K": ["Beans"],
     }
 
-    assert amplus.config.difference(master, config) == expected
+    assert parakeet.config.difference(master, config) == expected
 
 
 def test_load(tmp_path):
 
-    config = amplus.config.load()
+    config = parakeet.config.load()
 
     filename = os.path.join(tmp_path, "tmp.yaml")
     with open(filename, "w") as outfile:
         yaml.dump(config, outfile)
 
-    config = amplus.config.load(filename)
+    config = parakeet.config.load(filename)
 
     expected = {
         "sample": {
@@ -89,9 +89,9 @@ def test_load(tmp_path):
         "scan": {"axis": [0, 1, 0]},
         "microscope": {"detector": {"origin": [0, 0]}},
     }
-    assert amplus.config.difference(config, amplus.config.default()) == expected
+    assert parakeet.config.difference(config, parakeet.config.default()) == expected
 
 
 def test_show():
 
-    amplus.config.show({})
+    parakeet.config.show({})

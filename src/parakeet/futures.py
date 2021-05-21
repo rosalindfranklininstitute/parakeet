@@ -1,5 +1,5 @@
 #
-# amplus.futures.py
+# parakeet.futures.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import amplus.config
+import parakeet.config
 
 
 def as_completed(futures):
@@ -48,9 +48,9 @@ def factory(method="sge", max_workers=1):
             project="tomography",
             resource_spec="gpu=1",
             job_extra=["-V"],
-            name="amplus",
-            local_directory=amplus.config.temp_directory(),
-            log_directory=amplus.config.temp_directory(),
+            name="parakeet",
+            local_directory=parakeet.config.temp_directory(),
+            log_directory=parakeet.config.temp_directory(),
         )
 
         # Set the number of worker nodes

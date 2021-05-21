@@ -6,7 +6,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import amplus.sample
+import parakeet.sample
 import argparse
 import multem
 import numpy
@@ -46,11 +46,11 @@ def load_water_atomic_model():
     # Read the atom data
     if not os.path.exists("atoms.csv"):
         print("Reading model from %s" % get_water_model_filename())
-        atom_data = amplus.sample.AtomData.from_gemmi_file(get_water_model_filename())
+        atom_data = parakeet.sample.AtomData.from_gemmi_file(get_water_model_filename())
         atom_data.data.to_csv("atoms.csv")
     else:
         print("Reading model from %s" % "atoms.csv")
-        atom_data = amplus.sample.AtomData(data=pandas.read_csv("atoms.csv"))
+        atom_data = parakeet.sample.AtomData(data=pandas.read_csv("atoms.csv"))
     return atom_data
 
 
@@ -146,7 +146,7 @@ def compute_projected_potential():
         selection = (atom_data.data["z"] > z_select_min) & (
             atom_data.data["z"] < z_select_max
         )
-        atom_data = amplus.sample.AtomData(data=atom_data.data[selection])
+        atom_data = parakeet.sample.AtomData(data=atom_data.data[selection])
         num_atoms = len(atom_data.data)
 
         # Create the system configuration
@@ -557,7 +557,7 @@ def compute_exit_wave(atom_data, pixel_size):
         & (atom_data.data["y"] > y_min + y_size / 6)
         & (atom_data.data["y"] < y_max - y_size / 6)
     )
-    atom_data = amplus.sample.AtomData(data=atom_data.data[select])
+    atom_data = parakeet.sample.AtomData(data=atom_data.data[select])
     x_min = atom_data.data["x"].min()
     x_max = atom_data.data["x"].max()
     y_min = atom_data.data["y"].min()

@@ -1,5 +1,5 @@
 #
-# amplus.command_line.analyse.py
+# parakeet.command_line.analyse.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -11,12 +11,12 @@
 import argparse
 import logging
 import time
-import amplus.analyse
-import amplus.io
-import amplus.command_line
-import amplus.config
-import amplus.microscope
-import amplus.sample
+import parakeet.analyse
+import parakeet.io
+import parakeet.command_line
+import parakeet.config
+import parakeet.microscope
+import parakeet.sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def reconstruct(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -80,16 +80,16 @@ def reconstruct(args=None):
         command_line["device"] = args.device
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Do the reconstruction
-    amplus.analyse.reconstruct(
+    parakeet.analyse.reconstruct(
         args.image,
         args.rec,
         microscope=microscope,
@@ -159,19 +159,19 @@ def average_particles(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.average_particles(
+    parakeet.analyse.average_particles(
         config["scan"], args.sample, args.rec, args.half1, args.half2
     )
 
@@ -221,19 +221,19 @@ def refine(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.refine(args.sample, args.rec)
+    parakeet.analyse.refine(args.sample, args.rec)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

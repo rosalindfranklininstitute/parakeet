@@ -1,5 +1,5 @@
 #
-# amplus.config.py
+# parakeet.config.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -22,7 +22,7 @@ def temp_directory():
         str: A temp directory for working in
 
     """
-    return "_amplus"
+    return "_parakeet"
 
 
 def default():

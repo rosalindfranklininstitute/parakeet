@@ -1,5 +1,5 @@
 #
-# amplus.sample.py
+# parakeet.sample.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -18,8 +18,8 @@ import scipy.constants
 import time
 from math import pi, sqrt, floor, ceil
 from scipy.spatial.transform import Rotation
-import amplus.data
-import amplus.freeze
+import parakeet.data
+import parakeet.freeze
 
 try:
     import multem
@@ -2054,7 +2054,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     centre = numpy.array(centre)
 
     # Get the filename of the water.cif file
-    filename = amplus.data.get_path("water.cif")
+    filename = parakeet.data.get_path("water.cif")
 
     # Create a single ribosome sample
     single_water = AtomData.from_ligand_file(filename)
@@ -2104,10 +2104,10 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     if not pack:
 
         # The water filename
-        filename = amplus.data.get_path("water.cif")
+        filename = parakeet.data.get_path("water.cif")
 
         # Get the water coords
-        single_water = amplus.sample.AtomData.from_ligand_file(filename)
+        single_water = parakeet.sample.AtomData.from_ligand_file(filename)
         atoms = single_water.data[0:3]
         water_coords = atoms[["x", "y", "z"]].copy()
 
@@ -2149,7 +2149,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             def new_array(size, name, value):
                 return (
                     numpy.zeros(
-                        shape=(size,), dtype=amplus.sample.AtomData.column_data[name]
+                        shape=(size,), dtype=parakeet.sample.AtomData.column_data[name]
                     )
                     + value
                 )
@@ -2221,7 +2221,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         )
 
         # Create the sphere packer
-        packer = amplus.freeze.SpherePacker(
+        packer = parakeet.freeze.SpherePacker(
             grid, node_length, sphere_density, van_der_waals_radius, max_iter=10
         )
 
@@ -2389,7 +2389,7 @@ def add_single_molecule(sample, name):
     logger.info("Adding single %s molecule" % name)
 
     # Get the filename of the 4v5d.cif file
-    filename = amplus.data.get_pdb(name)
+    filename = parakeet.data.get_pdb(name)
 
     # Get the atom data
     atoms = AtomData.from_gemmi_file(filename)
@@ -2471,7 +2471,7 @@ def add_multiple_molecules(sample, molecules):
         logger.info("Adding %d %s molecules" % (len(items), name))
 
         # Get the filename of the 4v5d.cif file
-        filename = amplus.data.get_pdb(name)
+        filename = parakeet.data.get_pdb(name)
 
         # Get the atom data
         atoms = AtomData.from_gemmi_file(filename)
@@ -2768,7 +2768,7 @@ def sputter(filename, element=None, thickness=20):
         def new_array(size, name, value):
             return (
                 numpy.zeros(
-                    shape=(size,), dtype=amplus.sample.AtomData.column_data[name]
+                    shape=(size,), dtype=parakeet.sample.AtomData.column_data[name]
                 )
                 + value
             )

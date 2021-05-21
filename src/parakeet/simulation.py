@@ -1,5 +1,5 @@
 #
-# amplus.simulation.py
+# parakeet.simulation.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -19,12 +19,12 @@ import scipy.stats
 
 # import time
 import warnings
-import amplus.config
-import amplus.dqe
-import amplus.freeze
-import amplus.futures
-import amplus.inelastic
-import amplus.sample
+import parakeet.config
+import parakeet.dqe
+import parakeet.freeze
+import parakeet.futures
+import parakeet.inelastic
+import parakeet.sample
 import warnings
 from math import sqrt, pi, sin, floor
 from collections.abc import Iterable
@@ -301,7 +301,7 @@ class Simulation(object):
             logger.info("Initialising %d worker threads" % self.cluster["max_workers"])
 
             # Get the futures executor
-            with amplus.futures.factory(**self.cluster) as executor:
+            with parakeet.futures.factory(**self.cluster) as executor:
 
                 # Copy the data to each worker
                 logger.info("Copying data to workers...")
@@ -316,7 +316,7 @@ class Simulation(object):
                     futures.append(executor.submit(self.simulate_image, i))
 
                 # Wait for results
-                for j, future in enumerate(amplus.futures.as_completed(futures)):
+                for j, future in enumerate(parakeet.futures.as_completed(futures)):
 
                     # Get the result
                     i, angle, position, image = future.result()
@@ -392,7 +392,7 @@ class ProjectedPotentialSimulator(object):
         x0 = (-offset, -offset)
         x1 = (x_fov + offset, y_fov + offset)
         thickness = self.simulation["division_thickness"]
-        # extractor = amplus.sample.AtomSliceExtractor(
+        # extractor = parakeet.sample.AtomSliceExtractor(
         #     sample=self.sample,
         #     translation=position,
         #     rotation=angle,
@@ -447,7 +447,7 @@ class ProjectedPotentialSimulator(object):
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
-        # atoms.data = atoms.data.append(amplus.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
+        # atoms.data = atoms.data.append(parakeet.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
         origin = (0, 0)
         input_multislice.spec_atoms = atoms.translate(
@@ -580,7 +580,7 @@ class ExitWaveImageSimulator(object):
         x0 += origin
         x1 += origin
         thickness = self.simulation["division_thickness"]
-        # extractor = amplus.sample.AtomSliceExtractor(
+        # extractor = parakeet.sample.AtomSliceExtractor(
         #    sample=self.sample,
         #    translation=position,
         #    rotation=angle,
@@ -646,7 +646,7 @@ class ExitWaveImageSimulator(object):
                 atoms.data["x"] = coords[:, 0]
                 atoms.data["y"] = coords[:, 1]
                 atoms.data["z"] = coords[:, 2]
-            # atoms.data = atoms.data.append(amplus.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
+            # atoms.data = atoms.data.append(parakeet.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
             input_multislice.spec_atoms = atoms.translate(
                 (offset - origin[0], offset - origin[1], 0)
@@ -733,7 +733,7 @@ class ExitWaveImageSimulator(object):
             #     def prepare(data_buffer):
 
             #         # Extract the data
-            #         atoms = amplus.sample.AtomData(
+            #         atoms = parakeet.sample.AtomData(
             #             data=pandas.concat([d.atoms.data for d in data_buffer])
             #         )
             #         z_min = min([d.x_min[2] for d in data_buffer])
@@ -919,7 +919,7 @@ class OpticsImageSimulator(object):
             )
 
             # Calculate the fraction of electrons in the zero loss peak
-            electron_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
+            electron_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
 
             # Scale the image by the fraction of electrons
             image *= electron_fraction
@@ -930,7 +930,7 @@ class OpticsImageSimulator(object):
             filter_width = self.simulation["mp_loss_width"]
 
             # Compute the energy and spread of the plasmon peak
-            peak, sigma = amplus.inelastic.most_probable_loss(
+            peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )
             if filter_width is not None:
@@ -962,7 +962,7 @@ class OpticsImageSimulator(object):
             )
 
             # Compute the fraction of electrons in the plasmon peak
-            electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            electron_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
             electron_fraction *= inelastic_fraction
 
             # Scale the image by the fraction of electrons
@@ -971,7 +971,7 @@ class OpticsImageSimulator(object):
         elif self.simulation["inelastic_model"] == "unfiltered":
 
             # Compute the energy and spread of the plasmon peak
-            peak, sigma = amplus.inelastic.most_probable_loss(
+            peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )
             peak /= 1000.0
@@ -997,8 +997,8 @@ class OpticsImageSimulator(object):
             )
 
             # Compute the zero loss and mpl image fraction
-            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
             electron_fraction = zero_loss_fraction + mp_loss_fraction
 
             # Add the images incoherently and scale the image by the fraction of electrons
@@ -1011,7 +1011,7 @@ class OpticsImageSimulator(object):
             microscope.lens.c_c = 0
 
             # Compute the energy and spread of the plasmon peak
-            peak, sigma = amplus.inelastic.most_probable_loss(
+            peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )
             peak /= 1000.0
@@ -1037,8 +1037,8 @@ class OpticsImageSimulator(object):
             )
 
             # Compute the zero loss and mpl image fraction
-            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
             electron_fraction = zero_loss_fraction + mp_loss_fraction
 
             # Add the images incoherently and scale the image by the fraction of electrons
@@ -1134,7 +1134,7 @@ class ImageSimulator(object):
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
             logger.info("Applying DQE")
-            dqe = amplus.dqe.DQETable().dqe_fs(
+            dqe = parakeet.dqe.DQETable().dqe_fs(
                 energy, electrons_per_second, image.shape
             )
             dqe = numpy.fft.fftshift(dqe)
@@ -1483,7 +1483,7 @@ def simple(microscope=None, atoms=None, device="gpu", simulation=None):
         object: The simulation object
 
     """
-    scan = amplus.scan.new("still")
+    scan = parakeet.scan.new("still")
 
     # Create the simulation
     return Simulation(

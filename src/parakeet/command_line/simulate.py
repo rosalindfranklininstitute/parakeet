@@ -1,5 +1,5 @@
 #
-# amplus.command_line.simulate.py
+# parakeet.command_line.simulate.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -12,13 +12,13 @@ import argparse
 import logging
 import numpy
 import time
-import amplus.io
-import amplus.command_line
-import amplus.config
-import amplus.microscope
-import amplus.sample
-import amplus.scan
-import amplus.simulation
+import parakeet.io
+import parakeet.command_line
+import parakeet.config
+import parakeet.microscope
+import parakeet.sample
+import parakeet.scan
+import parakeet.simulation
 from math import pi
 
 # Get the logger
@@ -84,7 +84,7 @@ def projected_potential(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -98,28 +98,28 @@ def projected_potential(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
-    sample = amplus.sample.load(args.sample)
+    sample = parakeet.sample.load(args.sample)
 
     # Create the scan
     if config["scan"]["step_pos"] == "auto":
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = amplus.scan.new(**config["scan"])
+    scan = parakeet.scan.new(**config["scan"])
     if scan.positions[-1] > sample.containing_box[1][0]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
-    simulation = amplus.simulation.projected_potential(
+    simulation = parakeet.simulation.projected_potential(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -202,7 +202,7 @@ def exit_wave(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -216,28 +216,28 @@ def exit_wave(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
-    sample = amplus.sample.load(args.sample)
+    sample = parakeet.sample.load(args.sample)
 
     # Create the scan
     if config["scan"]["step_pos"] == "auto":
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = amplus.scan.new(**config["scan"])
+    scan = parakeet.scan.new(**config["scan"])
     if scan.positions[-1] > sample.containing_box[1][1]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
-    simulation = amplus.simulation.exit_wave(
+    simulation = parakeet.simulation.exit_wave(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -248,7 +248,7 @@ def exit_wave(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.exit_wave}")
-    writer = amplus.io.new(
+    writer = parakeet.io.new(
         args.exit_wave,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -327,7 +327,7 @@ def optics(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
@@ -341,17 +341,17 @@ def optics(args=None):
         command_line["cluster"]["method"] = args.cluster_method
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.exit_wave}")
-    exit_wave = amplus.io.open(args.exit_wave)
+    exit_wave = parakeet.io.open(args.exit_wave)
 
     # Create the scan
     config["scan"]["start_angle"] = exit_wave.start_angle
@@ -359,10 +359,10 @@ def optics(args=None):
     config["scan"]["step_angle"] = exit_wave.step_angle
     config["scan"]["step_pos"] = exit_wave.step_position
     config["scan"]["num_images"] = exit_wave.num_images
-    scan = amplus.scan.new(**config["scan"])
+    scan = parakeet.scan.new(**config["scan"])
 
     # Create the simulation
-    simulation = amplus.simulation.optics(
+    simulation = parakeet.simulation.optics(
         microscope=microscope,
         exit_wave=exit_wave,
         scan=scan,
@@ -374,7 +374,7 @@ def optics(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.optics}")
-    writer = amplus.io.new(
+    writer = parakeet.io.new(
         args.optics,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -421,25 +421,25 @@ def ctf(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the full configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the simulation
-    simulation = amplus.simulation.ctf(
+    simulation = parakeet.simulation.ctf(
         microscope=microscope, simulation=config["simulation"]
     )
 
     # Create the writer
     logger.info(f"Opening file: {args.output}")
-    writer = amplus.io.new(
+    writer = parakeet.io.new(
         args.output,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -495,20 +495,20 @@ def image(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the full configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.optics}")
-    optics = amplus.io.open(args.optics)
+    optics = parakeet.io.open(args.optics)
 
     # Create the scan
     config["scan"]["start_angle"] = optics.start_angle
@@ -516,12 +516,12 @@ def image(args=None):
     config["scan"]["step_angle"] = optics.step_angle
     config["scan"]["step_pos"] = optics.step_position
     config["scan"]["num_images"] = optics.num_images
-    scan = amplus.scan.new(**config["scan"])
+    scan = parakeet.scan.new(**config["scan"])
     scan.angles = [optics.angle[i] for i in range(optics.data.shape[0])]
     scan.positions = [optics.position[i, 1] for i in range(optics.data.shape[0])]
 
     # Create the simulation
-    simulation = amplus.simulation.image(
+    simulation = parakeet.simulation.image(
         microscope=microscope,
         optics=optics,
         scan=scan,
@@ -532,7 +532,7 @@ def image(args=None):
 
     # Create the writer
     logger.info(f"Opening file: {args.image}")
-    writer = amplus.io.new(
+    writer = parakeet.io.new(
         args.image,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
@@ -587,23 +587,23 @@ def simple():
     args = parser.parse_args()
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the full configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the microscope
-    microscope = amplus.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config["microscope"])
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.atoms}")
-    atoms = amplus.sample.AtomData.from_text_file(args.atoms)
+    atoms = parakeet.sample.AtomData.from_text_file(args.atoms)
 
     # Create the simulation
-    simulation = amplus.simulation.simple(
+    simulation = parakeet.simulation.simple(
         microscope=microscope,
         atoms=atoms,
         device=config["device"],
@@ -612,7 +612,7 @@ def simple():
 
     # Create the writer
     logger.info(f"Opening file: {args.output}")
-    writer = amplus.io.new(
+    writer = parakeet.io.new(
         args.output,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,

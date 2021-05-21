@@ -1,5 +1,5 @@
 #
-# amplus.command_line.config.py
+# parakeet.command_line.config.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -11,8 +11,8 @@
 import argparse
 import logging
 import yaml
-import amplus.config
-import amplus.command_line
+import parakeet.config
+import parakeet.command_line
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -37,13 +37,13 @@ def show():
     )
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Parse the arguments
-    config = amplus.config.load(parser.parse_args().config)
+    config = parakeet.config.load(parser.parse_args().config)
 
     # Print some options
-    amplus.config.show(config, full=True)
+    parakeet.config.show(config, full=True)
 
 
 def edit():
@@ -81,13 +81,13 @@ def edit():
     args = parser.parse_args()
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Parse the arguments
-    config = amplus.config.load(args.input, yaml.safe_load(args.config))
+    config = parakeet.config.load(args.input, yaml.safe_load(args.config))
 
     # Print the config
-    amplus.config.show(config, full=True)
+    parakeet.config.show(config, full=True)
 
     # Save the config
     with open(args.output, "w") as outfile:

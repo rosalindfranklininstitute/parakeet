@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace amplus {
+namespace parakeet {
 
   /**
    * An error class that also prints the file and line number
@@ -39,7 +39,7 @@ namespace amplus {
  */
 #define AMPLUS_ASSERT(assertion) \
   if (!(assertion)) { \
-    throw amplus::Error(__FILE__, __LINE__, "ASSERT (" #assertion ") failed"); \
+    throw parakeet::Error(__FILE__, __LINE__, "ASSERT (" #assertion ") failed"); \
   }
 
 #endif

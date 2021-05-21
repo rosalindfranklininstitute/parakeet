@@ -1,5 +1,5 @@
 #
-# amplus.dqe.py
+# parakeet.dqe.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #

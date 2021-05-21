@@ -1,5 +1,5 @@
 #
-# amplus.beam.py
+# parakeet.beam.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #

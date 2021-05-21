@@ -1,5 +1,5 @@
 #
-# amplus.io.py
+# parakeet.io.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -341,7 +341,7 @@ class NexusWriter(Writer):
         # Create the sample
         sample = entry.create_group("sample")
         sample.attrs["NX_class"] = "NXsample"
-        sample["name"] = "amplus-simulation"
+        sample["name"] = "parakeet-simulation"
         sample.create_dataset("rotation_angle", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("x_translation", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("y_translation", shape=(shape[0],), dtype=numpy.float32)

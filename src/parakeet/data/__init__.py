@@ -1,5 +1,5 @@
 #
-# amplus.data.__init__.py
+# parakeet.data.__init__.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #

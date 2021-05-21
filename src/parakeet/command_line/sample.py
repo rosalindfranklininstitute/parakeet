@@ -1,5 +1,5 @@
 #
-# amplus.command_line.sample.py
+# parakeet.command_line.sample.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -11,10 +11,10 @@
 import argparse
 import logging
 import time
-import amplus.io
-import amplus.command_line
-import amplus.config
-import amplus.sample
+import parakeet.io
+import parakeet.command_line
+import parakeet.config
+import parakeet.sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -52,17 +52,17 @@ def new(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = amplus.sample.new(args.sample, **config["sample"])
+    sample = parakeet.sample.new(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -98,17 +98,17 @@ def add_molecules(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = amplus.sample.add_molecules(args.sample, **config["sample"])
+    sample = parakeet.sample.add_molecules(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -144,17 +144,17 @@ def mill(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = amplus.sample.mill(args.sample, **config["sample"])
+    sample = parakeet.sample.mill(args.sample, **config["sample"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -190,17 +190,17 @@ def sputter(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Load the configuration
-    config = amplus.config.load(args.config)
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    sample = amplus.sample.sputter(args.sample, **config["sample"]["sputter"])
+    sample = parakeet.sample.sputter(args.sample, **config["sample"]["sputter"])
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -226,8 +226,8 @@ def show():
     args = parser.parse_args()
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Create the sample
-    sample = amplus.sample.load(args.sample)
+    sample = parakeet.sample.load(args.sample)
     logger.info(sample.info())

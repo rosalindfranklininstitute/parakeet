@@ -1,11 +1,11 @@
 ##############################################################################
-# Build file for amplus project
+# Build file for parakeet project
 ##############################################################################
 
 cmake_minimum_required(VERSION 3.17.0)
 
 # Set the project name
-project(amplus CXX)
+project(parakeet CXX)
 
 # Set the build type to release
 if(NOT CMAKE_BUILD_TYPE)
@@ -24,14 +24,14 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 add_subdirectory(pybind11)
 
 # Add a C/C++ extension
-pybind11_add_module(amplus_ext 
-  src/amplus/freeze/freeze_ext.cc)
+pybind11_add_module(parakeet_ext 
+  src/parakeet/freeze/freeze_ext.cc)
 
 # Ensure we are using C++11
-target_compile_features(amplus_ext PUBLIC cxx_std_11)
+target_compile_features(parakeet_ext PUBLIC cxx_std_11)
 
 # Set the include directory
-target_include_directories(amplus_ext PUBLIC src)
+target_include_directories(parakeet_ext PUBLIC src)
 
 # Install the python extension
-install(TARGETS amplus_ext LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+install(TARGETS parakeet_ext LIBRARY DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})

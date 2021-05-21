@@ -1,5 +1,5 @@
 #
-# amplus.analyse.py
+# parakeet.analyse.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -16,7 +16,7 @@ import guanaco
 import random
 import scipy.ndimage
 import scipy.spatial.transform
-import amplus.sample
+import parakeet.sample
 from math import sqrt, ceil
 
 # Set the random seed
@@ -113,7 +113,7 @@ def average_particles(
         return result
 
     # Load the sample
-    sample = amplus.sample.load(sample_filename)
+    sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
     centre = numpy.array(sample.centre)
@@ -243,14 +243,14 @@ def refine(sample_filename, rec_filename):
     """
 
     # Load the sample
-    sample = amplus.sample.load(sample_filename)
+    sample = parakeet.sample.load(sample_filename)
 
     # Get the molecule name
     assert sample.number_of_molecules == 1
     name, _ = list(sample.iter_molecules())[0]
 
     # Get the PDB filename
-    pdb_filename = amplus.data.get_pdb(name)
+    pdb_filename = parakeet.data.get_pdb(name)
 
     # Fit the molecule to the map
     maptools.fit(

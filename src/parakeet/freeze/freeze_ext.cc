@@ -13,17 +13,17 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-#include <amplus/freeze/sphere_packer.h>
+#include <parakeet/freeze/sphere_packer.h>
 
 namespace py = pybind11;
 
 
-PYBIND11_MODULE(amplus_ext, m)
+PYBIND11_MODULE(parakeet_ext, m)
 {
-  py::class_<amplus::SpherePacker>(m, "SpherePacker")
+  py::class_<parakeet::SpherePacker>(m, "SpherePacker")
     .def(
       py::init<
-        amplus::SpherePacker::grid_type,
+        parakeet::SpherePacker::grid_type,
         double,
         double,
         double,
@@ -35,18 +35,18 @@ PYBIND11_MODULE(amplus_ext, m)
           py::arg("radius"),
           py::arg("max_iter") = 10,
           py::arg("multiplier") = 1.05)
-    .def("index", &amplus::SpherePacker::index)
-    .def("grid", &amplus::SpherePacker::grid)
-    .def("node_length", &amplus::SpherePacker::node_length)
-    .def("density", &amplus::SpherePacker::density)
-    .def("radius", &amplus::SpherePacker::radius)
-    .def("max_iter", &amplus::SpherePacker::max_iter)
-    .def("multiplier", &amplus::SpherePacker::multiplier)
-    .def("num_unplaced_samples", &amplus::SpherePacker::num_unplaced_samples)
-    .def("next", &amplus::SpherePacker::next)
-    .def("__len__", &amplus::SpherePacker::size)
+    .def("index", &parakeet::SpherePacker::index)
+    .def("grid", &parakeet::SpherePacker::grid)
+    .def("node_length", &parakeet::SpherePacker::node_length)
+    .def("density", &parakeet::SpherePacker::density)
+    .def("radius", &parakeet::SpherePacker::radius)
+    .def("max_iter", &parakeet::SpherePacker::max_iter)
+    .def("multiplier", &parakeet::SpherePacker::multiplier)
+    .def("num_unplaced_samples", &parakeet::SpherePacker::num_unplaced_samples)
+    .def("next", &parakeet::SpherePacker::next)
+    .def("__len__", &parakeet::SpherePacker::size)
     .def("__iter__", 
-      [](amplus::SpherePacker &v) {
+      [](parakeet::SpherePacker &v) {
         return py::make_iterator(v.begin(), v.end());
       })
     ;

@@ -1,7 +1,6 @@
 import multem
 import numpy
-import pytest
-import amplus.sample
+import parakeet.sample
 
 # from matplotlib import pylab
 
@@ -61,8 +60,8 @@ def test_slice():
     box = (400, 400, 400)
     centre = (200, 200, 200)
     shape = {"type": "cube", "cube": {"length": 400}}
-    sample = amplus.sample.new(filename, box, centre, shape)
-    amplus.sample.add_single_molecule(sample, "4v5d")
+    sample = parakeet.sample.new(filename, box, centre, shape)
+    parakeet.sample.add_single_molecule(sample, "4v5d")
 
     # Create the system configuration
     system_conf = multem.SystemConfiguration()

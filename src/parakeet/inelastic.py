@@ -6,7 +6,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import amplus.landau
+import parakeet.landau
 from math import sqrt, pi, cos, exp, log
 
 
@@ -81,5 +81,5 @@ def most_probable_loss(energy, shape, angle):
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
     thickness = min(thickness, 100000)  # Maximum 10 um - to avoid issues at high tilt
-    peak, fwhm = amplus.landau.mpl_and_fwhm(energy, thickness)
+    peak, fwhm = parakeet.landau.mpl_and_fwhm(energy, thickness)
     return peak, fwhm / (2 * sqrt(2 * log(2)))
