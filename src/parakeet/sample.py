@@ -1923,21 +1923,21 @@ class AtomDeleter(object):
             scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
         )
         return
-        self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
-        self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
-        import mrcfile
+        # self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
+        # self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
+        # import mrcfile
 
-        outfile = mrcfile.new("temp.mrc", overwrite=True)
-        outfile.set_data(self.grid.astype("int8"))
-        logger.info("Filled grid with atom positions:")
-        logger.info("    x0: %g" % self.x0[0])
-        logger.info("    y0: %g" % self.x0[1])
-        logger.info("    z0: %g" % self.x0[2])
-        logger.info("    x1: %g" % self.x1[0])
-        logger.info("    y1: %g" % self.x1[1])
-        logger.info("    z1: %g" % self.x1[2])
-        logger.info("    num elements: %d" % self.grid.size)
-        logger.info("    num filled: %d" % numpy.count_nonzero(self.grid))
+        # outfile = mrcfile.new("temp.mrc", overwrite=True)
+        # outfile.set_data(self.grid.astype("int8"))
+        # logger.info("Filled grid with atom positions:")
+        # logger.info("    x0: %g" % self.x0[0])
+        # logger.info("    y0: %g" % self.x0[1])
+        # logger.info("    z0: %g" % self.x0[2])
+        # logger.info("    x1: %g" % self.x1[0])
+        # logger.info("    y1: %g" % self.x1[1])
+        # logger.info("    z1: %g" % self.x1[2])
+        # logger.info("    num elements: %d" % self.grid.size)
+        # logger.info("    num filled: %d" % numpy.count_nonzero(self.grid))
 
     def __call__(self, atoms):
         """
@@ -2310,7 +2310,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             sample.add_atoms(
                 AtomData(data=pandas.concat(data_buffer, ignore_index=True))
             )
-            data_buffer = []
+            del data_buffer
 
         # Print some output
         logger.info(f"Sphere packer: Num unplaced:  {packer.num_unplaced_samples()}")
@@ -2689,9 +2689,9 @@ def sputter(filename, element=None, thickness=20):
         sputter_length_y = length_y + thickness * 2
         sputter_length_z = length_z + thickness * 2
         shape_volume = length ** 3
-        sputter_volume = (
-            sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
-        )
+        # sputter_volume = (
+        #     sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
+        # )
     elif shape["type"] == "cuboid":
         length_x = shape["cuboid"]["length_x"]
         length_y = shape["cuboid"]["length_y"]
@@ -2700,9 +2700,9 @@ def sputter(filename, element=None, thickness=20):
         sputter_length_y = length_y + thickness * 2
         sputter_length_z = length_z + thickness * 2
         shape_volume = length_x * length_y * length_z
-        sputter_volume = (
-            sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
-        )
+        # sputter_volume = (
+        #     sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
+        # )
     elif shape["type"] == "cylinder":
         length = shape["cylinder"]["length"]
         radius = shape["cylinder"]["radius"]
@@ -2712,7 +2712,7 @@ def sputter(filename, element=None, thickness=20):
         sputter_length = length + thickness * 2
         sputter_radius = radius + thickness * 2
         shape_volume = pi * radius ** 2 * length
-        sputter_volume = pi * sputter_radius ** 2 * sputter_length - shape_volume
+        # sputter_volume = pi * sputter_radius ** 2 * sputter_length - shape_volume
     else:
         raise RuntimeError("Unknown shape")
 
@@ -2746,7 +2746,7 @@ def sputter(filename, element=None, thickness=20):
     offset_x = centre_x - length_x / 2.0
     offset_y = centre_y - length_y / 2.0
     offset_z = centre_z - length_z / 2.0
-    offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
+    # offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
 
     # Translation
     if shape["type"] != "cylinder":
