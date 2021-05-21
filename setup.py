@@ -96,6 +96,8 @@ def main():
                 "parakeet.simulate.ctf=parakeet.command_line.simulate:ctf",
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",
                 "parakeet.analyse.average_particles=parakeet.command_line.analyse:average_particles",
+                "parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles",
+                "parakeet.analyse.extract_particles=parakeet.command_line.analyse:extract_particles"
                 "parakeet.analyse.refine=parakeet.command_line.analyse:refine",
             ]
         },
