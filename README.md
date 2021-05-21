@@ -1,5 +1,5 @@
 # parakeet
-> A Digital Twin for cryo electron tomography 
+> **Parakeet** is a digital twin for cryo electron tomography and stands for **P**rogram for **A**nalysis and **R**econstruction of **A**rtificial data for **K**ryo **E**l**E**ctron **T**omography
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/amplus-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/amplus-digital-twin/context:python)
@@ -7,6 +7,7 @@
 [![Building](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml)
 [![Publishing](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml)
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
+
 
 ## Installation
 
