@@ -1,10 +1,10 @@
-# parakeet-digital-twin
-> Phantom generator 
+# parakeet
+> A Digital Twin for cryo electron tomography 
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/parakeet-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet-digital-twin/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/parakeet-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet-digital-twin/alerts/)
-[![Building](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/actions/workflows/python-package.yml)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/alerts/)
+[![Building](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml)
 
 ## Installation
 
@@ -17,7 +17,7 @@ To install from the github repository ensure you have the latest version of pip 
 
 ```sh
 export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
-python -m pip install git+https://github.com/rosalindfranklininstitute/parakeet-digital-twin.git@master
+python -m pip install git+https://github.com/rosalindfranklininstitute/parakeet.git@master
 ```
 
 To install from source, clone this repository. The repository has a submodule
@@ -250,11 +250,11 @@ The export command can also be used to rebin the image or select a region of int
 
 ## Issues
 
-Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet-digital-twin/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet/issues) to submit bugs or request features.
 
 ## License
 
 Copyright Diamond Light Source and Rosalind Franklin Institute, 2019.
 
-Distributed under the terms of the GPLv3 license, parakeet-digital-twin is free and open source software.
+Distributed under the terms of the GPLv3 license, parakeet is free and open source software.
 
