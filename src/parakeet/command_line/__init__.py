@@ -332,7 +332,7 @@ def read_pdb():
     args = parser.parse_args()
 
     # Check a filename has been given
-    if args.filename == None:
+    if args.filename is None:
         parser.print_help()
         exit(0)
 

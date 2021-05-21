@@ -538,7 +538,7 @@ class Reader(object):
             float: The stop angle
 
         """
-        tol = 1e-7
+        # tol = 1e-7
         if len(self.angle) == 1:
             step = 1
         else:

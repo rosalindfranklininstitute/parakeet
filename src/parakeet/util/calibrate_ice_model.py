@@ -181,9 +181,7 @@ def compute_projected_potential():
             potential.append(V)
 
         # Run the simulation
-        output_multislice = multem.compute_projected_potential(
-            system_conf, input_multislice, callback
-        )
+        multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         # Save the potential
         potential = numpy.sum(potential, axis=0)
@@ -221,7 +219,6 @@ def compute_observed_mean(size, pixel_size):
     input_multislice = create_input_multislice()
 
     # Compute the number of pixels
-    original_size = size
     nx = int(ceil(size / pixel_size))
     ny = int(ceil(size / pixel_size))
     size = nx * pixel_size
@@ -262,9 +259,7 @@ def compute_observed_mean(size, pixel_size):
             potential.append(V)
 
         # Run the simulation
-        output_multislice = multem.compute_projected_potential(
-            system_conf, input_multislice, callback
-        )
+        multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         # Compute the mean potential
         V = numpy.sum(potential, axis=0)
@@ -404,7 +399,6 @@ def compute_power(ax=None):
 
     # Compute the fit to the power spectrum
     pixel_size = 0.1
-    power_spectra = []
     for thickness in [20]:  # , 19, 18, 15, 10, 5]:
 
         # Read the projected potential
@@ -426,7 +420,7 @@ def compute_power(ax=None):
         area = (nx * pixel_size) * (ny * pixel_size)
         var = numpy.var(potential)
         mean = numpy.mean(potential)
-        density = num_molecules / (area)
+        # density = num_molecules / (area)
         potential -= mean
         print("Mean: %.3f; Variance: %.3f" % (mean, var))
 
@@ -451,31 +445,31 @@ def compute_power(ax=None):
             model[0, 0] = normalized_power[0, 0]
             return model
 
-        def func2(q, *p):
-            q = q.reshape(power.shape)
-            return func(q, *p).flatten()
+        # def func2(q, *p):
+        #     q = q.reshape(power.shape)
+        #     return func(q, *p).flatten()
 
-        def residuals(p, q, normalized_power):
-            A0, A1, A2, A3 = p
-            A0 = numpy.abs(A0)
-            A2 = numpy.abs(A2)
-            # A0 = 0.1608
-            # A2, A3 = 0.822372155, 0.08153797
+        # def residuals(p, q, normalized_power):
+        #     A0, A1, A2, A3 = p
+        #     A0 = numpy.abs(A0)
+        #     A2 = numpy.abs(A2)
+        #     # A0 = 0.1608
+        #     # A2, A3 = 0.822372155, 0.08153797
 
-            # A1, A3 = 0.68518427, 0.08693241
-            M = 1.0 / 2.88
-            P = A0 * numpy.exp(-0.5 * q ** 2 / A1 ** 2) + A2 * numpy.exp(
-                -0.5 * (q - M) ** 2 / A3 ** 2
-            )
-            # I = (2*pi*(A0*A1**2 + A2*M*sqrt(2*pi*A3**2)))
-            # P /= I
-            model = P
-            model[0, 0] = normalized_power[0, 0]
-            W = 1.0 / (q * power.shape[0] + 1)
-            A = numpy.sum(W * (model - normalized_power) ** 2) / numpy.sum(W)
-            B = (numpy.sum(model) - numpy.sum(normalized_power)) ** 2 / model.size
-            print(p, A, B)
-            return A + B
+        #     # A1, A3 = 0.68518427, 0.08693241
+        #     M = 1.0 / 2.88
+        #     P = A0 * numpy.exp(-0.5 * q ** 2 / A1 ** 2) + A2 * numpy.exp(
+        #         -0.5 * (q - M) ** 2 / A3 ** 2
+        #     )
+        #     # I = (2*pi*(A0*A1**2 + A2*M*sqrt(2*pi*A3**2)))
+        #     # P /= I
+        #     model = P
+        #     model[0, 0] = normalized_power[0, 0]
+        #     W = 1.0 / (q * power.shape[0] + 1)
+        #     A = numpy.sum(W * (model - normalized_power) ** 2) / numpy.sum(W)
+        #     B = (numpy.sum(model) - numpy.sum(normalized_power)) ** 2 / model.size
+        #     print(p, A, B)
+        #     return A + B
 
         # Compute the variance correction factor
         Cv = numpy.exp(-3.2056 * pixel_size ** 2)
@@ -550,7 +544,6 @@ def compute_exit_wave(atom_data, pixel_size):
     z_max = atom_data.data["z"].max()
     x_size = x_max - x_min
     y_size = y_max - y_min
-    z_size = z_max - z_min
     select = (
         (atom_data.data["x"] > x_min + x_size / 6)
         & (atom_data.data["x"] < x_max - x_size / 6)
@@ -703,7 +696,7 @@ def validate():
         ax[0][1].axvline(physical_middle_mean_imag, color="black")
         ax[1][0].axvline(random_middle_mean_real, color="black")
         ax[1][1].axvline(random_middle_mean_imag, color="black")
-        ymax = ax[0][0].get_ylim()[1]
+        # ymax = ax[0][0].get_ylim()[1]
         if ps == 1.0:
             xr = 0.8
             xi = 0.4
@@ -760,7 +753,7 @@ def validate():
         fig.savefig("power_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
 
         x0 = numpy.floor(xmin / ps).astype("int32")
-        x1 = numpy.floor(xmax / ps).astype("int32")
+        # x1 = numpy.floor(xmax / ps).astype("int32")
         x1 = 2 * x0  # + x0 // 2
         x0[:] = 0  # x0 // 2
         random_edge = random_data[x0[0] : x1[0], x0[1] : x1[1]]
