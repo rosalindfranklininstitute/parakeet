@@ -167,19 +167,19 @@ def average_particles(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.average_particles(
+    parakeet.analyse.average_particles(
         config["scan"], args.sample, args.rec, args.half1, args.half2, args.particle_size
     )
 
@@ -245,19 +245,19 @@ def average_all_particles(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.average_all_particles(
+    parakeet.analyse.average_all_particles(
         config["scan"], args.sample, args.rec, args.average, args.particle_size
     )
 
@@ -323,19 +323,19 @@ def extract_particles(args=None):
     args = parser.parse_args(args=args)
 
     # Configure some basic logging
-    amplus.command_line.configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Set the command line args in a dict
     command_line = {}
 
     # Load the full configuration
-    config = amplus.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config, command_line)
 
     # Print some options
-    amplus.config.show(config)
+    parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    amplus.analyse.extract_particles(
+    parakeet.analyse.extract_particles(
         config["scan"], args.sample, args.rec, args.particles, args.particle_size
     )
 

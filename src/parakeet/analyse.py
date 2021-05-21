@@ -113,7 +113,7 @@ def average_particles(
         return result
 
     # Load the sample
-    sample = amplus.sample.load(sample_filename)
+    sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
     centre = numpy.array(sample.centre)
@@ -285,7 +285,7 @@ def average_all_particles(
         return result
 
     # Load the sample
-    sample = amplus.sample.load(sample_filename)
+    sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
     centre = numpy.array(sample.centre)
@@ -446,7 +446,7 @@ def extract_particles(
         return result
 
     # Load the sample
-    sample = amplus.sample.load(sample_filename)
+    sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
     centre = numpy.array(sample.centre)
