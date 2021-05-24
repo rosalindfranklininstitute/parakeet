@@ -25,7 +25,6 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
-import warnings
 from math import sqrt, pi, sin, floor
 from collections.abc import Iterable
 from scipy.spatial.transform import Rotation
@@ -391,7 +390,7 @@ class ProjectedPotentialSimulator(object):
         # Create the sample extractor
         x0 = (-offset, -offset)
         x1 = (x_fov + offset, y_fov + offset)
-        thickness = self.simulation["division_thickness"]
+        # thickness = self.simulation["division_thickness"]
         # extractor = parakeet.sample.AtomSliceExtractor(
         #     sample=self.sample,
         #     translation=position,
@@ -488,9 +487,7 @@ class ProjectedPotentialSimulator(object):
             potential[index, :, :] = V[margin:-margin, margin:-margin]
 
         # Run the simulation
-        output_multislice = multem.compute_projected_potential(
-            system_conf, input_multislice, callback
-        )
+        multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         handle.set_data(potential)
 
@@ -567,7 +564,7 @@ class ExitWaveImageSimulator(object):
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
         margin_offset = margin * pixel_size
-        padding_offset = padding * pixel_size
+        # padding_offset = padding * pixel_size
         offset = (padding + margin) * pixel_size
 
         # Set the rotation angle
@@ -579,7 +576,7 @@ class ExitWaveImageSimulator(object):
         x1 = numpy.array((x_fov + margin_offset, position + y_fov + margin_offset))
         x0 += origin
         x1 += origin
-        thickness = self.simulation["division_thickness"]
+        # thickness = self.simulation["division_thickness"]
         # extractor = parakeet.sample.AtomSliceExtractor(
         #    sample=self.sample,
         #    translation=position,
@@ -620,164 +617,160 @@ class ExitWaveImageSimulator(object):
             sigma_B = 0
 
         # Either slice or don't
-        if True:  # len(extractor) == 1:
+        # if True:  # len(extractor) == 1:
 
-            # Set the atoms in the input after translating them for the offset
-            # zslice = extractor[0]
-            atoms = self.sample.get_atoms_in_fov(x0, x1)
-            logger.info("Simulating with %d atoms" % atoms.data.shape[0])
-            # logger.info(
-            #     "    Simulating z slice %f -> %f with %d atoms"
-            #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
-            # )
+        # Set the atoms in the input after translating them for the offset
+        # zslice = extractor[0]
+        atoms = self.sample.get_atoms_in_fov(x0, x1)
+        logger.info("Simulating with %d atoms" % atoms.data.shape[0])
+        # logger.info(
+        #     "    Simulating z slice %f -> %f with %d atoms"
+        #     % (zslice.x_min[2], zslice.x_max[2], zslice.atoms.data.shape[0])
+        # )
 
-            # Set atom sigma
-            atoms.data["sigma"] = sigma_B
+        # Set atom sigma
+        atoms.data["sigma"] = sigma_B
 
-            if len(atoms.data) > 0:
-                coords = atoms.data[["x", "y", "z"]].to_numpy()
-                coords = (
-                    Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
-                        coords - self.sample.centre
-                    )
-                    + self.sample.centre
-                    - (shiftx, shifty + position, 0)
-                ).astype("float32")
-                atoms.data["x"] = coords[:, 0]
-                atoms.data["y"] = coords[:, 1]
-                atoms.data["z"] = coords[:, 2]
-            # atoms.data = atoms.data.append(parakeet.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
+        if len(atoms.data) > 0:
+            coords = atoms.data[["x", "y", "z"]].to_numpy()
+            coords = (
+                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                    coords - self.sample.centre
+                )
+                + self.sample.centre
+                - (shiftx, shifty + position, 0)
+            ).astype("float32")
+            atoms.data["x"] = coords[:, 0]
+            atoms.data["y"] = coords[:, 1]
+            atoms.data["z"] = coords[:, 2]
+        # atoms.data = atoms.data.append(parakeet.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
-            input_multislice.spec_atoms = atoms.translate(
-                (offset - origin[0], offset - origin[1], 0)
-            ).to_multem()
-            logger.info("   Got spec atoms")
+        input_multislice.spec_atoms = atoms.translate(
+            (offset - origin[0], offset - origin[1], 0)
+        ).to_multem()
+        logger.info("   Got spec atoms")
 
-            if self.simulation["ice"] == True:
+        if self.simulation["ice"] == True:
 
-                # Create the masker
-                masker = multem.Masker(
-                    input_multislice.nx, input_multislice.ny, pixel_size
+            # Create the masker
+            masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
+
+            # Get the sample centre
+            shape = self.sample.shape
+            centre = self.sample.centre
+            centre = (
+                centre[0] + offset - shiftx - origin[0],
+                centre[1] + offset - shifty - position - origin[1],
+                centre[2],
+            )
+
+            # Set the shape
+            if shape["type"] == "cube":
+                length = shape["cube"]["length"]
+                masker.set_cuboid(
+                    (
+                        centre[0] - length / 2,
+                        centre[1] - length / 2,
+                        centre[2] - length / 2,
+                    ),
+                    (length, length, length),
+                )
+            elif shape["type"] == "cuboid":
+                length_x = shape["cuboid"]["length_x"]
+                length_y = shape["cuboid"]["length_y"]
+                length_z = shape["cuboid"]["length_z"]
+                masker.set_cuboid(
+                    (
+                        centre[0] - length_x / 2,
+                        centre[1] - length_y / 2,
+                        centre[2] - length_z / 2,
+                    ),
+                    (length_x, length_y, length_z),
+                )
+            elif shape["type"] == "cylinder":
+                radius = shape["cylinder"]["radius"]
+                if not isinstance(radius, Iterable):
+                    radius = [radius]
+                length = shape["cylinder"]["length"]
+                offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
+                offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
+                axis = shape["cylinder"].get("axis", (0, 1, 0))
+                masker.set_cylinder(
+                    (centre[0], centre[1] - length / 2, centre[2]),
+                    axis,
+                    length,
+                    list(radius),
+                    list(offset_x),
+                    list(offset_z),
                 )
 
-                # Get the sample centre
-                shape = self.sample.shape
-                centre = self.sample.centre
-                centre = (
-                    centre[0] + offset - shiftx - origin[0],
-                    centre[1] + offset - shifty - position - origin[1],
-                    centre[2],
-                )
-
-                # Set the shape
-                if shape["type"] == "cube":
-                    length = shape["cube"]["length"]
-                    masker.set_cuboid(
-                        (
-                            centre[0] - length / 2,
-                            centre[1] - length / 2,
-                            centre[2] - length / 2,
-                        ),
-                        (length, length, length),
-                    )
-                elif shape["type"] == "cuboid":
-                    length_x = shape["cuboid"]["length_x"]
-                    length_y = shape["cuboid"]["length_y"]
-                    length_z = shape["cuboid"]["length_z"]
-                    masker.set_cuboid(
-                        (
-                            centre[0] - length_x / 2,
-                            centre[1] - length_y / 2,
-                            centre[2] - length_z / 2,
-                        ),
-                        (length_x, length_y, length_z),
-                    )
-                elif shape["type"] == "cylinder":
-                    radius = shape["cylinder"]["radius"]
-                    if not isinstance(radius, Iterable):
-                        radius = [radius]
-                    length = shape["cylinder"]["length"]
-                    offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
-                    offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
-                    axis = shape["cylinder"].get("axis", (0, 1, 0))
-                    masker.set_cylinder(
-                        (centre[0], centre[1] - length / 2, centre[2]),
-                        axis,
-                        length,
-                        list(radius),
-                        list(offset_x),
-                        list(offset_z),
-                    )
-
-                # Rotate
-                origin = centre
-                masker.set_rotation(origin, (0, angle * pi / 180.0, 0))
-
-                # Run the simulation
-                output_multislice = multem.simulate(
-                    system_conf, input_multislice, masker
-                )
-
-            else:
-
-                # Run the simulation
-                logger.info("Simulating")
-                output_multislice = multem.simulate(system_conf, input_multislice)
-
-        else:
-            pass
-            # # Slice the specimen atoms
-            # def slice_generator(extractor):
-
-            #     # Get the data from the data buffer and return
-            #     def prepare(data_buffer):
-
-            #         # Extract the data
-            #         atoms = parakeet.sample.AtomData(
-            #             data=pandas.concat([d.atoms.data for d in data_buffer])
-            #         )
-            #         z_min = min([d.x_min[2] for d in data_buffer])
-            #         z_max = max([d.x_max[2] for d in data_buffer])
-            #         assert z_min < z_max
-
-            #         # Print some info
-            #         logger.info(
-            #             "    Simulating z slice %f -> %f with %d atoms"
-            #             % (z_min, z_max, atoms.data.shape[0])
-            #         )
-
-            #         # Cast the atoms
-            #         atoms = atoms.translate((offset, offset, 0)).to_multem()
-
-            #         # Return the Z-min, Z-max and atoms
-            #         return (z_min, z_max, atoms)
-
-            #     # Loop through the slices and gather atoms until we have more
-            #     # than the maximum buffer size. There seems to be an overhead
-            #     # to the simulation code so it's better to have as many atoms
-            #     # as possible before calling. Doing this is much fast than
-            #     # simulating with only a small number of atoms.
-            #     max_buffer = 10_000_000
-            #     data_buffer = []
-            #     for zslice in extractor:
-            #         data_buffer.append(zslice)
-            #         if sum(d.atoms.data.shape[0] for d in data_buffer) > max_buffer:
-            #             yield prepare(data_buffer)
-            #             data_buffer = []
-
-            #     # Simulate from the final buffer
-            #     if len(data_buffer) > 0:
-            #         yield prepare(data_buffer)
-            #         data_buffer = []
+            # Rotate
+            origin = centre
+            masker.set_rotation(origin, (0, angle * pi / 180.0, 0))
 
             # Run the simulation
-            # st = time.time()
-            # output_multislice = multem.simulate(
-            #     system_conf, input_multislice, slice_generator(extractor)
-            # )
-            # logger.info(
-            #     "    Image %d simulated in %d seconds" % (index, time.time() - st)
-            # )
+            output_multislice = multem.simulate(system_conf, input_multislice, masker)
+
+        else:
+
+            # Run the simulation
+            logger.info("Simulating")
+            output_multislice = multem.simulate(system_conf, input_multislice)
+
+        # else:
+        #     pass
+        # # Slice the specimen atoms
+        # def slice_generator(extractor):
+
+        #     # Get the data from the data buffer and return
+        #     def prepare(data_buffer):
+
+        #         # Extract the data
+        #         atoms = parakeet.sample.AtomData(
+        #             data=pandas.concat([d.atoms.data for d in data_buffer])
+        #         )
+        #         z_min = min([d.x_min[2] for d in data_buffer])
+        #         z_max = max([d.x_max[2] for d in data_buffer])
+        #         assert z_min < z_max
+
+        #         # Print some info
+        #         logger.info(
+        #             "    Simulating z slice %f -> %f with %d atoms"
+        #             % (z_min, z_max, atoms.data.shape[0])
+        #         )
+
+        #         # Cast the atoms
+        #         atoms = atoms.translate((offset, offset, 0)).to_multem()
+
+        #         # Return the Z-min, Z-max and atoms
+        #         return (z_min, z_max, atoms)
+
+        #     # Loop through the slices and gather atoms until we have more
+        #     # than the maximum buffer size. There seems to be an overhead
+        #     # to the simulation code so it's better to have as many atoms
+        #     # as possible before calling. Doing this is much fast than
+        #     # simulating with only a small number of atoms.
+        #     max_buffer = 10_000_000
+        #     data_buffer = []
+        #     for zslice in extractor:
+        #         data_buffer.append(zslice)
+        #         if sum(d.atoms.data.shape[0] for d in data_buffer) > max_buffer:
+        #             yield prepare(data_buffer)
+        #             data_buffer = []
+
+        #     # Simulate from the final buffer
+        #     if len(data_buffer) > 0:
+        #         yield prepare(data_buffer)
+        #         data_buffer = []
+
+        # Run the simulation
+        # st = time.time()
+        # output_multislice = multem.simulate(
+        #     system_conf, input_multislice, slice_generator(extractor)
+        # )
+        # logger.info(
+        #     "    Image %d simulated in %d seconds" % (index, time.time() - st)
+        # )
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
@@ -1112,8 +1105,8 @@ class ImageSimulator(object):
         nx = self.microscope.detector.nx
         ny = self.microscope.detector.ny
         pixel_size = self.microscope.detector.pixel_size
-        x_fov = nx * pixel_size
-        y_fov = ny * pixel_size
+        # x_fov = nx * pixel_size
+        # y_fov = ny * pixel_size
 
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
@@ -1272,8 +1265,8 @@ class SimpleImageSimulator(object):
         # input_multislice.spec_rot_theta = angle
         # input_multislice.spec_rot_u0 = simulation.scan.axis
 
-        x0 = (-offset, -offset)
-        x1 = (x_fov + offset, y_fov + offset)
+        # x0 = (-offset, -offset)
+        # x1 = (x_fov + offset, y_fov + offset)
 
         # Create the multem system configuration
         system_conf = create_system_configuration(self.device)

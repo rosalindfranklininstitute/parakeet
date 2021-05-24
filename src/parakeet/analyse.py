@@ -176,7 +176,7 @@ def average_particles(
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            start_position = numpy.array([0, scan["start_pos"], 0])
+            # start_position = numpy.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(
