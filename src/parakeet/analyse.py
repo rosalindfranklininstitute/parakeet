@@ -68,7 +68,7 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
 
 
 def average_particles(
-    scan, sample_filename, rec_filename, half_1_filename, half_2_filename, particle_size
+    scan, sample_filename, rec_filename, half_1_filename, half_2_filename, particle_size=0
 ):
     """
     Average particles to compute averaged reconstruction
@@ -240,7 +240,7 @@ def average_particles(
 
 
 def average_all_particles(
-        scan, sample_filename, rec_filename, average_filename, particle_size
+        scan, sample_filename, rec_filename, average_filename, particle_size=0
 ):
     """
     Average particles to compute averaged reconstruction
@@ -401,7 +401,7 @@ def average_all_particles(
 
 
 def extract_particles(
-        scan, sample_filename, rec_filename, extract_filename, particle_size
+        scan, sample_filename, rec_filename, extract_filename, particle_size=0
 ):
     """
     Extract particles for post-processing
