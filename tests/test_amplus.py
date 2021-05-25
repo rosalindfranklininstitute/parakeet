@@ -89,7 +89,9 @@ def test_analyse_reconstruct(config_path):
     rec = os.path.abspath(os.path.join(config_path, "rec.mrc"))
     assert os.path.exists(config)
     assert os.path.exists(image)
-    parakeet.command_line.analyse.reconstruct(["-c", config, "-i", image, "-r", rec])
+    parakeet.command_line.analyse.reconstruct(
+        ["-c", config, "-i", image, "-r", rec, "-d", "cpu"]
+    )
     assert os.path.exists(rec)
 
 
