@@ -306,7 +306,7 @@ def extract_particles(args=None):
         "-pm",
         "--particle_map",
         type=str,
-        default="particle_map.mrc",
+        default="particle_map.h5",
         dest="particles",
         help="The filename for the particle average",
     )
