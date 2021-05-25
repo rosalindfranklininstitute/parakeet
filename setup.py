@@ -97,7 +97,7 @@ def main():
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",
                 "parakeet.analyse.average_particles=parakeet.command_line.analyse:average_particles",
                 "parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles",
-                "parakeet.analyse.extract_particles=parakeet.command_line.analyse:extract_particles"
+                "parakeet.analyse.extract_particles=parakeet.command_line.analyse:extract_particles",
                 "parakeet.analyse.refine=parakeet.command_line.analyse:refine",
             ]
         },
