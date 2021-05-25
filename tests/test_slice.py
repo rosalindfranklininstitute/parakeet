@@ -66,7 +66,7 @@ def test_slice():
     # Create the system configuration
     system_conf = multem.SystemConfiguration()
     system_conf.precision = "float"
-    system_conf.device = "device"
+    system_conf.device = "host"
 
     # Create the input multislice configuration
     n_phonons = 50
