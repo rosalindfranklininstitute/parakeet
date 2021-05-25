@@ -155,7 +155,7 @@ def average_particles(
             )
         else:
             half_length = particle_size // 2
-            length = 2 * half_length
+        length = 2 * half_length
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
@@ -327,7 +327,7 @@ def average_all_particles(
             )
         else:
             half_length = particle_size // 2
-            length = 2 * half_length
+        length = 2 * half_length
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
@@ -488,7 +488,7 @@ def extract_particles(
             )
         else:
             half_length = particle_size // 2
-            length = 2 * half_length
+        length = 2 * half_length
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
