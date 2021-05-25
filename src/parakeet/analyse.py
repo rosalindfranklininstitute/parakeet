@@ -69,7 +69,12 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
 
 
 def average_particles(
-    scan, sample_filename, rec_filename, half_1_filename, half_2_filename, particle_size=0
+    scan,
+    sample_filename,
+    rec_filename,
+    half_1_filename,
+    half_2_filename,
+    particle_size=0,
 ):
     """
     Average particles to compute averaged reconstruction
@@ -222,8 +227,10 @@ def average_particles(
         # Average the sub tomograms
         print("Averaging half 1 with %d particles" % num_1)
         print("Averaging half 2 with %d particles" % num_2)
-        half_1 = half_1 / num_1
-        half_2 = half_2 / num_2
+        if num_1 > 0:
+            half_1 = half_1 / num_1
+        if num_2 > 0:
+            half_2 = half_2 / num_2
 
         # from matplotlib import pylab
         # pylab.imshow(average[half_length, :, :])
@@ -241,7 +248,7 @@ def average_particles(
 
 
 def average_all_particles(
-        scan, sample_filename, rec_filename, average_filename, particle_size=0
+    scan, sample_filename, rec_filename, average_filename, particle_size=0
 ):
     """
     Average particles to compute averaged reconstruction
@@ -323,7 +330,7 @@ def average_all_particles(
 
         if particle_size == 0:
             half_length = (
-                    int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
             )
         else:
             half_length = particle_size // 2
@@ -366,7 +373,7 @@ def average_all_particles(
 
             # Get the sub tomogram
             print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1]: x1[1], x0[2]: x1[2], x0[0]: x1[0]]
+            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
             if sub_tomo.shape == average.shape:
 
                 # Set the data to transform
@@ -402,7 +409,7 @@ def average_all_particles(
 
 
 def extract_particles(
-        scan, sample_filename, rec_filename, extract_filename, particle_size=0
+    scan, sample_filename, rec_filename, extract_filename, particle_size=0
 ):
     """
     Extract particles for post-processing
@@ -484,7 +491,8 @@ def extract_particles(
 
         if particle_size == 0:
             half_length = (
-                    int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                + 1
             )
         else:
             half_length = particle_size // 2
@@ -528,7 +536,7 @@ def extract_particles(
 
             # Get the sub tomogram
             print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1]: x1[1], x0[2]: x1[2], x0[0]: x1[0]]
+            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
             if sub_tomo.shape == particle_instance.shape:
 
                 # Set the data to transform
