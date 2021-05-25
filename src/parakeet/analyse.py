@@ -68,7 +68,7 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
 
 
 def average_particles(
-    scan, sample_filename, rec_filename, half_1_filename, half_2_filename
+    scan, sample_filename, rec_filename, half_1_filename, half_2_filename, particle_size=0
 ):
     """
     Average particles to compute averaged reconstruction
@@ -148,10 +148,13 @@ def average_particles(
         yc = (ymax + ymin) / 2.0
         zc = (zmax + zmin) / 2.0
 
-        half_length = (
-            int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
-        )
-        length = 2 * half_length
+        if particle_size == 0:
+            half_length = (
+                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+            )
+        else:
+            half_length = particle_size // 2
+            length = 2 * half_length
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
@@ -233,6 +236,329 @@ def average_particles(
         print("Saving half 2 to %s" % half_2_filename)
         handle = mrcfile.new(half_2_filename, overwrite=True)
         handle.set_data(half_2)
+        handle.voxel_size = tomo_file.voxel_size
+
+
+def average_all_particles(
+        scan, sample_filename, rec_filename, average_filename, particle_size=0
+):
+    """
+    Average particles to compute averaged reconstruction
+
+    """
+
+    def rotate_array(data, rotation, offset):
+
+        # Create the pixel indices
+        az = numpy.arange(data.shape[0])
+        ay = numpy.arange(data.shape[1])
+        ax = numpy.arange(data.shape[2])
+        x, y, z = numpy.meshgrid(az, ay, ax, indexing="ij")
+
+        # Create a stack of coordinates
+        xyz = numpy.vstack(
+            [
+                x.reshape(-1) - offset[0],
+                y.reshape(-1) - offset[1],
+                z.reshape(-1) - offset[2],
+            ]
+        ).T
+
+        # create transformation matrix
+        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
+
+        # apply transformation
+        transformed_xyz = r.apply(xyz)
+
+        # extract coordinates
+        x = transformed_xyz[:, 0] + offset[0]
+        y = transformed_xyz[:, 1] + offset[1]
+        z = transformed_xyz[:, 2] + offset[2]
+
+        # Reshape
+        x = x.reshape(data.shape)
+        y = y.reshape(data.shape)
+        z = z.reshape(data.shape)
+
+        # sample
+        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
+        return result
+
+    # Load the sample
+    sample = parakeet.sample.load(sample_filename)
+
+    # Get the sample centre
+    centre = numpy.array(sample.centre)
+
+    # Read the reconstruction file
+    tomo_file = mrcfile.mmap(rec_filename)
+    tomogram = tomo_file.data
+
+    # Get the size of the volume
+    voxel_size = numpy.array(
+        (
+            tomo_file.voxel_size["x"],
+            tomo_file.voxel_size["y"],
+            tomo_file.voxel_size["z"],
+        )
+    )
+    size = numpy.array(tomogram.shape)[[2, 0, 1]] * voxel_size
+
+    # Loop through the
+    assert sample.number_of_molecules == 1
+    for name, (atoms, positions, orientations) in sample.iter_molecules():
+
+        # Compute the box size based on the size of the particle so that any
+        # orientation should fit within the box
+        xmin = atoms.data["x"].min()
+        xmax = atoms.data["x"].max()
+        ymin = atoms.data["y"].min()
+        ymax = atoms.data["y"].max()
+        zmin = atoms.data["z"].min()
+        zmax = atoms.data["z"].max()
+        xc = (xmax + xmin) / 2.0
+        yc = (ymax + ymin) / 2.0
+        zc = (zmax + zmin) / 2.0
+
+        if particle_size == 0:
+            half_length = (
+                    int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+            )
+        else:
+            half_length = particle_size // 2
+            length = 2 * half_length
+        assert len(positions) == len(orientations)
+        num_particles = len(positions)
+        print(
+            "Averaging %d %s particles with box size %d" % (num_particles, name, length)
+        )
+
+        # Create the average array
+        average = numpy.zeros(shape=(length, length, length), dtype="float32")
+        num = 0
+
+        # Sort the positions and orientations by y
+        positions, orientations = zip(
+            *sorted(zip(positions, orientations), key=lambda x: x[0][1])
+        )
+
+        # Loop through all the particles
+        for i, (position, orientation) in enumerate(zip(positions, orientations)):
+
+            # Compute p within the volume
+            start_position = numpy.array([0, scan["start_pos"], 0])
+            p = position - (centre - size / 2.0)  # - start_position
+            p[2] = size[2] - p[2]
+            print(
+                "Particle %d: position = %s, orientation = %s"
+                % (
+                    i,
+                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
+                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
+                )
+            )
+
+            # Set the region to extract
+            x0 = numpy.floor(p).astype("int32") - half_length
+            x1 = numpy.floor(p).astype("int32") + half_length
+            offset = p - numpy.floor(p).astype("int32")
+
+            # Get the sub tomogram
+            print("Getting sub tomogram")
+            sub_tomo = tomogram[x0[1]: x1[1], x0[2]: x1[2], x0[0]: x1[0]]
+            if sub_tomo.shape == average.shape:
+
+                # Set the data to transform
+                data = sub_tomo
+
+                # Reorder input vectors
+                offset = numpy.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+                rotation = -numpy.array(orientation)[[1, 2, 0]]
+                rotation[1] = -rotation[1]
+
+                # Rotate the data
+                print("Rotating volume")
+                data = rotate_array(data, rotation, offset)
+
+                # Add the contribution to the average
+
+                average += data
+                num += 1
+
+        # Average the sub tomograms
+        print("Averaging map with %d particles" % num)
+        average = average / num
+
+        # from matplotlib import pylab
+        # pylab.imshow(average[half_length, :, :])
+        # pylab.show()
+
+        # Save the averaged data
+        print("Saving map to %s" % average_filename)
+        handle = mrcfile.new(average_filename, overwrite=True)
+        handle.set_data(average)
+        handle.voxel_size = tomo_file.voxel_size
+
+
+def extract_particles(
+        scan, sample_filename, rec_filename, extract_filename, particle_size=0
+):
+    """
+    Extract particles for post-processing
+
+    """
+
+    def rotate_array(data, rotation, offset):
+
+        # Create the pixel indices
+        az = numpy.arange(data.shape[0])
+        ay = numpy.arange(data.shape[1])
+        ax = numpy.arange(data.shape[2])
+        x, y, z = numpy.meshgrid(az, ay, ax, indexing="ij")
+
+        # Create a stack of coordinates
+        xyz = numpy.vstack(
+            [
+                x.reshape(-1) - offset[0],
+                y.reshape(-1) - offset[1],
+                z.reshape(-1) - offset[2],
+            ]
+        ).T
+
+        # create transformation matrix
+        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
+
+        # apply transformation
+        transformed_xyz = r.apply(xyz)
+
+        # extract coordinates
+        x = transformed_xyz[:, 0] + offset[0]
+        y = transformed_xyz[:, 1] + offset[1]
+        z = transformed_xyz[:, 2] + offset[2]
+
+        # Reshape
+        x = x.reshape(data.shape)
+        y = y.reshape(data.shape)
+        z = z.reshape(data.shape)
+
+        # sample
+        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
+        return result
+
+    # Load the sample
+    sample = parakeet.sample.load(sample_filename)
+
+    # Get the sample centre
+    centre = numpy.array(sample.centre)
+
+    # Read the reconstruction file
+    tomo_file = mrcfile.mmap(rec_filename)
+    tomogram = tomo_file.data
+
+    # Get the size of the volume
+    voxel_size = numpy.array(
+        (
+            tomo_file.voxel_size["x"],
+            tomo_file.voxel_size["y"],
+            tomo_file.voxel_size["z"],
+        )
+    )
+    size = numpy.array(tomogram.shape)[[2, 0, 1]] * voxel_size
+
+    # Loop through the
+    assert sample.number_of_molecules == 1
+    for name, (atoms, positions, orientations) in sample.iter_molecules():
+
+        # Compute the box size based on the size of the particle so that any
+        # orientation should fit within the box
+        xmin = atoms.data["x"].min()
+        xmax = atoms.data["x"].max()
+        ymin = atoms.data["y"].min()
+        ymax = atoms.data["y"].max()
+        zmin = atoms.data["z"].min()
+        zmax = atoms.data["z"].max()
+        xc = (xmax + xmin) / 2.0
+        yc = (ymax + ymin) / 2.0
+        zc = (zmax + zmin) / 2.0
+
+        if particle_size == 0:
+            half_length = (
+                    int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+            )
+        else:
+            half_length = particle_size // 2
+            length = 2 * half_length
+        assert len(positions) == len(orientations)
+        num_particles = len(positions)
+        print(
+            "Averaging %d %s particles with box size %d" % (num_particles, name, length)
+        )
+
+        # Create the average array
+        extract_map = []
+        particle_instance = numpy.zeros(shape=(length, length, length), dtype="float32")
+        num = 0
+
+        # Sort the positions and orientations by y
+        positions, orientations = zip(
+            *sorted(zip(positions, orientations), key=lambda x: x[0][1])
+        )
+
+        # Loop through all the particles
+        for i, (position, orientation) in enumerate(zip(positions, orientations)):
+
+            # Compute p within the volume
+            start_position = numpy.array([0, scan["start_pos"], 0])
+            p = position - (centre - size / 2.0)  # - start_position
+            p[2] = size[2] - p[2]
+            print(
+                "Particle %d: position = %s, orientation = %s"
+                % (
+                    i,
+                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
+                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
+                )
+            )
+
+            # Set the region to extract
+            x0 = numpy.floor(p).astype("int32") - half_length
+            x1 = numpy.floor(p).astype("int32") + half_length
+            offset = p - numpy.floor(p).astype("int32")
+
+            # Get the sub tomogram
+            print("Getting sub tomogram")
+            sub_tomo = tomogram[x0[1]: x1[1], x0[2]: x1[2], x0[0]: x1[0]]
+            if sub_tomo.shape == particle_instance.shape:
+
+                # Set the data to transform
+                data = sub_tomo
+
+                # Reorder input vectors
+                offset = numpy.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+                rotation = -numpy.array(orientation)[[1, 2, 0]]
+                rotation[1] = -rotation[1]
+
+                # Rotate the data
+                print("Rotating volume")
+                data = rotate_array(data, rotation, offset)
+
+                # Add the contribution to the average
+
+                extract_map.append(data)
+                num += 1
+
+        # Average the sub tomograms
+        print("Extracting %d particles" % num)
+        extract_map = numpy.array(extract_map)
+
+        # from matplotlib import pylab
+        # pylab.imshow(average[half_length, :, :])
+        # pylab.show()
+
+        # Save the averaged data
+        print("Saving extracted particles to %s" % extract_filename)
+        handle = mrcfile.new(extract_filename, overwrite=True)
+        handle.set_data(extract_map)
         handle.voxel_size = tomo_file.voxel_size
 
 
