@@ -180,7 +180,12 @@ def average_particles(args=None):
 
     # Do the sub tomogram averaging
     parakeet.analyse.average_particles(
-        config["scan"], args.sample, args.rec, args.half1, args.half2, args.particle_size
+        config["scan"],
+        args.sample,
+        args.rec,
+        args.half1,
+        args.half2,
+        args.particle_size,
     )
 
     # Write some timing stats
