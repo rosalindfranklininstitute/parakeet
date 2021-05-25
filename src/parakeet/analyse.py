@@ -14,6 +14,7 @@ import mrcfile
 import os.path
 import guanaco
 import random
+import h5py
 import scipy.ndimage
 import scipy.spatial.transform
 import parakeet.sample
@@ -557,9 +558,10 @@ def extract_particles(
 
         # Save the averaged data
         print("Saving extracted particles to %s" % extract_filename)
-        handle = mrcfile.new(extract_filename, overwrite=True)
-        handle.set_data(extract_map)
-        handle.voxel_size = tomo_file.voxel_size
+        handle = h5py.File(extract_filename, 'w')
+        data_handle = handle.create_dataset("data", extract_map.shape, chunks=True)
+        data_handle[:] = extract_map[:]
+        handle.close()
 
 
 def refine(sample_filename, rec_filename):
