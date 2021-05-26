@@ -191,6 +191,7 @@ def export(argv=None):
                 ):
                     indices.append(i)
                     logger.info(f"    Image {i} added as within the rotation range(s)")
+        indices = list(set(indices))
         indices.sort()
 
     # Interlace the images
