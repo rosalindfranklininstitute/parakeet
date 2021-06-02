@@ -156,7 +156,8 @@ def average_particles(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                + 1
             )
         else:
             half_length = particle_size // 2
@@ -330,7 +331,8 @@ def average_all_particles(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2))) + 1
+                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                + 1
             )
         else:
             half_length = particle_size // 2
