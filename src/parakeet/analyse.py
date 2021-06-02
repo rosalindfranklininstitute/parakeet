@@ -566,7 +566,7 @@ def extract_particles(
 
         # Save the averaged data
         print("Saving extracted particles to %s" % extract_filename)
-        handle = h5py.File(extract_filename, 'w')
+        handle = h5py.File(extract_filename, "w")
         data_handle = handle.create_dataset("data", extract_map.shape, chunks=True)
         data_handle[:] = extract_map[:]
         handle.close()
