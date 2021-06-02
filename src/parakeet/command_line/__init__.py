@@ -179,14 +179,20 @@ def export(argv=None):
 
     # Get the shape and indices to read
     if args.rotation_range is not None:
-        args.rotation_range = tuple(map(int, args.rotation_range.split(",")))
+        args.rotation_range = args.rotation_range.split(";")
         indices = []
-        for i in range(reader.shape[0]):
-            angle = reader.angle[i]
-            if angle >= args.rotation_range[0] and angle < args.rotation_range[1]:
-                indices.append(i)
-            else:
-                logger.info(f"    Skipping image {i} because angle is out of range")
+        for p in range(0, len(args.rotation_range)):
+            current_rotation_range = tuple(map(int, args.rotation_range[p].split(",")))
+            for i in range(reader.shape[0]):
+                angle = reader.angle[i]
+                if (
+                    angle >= current_rotation_range[0]
+                    and angle < current_rotation_range[1]
+                ):
+                    indices.append(i)
+                    logger.info(f"    Image {i} added as within the rotation range(s)")
+        indices = list(set(indices))
+        indices.sort()
 
     # Interlace the images
     if args.interlace is not None:
