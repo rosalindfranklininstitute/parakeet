@@ -956,14 +956,14 @@ class OpticsImageSimulator(object):
             # )
 
             # # Compute the fraction of electrons in the plasmon peak
-            # electron_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            # electron_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
             # electron_fraction *= inelastic_fraction
 
             # # Scale the image by the fraction of electrons
             # image *= electron_fraction
 
             # Compute the energy and spread of the plasmon peak
-            # peak, sigma = amplus.inelastic.most_probable_loss(
+            # peak, sigma = parakeet.inelastic.most_probable_loss(
             #     microscope.beam.energy, shape, angle
             # )
             # peak /= 1000.0
@@ -1034,8 +1034,8 @@ class OpticsImageSimulator(object):
 
             # Compute the zero loss and mpl image fraction
             print(shape, angle)
-            zero_loss_fraction = amplus.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = amplus.inelastic.mp_loss_fraction(shape, angle)
+            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
+            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
             electron_fraction = (
                 elastic_filtered_fraction * zero_loss_fraction
                 + inelastic_filtered_fraction * mp_loss_fraction
