@@ -1,3 +1,6 @@
+include CMakeLists.txt
+recursive-include src *
+recursive-include pybind11 *
 include amplus/data/files/4v5d.cif
 include amplus/data/files/4v1w.cif
 include amplus/data/files/3jb9.cif

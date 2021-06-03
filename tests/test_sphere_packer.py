@@ -1,6 +1,6 @@
 from math import floor, pi
 import time
-import amplus.freeze
+import parakeet.freeze
 
 
 def test_sphere_packer():
@@ -39,7 +39,7 @@ def test_sphere_packer():
     density = number_of_waters / volume
 
     # Create the packer
-    packer = amplus.freeze.SpherePacker(
+    packer = parakeet.freeze.SpherePacker(
         grid, node_length, density, van_der_waals_radius, max_iter=10
     )
     print(len(packer))
