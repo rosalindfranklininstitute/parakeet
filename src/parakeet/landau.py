@@ -84,7 +84,7 @@ def mpl_and_fwhm(energy, thickness):
     I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
     gamma = 0.577215664901532860606512090  # Euler's constant
 
-    # # The M
+    # The peak and fwhm of the universal function
     lambda_M = -0.223
     lambda_FWHM = 4.018
 
@@ -108,7 +108,7 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
     Compute the energy loss distribution
 
     Params:
-        dE (array): The array of energy losses
+        dE (array): The array of energy losses (eV)
         energy (float): The beam energy (keV)
         thickness (float): The thickness of the ice (A)
 
