@@ -70,6 +70,12 @@ def most_probable_loss(energy, shape, angle):
     """
     Compute the MPL peak and sigma
 
+    Params:
+        energy (float): Beam energy in keV
+
+    Returns:
+        tuple: (peak, sigma) of the energy loss distribution (eV)
+
     """
     TINY = 1e-10
     if shape["type"] == "cube":

@@ -138,20 +138,12 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
     I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
     gamma = 0.577215664901532860606512090  # Euler's constant
 
-    # # The M
-    lambda_M = -0.223
-    lambda_FWHM = 4.018
-
     # Compute xi and eps and dE0
     xi = 2 * pi * Na * re ** 2 * m0 * c ** 2 * Z * rho * x / (beta ** 2 * A)
     eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
     eps = eps / e
     xi = xi / e
     dE0 = xi * (log(xi / eps) + 1 - beta ** 2 - gamma)
-
-    # Compute the MPL and FWHM energy loss
-    # dE_MP = lambda_M * xi + dE0
-    # dE_FWHM = lambda_FWHM * xi
 
     # Compute the points at which to compute psi
     lam = (dE - dE0) / xi
