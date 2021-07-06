@@ -927,57 +927,14 @@ class OpticsImageSimulator(object):
             peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )  # eV
-            # if filter_width is not None:
-            #     normal = scipy.stats.norm(loc=0, scale=sigma)
-            #     inelastic_fraction = normal.cdf(filter_width) - normal.cdf(
-            #         -filter_width
-            #     )
-            #     sigma = scipy.stats.truncnorm.std(
-            #         -filter_width / 2, filter_width / 2, loc=0, scale=sigma
-            #     )
-            # else:
-            #     inelastic_fraction = 1.0
-            # peak /= 1000.0
-            # peak = min(peak, microscope.beam.energy * 0.1)
-            # spread = sigma / (microscope.beam.energy * 1000)
-
-            # # Add the energy loss
-            # microscope.beam.energy -= peak
-
-            # # Compute the energy spread of the plasmon peak
-            # microscope.beam.energy_spread += spread
-            # print("Energy: %f keV" % microscope.beam.energy)
-            # print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-            # print("Inelastic fraction: % f" % inelastic_fraction)
-
-            # # Calculate the image
-            # image = compute_image(
-            #     psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
-            # )
-
-            # # Compute the fraction of electrons in the plasmon peak
-            # electron_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            # electron_fraction *= inelastic_fraction
-
-            # # Scale the image by the fraction of electrons
-            # image *= electron_fraction
-
-            # Compute the energy and spread of the plasmon peak
-            # peak, sigma = parakeet.inelastic.most_probable_loss(
-            #     microscope.beam.energy, shape, angle
-            # )
-            # peak /= 1000.0
-            # peak = min(peak, microscope.beam.energy * 0.1)
-            # spread = sigma / (microscope.beam.energy * 1000)
 
             # Save the energy and energy spread
-            beam_energy = microscope.beam.energy  # keV
+            beam_energy = microscope.beam.energy * 1000  # eV
             beam_energy_spread = microscope.beam.energy_spread  # dE / E
-            beam_energy_sigma = beam_energy_spread * microscope.beam.energy * 1000  # eV
+            beam_energy_sigma = (1.0 / sqrt(2)) * beam_energy_spread * beam_energy  # eV
 
-            # Compute the peak and spread
-            peak = min(peak, 1000 * microscope.beam.energy * 0.1)  # eV
-            spread = sigma / (microscope.beam.energy * 1000)  # dE / E
+            # Set a maximum peak energy loss
+            peak = min(peak, beam_energy * 0.1)  # eV
 
             # Compute the spread using the filter width
             if filter_width is not None:
@@ -1004,13 +961,11 @@ class OpticsImageSimulator(object):
                 inelastic_sigma = sigma
 
             # Compute the spread
-            elastic_spread = elastic_sigma / (microscope.beam.energy * 1000)  # dE / E
-            inelastic_spread = inelastic_sigma / (
-                microscope.beam.energy * 1000
-            )  # dE / E
-            microscope.beam.energy_spread = (
-                beam_energy_spread + elastic_spread
-            )  # dE / E
+            elastic_spread = elastic_sigma * sqrt(2) / beam_energy  # dE / E
+            inelastic_spread = inelastic_sigma * sqrt(2) / beam_energy  # dE / E
+
+            # Set the spread for the zero loss image
+            microscope.beam.energy_spread = elastic_spread  # dE / E
 
             # Compute the zero loss image
             image1 = compute_image(
@@ -1018,7 +973,7 @@ class OpticsImageSimulator(object):
             )
 
             # Add the energy loss
-            microscope.beam.energy = beam_energy - peak / 1000.0  # keV
+            microscope.beam.energy = (beam_energy - peak) / 1000.0  # keV
 
             # Compute the energy spread of the plasmon peak
             microscope.beam.energy_spread = (
@@ -1051,7 +1006,7 @@ class OpticsImageSimulator(object):
                 microscope.beam.energy, shape, angle
             )  # eV
             peak = min(peak, 1000 * microscope.beam.energy * 0.1)  # eV
-            spread = sigma / (microscope.beam.energy * 1000)  # dE / E
+            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)  # dE / E
 
             # Compute the zero loss image
             image1 = compute_image(
@@ -1091,7 +1046,7 @@ class OpticsImageSimulator(object):
             )
             peak /= 1000.0
             peak = min(peak, microscope.beam.energy * 0.1)
-            spread = sigma / (microscope.beam.energy * 1000)
+            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)
 
             # Compute the zero loss image
             image1 = compute_image(

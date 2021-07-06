@@ -10,9 +10,9 @@ def test_electron_velocity():
 
 def test_landau():
     psi = landau.landau(0)
-    assert psi == pytest.approx(0.17885415345939032)
+    assert psi == pytest.approx(0.178858382958185)
     psi = landau.landau(-0.223)
-    assert psi == pytest.approx(0.18065564567547934)
+    assert psi == pytest.approx(0.18065985645723706)
 
 
 def test_mpl_and_fwhm():
