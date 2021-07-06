@@ -13,11 +13,6 @@ import copy
 import logging
 import mrcfile
 import numpy
-
-# import pandas
-import scipy.stats
-
-# import time
 import warnings
 import parakeet.config
 import parakeet.dqe
@@ -924,6 +919,7 @@ class OpticsImageSimulator(object):
             filter_width = self.simulation["mp_loss_width"]  # eV
 
             # Compute the energy and spread of the plasmon peak
+            thickness = parakeet.inelastic.effective_thickness(shape, angle)  # A
             peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )  # eV
@@ -936,33 +932,28 @@ class OpticsImageSimulator(object):
             # Set a maximum peak energy loss
             peak = min(peak, beam_energy * 0.1)  # eV
 
-            # Compute the spread using the filter width
-            if filter_width is not None:
-                normal = scipy.stats.norm(loc=0, scale=beam_energy_sigma)
-                elastic_filtered_fraction = normal.cdf(
-                    peak + filter_width / 2
-                ) - normal.cdf(peak - filter_width / 2)
-                elastic_sigma = scipy.stats.truncnorm.std(
-                    peak - filter_width / 2,
-                    peak + filter_width / 2,
-                    loc=0,
-                    scale=beam_energy_sigma,
-                )
-                inelastic_filtered_fraction = normal.cdf(filter_width / 2) - normal.cdf(
-                    -filter_width / 2
-                )
-                inelastic_sigma = scipy.stats.truncnorm.std(
-                    -filter_width / 2, filter_width / 2, loc=0, scale=sigma
-                )
-            else:
-                elastic_filtered_fraction = 1.0
-                elastic_sigma = beam_energy_sigma
-                inelastic_filtered_fraction = 1.0
-                inelastic_sigma = sigma
+            # Make optimizer
+            optimizer = parakeet.inelastic.EnergyFilterOptimizer(dE_min=-60, dE_max=200)
+            assert self.simulation["mp_loss_position"] in ["peak", "optimal"]
+            if self.simulation["mp_loss_position"] != "peak":
+                peak = optimizer(beam_energy, thickness, filter_width=filter_width)
+
+            # Compute elastic fraction and spread
+            elastic_fraction, elastic_spread = optimizer.compute_elastic_component(
+                beam_energy, thickness, peak, filter_width
+            )
+
+            # Compute inelastic fraction and spread
+            (
+                inelastic_fraction,
+                inelastic_spread,
+            ) = optimizer.compute_inelastic_component(
+                beam_energy, thickness, peak, filter_width
+            )
 
             # Compute the spread
-            elastic_spread = elastic_sigma * sqrt(2) / beam_energy  # dE / E
-            inelastic_spread = inelastic_sigma * sqrt(2) / beam_energy  # dE / E
+            elastic_spread = elastic_spread / beam_energy  # dE / E
+            inelastic_spread = inelastic_spread / beam_energy  # dE / E
 
             # Set the spread for the zero loss image
             microscope.beam.energy_spread = elastic_spread  # dE / E
@@ -988,16 +979,10 @@ class OpticsImageSimulator(object):
             )
 
             # Compute the zero loss and mpl image fraction
-            print(shape, angle)
-            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            electron_fraction = (
-                elastic_filtered_fraction * zero_loss_fraction
-                + inelastic_filtered_fraction * mp_loss_fraction
-            )
+            electron_fraction = elastic_fraction + inelastic_fraction
 
             # Add the images incoherently and scale the image by the fraction of electrons
-            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
+            image = elastic_fraction * image1 + inelastic_fraction * image2
 
         elif self.simulation["inelastic_model"] == "unfiltered":
 

@@ -12,9 +12,9 @@ import scipy.signal
 from math import sqrt, pi, cos, exp, log, ceil, floor
 
 
-def zero_loss_fraction(shape, angle):
+def effective_thickness(shape, angle):
     """
-    Compute the zero loss fraction
+    Compute the effective thickness
 
     """
     TINY = 1e-10
@@ -26,6 +26,15 @@ def zero_loss_fraction(shape, angle):
         thickness = D0 / (cos(pi * angle / 180.0) + TINY)
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
+    return thickness
+
+
+def zero_loss_fraction(shape, angle):
+    """
+    Compute the zero loss fraction
+
+    """
+    thickness = effective_thickness(shape, angle)
     mean_free_path = 3150  # A for Amorphous Ice at 300 keV
     electron_fraction = exp(-thickness / mean_free_path)
     return electron_fraction
@@ -36,15 +45,7 @@ def mp_loss_fraction(shape, angle):
     Compute the inelastic fraction
 
     """
-    TINY = 1e-10
-    if shape["type"] == "cube":
-        D0 = shape["cube"]["length"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
-    elif shape["type"] == "cuboid":
-        D0 = shape["cuboid"]["length_z"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
-    elif shape["type"] == "cylinder":
-        thickness = shape["cylinder"]["radius"] * 2
+    thickness = effective_thickness(shape, angle)
     mean_free_path = 3150  # A for Amorphous Ice at 300 keV
     electron_fraction = exp(-thickness / mean_free_path)
     return 1.0 - electron_fraction
@@ -79,15 +80,7 @@ def most_probable_loss(energy, shape, angle):
         tuple: (peak, sigma) of the energy loss distribution (eV)
 
     """
-    TINY = 1e-10
-    if shape["type"] == "cube":
-        D0 = shape["cube"]["length"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
-    elif shape["type"] == "cuboid":
-        D0 = shape["cuboid"]["length_z"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
-    elif shape["type"] == "cylinder":
-        thickness = shape["cylinder"]["radius"] * 2
+    thickness = effective_thickness(shape, angle)
     thickness = min(thickness, 100000)  # Maximum 10 um - to avoid issues at high tilt
     peak, fwhm = parakeet.landau.mpl_and_fwhm(energy, thickness)
     return peak, fwhm / (2 * sqrt(2 * log(2)))

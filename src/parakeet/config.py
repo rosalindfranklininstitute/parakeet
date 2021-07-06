@@ -152,6 +152,7 @@ def default():
             radiation_damage_model: False
             inelastic_model: null
             mp_loss_width: null
+            mp_loss_position: peak
             sensitivity_coefficient: 0.014
 
         cluster:
