@@ -14,7 +14,6 @@ import logging
 import logging.config
 import numpy
 import random
-import scipy.signal
 import parakeet.io
 import parakeet.config
 import parakeet.sample
@@ -60,16 +59,53 @@ def rebin(data, shape):
         shape (tuple): The new shape
 
     """
-    # Get pairs of (shape, bin factor) for each dimension
-    factors = numpy.array([(d, c // d) for d, c in zip(shape, data.shape)])
+    f = numpy.fft.fft2(data)
+    f = numpy.fft.fftshift(f)
+    yc, xc = data.shape[0] // 2, data.shape[1] // 2
+    yh = shape[0] // 2
+    xh = shape[1] // 2
+    x0 = xc - xh
+    y0 = yc - yh
+    x1 = x0 + shape[1]
+    y1 = y0 + shape[0]
+    y, x = numpy.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+    r = (y - yc) ** 2 / yh ** 2 + (x - xc) ** 2 / xh ** 2
+    mask = r < 1.0
+    f = f * mask
+    f = f[y0:y1, x0:x1]
+    f = numpy.fft.ifftshift(f)
+    d = numpy.fft.ifft2(f)
+    return d.real
 
-    # Rebin the array
-    for i in range(len(factors)):
-        data = scipy.signal.decimate(data, factors[i][1], axis=i)
-    # data = data.reshape(factors.flatten())
-    # for i in range(len(shape)):
-    #     data = data.sum(-1 * (i + 1))
-    return data
+
+def filter_image(data, pixel_size, resolution, shape):
+    """
+    Filter the image
+
+    Args:
+        data (array): The input array
+        pixel_size (float): The pixel size (A)
+        resolution (float): The filter resolution
+        shape (str): The filter shape
+
+    """
+    f = numpy.fft.fft2(data)
+    f = numpy.fft.fftshift(f)
+    yc, xc = data.shape[0] // 2, data.shape[1] // 2
+    y, x = numpy.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+    r = (
+        numpy.sqrt(
+            (y - yc) ** 2 / data.shape[0] ** 2 + (x - xc) ** 2 / data.shape[1] ** 2
+        )
+        / pixel_size
+    )
+    if shape == "square":
+        g = r < 1.0 / resolution
+    elif shape == "guassian":
+        g = numpy.exp(-0.5 * r ** 2 * resolution ** 2)
+    f = numpy.fft.ifftshift(f)
+    d = numpy.fft.ifft2(f)
+    return d.real
 
 
 def export(argv=None):
@@ -143,6 +179,21 @@ def export(argv=None):
     )
     parser.add_argument(
         "--rebin", type=int, default=1, dest="rebin", help="The rebinned factor"
+    )
+    parser.add_argument(
+        "--filter_resolution",
+        dest="filter_resolution",
+        type=float,
+        default=None,
+        help="The resolution",
+    )
+    parser.add_argument(
+        "--filter_shape",
+        dest="filter_shape",
+        type=str,
+        choices=["square", "gaussian"],
+        default=None,
+        help="The shape of the filter",
     )
     parser.add_argument(
         "--vmin",
@@ -283,6 +334,7 @@ def export(argv=None):
         image = reader.data[i, y0:y1, x0:x1]
         angle = reader.angle[i]
         position = reader.position[i]
+        pixel_size = reader.pixel_size
 
         # Rotate if necessary
         if args.rot90:
@@ -300,6 +352,12 @@ def export(argv=None):
             "square": lambda x: numpy.abs(x) ** 2,
             "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
         }[args.complex_mode](image)
+
+        # Filter the images
+        if args.filter_shape is not None:
+            image = filter_image(
+                image, pixel_size, args.filter_resolution, args.filter_shape
+            )
 
         # Rebin the array
         if args.rebin != 1:
