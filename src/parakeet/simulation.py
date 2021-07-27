@@ -545,6 +545,25 @@ class ExitWaveImageSimulator(object):
                     0, self.microscope.beam.drift["magnitude"], size=2
                 )
                 logger.info("Adding drift of %f, %f " % (shiftx, shifty))
+            elif self.microscope.beam.drift["type"] == "random_smoothed":
+                if index == 0:
+
+                    def generate_smoothed_random(magnitude, num_images):
+                        shift = numpy.random.normal(0, magnitude, size=(num_images, 2))
+                        shiftx = numpy.convolve(
+                            shift[:, 0], numpy.ones(5) / 5, mode="same"
+                        )
+                        shifty = numpy.convolve(
+                            shift[:, 1], numpy.ones(5) / 5, mode="same"
+                        )
+                        return shiftx, shifty
+
+                    self.shift = generate_smoothed_random(
+                        self.microscope.beam.drift["magnitude"], len(self.scan)
+                    )
+                shiftx = self.shift[0][index]
+                shifty = self.shift[1][index]
+                logger.info("Adding drift of %f, %f " % (shiftx, shifty))
             elif self.microscope.beam.drift["type"] == "sinusoidal":
                 shiftx = sin(angle * pi / 180) * self.microscope.beam.drift["magnitude"]
                 shifty = shiftx
