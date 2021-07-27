@@ -13,11 +13,6 @@ import copy
 import logging
 import mrcfile
 import numpy
-
-# import pandas
-import scipy.stats
-
-# import time
 import warnings
 import parakeet.config
 import parakeet.dqe
@@ -943,93 +938,44 @@ class OpticsImageSimulator(object):
             filter_width = self.simulation["mp_loss_width"]  # eV
 
             # Compute the energy and spread of the plasmon peak
+            thickness = parakeet.inelastic.effective_thickness(shape, angle)  # A
             peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
             )  # eV
-            # if filter_width is not None:
-            #     normal = scipy.stats.norm(loc=0, scale=sigma)
-            #     inelastic_fraction = normal.cdf(filter_width) - normal.cdf(
-            #         -filter_width
-            #     )
-            #     sigma = scipy.stats.truncnorm.std(
-            #         -filter_width / 2, filter_width / 2, loc=0, scale=sigma
-            #     )
-            # else:
-            #     inelastic_fraction = 1.0
-            # peak /= 1000.0
-            # peak = min(peak, microscope.beam.energy * 0.1)
-            # spread = sigma / (microscope.beam.energy * 1000)
-
-            # # Add the energy loss
-            # microscope.beam.energy -= peak
-
-            # # Compute the energy spread of the plasmon peak
-            # microscope.beam.energy_spread += spread
-            # print("Energy: %f keV" % microscope.beam.energy)
-            # print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-            # print("Inelastic fraction: % f" % inelastic_fraction)
-
-            # # Calculate the image
-            # image = compute_image(
-            #     psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
-            # )
-
-            # # Compute the fraction of electrons in the plasmon peak
-            # electron_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            # electron_fraction *= inelastic_fraction
-
-            # # Scale the image by the fraction of electrons
-            # image *= electron_fraction
-
-            # Compute the energy and spread of the plasmon peak
-            # peak, sigma = parakeet.inelastic.most_probable_loss(
-            #     microscope.beam.energy, shape, angle
-            # )
-            # peak /= 1000.0
-            # peak = min(peak, microscope.beam.energy * 0.1)
-            # spread = sigma / (microscope.beam.energy * 1000)
 
             # Save the energy and energy spread
-            beam_energy = microscope.beam.energy  # keV
+            beam_energy = microscope.beam.energy * 1000  # eV
             beam_energy_spread = microscope.beam.energy_spread  # dE / E
-            beam_energy_sigma = beam_energy_spread * microscope.beam.energy * 1000  # eV
+            beam_energy_sigma = (1.0 / sqrt(2)) * beam_energy_spread * beam_energy  # eV
 
-            # Compute the peak and spread
-            peak = min(peak, 1000 * microscope.beam.energy * 0.1)  # eV
-            spread = sigma / (microscope.beam.energy * 1000)  # dE / E
+            # Set a maximum peak energy loss
+            peak = min(peak, beam_energy * 0.1)  # eV
 
-            # Compute the spread using the filter width
-            if filter_width is not None:
-                normal = scipy.stats.norm(loc=0, scale=beam_energy_sigma)
-                elastic_filtered_fraction = normal.cdf(
-                    peak + filter_width / 2
-                ) - normal.cdf(peak - filter_width / 2)
-                elastic_sigma = scipy.stats.truncnorm.std(
-                    peak - filter_width / 2,
-                    peak + filter_width / 2,
-                    loc=0,
-                    scale=beam_energy_sigma,
-                )
-                inelastic_filtered_fraction = normal.cdf(filter_width / 2) - normal.cdf(
-                    -filter_width / 2
-                )
-                inelastic_sigma = scipy.stats.truncnorm.std(
-                    -filter_width / 2, filter_width / 2, loc=0, scale=sigma
-                )
-            else:
-                elastic_filtered_fraction = 1.0
-                elastic_sigma = beam_energy_sigma
-                inelastic_filtered_fraction = 1.0
-                inelastic_sigma = sigma
+            # Make optimizer
+            optimizer = parakeet.inelastic.EnergyFilterOptimizer(dE_min=-60, dE_max=200)
+            assert self.simulation["mp_loss_position"] in ["peak", "optimal"]
+            if self.simulation["mp_loss_position"] != "peak":
+                peak = optimizer(beam_energy, thickness, filter_width=filter_width)
+
+            # Compute elastic fraction and spread
+            elastic_fraction, elastic_spread = optimizer.compute_elastic_component(
+                beam_energy, thickness, peak, filter_width
+            )
+
+            # Compute inelastic fraction and spread
+            (
+                inelastic_fraction,
+                inelastic_spread,
+            ) = optimizer.compute_inelastic_component(
+                beam_energy, thickness, peak, filter_width
+            )
 
             # Compute the spread
-            elastic_spread = elastic_sigma / (microscope.beam.energy * 1000)  # dE / E
-            inelastic_spread = inelastic_sigma / (
-                microscope.beam.energy * 1000
-            )  # dE / E
-            microscope.beam.energy_spread = (
-                beam_energy_spread + elastic_spread
-            )  # dE / E
+            elastic_spread = elastic_spread / beam_energy  # dE / E
+            inelastic_spread = inelastic_spread / beam_energy  # dE / E
+
+            # Set the spread for the zero loss image
+            microscope.beam.energy_spread = elastic_spread  # dE / E
 
             # Compute the zero loss image
             image1 = compute_image(
@@ -1037,7 +983,7 @@ class OpticsImageSimulator(object):
             )
 
             # Add the energy loss
-            microscope.beam.energy = beam_energy - peak / 1000.0  # keV
+            microscope.beam.energy = (beam_energy - peak) / 1000.0  # keV
 
             # Compute the energy spread of the plasmon peak
             microscope.beam.energy_spread = (
@@ -1052,16 +998,10 @@ class OpticsImageSimulator(object):
             )
 
             # Compute the zero loss and mpl image fraction
-            print(shape, angle)
-            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            electron_fraction = (
-                elastic_filtered_fraction * zero_loss_fraction
-                + inelastic_filtered_fraction * mp_loss_fraction
-            )
+            electron_fraction = elastic_fraction + inelastic_fraction
 
             # Add the images incoherently and scale the image by the fraction of electrons
-            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
+            image = elastic_fraction * image1 + inelastic_fraction * image2
 
         elif self.simulation["inelastic_model"] == "unfiltered":
 
@@ -1070,7 +1010,7 @@ class OpticsImageSimulator(object):
                 microscope.beam.energy, shape, angle
             )  # eV
             peak = min(peak, 1000 * microscope.beam.energy * 0.1)  # eV
-            spread = sigma / (microscope.beam.energy * 1000)  # dE / E
+            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)  # dE / E
 
             # Compute the zero loss image
             image1 = compute_image(
@@ -1110,7 +1050,7 @@ class OpticsImageSimulator(object):
             )
             peak /= 1000.0
             peak = min(peak, microscope.beam.energy * 0.1)
-            spread = sigma / (microscope.beam.energy * 1000)
+            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)
 
             # Compute the zero loss image
             image1 = compute_image(
