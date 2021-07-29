@@ -16,10 +16,19 @@ In order to build this package, the following dependencies are required:
 - The CUDA toolkit
 - FFTW
 
+If you have multiple compiler versions or the compilers you want to use are not
+automatically picked up by cmake, you can explicitly state the compiler
+versions you would like to use as follows, where in this case we are using gcc
+as the C++ compiler:
+
+```sh
+export CXX=${PATH_TO_CXX}/bin/g++
+export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+```
+
 To install from the github repository ensure you have the latest version of pip installed and do the following
 
 ```sh
-export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
 python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
 ```
 
@@ -33,14 +42,12 @@ git submodule update --init --recursive
 Then do the following:
 
 ```sh
-export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
 python -m pip install .
 ```
 
 If you would like to run the tests then, clone this repository and then do the following:
 
 ```sh
-export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
 python -m pip install .[test]
 ```
 
@@ -49,7 +56,6 @@ python -m pip install .[test]
 To install for development, clone this repository and then do the following:
 
 ```sh
-export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
 python -m pip install -e .
 ```
 
@@ -73,7 +79,7 @@ The default configuration parameters can be seen by typing the following
 command:
 
 ```sh
-parakeet.show_config
+parakeet.config.show
 ```
 
 This will give some output like the following which can then be copied to a
