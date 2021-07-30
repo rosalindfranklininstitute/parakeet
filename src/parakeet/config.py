@@ -92,7 +92,7 @@ def default():
 
             objective_lens:
                 m: 0
-                c_10: 20000
+                c_10: -20000
                 c_12: 0.0
                 phi_12: 0.0
                 c_21: 0.0

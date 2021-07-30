@@ -354,11 +354,8 @@ def optics(args=None):
     exit_wave = parakeet.io.open(args.exit_wave)
 
     # Create the scan
-    config["scan"]["start_angle"] = exit_wave.start_angle
-    config["scan"]["start_pos"] = exit_wave.start_position
-    config["scan"]["step_angle"] = exit_wave.step_angle
-    config["scan"]["step_pos"] = exit_wave.step_position
-    config["scan"]["num_images"] = exit_wave.num_images
+    config["scan"]["angles"] = exit_wave.angle
+    config["scan"]["positions"] = exit_wave.position[:, 1]
     scan = parakeet.scan.new(**config["scan"])
 
     # Create the simulation
@@ -511,14 +508,10 @@ def image(args=None):
     optics = parakeet.io.open(args.optics)
 
     # Create the scan
-    config["scan"]["start_angle"] = optics.start_angle
-    config["scan"]["start_pos"] = optics.start_position
-    config["scan"]["step_angle"] = optics.step_angle
-    config["scan"]["step_pos"] = optics.step_position
-    config["scan"]["num_images"] = optics.num_images
+    config["scan"]["angles"] = optics.angle
+    config["scan"]["positions"] = optics.position[:, 1]
     scan = parakeet.scan.new(**config["scan"])
     scan.angles = [optics.angle[i] for i in range(optics.data.shape[0])]
-    scan.positions = [optics.position[i, 1] for i in range(optics.data.shape[0])]
 
     # Create the simulation
     simulation = parakeet.simulation.image(
