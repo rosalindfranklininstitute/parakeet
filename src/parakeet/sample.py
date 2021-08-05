@@ -2493,7 +2493,7 @@ def add_multiple_molecules(sample, molecules):
 
     # Put the molecules in the sample
     logger.info("Placing molecules:")
-    if any(p in [[], None] for p in all_positions):
+    if any(p is [] or p is None for p in all_positions):
         all_positions = distribute_boxes_uniformly(
             shape_enclosed_box(sample.centre, sample.shape), all_boxes
         )
