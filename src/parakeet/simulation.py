@@ -485,7 +485,6 @@ class ProjectedPotentialSimulator(object):
 
         handle.set_data(potential)
         handle.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
-        print(handle.voxel_size)
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, None, None)
@@ -630,6 +629,8 @@ class ExitWaveImageSimulator(object):
             )
         else:
             sigma_B = 0
+        static_B_factor = 8 * pi ** 2 * sigma_B ** 2
+        input_multislice.static_B_factor = static_B_factor
 
         # Either slice or don't
         # if True:  # len(extractor) == 1:

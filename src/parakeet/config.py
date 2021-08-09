@@ -153,7 +153,7 @@ def default():
             inelastic_model: null
             mp_loss_width: null
             mp_loss_position: peak
-            sensitivity_coefficient: 0.014
+            sensitivity_coefficient: 0.022
 
         cluster:
             method: null
