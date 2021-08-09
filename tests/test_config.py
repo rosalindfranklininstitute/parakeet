@@ -85,6 +85,9 @@ def test_load(tmp_path):
             "box": [4000, 4000, 4000],
             "centre": [2000, 2000, 2000],
             "shape": {"margin": [0, 0, 0]},
+            "coords": {
+                "orientation": [0, 0, 0],
+            },
         },
         "scan": {"axis": [0, 1, 0]},
         "microscope": {"detector": {"origin": [0, 0]}},

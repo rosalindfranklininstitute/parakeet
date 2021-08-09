@@ -864,20 +864,20 @@ class OpticsImageSimulator(object):
             ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
 
             # Compute the B factor for radiation damage
-            if simulation["radiation_damage_model"]:
-                sigma_B = sqrt(
-                    simulation["sensitivity_coefficient"]
-                    * microscope.beam.electrons_per_angstrom
-                    * (index + 1)
-                )
-                pixel_size = microscope.detector.pixel_size
-                Y, X = numpy.mgrid[0 : ctf.shape[0], 0 : ctf.shape[1]]
-                X = (X - ctf.shape[1] // 2) / (pixel_size * ctf.shape[1])
-                Y = (Y - ctf.shape[0] // 2) / (pixel_size * ctf.shape[0])
-                q = numpy.sqrt(X ** 2 + Y ** 2)
-                b_factor_blur = numpy.exp(-2 * pi ** 2 * q ** 2 * sigma_B ** 2)
-                b_factor_blur = numpy.fft.fftshift(b_factor_blur)
-                ctf = ctf * b_factor_blur
+            # if simulation["radiation_damage_model"]:
+            #    sigma_B = sqrt(
+            #        simulation["sensitivity_coefficient"]
+            #        * microscope.beam.electrons_per_angstrom
+            #        * (index + 1)
+            #    )
+            #    pixel_size = microscope.detector.pixel_size
+            #    Y, X = numpy.mgrid[0 : ctf.shape[0], 0 : ctf.shape[1]]
+            #    X = (X - ctf.shape[1] // 2) / (pixel_size * ctf.shape[1])
+            #    Y = (Y - ctf.shape[0] // 2) / (pixel_size * ctf.shape[0])
+            #    q = numpy.sqrt(X ** 2 + Y ** 2)
+            #    b_factor_blur = numpy.exp(-2 * pi ** 2 * q ** 2 * sigma_B ** 2)
+            #    b_factor_blur = numpy.fft.fftshift(b_factor_blur)
+            #    ctf = ctf * b_factor_blur
 
             # Compute and apply the CTF
             psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
