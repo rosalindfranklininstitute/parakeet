@@ -622,15 +622,17 @@ class ExitWaveImageSimulator(object):
 
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
-            sigma_B = sqrt(
-                self.simulation["sensitivity_coefficient"]
-                * self.microscope.beam.electrons_per_angstrom
-                * (index + 1)
+            input_multislice.static_B_factor = (
+                8
+                * pi ** 2
+                * (
+                    self.simulation["sensitivity_coefficient"]
+                    * self.microscope.beam.electrons_per_angstrom
+                    * (index + 1)
+                )
             )
         else:
-            sigma_B = 0
-        static_B_factor = 8 * pi ** 2 * sigma_B ** 2
-        input_multislice.static_B_factor = static_B_factor
+            input_multislice.static_B_factor = 0
 
         # Either slice or don't
         # if True:  # len(extractor) == 1:
@@ -659,7 +661,6 @@ class ExitWaveImageSimulator(object):
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
-        # atoms.data = atoms.data.append(parakeet.sample.AtomData(atomic_number=[1,1], x=[750,750], y=[750,750], z=[0,4000],sigma=[0,0],occupancy=[1,1],charge=[0,0]).data)
 
         input_multislice.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)

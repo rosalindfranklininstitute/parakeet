@@ -2360,9 +2360,14 @@ def new(filename, box=None, centre=None, shape=None, ice=None, coords=None, **kw
         else:
             position = (0, 0, 0)
 
+        # Set the orientation
+        orientation = coords["orientation"]
+        if orientation is None or len(orientation) != 3:
+            orientation = random_uniform_rotation()[0]
+
         # Add the molecule
         sample.add_molecule(
-            atoms, positions=[position], orientations=[(0, 0, 0)], name=None
+            atoms, positions=[position], orientations=[orientation], name=None
         )
 
     # Print some info

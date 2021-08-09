@@ -39,6 +39,7 @@ def default():
             coords:
                 filename: null
                 recentre: False
+                orientation: [ 0, 0, 0 ]
 
             box: [ 4000, 4000, 4000 ]
 
