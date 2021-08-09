@@ -647,7 +647,7 @@ class ExitWaveImageSimulator(object):
         # )
 
         # Set atom sigma
-        atoms.data["sigma"] = sigma_B
+        # atoms.data["sigma"] = sigma_B
 
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
