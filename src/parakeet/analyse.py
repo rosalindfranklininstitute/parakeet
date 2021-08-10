@@ -64,6 +64,7 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
         astigmatism=astigmatism,
         astigmatism_angle=astigmatism_angle,
         phase_shift=phase_shift,
+        angular_weights=True,
         device=device,
     )
 
