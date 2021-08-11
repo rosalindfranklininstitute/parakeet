@@ -19,9 +19,9 @@ class PoseSet:
     orientations: np.ndarray
     shifts: np.ndarray
 
-    @property
-    def rotation_converter(self):
-        return R.from_matrix(self.orientations)
+    def __post_init__(self):
+        self._orientations = self.orientations
+        self.orientations = R.from_matrix(self._orientations)
 
     @property
     def euler_angles(self):
@@ -30,7 +30,7 @@ class PoseSet:
         The Euler angles are intrinsic, right handed rotations around ZYZ.
         This matches the convention used by XMIPP/RELION.
         """
-        return self.rotation_converter.as_euler(seq='ZYZ', degrees=True)
+        return self.orientations.as_euler(seq='ZYZ', degrees=True)
 
     @property
     def axis_angle(self):
@@ -38,7 +38,7 @@ class PoseSet:
 
         Magnitude of the rotation vector corresponds to the angle in radians.
         """
-        return self.rotation_converter.as_rotvec()
+        return self.orientations.as_rotvec()
 
     def __len__(self):
         n_orientations = self.orientations.shape[0]
