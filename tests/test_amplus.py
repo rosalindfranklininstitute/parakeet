@@ -9,7 +9,7 @@ import parakeet.command_line.analyse
 
 @pytest.fixture(scope="session")
 def config_path(tmpdir_factory):
-    directory = fn = tmpdir_factory.mktemp("proc")
+    directory = tmpdir_factory.mktemp("proc")
     config = parakeet.config.load()
     config["microscope"]["detector"]["nx"] = 250
     config["microscope"]["detector"]["ny"] = 250

@@ -33,6 +33,9 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     # Ensure mrc file
     assert os.path.splitext(image_filename)[1] == ".mrc"
 
+    # Set the corrected filename
+    corrected_filename = os.path.join(os.path.dirname(rec_filename), "CORRECTED.dat")
+
     # Get the parameters for the CTF correction
     nx = microscope.detector.nx
     pixel_size = microscope.detector.pixel_size
@@ -55,7 +58,7 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     guanaco.reconstruct_file(
         input_filename=image_filename,
         output_filename=rec_filename,
-        corrected_filename="CORRECTED.dat",
+        corrected_filename=corrected_filename,
         centre=None,
         energy=energy,
         defocus=defocus,

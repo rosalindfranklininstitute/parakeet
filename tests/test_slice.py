@@ -1,5 +1,6 @@
 import multem
 import numpy
+import os
 import parakeet.sample
 
 # from matplotlib import pylab
@@ -54,9 +55,10 @@ def create_input_multislice(n_phonons, single_phonon_conf=False):
     return input_multislice
 
 
-def test_slice():
+def test_slice(tmpdir_factory):
 
-    filename = "temp.h5"
+    directory = tmpdir_factory.mktemp("proc")
+    filename = os.path.join(directory, "temp.h5")
     box = (400, 400, 400)
     centre = (200, 200, 200)
     shape = {"type": "cube", "cube": {"length": 400}}
@@ -66,7 +68,10 @@ def test_slice():
     # Create the system configuration
     system_conf = multem.SystemConfiguration()
     system_conf.precision = "float"
-    system_conf.device = "host"
+    if multem.is_gpu_available():
+        system_conf.device = "device"
+    else:
+        system_conf.device = "host"
 
     # Create the input multislice configuration
     n_phonons = 50
