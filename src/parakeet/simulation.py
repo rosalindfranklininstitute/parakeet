@@ -723,7 +723,8 @@ class ExitWaveImageSimulator(object):
 
             # Rotate
             origin = centre
-            masker.set_rotation(origin, (0, angle * pi / 180.0, 0))
+            # temporarily remove rotation
+            masker.set_rotation(origin, (0, 0, 0))
 
             # Run the simulation
             output_multislice = multem.simulate(system_conf, input_multislice, masker)
