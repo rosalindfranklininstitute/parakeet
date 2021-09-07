@@ -12,8 +12,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.stats import special_ortho_group
-
-from parakeet.pose import PoseSet
+from scipy.spatial.transform import Rotation
 
 
 class Scan(ABC):
@@ -22,17 +21,17 @@ class Scan(ABC):
 
     @property
     @abstractmethod
-    def poses(self) -> PoseSet:
+    def angles(self) -> Rotation:
         pass
 
     @property
     @abstractmethod
-    def exposure_times(self) -> np.ndarray:
+    def exposure_time(self) -> np.ndarray:
         pass
 
     def __len__(self) -> int:
         """The number of images to sample"""
-        return len(self.poses)
+        return len(self.angles)
 
 
 class SingleAxisScan(object):
@@ -76,7 +75,7 @@ class SingleAxisScan(object):
 
 
 class UniformAngularScan(Scan):
-    """A uniform scan of orientations, no shifts.
+    """A uniform scan of orientations.
     """
 
     def __init__(self, n: int):
@@ -89,17 +88,19 @@ class UniformAngularScan(Scan):
         self.n = int(n)
 
     @property
-    def exposure_times(self) -> np.ndarray:
-        pass
+    def exposure_time(self) -> np.ndarray:
+        1
 
     @property
-    def poses(self) -> PoseSet:
+    def angles(self) -> Rotation:
         # Draw n uniform samples from SO(3)
-        orientations = special_ortho_group.rvs(dim=3, size=self.n)
-        shifts = np.zeros(shape=(self.n, 3))
+        return Rotation.from_matrix(
+            special_ortho_group.rvs(dim=3, size=self.n)
+        )
 
-        # Create and return PoseSet object
-        return PoseSet(orientations, shifts)
+    @property
+    def positions(self):
+        return np.zeros(self.n)
 
 
 def new(
@@ -136,6 +137,8 @@ def new(
         object: The scan object
 
     """
+    if mode == "single_particle":
+        return UniformAngularScan(num_images)
     if angles is None:
         if mode == "still":
             angles = [start_angle]

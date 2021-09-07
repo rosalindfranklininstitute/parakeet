@@ -652,7 +652,7 @@ class ExitWaveImageSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                self.scan.angles[index].apply(
                     coords - self.sample.centre
                 )
                 + self.sample.centre
