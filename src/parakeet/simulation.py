@@ -12,7 +12,7 @@
 import copy
 import logging
 import mrcfile
-import numpy
+import numpy as np
 import warnings
 import parakeet.config
 import parakeet.dqe
@@ -323,8 +323,8 @@ class Simulation(object):
                             writer.drift[i] = drift
 
                     # Write some info
-                    vmin = numpy.min(image)
-                    vmax = numpy.max(image)
+                    vmin = np.min(image)
+                    vmax = np.max(image)
                     logger.info(
                         "    Processed job: %d (%d/%d); image min/max: %.2f/%.2f"
                         % (i + 1, j + 1, self.shape[0], vmin, vmax)
@@ -415,7 +415,8 @@ class ProjectedPotentialSimulator(object):
             coords = (
                 self.scan.poses.orientations[index].apply(coords - self.sample.centre)
                 + self.sample.centre
-                - (shiftx, shifty + position, 0)
+                - self.scan.poses.shifts[index]
+                + np.array([driftx, drifty, 0])
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
@@ -433,16 +434,10 @@ class ProjectedPotentialSimulator(object):
         slice_thickness = self.simulation["slice_thickness"]
         zsize = int(floor((volume_z1 - volume_z0) / slice_thickness))
         handle = mrcfile.new("projected_potential_%d.mrc" % index, overwrite=True)
-        potential = numpy.zeros(shape=(zsize, ny, nx), dtype="float32")
-        # thickness = handle.create_dataset(
-        #     "thickness", (0,), dtype="float32", maxshape=(None,)
-        # )
-        # potential = handle.create_dataset(
-        #     "potential", (0, 0, 0), dtype="float32", maxshape=(None, None, None)
-        # )
+        potential = np.zeros(shape=(zsize, ny, nx), dtype="float32")
 
         def callback(z0, z1, V):
-            V = numpy.array(V)
+            V = np.array(V)
             zc = (z0 + z1) / 2.0
             index = int(floor((zc - volume_z0) / slice_thickness))
             print(
@@ -493,19 +488,15 @@ class ExitWaveImageSimulator(object):
         drifty = 0
         if beam_drift and not beam_drift["type"] is None:
             if beam_drift["type"] == "random":
-                driftx, drifty = numpy.random.normal(0, beam_drift["magnitude"], size=2)
+                driftx, drifty = np.random.normal(0, beam_drift["magnitude"], size=2)
                 logger.info("Adding drift of %f, %f " % (driftx, drifty))
             elif beam_drift["type"] == "random_smoothed":
                 if index == 0:
 
                     def generate_smoothed_random(magnitude, num_images):
-                        drift = numpy.random.normal(0, magnitude, size=(num_images, 2))
-                        driftx = numpy.convolve(
-                            drift[:, 0], numpy.ones(5) / 5, mode="same"
-                        )
-                        drifty = numpy.convolve(
-                            drift[:, 1], numpy.ones(5) / 5, mode="same"
-                        )
+                        drift = np.random.normal(0, magnitude, size=(num_images, 2))
+                        driftx = np.convolve(drift[:, 0], np.ones(5) / 5, mode="same")
+                        drifty = np.convolve(drift[:, 1], np.ones(5) / 5, mode="same")
                         return driftx, drifty
 
                     self._beam_drift = generate_smoothed_random(
@@ -523,6 +514,72 @@ class ExitWaveImageSimulator(object):
 
         # Return the beam drift
         return driftx, drifty
+
+    def get_masker(self, index, input_multislice, pixel_size, drift, origin, offset):
+        """
+        Get the masker object for the ice specification
+
+        """
+
+        # Create the masker
+        masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
+
+        # Get the sample centre
+        shape = self.sample.shape
+        centre = np.array(self.sample.centre)
+        drift = np.array(drift)
+        shift = self.scan.poses.shifts[index]
+        detector_origin = np.array([origin[0], origin[1], 0])
+        centre = centre + offset - drift - detector_origin - shift
+
+        # Set the shape
+        if shape["type"] == "cube":
+            length = shape["cube"]["length"]
+            masker.set_cuboid(
+                (
+                    centre[0] - length / 2,
+                    centre[1] - length / 2,
+                    centre[2] - length / 2,
+                ),
+                (length, length, length),
+            )
+        elif shape["type"] == "cuboid":
+            length_x = shape["cuboid"]["length_x"]
+            length_y = shape["cuboid"]["length_y"]
+            length_z = shape["cuboid"]["length_z"]
+            masker.set_cuboid(
+                (
+                    centre[0] - length_x / 2,
+                    centre[1] - length_y / 2,
+                    centre[2] - length_z / 2,
+                ),
+                (length_x, length_y, length_z),
+            )
+        elif shape["type"] == "cylinder":
+            radius = shape["cylinder"]["radius"]
+            if not isinstance(radius, Iterable):
+                radius = [radius]
+            length = shape["cylinder"]["length"]
+            offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
+            offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
+            axis = shape["cylinder"].get("axis", (0, 1, 0))
+            masker.set_cylinder(
+                (centre[0], centre[1] - length / 2, centre[2]),
+                axis,
+                length,
+                list(radius),
+                list(offset_x),
+                list(offset_z),
+            )
+
+        # Rotate unless we have a single particle type simulation
+        if self.scan.is_uniform_angular_scan:
+            masker.set_rotation(centre, (0, 0, 0))
+        else:
+            masker.set_rotation(centre, self.scan.poses.orientations[index].as_rotvec())
+
+        # Get the masker
+        return masker
 
     def __call__(self, index):
         """
@@ -551,7 +608,7 @@ class ExitWaveImageSimulator(object):
         nx = self.microscope.detector.nx
         ny = self.microscope.detector.ny
         pixel_size = self.microscope.detector.pixel_size
-        origin = numpy.array(self.microscope.detector.origin)
+        origin = np.array(self.microscope.detector.origin)
         margin = self.simulation["margin"]
         padding = self.simulation["padding"]
         x_fov = nx * pixel_size
@@ -603,7 +660,7 @@ class ExitWaveImageSimulator(object):
                 self.scan.poses.orientations[index].apply(coords - self.sample.centre)
                 + self.sample.centre
                 - self.scan.poses.shifts[index]
-                + numpy.array([driftx, drifty, 0])
+                + np.array([driftx, drifty, 0])
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
@@ -616,69 +673,10 @@ class ExitWaveImageSimulator(object):
 
         if self.simulation["ice"] == True:
 
-            # Create the masker
-            masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
-
-            # Get the sample centre
-            shape = self.sample.shape
-            centre = np.array(self.sample.centre)
-            drift = np.array([driftx, drifty, 0])
-            shift = self.scan.poses.shifts[index]
-            detector_origin = numpy.array([origin[0], origin[1], 0])
-            centre = centre - drift - detector_origin - shift
-            # centre = (
-            #     centre[0] + offset - driftx - origin[0],
-            #     centre[1] + offset - drifty - position - origin[1],
-            #     centre[2],
-            # )
-
-            # Set the shape
-            if shape["type"] == "cube":
-                length = shape["cube"]["length"]
-                masker.set_cuboid(
-                    (
-                        centre[0] - length / 2,
-                        centre[1] - length / 2,
-                        centre[2] - length / 2,
-                    ),
-                    (length, length, length),
-                )
-            elif shape["type"] == "cuboid":
-                length_x = shape["cuboid"]["length_x"]
-                length_y = shape["cuboid"]["length_y"]
-                length_z = shape["cuboid"]["length_z"]
-                masker.set_cuboid(
-                    (
-                        centre[0] - length_x / 2,
-                        centre[1] - length_y / 2,
-                        centre[2] - length_z / 2,
-                    ),
-                    (length_x, length_y, length_z),
-                )
-            elif shape["type"] == "cylinder":
-                radius = shape["cylinder"]["radius"]
-                if not isinstance(radius, Iterable):
-                    radius = [radius]
-                length = shape["cylinder"]["length"]
-                offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
-                offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
-                axis = shape["cylinder"].get("axis", (0, 1, 0))
-                masker.set_cylinder(
-                    (centre[0], centre[1] - length / 2, centre[2]),
-                    axis,
-                    length,
-                    list(radius),
-                    list(offset_x),
-                    list(offset_z),
-                )
-
-            # Rotate unless we have a single particle type simulation
-            if self.scan.is_uniform_angular_scan():
-                masker.set_rotation(centre, (0, 0, 0))
-            else:
-                masker.set_rotation(
-                    centre, self.scan.poses.orientation[index].as_rotvec()
-                )
+            # Get the masker
+            masker = self.get_masker(
+                index, input_multislice, pixel_size, (driftx, drifty, 0), origin, offset
+            )
 
             # Run the simulation
             output_multislice = multem.simulate(system_conf, input_multislice, masker)
@@ -693,14 +691,12 @@ class ExitWaveImageSimulator(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = numpy.array(output_multislice.data[0].psi_coh).T
+        image = np.array(output_multislice.data[0].psi_coh).T
         image = image[padding:-padding, padding:-padding]
 
         # Print some info
-        psi_tot = numpy.abs(image) ** 2
-        logger.info(
-            "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
-        )
+        psi_tot = np.abs(image) ** 2
+        logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, image, (driftx, drifty))
@@ -761,7 +757,7 @@ class OpticsImageSimulator(object):
             input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
             # Compute and apply the CTF
-            ctf = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
+            ctf = np.array(multem.compute_ctf(system_conf, input_multislice)).T
 
             # Compute the B factor for radiation damage
             # if simulation["radiation_damage_model"]:
@@ -771,17 +767,17 @@ class OpticsImageSimulator(object):
             #        * (index + 1)
             #    )
             #    pixel_size = microscope.detector.pixel_size
-            #    Y, X = numpy.mgrid[0 : ctf.shape[0], 0 : ctf.shape[1]]
+            #    Y, X = np.mgrid[0 : ctf.shape[0], 0 : ctf.shape[1]]
             #    X = (X - ctf.shape[1] // 2) / (pixel_size * ctf.shape[1])
             #    Y = (Y - ctf.shape[0] // 2) / (pixel_size * ctf.shape[0])
-            #    q = numpy.sqrt(X ** 2 + Y ** 2)
-            #    b_factor_blur = numpy.exp(-2 * pi ** 2 * q ** 2 * sigma_B ** 2)
-            #    b_factor_blur = numpy.fft.fftshift(b_factor_blur)
+            #    q = np.sqrt(X ** 2 + Y ** 2)
+            #    b_factor_blur = np.exp(-2 * pi ** 2 * q ** 2 * sigma_B ** 2)
+            #    b_factor_blur = np.fft.fftshift(b_factor_blur)
             #    ctf = ctf * b_factor_blur
 
             # Compute and apply the CTF
-            psi = numpy.fft.ifft2(numpy.fft.fft2(psi) * ctf)
-            image = numpy.abs(psi) ** 2
+            psi = np.fft.ifft2(np.fft.fft2(psi) * ctf)
+            image = np.abs(psi) ** 2
 
             return image
 
@@ -791,7 +787,7 @@ class OpticsImageSimulator(object):
 
         # Check the angle and position
         assert abs(angle - self.exit_wave.angle[index]) < 1e7
-        assert (numpy.abs(position - self.exit_wave.position[index]) < 1e7).all()
+        assert (np.abs(position - self.exit_wave.position[index]) < 1e7).all()
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -997,7 +993,7 @@ class OpticsImageSimulator(object):
         image = image[j0:j1, i0:i1]
         logger.info(
             "Ideal image min/mean/max: %f/%f/%f"
-            % (numpy.min(image), numpy.mean(image), numpy.max(image))
+            % (np.min(image), np.mean(image), np.max(image))
         )
 
         # Compute the image scaled with Poisson noise
@@ -1042,7 +1038,7 @@ class ImageSimulator(object):
 
         # Check the angle and position
         assert abs(angle - self.optics.angle[index]) < 1e7
-        assert (numpy.abs(position - self.optics.position[index]) < 1e7).all()
+        assert (np.abs(position - self.optics.position[index]) < 1e7).all()
 
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
@@ -1066,22 +1062,22 @@ class ImageSimulator(object):
             dqe = parakeet.dqe.DQETable().dqe_fs(
                 energy, electrons_per_second, image.shape
             )
-            dqe = numpy.fft.fftshift(dqe)
-            fft_image = numpy.fft.fft2(image)
+            dqe = np.fft.fftshift(dqe)
+            fft_image = np.fft.fft2(image)
             fft_image *= dqe
-            image = numpy.real(numpy.fft.ifft2(fft_image))
+            image = np.real(np.fft.ifft2(fft_image))
 
         # Ensure all pixels are >= 0
-        image = numpy.clip(image, 0, None)
+        image = np.clip(image, 0, None)
 
         # Add Poisson noise
-        # numpy.random.seed(index)
-        image = numpy.random.poisson(image * electrons_per_pixel).astype("float64")
+        # np.random.seed(index)
+        image = np.random.poisson(image * electrons_per_pixel).astype("float64")
 
         # Print some info
         logger.info(
             "    Image min/max/mean: %g/%g/%.2g"
-            % (numpy.min(image), numpy.max(image), numpy.mean(image))
+            % (np.min(image), np.max(image), np.mean(image))
         )
 
         # Compute the image scaled with Poisson noise
@@ -1141,8 +1137,8 @@ class CTFSimulator(object):
         input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
         # Run the simulation
-        image = numpy.array(multem.compute_ctf(system_conf, input_multislice)).T
-        image = numpy.fft.fftshift(image)
+        image = np.array(multem.compute_ctf(system_conf, input_multislice)).T
+        image = np.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
         return (index, 0, 0, image, None)
@@ -1213,7 +1209,7 @@ class SimpleImageSimulator(object):
         # Set the specimen size
         input_multislice.spec_lx = x_fov + offset * 2
         input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = numpy.max(self.atoms.data["z"])
+        input_multislice.spec_lz = np.max(self.atoms.data["z"])
 
         # Set the atoms in the input after translating them for the offset
         input_multislice.spec_atoms = self.atoms.translate(
@@ -1227,13 +1223,11 @@ class SimpleImageSimulator(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = numpy.array(output_multislice.data[0].psi_coh).T
+        image = np.array(output_multislice.data[0].psi_coh).T
 
         # Print some info
-        psi_tot = numpy.abs(image) ** 2
-        logger.info(
-            "Ideal image min/max: %f/%f" % (numpy.min(psi_tot), numpy.max(psi_tot))
-        )
+        psi_tot = np.abs(image) ** 2
+        logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, image, None)
