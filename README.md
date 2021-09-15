@@ -26,6 +26,18 @@ export CXX=${PATH_TO_CXX}/bin/g++
 export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
 ```
 
+Depending on your GPU and the version of the CUDA toolkit you are using, it may
+also be necessary to set the CMAKE_CUDA_ARCHITECTURES variable. This variable
+is by default set to "OFF" in the CMakeLists.txt file which has the effect of
+compiling CUDA kernels on the fly. If you have an old GPU, this may not work
+and you will receive CUDA errors when attemping to run the simulations on the
+GPU. In this case simply set the variable to the architecture supported by your
+GPU as follows (the example below is for the compute_37 architecture):
+
+```sh
+export CMAKE_CUDA_ARCHITECTURES=37
+```
+
 To install from the github repository ensure you have the latest version of pip installed and do the following
 
 ```sh
