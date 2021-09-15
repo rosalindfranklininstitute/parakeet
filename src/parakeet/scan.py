@@ -68,7 +68,7 @@ class SingleAxisScan(Scan):
         else:
             self.angles = np.array(angles)
         if positions is None:
-            self.positions = numpy.zeros(shape=len(angles), dtype=numpy.float32)
+            self.positions = np.zeros(shape=len(angles), dtype=np.float32)
         else:
             self.positions = np.array(positions)
         assert len(self.angles) == len(self.positions)
@@ -107,18 +107,29 @@ class UniformAngularScan(Scan):
         """
         self.n = int(n)
 
+        # Draw n uniform samples from SO(3)
+        self.orientations = R.from_matrix(special_ortho_group.rvs(dim=3, size=self.n))
+
     @property
     def exposure_time(self) -> float:
         1
 
     @property
-    def angles(self) -> Rotation:
-        # Draw n uniform samples from SO(3)
-        return Rotation.from_matrix(special_ortho_group.rvs(dim=3, size=self.n))
+    def angles(self) -> np.ndarray:
+        return np.linalg.norm(self.orientations.as_rotvec(), axis=1)
 
     @property
     def positions(self):
-        return numpy.zeros(self.n, dtype=numpy.float32)
+        return np.zeros(self.n, dtype=np.float32)
+
+    @property
+    def exposure_times(self) -> np.ndarray:
+        return np.ones(len(self)) * self.exposure_time
+
+    @property
+    def poses(self) -> PoseSet:
+        # Create and return PoseSet object
+        return PoseSet(self.orientations.as_matrix(), self.positions)
 
 
 def new(
@@ -161,29 +172,29 @@ def new(
         if mode == "still":
             angles = [start_angle]
         elif mode == "tilt_series":
-            angles = start_angle + step_angle * numpy.arange(num_images)
+            angles = start_angle + step_angle * np.arange(num_images)
         elif mode == "dose_symmetric":
-            angles = start_angle + step_angle * numpy.arange(num_images)
-            angles = numpy.array(sorted(angles, key=lambda x: abs(x)))
+            angles = start_angle + step_angle * np.arange(num_images)
+            angles = np.array(sorted(angles, key=lambda x: abs(x)))
         elif mode == "helical_scan":
-            angles = start_angle + step_angle * numpy.arange(num_images)
+            angles = start_angle + step_angle * np.arange(num_images)
         else:
             raise RuntimeError(f"Scan mode not recognised: {mode}")
     if positions is None:
         if mode == "still":
             positions = [start_pos]
         elif mode == "tilt_series":
-            positions = numpy.full(
-                shape=len(angles), fill_value=start_pos, dtype=numpy.float32
+            positions = np.full(
+                shape=len(angles), fill_value=start_pos, dtype=np.float32
             )
         elif mode == "dose_symmetric":
-            positions = numpy.full(
-                shape=len(angles), fill_value=start_pos, dtype=numpy.float32
+            positions = np.full(
+                shape=len(angles), fill_value=start_pos, dtype=np.float32
             )
         elif mode == "helical_scan":
-            positions = start_pos + step_pos * numpy.arange(num_images)
+            positions = start_pos + step_pos * np.arange(num_images)
         else:
             raise RuntimeError(f"Scan mode not recognised: {mode}")
-    return Scan(
+    return SingleAxisScan(
         axis=axis, angles=angles, positions=positions, exposure_time=exposure_time
     )
