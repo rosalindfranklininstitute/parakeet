@@ -16,6 +16,7 @@ class PoseSet:
     shifts : np.ndarray
         (n, 3) array of how to shift the sample volume (units: A)
     """
+
     orientations: np.ndarray
     shifts: np.ndarray
 
@@ -30,7 +31,7 @@ class PoseSet:
         The Euler angles are intrinsic, right handed rotations around ZYZ.
         This matches the convention used by XMIPP/RELION.
         """
-        return self.orientations.as_euler(seq='ZYZ', degrees=True)
+        return self.orientations.as_euler(seq="ZYZ", degrees=True)
 
     @property
     def axis_angle(self):
@@ -45,6 +46,6 @@ class PoseSet:
         n_shifts = self.shifts.shape[0]
         if n_orientations != n_shifts:
             raise RuntimeError(
-                'Number of orientations is different to the number of shifts.'
+                "Number of orientations is different to the number of shifts."
             )
         return n_shifts
