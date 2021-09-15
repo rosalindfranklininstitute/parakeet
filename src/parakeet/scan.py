@@ -17,7 +17,10 @@ from parakeet.pose import PoseSet
 
 
 class Scan(ABC):
-    """A base class defining the interface for image sampling in a simulation."""
+    """
+    A base class defining the interface for image sampling in a simulation.
+
+    """
 
     @property
     @abstractmethod
@@ -34,8 +37,11 @@ class Scan(ABC):
         return len(self.poses)
 
 
-class SingleAxisScan(object):
-    """A scan of angles around a single rotation axis."""
+class SingleAxisScan(Scan):
+    """
+    A scan of angles around a single rotation axis.
+
+    """
 
     def __init__(self, axis=None, angles=None, positions=None, exposure_time=None):
         """
@@ -74,14 +80,16 @@ class SingleAxisScan(object):
 
 
 class UniformAngularScan(Scan):
-    """A uniform scan of orientations, no shifts."""
+    """
+    A uniform scan of orientations, no shifts.
+
+    """
 
     def __init__(self, n: int):
         """
-        Parameters
-        __________
-        n : int
-            The number of uniform orientational samples
+        Args:
+            n (int): The number of uniform orientational samples
+
         """
         self.n = int(n)
 
