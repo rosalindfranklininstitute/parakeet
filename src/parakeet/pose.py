@@ -64,9 +64,9 @@ class PoseSet:
             'rlnAngleRot': relion_eulers[:, 0],
             'rlnAngleTilt': relion_eulers[:, 1],
             'rlnAnglePsi': relion_eulers[:, 2],
-            'rlnOriginX': relion_shifts[:, 0],
-            'rlnOriginY': relion_shifts[:, 1],
-            'rlnOriginZ': relion_shifts[:, 2]
+            # 'rlnOriginX': relion_shifts[:, 0], removed until shifts are implemented carefully
+            # 'rlnOriginY': relion_shifts[:, 1],
+            # 'rlnOriginZ': relion_shifts[:, 2]
         }
         df = pd.DataFrame.from_dict(data)
         starfile.write(df, output_file, overwrite=True)
