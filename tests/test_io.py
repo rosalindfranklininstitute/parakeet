@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import os
 import pytest
 import parakeet.io
@@ -11,14 +11,14 @@ def io_test_data():
     shape = (10, 100, 100)
 
     # Generate the data
-    data = numpy.random.randint(low=0, high=100, size=shape[0] * shape[1] * shape[2])
+    data = np.random.randint(low=0, high=100, size=shape[0] * shape[1] * shape[2])
     data.shape = shape
 
     # Generate the angles
-    angle = numpy.array([x for x in range(0, shape[0])])
+    angle = np.array([x for x in range(0, shape[0])])
 
     # Generate the positons
-    position = numpy.array([[x, x, 0] for x in range(0, shape[0])])
+    position = np.array([[x, x, 0] for x in range(0, shape[0])])
 
     # Return the data
     return (data, angle, position)
@@ -55,8 +55,8 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
     reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
     assert reader.angle.shape == (10,)
-    assert numpy.all(numpy.equal(reader.angle, angle))
-    assert numpy.all(numpy.equal(reader.position, position))
+    assert np.all(np.equal(reader.angle, angle))
+    assert np.all(np.equal(reader.position, position))
 
 
 def test_write_nexus(tmp_path, io_test_data):
@@ -90,8 +90,8 @@ def test_write_nexus(tmp_path, io_test_data):
     reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
     assert reader.angle.shape == (10,)
-    assert numpy.all(numpy.equal(reader.angle, angle))
-    assert numpy.all(numpy.equal(reader.position, position))
+    assert np.all(np.equal(reader.angle, angle))
+    assert np.all(np.equal(reader.position, position))
 
 
 def test_write_images(tmp_path, io_test_data):
@@ -123,7 +123,7 @@ def test_write_images(tmp_path, io_test_data):
             assert os.path.exists(filename % (i + 1))
 
     test(None, None)
-    test(numpy.min(data), numpy.max(data))
+    test(np.min(data), np.max(data))
 
 
 def test_unknown_image(tmp_path):

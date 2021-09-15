@@ -6,7 +6,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import numpy
+import numpy as np
 import parakeet.landau
 import scipy.signal
 from math import sqrt, pi, cos, exp, log, ceil, floor
@@ -139,16 +139,16 @@ class EnergyFilterOptimizer(object):
 
         # Compute optimum given the position and filter width
         if filter_width is None:
-            position = numpy.sum(dE * distribution) / numpy.sum(dE)
+            position = np.sum(dE * distribution) / np.sum(dE)
         else:
             size = len(distribution)
             kernel_size = filter_width / self.dE_step
             ks = kernel_size / 2
-            kx = numpy.arange(-size // 2, size // 2 + 1)
-            kernel = numpy.exp(-0.5 * (kx / ks) ** 80)
-            kernel = kernel / numpy.sum(kernel)
+            kx = np.arange(-size // 2, size // 2 + 1)
+            kernel = np.exp(-0.5 * (kx / ks) ** 80)
+            kernel = kernel / np.sum(kernel)
             num = scipy.signal.fftconvolve(distribution, kernel, mode="same")
-            position = dE[numpy.argmax(num)]
+            position = dE[np.argmax(num)]
 
         # Return the filter position
         return position
@@ -183,14 +183,14 @@ class EnergyFilterOptimizer(object):
         """
 
         # The energy losses to consider
-        dE = numpy.arange(self.dE_min, self.dE_max, self.dE_step, dtype="float64")
+        dE = np.arange(self.dE_min, self.dE_max, self.dE_step, dtype="float64")
 
         # The energy loss distribution
         energy_loss_distribution = self.landau(dE, energy, thickness)
-        energy_loss_distribution /= self.dE_step * numpy.sum(energy_loss_distribution)
+        energy_loss_distribution /= self.dE_step * np.sum(energy_loss_distribution)
 
         # The zero loss distribution
-        zero_loss_distribution = (1.0 / sqrt(pi * self.energy_spread ** 2)) * numpy.exp(
+        zero_loss_distribution = (1.0 / sqrt(pi * self.energy_spread ** 2)) * np.exp(
             -(dE ** 2) / self.energy_spread ** 2
         )
 
@@ -220,13 +220,13 @@ class EnergyFilterOptimizer(object):
         """
 
         # The energy losses to consider
-        dE = numpy.arange(self.dE_min, self.dE_max, self.dE_step)
+        dE = np.arange(self.dE_min, self.dE_max, self.dE_step)
 
         # The zero loss distribution
-        P = (1.0 / sqrt(pi * self.energy_spread ** 2)) * numpy.exp(
+        P = (1.0 / sqrt(pi * self.energy_spread ** 2)) * np.exp(
             -(dE ** 2) / self.energy_spread ** 2
         )
-        C = self.dE_step * numpy.cumsum(P)
+        C = self.dE_step * np.cumsum(P)
 
         # Compute the fractions for the zero loss and energy losses
         fraction = self.elastic_fraction(energy, thickness)
@@ -245,9 +245,9 @@ class EnergyFilterOptimizer(object):
             dE = dE[x0:x1]
 
         # Compute the spread
-        if len(P) > 0 and numpy.sum(P) > 0:
-            dE_mean = numpy.sum(P * dE) / numpy.sum(P)
-            spread = sqrt(numpy.sum(P * (dE - dE_mean) ** 2) / numpy.sum(P)) * sqrt(2)
+        if len(P) > 0 and np.sum(P) > 0:
+            dE_mean = np.sum(P * dE) / np.sum(P)
+            spread = sqrt(np.sum(P * (dE - dE_mean) ** 2) / np.sum(P)) * sqrt(2)
         else:
             spread = 0
 
@@ -270,12 +270,12 @@ class EnergyFilterOptimizer(object):
         """
 
         # The energy losses to consider
-        dE = numpy.arange(self.dE_min, self.dE_max, self.dE_step)
+        dE = np.arange(self.dE_min, self.dE_max, self.dE_step)
 
         # The energy loss distribution
         P = self.landau(dE, energy, thickness)
-        P /= self.dE_step * numpy.sum(P)
-        C = numpy.cumsum(P) * self.dE_step
+        P /= self.dE_step * np.sum(P)
+        C = np.cumsum(P) * self.dE_step
 
         # Compute the fractions for the zero loss and energy losses
         fraction = 1 - self.elastic_fraction(energy, thickness)
@@ -294,7 +294,7 @@ class EnergyFilterOptimizer(object):
             dE = dE[x0:x1]
 
         # Compute the spread
-        if len(P) > 0 and numpy.sum(P) > 0:
+        if len(P) > 0 and np.sum(P) > 0:
             peak, fwhm = parakeet.landau.mpl_and_fwhm(energy / 1000, thickness)
             sigma = fwhm / (2 * sqrt(2 * log(2)))
 
@@ -302,11 +302,11 @@ class EnergyFilterOptimizer(object):
             # the landau distribution makes the variance undefined and this
             # causes problems for large filter sizes. There is probably a
             # better way to do this so maybe should look at fixing.
-            P *= numpy.exp(-0.5 * (dE - peak) ** 2 / (2 * sigma) ** 2)
+            P *= np.exp(-0.5 * (dE - peak) ** 2 / (2 * sigma) ** 2)
 
-            P /= numpy.sum(P)
-            dE_mean = numpy.sum(P * dE) / numpy.sum(P)
-            spread = sqrt(numpy.sum(P * (dE - dE_mean) ** 2) / numpy.sum(P)) * sqrt(2)
+            P /= np.sum(P)
+            dE_mean = np.sum(P * dE) / np.sum(P)
+            spread = sqrt(np.sum(P * (dE - dE_mean) ** 2) / np.sum(P)) * sqrt(2)
         else:
             spread = 0
 

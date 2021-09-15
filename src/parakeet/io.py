@@ -9,7 +9,7 @@
 # which is included in the root directory of this package.
 #
 import h5py
-import numpy
+import numpy as np
 import mrcfile
 import os
 import PIL.Image
@@ -141,7 +141,7 @@ class MrcFileWriter(Writer):
         def __init__(self, handle):
             self.handle = handle
             n = len(self.handle.extended_header)
-            self.x, self.y = numpy.meshgrid(numpy.arange(0, 3), numpy.arange(0, n))
+            self.x, self.y = np.meshgrid(np.arange(0, 3), np.arange(0, n))
 
         def __setitem__(self, item, data):
 
@@ -159,7 +159,7 @@ class MrcFileWriter(Writer):
             y = self.y[item]
 
             # Set the item
-            if isinstance(x, numpy.ndarray):
+            if isinstance(x, np.ndarray):
                 for j, i, d in zip(y, x, data):
                     setitem_internal(j, i, d)
             else:
@@ -177,17 +177,17 @@ class MrcFileWriter(Writer):
 
         """
         # Get the dtype
-        dtype = numpy.dtype(dtype)
+        dtype = np.dtype(dtype)
 
         # Convert 32bit int and 64bit float
         if dtype == "int32":
-            dtype = numpy.dtype(numpy.int16)
+            dtype = np.dtype(np.int16)
         elif dtype == "uint32":
-            dtype = numpy.dtype(numpy.uint16)
+            dtype = np.dtype(np.uint16)
         elif dtype == "float64":
-            dtype = numpy.dtype(numpy.float32)
+            dtype = np.dtype(np.float32)
         elif dtype == "complex128":
-            dtype = numpy.dtype(numpy.complex64)
+            dtype = np.dtype(np.complex64)
 
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
@@ -198,7 +198,7 @@ class MrcFileWriter(Writer):
         )
 
         # Setup the extended header
-        extended_header = numpy.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
+        extended_header = np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
 
         # Set the extended header
         self.handle._check_writeable()
@@ -253,7 +253,7 @@ class NexusWriter(Writer):
         def __init__(self, handle):
             self.handle = handle
             n = self.handle["x_drift"].shape[0]
-            self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
+            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
 
         def __setitem__(self, item, data):
 
@@ -269,7 +269,7 @@ class NexusWriter(Writer):
             y = self.y[item]
 
             # Set the item
-            if isinstance(x, numpy.ndarray):
+            if isinstance(x, np.ndarray):
                 for j, i, d in zip(y, x, data):
                     setitem_internal(j, i, d)
             else:
@@ -284,7 +284,7 @@ class NexusWriter(Writer):
         def __init__(self, handle):
             self.handle = handle
             n = self.handle["x_translation"].shape[0]
-            self.x, self.y = numpy.meshgrid(numpy.arange(0, 3), numpy.arange(0, n))
+            self.x, self.y = np.meshgrid(np.arange(0, 3), np.arange(0, n))
 
         def __setitem__(self, item, data):
 
@@ -302,7 +302,7 @@ class NexusWriter(Writer):
             y = self.y[item]
 
             # Set the item
-            if isinstance(x, numpy.ndarray):
+            if isinstance(x, np.ndarray):
                 for j, i, d in zip(y, x, data):
                     setitem_internal(j, i, d)
             else:
@@ -336,20 +336,20 @@ class NexusWriter(Writer):
         detector = instrument.create_group("detector")
         detector.attrs["NX_class"] = "NXdetector"
         detector.create_dataset("data", shape=shape, dtype=dtype)
-        detector["image_key"] = numpy.zeros(shape=shape[0])
-        detector["x_pixel_size"] = numpy.full(shape=shape[0], fill_value=pixel_size)
-        detector["y_pixel_size"] = numpy.full(shape=shape[0], fill_value=pixel_size)
+        detector["image_key"] = np.zeros(shape=shape[0])
+        detector["x_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
+        detector["y_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
 
         # Create the sample
         sample = entry.create_group("sample")
         sample.attrs["NX_class"] = "NXsample"
         sample["name"] = "parakeet-simulation"
-        sample.create_dataset("rotation_angle", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("x_translation", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("y_translation", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("z_translation", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("x_drift", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("y_drift", shape=(shape[0],), dtype=numpy.float32)
+        sample.create_dataset("rotation_angle", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("x_translation", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("y_translation", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("z_translation", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("x_drift", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("y_drift", shape=(shape[0],), dtype=np.float32)
 
         # Create the data
         data = entry.create_group("data")
@@ -412,18 +412,18 @@ class ImageWriter(Writer):
             assert data.shape[1] == self.shape[2]
 
             # Convert to squared amplitude
-            if numpy.iscomplexobj(data):
-                data = numpy.abs(data) ** 2
+            if np.iscomplexobj(data):
+                data = np.abs(data) ** 2
                 self.vmin = None
                 self.vmax = None
 
             # Compute scale factors to put between 0 and 255
             if self.vmin is None:
-                vmin = numpy.min(data)
+                vmin = np.min(data)
             else:
                 vmin = self.vmin
             if self.vmax is None:
-                vmax = numpy.max(data)
+                vmax = np.max(data)
             else:
                 vmax = self.vmax
             s1 = 255.0 / (vmax - vmin)
@@ -431,7 +431,7 @@ class ImageWriter(Writer):
 
             # Save the image to file
             filename = self.template % (item[0] + 1)
-            image = (data * s1 + s0).astype(numpy.uint8)
+            image = (data * s1 + s0).astype(np.uint8)
             PIL.Image.fromarray(image).save(filename)
 
     def __init__(self, template, shape=None, vmin=None, vmax=None):
@@ -448,8 +448,8 @@ class ImageWriter(Writer):
         self._data = ImageWriter.DataProxy(template, shape, vmin, vmax)
 
         # Create dummy arrays for angle and position
-        self._angle = numpy.zeros(shape=shape[0], dtype=numpy.float32)
-        self._position = numpy.zeros(shape=(shape[0], 3), dtype=numpy.float32)
+        self._angle = np.zeros(shape=shape[0], dtype=np.float32)
+        self._position = np.zeros(shape=(shape[0], 3), dtype=np.float32)
         self._pixel_size = 0
 
     @property
@@ -576,19 +576,19 @@ class Reader(object):
             assert handle.extended_header.shape[0] == handle.data.shape[0]
 
             # Read the angles
-            angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
+            angle = np.zeros(handle.data.shape[0], dtype=np.float32)
             for i in range(handle.extended_header.shape[0]):
                 angle[i] = handle.extended_header[i]["Alpha tilt"]
 
             # Read the positions
-            position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
+            position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
             for i in range(handle.extended_header.shape[0]):
                 position[i, 0] = handle.extended_header[i]["Shift X"]
                 position[i, 1] = handle.extended_header[i]["Shift Y"]
                 position[i, 2] = handle.extended_header[i]["Z-Stage"]
         else:
-            angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
-            position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)
+            angle = np.zeros(handle.data.shape[0], dtype=np.float32)
+            position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
@@ -622,7 +622,7 @@ class Reader(object):
         detector = entry["instrument"]["detector"]
 
         # Get the positions
-        position = numpy.array(
+        position = np.array(
             (data["x_translation"], data["y_translation"], data["z_translation"])
         ).T
 

@@ -7,7 +7,7 @@
 # which is included in the root directory of this package.
 #
 
-import numpy
+import numpy as np
 import scipy.special
 import scipy.integrate
 import scipy.constants
@@ -45,9 +45,9 @@ def landau(l):
         float: The value of the landau distribution at l
 
     """
-    u = numpy.arange(1e-30, 40, 0.01)
-    v = numpy.exp(-pi * u / 2) * numpy.cos(l * u + u * numpy.log(u))
-    psi = (1 / pi) * numpy.trapz(v, u)
+    u = np.arange(1e-30, 40, 0.01)
+    v = np.exp(-pi * u / 2) * np.cos(l * u + u * np.log(u))
+    psi = (1 / pi) * np.trapz(v, u)
     if psi < 1e-5:
         psi = 0
     return psi
@@ -97,7 +97,7 @@ def mpl_and_fwhm(energy, thickness):
     eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
     eps = eps / e
     xi = xi / e
-    dE0 = xi * (numpy.log(xi / eps) + 1 - beta ** 2 - gamma)
+    dE0 = xi * (np.log(xi / eps) + 1 - beta ** 2 - gamma)
 
     # Compute the MPL and FWHM energy loss
     dE_MP = lambda_M * xi + dE0
@@ -152,8 +152,8 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
 
     # Compute the points at which to compute psi
     lam = (dE - dE0) / xi
-    phi = numpy.array([landau(xx) for xx in lam])
-    phi = phi / numpy.sum(phi)
+    phi = np.array([landau(xx) for xx in lam])
+    phi = phi / np.sum(phi)
 
     # return the landau density
     return phi
@@ -180,8 +180,8 @@ class Landau(object):
         self.l0 = l0
         self.l1 = l1
         self.dl = dl
-        self.lambda_ = numpy.arange(l0, l1, dl)
-        self.phi = numpy.array([landau(xx) for xx in self.lambda_])
+        self.lambda_ = np.arange(l0, l1, dl)
+        self.phi = np.array([landau(xx) for xx in self.lambda_])
 
     def __call__(self, dE, energy, thickness):
         """
@@ -196,7 +196,7 @@ class Landau(object):
             array: The energy loss distribution
 
         """
-        return numpy.interp(
+        return np.interp(
             self.dE_to_lambda(dE, energy, thickness), self.lambda_, self.phi
         )
 

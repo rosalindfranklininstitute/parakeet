@@ -1,5 +1,5 @@
 import multem
-import numpy
+import numpy as np
 import os
 import parakeet.sample
 
@@ -102,9 +102,9 @@ def test_slice(tmpdir_factory):
     sliced_output = multem.simulate(system_conf, input_multislice, iter(subslices))
 
     # Print the difference
-    a = numpy.abs(numpy.array(output.data[-1].psi_coh)) ** 2
-    b = numpy.abs(numpy.array(sliced_output.data[-1].psi_coh)) ** 2
-    diff = numpy.max(numpy.abs(a - b))
+    a = np.abs(np.array(output.data[-1].psi_coh)) ** 2
+    b = np.abs(np.array(sliced_output.data[-1].psi_coh)) ** 2
+    diff = np.max(np.abs(a - b))
     # assert diff == pytest.approx(0.0232, rel=1e-2)
     # TODO FIX
 

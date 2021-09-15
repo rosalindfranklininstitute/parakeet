@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import pytest
 from parakeet import landau
 
@@ -22,5 +22,5 @@ def test_mpl_and_fwhm():
 
 
 def test_energy_loss_distribution():
-    psi = landau.energy_loss_distribution(numpy.arange(0, 100), 300, 3150)
-    assert numpy.argmax(psi) == 18
+    psi = landau.energy_loss_distribution(np.arange(0, 100), 300, 3150)
+    assert np.argmax(psi) == 18

@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import numpy
+import numpy as np
 import maptools
 import mrcfile
 import os.path
@@ -88,13 +88,13 @@ def average_particles(
     def rotate_array(data, rotation, offset):
 
         # Create the pixel indices
-        az = numpy.arange(data.shape[0])
-        ay = numpy.arange(data.shape[1])
-        ax = numpy.arange(data.shape[2])
-        x, y, z = numpy.meshgrid(az, ay, ax, indexing="ij")
+        az = np.arange(data.shape[0])
+        ay = np.arange(data.shape[1])
+        ax = np.arange(data.shape[2])
+        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
 
         # Create a stack of coordinates
-        xyz = numpy.vstack(
+        xyz = np.vstack(
             [
                 x.reshape(-1) - offset[0],
                 y.reshape(-1) - offset[1],
@@ -126,21 +126,21 @@ def average_particles(
     sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
-    centre = numpy.array(sample.centre)
+    centre = np.array(sample.centre)
 
     # Read the reconstruction file
     tomo_file = mrcfile.mmap(rec_filename)
     tomogram = tomo_file.data
 
     # Get the size of the volume
-    voxel_size = numpy.array(
+    voxel_size = np.array(
         (
             tomo_file.voxel_size["x"],
             tomo_file.voxel_size["y"],
             tomo_file.voxel_size["z"],
         )
     )
-    size = numpy.array(tomogram.shape)[[2, 0, 1]] * voxel_size
+    size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
     assert sample.number_of_molecules == 1
@@ -173,8 +173,8 @@ def average_particles(
         )
 
         # Create the average array
-        half_1 = numpy.zeros(shape=(length, length, length), dtype="float32")
-        half_2 = numpy.zeros(shape=(length, length, length), dtype="float32")
+        half_1 = np.zeros(shape=(length, length, length), dtype="float32")
+        half_2 = np.zeros(shape=(length, length, length), dtype="float32")
         num_1 = 0
         num_2 = 0
 
@@ -187,7 +187,7 @@ def average_particles(
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            # start_position = numpy.array([0, scan["start_pos"], 0])
+            # start_position = np.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(
@@ -200,9 +200,9 @@ def average_particles(
             )
 
             # Set the region to extract
-            x0 = numpy.floor(p).astype("int32") - half_length
-            x1 = numpy.floor(p).astype("int32") + half_length
-            offset = p - numpy.floor(p).astype("int32")
+            x0 = np.floor(p).astype("int32") - half_length
+            x1 = np.floor(p).astype("int32") + half_length
+            offset = p - np.floor(p).astype("int32")
 
             # Get the sub tomogram
             print("Getting sub tomogram")
@@ -213,8 +213,8 @@ def average_particles(
                 data = sub_tomo
 
                 # Reorder input vectors
-                offset = numpy.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -numpy.array(orientation)[[1, 2, 0]]
+                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+                rotation = -np.array(orientation)[[1, 2, 0]]
                 rotation[1] = -rotation[1]
 
                 # Rotate the data
@@ -263,13 +263,13 @@ def average_all_particles(
     def rotate_array(data, rotation, offset):
 
         # Create the pixel indices
-        az = numpy.arange(data.shape[0])
-        ay = numpy.arange(data.shape[1])
-        ax = numpy.arange(data.shape[2])
-        x, y, z = numpy.meshgrid(az, ay, ax, indexing="ij")
+        az = np.arange(data.shape[0])
+        ay = np.arange(data.shape[1])
+        ax = np.arange(data.shape[2])
+        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
 
         # Create a stack of coordinates
-        xyz = numpy.vstack(
+        xyz = np.vstack(
             [
                 x.reshape(-1) - offset[0],
                 y.reshape(-1) - offset[1],
@@ -301,21 +301,21 @@ def average_all_particles(
     sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
-    centre = numpy.array(sample.centre)
+    centre = np.array(sample.centre)
 
     # Read the reconstruction file
     tomo_file = mrcfile.mmap(rec_filename)
     tomogram = tomo_file.data
 
     # Get the size of the volume
-    voxel_size = numpy.array(
+    voxel_size = np.array(
         (
             tomo_file.voxel_size["x"],
             tomo_file.voxel_size["y"],
             tomo_file.voxel_size["z"],
         )
     )
-    size = numpy.array(tomogram.shape)[[2, 0, 1]] * voxel_size
+    size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
     assert sample.number_of_molecules == 1
@@ -348,7 +348,7 @@ def average_all_particles(
         )
 
         # Create the average array
-        average = numpy.zeros(shape=(length, length, length), dtype="float32")
+        average = np.zeros(shape=(length, length, length), dtype="float32")
         num = 0
 
         # Sort the positions and orientations by y
@@ -360,7 +360,7 @@ def average_all_particles(
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            start_position = numpy.array([0, scan["start_pos"], 0])
+            start_position = np.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(
@@ -373,9 +373,9 @@ def average_all_particles(
             )
 
             # Set the region to extract
-            x0 = numpy.floor(p).astype("int32") - half_length
-            x1 = numpy.floor(p).astype("int32") + half_length
-            offset = p - numpy.floor(p).astype("int32")
+            x0 = np.floor(p).astype("int32") - half_length
+            x1 = np.floor(p).astype("int32") + half_length
+            offset = p - np.floor(p).astype("int32")
 
             # Get the sub tomogram
             print("Getting sub tomogram")
@@ -386,8 +386,8 @@ def average_all_particles(
                 data = sub_tomo
 
                 # Reorder input vectors
-                offset = numpy.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -numpy.array(orientation)[[1, 2, 0]]
+                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+                rotation = -np.array(orientation)[[1, 2, 0]]
                 rotation[1] = -rotation[1]
 
                 # Rotate the data
@@ -425,13 +425,13 @@ def extract_particles(
     def rotate_array(data, rotation, offset):
 
         # Create the pixel indices
-        az = numpy.arange(data.shape[0])
-        ay = numpy.arange(data.shape[1])
-        ax = numpy.arange(data.shape[2])
-        x, y, z = numpy.meshgrid(az, ay, ax, indexing="ij")
+        az = np.arange(data.shape[0])
+        ay = np.arange(data.shape[1])
+        ax = np.arange(data.shape[2])
+        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
 
         # Create a stack of coordinates
-        xyz = numpy.vstack(
+        xyz = np.vstack(
             [
                 x.reshape(-1) - offset[0],
                 y.reshape(-1) - offset[1],
@@ -463,21 +463,21 @@ def extract_particles(
     sample = parakeet.sample.load(sample_filename)
 
     # Get the sample centre
-    centre = numpy.array(sample.centre)
+    centre = np.array(sample.centre)
 
     # Read the reconstruction file
     tomo_file = mrcfile.mmap(rec_filename)
     tomogram = tomo_file.data
 
     # Get the size of the volume
-    voxel_size = numpy.array(
+    voxel_size = np.array(
         (
             tomo_file.voxel_size["x"],
             tomo_file.voxel_size["y"],
             tomo_file.voxel_size["z"],
         )
     )
-    size = numpy.array(tomogram.shape)[[2, 0, 1]] * voxel_size
+    size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
     assert sample.number_of_molecules == 1
@@ -511,7 +511,7 @@ def extract_particles(
 
         # Create the average array
         extract_map = []
-        particle_instance = numpy.zeros(shape=(length, length, length), dtype="float32")
+        particle_instance = np.zeros(shape=(length, length, length), dtype="float32")
         num = 0
 
         # Sort the positions and orientations by y
@@ -523,7 +523,7 @@ def extract_particles(
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            start_position = numpy.array([0, scan["start_pos"], 0])
+            start_position = np.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(
@@ -536,9 +536,9 @@ def extract_particles(
             )
 
             # Set the region to extract
-            x0 = numpy.floor(p).astype("int32") - half_length
-            x1 = numpy.floor(p).astype("int32") + half_length
-            offset = p - numpy.floor(p).astype("int32")
+            x0 = np.floor(p).astype("int32") - half_length
+            x1 = np.floor(p).astype("int32") + half_length
+            offset = p - np.floor(p).astype("int32")
 
             # Get the sub tomogram
             print("Getting sub tomogram")
@@ -549,8 +549,8 @@ def extract_particles(
                 data = sub_tomo
 
                 # Reorder input vectors
-                offset = numpy.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -numpy.array(orientation)[[1, 2, 0]]
+                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+                rotation = -np.array(orientation)[[1, 2, 0]]
                 rotation[1] = -rotation[1]
 
                 # Rotate the data
@@ -564,7 +564,7 @@ def extract_particles(
 
         # Average the sub tomograms
         print("Extracting %d particles" % num)
-        extract_map = numpy.array(extract_map)
+        extract_map = np.array(extract_map)
 
         # from matplotlib import pylab
         # pylab.imshow(average[half_length, :, :])

@@ -12,7 +12,7 @@ from collections import defaultdict
 import h5py
 import gemmi
 import logging
-import numpy
+import numpy as np
 import pandas
 import scipy.constants
 import time
@@ -26,7 +26,7 @@ try:
 except ImportError:
     pass
 
-# numpy.random.seed(0)
+# np.random.seed(0)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ def translate(atom_data, translation):
 
     """
     coords = atom_data[["x", "y", "z"]].to_numpy()
-    coords += numpy.array(translation, dtype=coords.dtype)
+    coords += np.array(translation, dtype=coords.dtype)
     return atom_data.assign(x=coords[:, 0], y=coords[:, 1], z=coords[:, 2])
 
 
@@ -93,7 +93,7 @@ def recentre(atom_data, position=None):
 
     # Compute the translation
     translation = (
-        numpy.array(position, dtype=coords.dtype)
+        np.array(position, dtype=coords.dtype)
         - (coords.max(axis=0) + coords.min(axis=0)) / 2.0
     )
 
@@ -133,15 +133,15 @@ def random_uniform_rotation(size=1):
         vector: The rotation vector
 
     """
-    u1 = numpy.random.uniform(0, 1, size=size)
-    u2 = numpy.random.uniform(0, 1, size=size)
-    u3 = numpy.random.uniform(0, 1, size=size)
-    theta = numpy.arccos(2 * u1 - 1)
+    u1 = np.random.uniform(0, 1, size=size)
+    u2 = np.random.uniform(0, 1, size=size)
+    u3 = np.random.uniform(0, 1, size=size)
+    theta = np.arccos(2 * u1 - 1)
     phi = 2 * pi * u2
-    x = numpy.sin(theta) * numpy.cos(phi)
-    y = numpy.sin(theta) * numpy.sin(phi)
-    z = numpy.cos(theta)
-    vector = numpy.array((x, y, z)).T
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
+    vector = np.array((x, y, z)).T
     vector *= 2 * pi * u3.reshape((u3.size, 1))
     return vector
 
@@ -161,8 +161,8 @@ def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
     """
 
     # Cast to numpy array
-    volume_lower, volume_upper = numpy.array(volume_box)
-    boxes = numpy.array(boxes)
+    volume_lower, volume_upper = np.array(volume_box)
+    boxes = np.array(boxes)
 
     # Check if the cube overlaps with any other
     def overlapping(positions, box_sizes, q, q_size):
@@ -197,7 +197,7 @@ def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
         # Try to add the box
         num_tries = 0
         while True:
-            q = numpy.random.uniform(lower, upper)
+            q = np.random.uniform(lower, upper)
             if len(positions) == 0 or not overlapping(
                 positions, box_sizes, q, box_size
             ):
@@ -238,11 +238,11 @@ def shape_bounding_box(centre, shape):
 
     def cylinder_bounding_box(cylinder):
         length = cylinder["length"]
-        radius = numpy.mean(cylinder["radius"])
+        radius = np.mean(cylinder["radius"])
         return ((0, 0, 0), (2 * radius, length, 2 * radius))
 
     # The bounding box
-    x0, x1 = numpy.array(
+    x0, x1 = np.array(
         {
             "cube": cube_bounding_box,
             "cuboid": cuboid_bounding_box,
@@ -321,14 +321,14 @@ def shape_enclosed_box(centre, shape):
 
     def cylinder_enclosed_box(cylinder):
         length = cylinder["length"]
-        radius = numpy.mean(cylinder["radius"])
+        radius = np.mean(cylinder["radius"])
         return (
             (radius * (1 - 1 / sqrt(2)), 0, radius * (1 - 1 / sqrt(2))),
             (radius * (1 + 1 / sqrt(2)), length, radius * (1 + 1 / sqrt(2))),
         )
 
     # The enclosed box
-    x0, x1 = numpy.array(
+    x0, x1 = np.array(
         {
             "cube": cube_enclosed_box,
             "cuboid": cuboid_enclosed_box,
@@ -340,7 +340,7 @@ def shape_enclosed_box(centre, shape):
     offset = centre - (x1 + x0) / 2.0
 
     # The margin
-    margin = numpy.array(shape.get("margin", (0, 0, 0)))
+    margin = np.array(shape.get("margin", (0, 0, 0)))
 
     # Return the bounding box
     return (x0 + offset + margin, x1 + offset - margin)
@@ -414,7 +414,7 @@ def is_box_inside_shape(box, centre, shape):
 
     def is_box_inside_cylinder(x0, x1, centre, cylinder):
         length = cylinder["length"]
-        radius = numpy.mean(cylinder["radius"])
+        radius = np.mean(cylinder["radius"])
         return (
             (x0[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
             and (x1[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
@@ -505,7 +505,7 @@ class AtomData(object):
         """
         if len(self.data) > 0:
             coords = self.data[["x", "y", "z"]].to_numpy()
-            coords += numpy.array(translation, dtype=coords.dtype)
+            coords += np.array(translation, dtype=coords.dtype)
             self.data["x"] = coords[:, 0]
             self.data["y"] = coords[:, 1]
             self.data["z"] = coords[:, 2]
@@ -819,7 +819,7 @@ class SampleHDF5Adapter(object):
             """
             for key in self.keys():
                 x, y, z = [int(k.split("=")[1]) for k in key.split(";")]
-                yield key, numpy.array((x, y, z))
+                yield key, np.array((x, y, z))
 
         def number_of_atoms(self):
             """
@@ -1008,7 +1008,7 @@ class SampleHDF5Adapter(object):
 
             """
             if "bounding_box" not in self.__handle:
-                return numpy.zeros(shape=(2, 3), dtype="float32")
+                return np.zeros(shape=(2, 3), dtype="float32")
             return self.__handle["bounding_box"][:]
 
         @bounding_box.setter
@@ -1029,7 +1029,7 @@ class SampleHDF5Adapter(object):
 
             """
             if "containing_box" not in self.__handle:
-                return numpy.zeros(shape=(2, 3), dtype="float32")
+                return np.zeros(shape=(2, 3), dtype="float32")
             return self.__handle["containing_box"][:]
 
         @containing_box.setter
@@ -1052,7 +1052,7 @@ class SampleHDF5Adapter(object):
 
             """
             if "centre" not in self.__handle:
-                return numpy.zeros(shape=(3,), dtype="float32")
+                return np.zeros(shape=(3,), dtype="float32")
             return self.__handle["centre"][:]
 
         @centre.setter
@@ -1186,16 +1186,12 @@ class Sample(object):
             tuple: The coordinates of the sub ranges
 
         """
-        x0 = (numpy.floor(numpy.array(x0) / float(self.step)) * self.step).astype(
-            "int32"
-        )
-        x1 = (numpy.ceil(numpy.array(x1) / float(self.step)) * self.step).astype(
-            "int32"
-        )
+        x0 = (np.floor(np.array(x0) / float(self.step)) * self.step).astype("int32")
+        x1 = (np.ceil(np.array(x1) / float(self.step)) * self.step).astype("int32")
         for z in range(x0[2], x1[2], self.step):
             for y in range(x0[1], x1[1], self.step):
                 for x in range(x0[0], x1[0], self.step):
-                    c = numpy.array((x, y, z))
+                    c = np.array((x, y, z))
                     yield c, c + self.step
 
     def atoms_dataset_range_3d(self, x0, x1):
@@ -1210,15 +1206,11 @@ class Sample(object):
             tuple: The coordinates of the sub ranges
 
         """
-        x0 = (numpy.floor(numpy.array(x0) / float(self.step)) * self.step).astype(
-            "int32"
-        )
-        x1 = (numpy.ceil(numpy.array(x1) / float(self.step)) * self.step).astype(
-            "int32"
-        )
-        shape = numpy.floor((x1 - x0) / self.step).astype("int32")
-        X, Y, Z = numpy.mgrid[0 : shape[0], 0 : shape[1], 0 : shape[2]]
-        indices = numpy.vstack((X.flatten(), Y.flatten(), Z.flatten())).T
+        x0 = (np.floor(np.array(x0) / float(self.step)) * self.step).astype("int32")
+        x1 = (np.ceil(np.array(x1) / float(self.step)) * self.step).astype("int32")
+        shape = np.floor((x1 - x0) / self.step).astype("int32")
+        X, Y, Z = np.mgrid[0 : shape[0], 0 : shape[1], 0 : shape[2]]
+        indices = np.vstack((X.flatten(), Y.flatten(), Z.flatten())).T
         return indices, x0 + indices * self.step
 
     @property
@@ -1276,18 +1268,18 @@ class Sample(object):
         )
 
         # Compute the index of each coordinate
-        index = numpy.floor((coords - x_min[0]) / self.step).astype("int32")
-        size = numpy.max(grid_index, axis=0) + 1
+        index = np.floor((coords - x_min[0]) / self.step).astype("int32")
+        size = np.max(grid_index, axis=0) + 1
         index = index[:, 2] + index[:, 1] * size[2] + index[:, 0] * size[2] * size[1]
 
         # Create an index list for each subgroup by splitting the sorted indices
-        sorted_index = numpy.argsort(index)
-        split_index, splits = numpy.unique(index[sorted_index], return_index=True)
-        index_list = numpy.split(sorted_index, splits[1:])
+        sorted_index = np.argsort(index)
+        split_index, splits = np.unique(index[sorted_index], return_index=True)
+        index_list = np.split(sorted_index, splits[1:])
 
         # Ensure the number is correct
         assert sum(map(len, index_list)) == atoms.data.shape[0]
-        # assert numpy.max(split_index) < len(x_min)
+        # assert np.max(split_index) < len(x_min)
 
         # Add the atoms to the subgroups
         for i in range(len(split_index)):
@@ -1329,8 +1321,8 @@ class Sample(object):
         """
 
         # Convert to numpy arrays
-        positions = numpy.array(positions, dtype="float32")
-        orientations = numpy.array(orientations, dtype="float32")
+        positions = np.array(positions, dtype="float32")
+        orientations = np.array(orientations, dtype="float32")
         assert positions.shape == orientations.shape
         assert len(positions.shape) == 2
         assert positions.shape[1] == 3
@@ -1578,8 +1570,8 @@ class Sample(object):
         """
 
         # Cast input
-        x0 = numpy.array(x0)
-        x1 = numpy.array(x1)
+        x0 = np.array(x0)
+        x1 = np.array(x1)
 
         # Check input
         assert (x0 < x1).all()
@@ -1610,8 +1602,8 @@ class Sample(object):
         """
 
         # Cast input
-        x0 = numpy.array(x0)
-        x1 = numpy.array(x1)
+        x0 = np.array(x0)
+        x1 = np.array(x1)
 
         # Check input
         assert (x0 < x1).all()
@@ -1733,7 +1725,7 @@ class AtomSliceExtractor(object):
             xmax = xmin + self.sample.step
 
             # The coordinates of the corners of the group
-            y = numpy.array(
+            y = np.array(
                 [
                     (xmin[0], xmin[1], xmin[2]),
                     (xmin[0], xmin[1], xmax[2]),
@@ -1757,9 +1749,9 @@ class AtomSliceExtractor(object):
 
         # Compute the min and max coordinates of all the rotated groups and
         # compute the number of slices we will have
-        group_coords = numpy.array(group_coords)
-        min_x = numpy.min(group_coords.reshape((-1, 3)), axis=0)
-        max_x = numpy.max(group_coords.reshape((-1, 3)), axis=0)
+        group_coords = np.array(group_coords)
+        min_x = np.min(group_coords.reshape((-1, 3)), axis=0)
+        max_x = np.max(group_coords.reshape((-1, 3)), axis=0)
         self.min_z = max(0, min_x[2])
         self.max_z = max_x[2]
         num_slices = ceil((self.max_z - self.min_z) / self.thickness)
@@ -1770,8 +1762,8 @@ class AtomSliceExtractor(object):
         # of the group to the list of groups in that slice.
         self.__groups_in_slice = defaultdict(list)
         for name, group in zip(group_names, group_coords):
-            min_x = numpy.min(group, axis=0)
-            max_x = numpy.max(group, axis=0)
+            min_x = np.min(group, axis=0)
+            max_x = np.max(group, axis=0)
             for i in range(num_slices):
                 z0 = self.min_z + i * thickness
                 z1 = self.min_z + (i + 1) * thickness
@@ -1877,8 +1869,8 @@ class AtomDeleter(object):
 
         # The min and max coordinates
         border = 1  # A
-        self.x0 = numpy.floor(numpy.min(coords, axis=0)) - border
-        self.x1 = numpy.ceil(numpy.max(coords, axis=0)) + border
+        self.x0 = np.floor(np.min(coords, axis=0)) - border
+        self.x1 = np.ceil(np.max(coords, axis=0)) + border
 
         # The size of the box in A
         self.size = self.x1 - self.x0
@@ -1890,13 +1882,13 @@ class AtomDeleter(object):
         )  # The distance at which to delete atoms
 
         # The dimensions of the grid
-        grid_shape = numpy.ceil(self.size / self.grid_cell_size).astype("uint32")
+        grid_shape = np.ceil(self.size / self.grid_cell_size).astype("uint32")
 
         # Allocate the grid
-        self.grid = numpy.ones(shape=grid_shape, dtype="bool")
+        self.grid = np.ones(shape=grid_shape, dtype="bool")
         # self.grid = ~self.grid
-        # X, Y, Z = numpy.mgrid[0:grid_shape[0],0:grid_shape[1],0:grid_shape[2]]
-        # R = numpy.sqrt((X-grid_shape[0]/2)**2+(Y-grid_shape[1]/2)**2+(Z-grid_shape[2]/2)**2)
+        # X, Y, Z = np.mgrid[0:grid_shape[0],0:grid_shape[1],0:grid_shape[2]]
+        # R = np.sqrt((X-grid_shape[0]/2)**2+(Y-grid_shape[1]/2)**2+(Z-grid_shape[2]/2)**2)
         # r = abs(self.x0[0] - self.x1[0])
         # print(R.max(), grid_shape[0]/2.0)
         # self.grid = R < (grid_shape[0]/2.0)
@@ -1908,7 +1900,7 @@ class AtomDeleter(object):
         # to False then compute the distance and then set any nodes within a
         # given distance to True. So the mask is True where we want to delete
         # atoms.
-        indices = numpy.floor((coords - self.x0) / self.grid_cell_size).astype("int32")
+        indices = np.floor((coords - self.x0) / self.grid_cell_size).astype("int32")
         index_x = indices[:, 0]
         index_y = indices[:, 1]
         index_z = indices[:, 2]
@@ -1937,7 +1929,7 @@ class AtomDeleter(object):
         # logger.info("    y1: %g" % self.x1[1])
         # logger.info("    z1: %g" % self.x1[2])
         # logger.info("    num elements: %d" % self.grid.size)
-        # logger.info("    num filled: %d" % numpy.count_nonzero(self.grid))
+        # logger.info("    num filled: %d" % np.count_nonzero(self.grid))
 
     def __call__(self, atoms):
         """
@@ -1956,7 +1948,7 @@ class AtomDeleter(object):
 
         # Compute the indices
         indices = (
-            numpy.floor((coords - self.x0) / self.grid_cell_size)
+            np.floor((coords - self.x0) / self.grid_cell_size)
             .astype("int32")
             .to_numpy()
         )
@@ -1964,7 +1956,7 @@ class AtomDeleter(object):
         inside_grid = ((indices >= 0) & (indices < self.grid.shape)).all(axis=1)
 
         # The selection
-        selection = numpy.zeros(shape=coords.shape[0], dtype="bool")
+        selection = np.zeros(shape=coords.shape[0], dtype="bool")
         selection[~inside_grid] = True
 
         # Compute the selection
@@ -1977,7 +1969,7 @@ class AtomDeleter(object):
         # Print some info
         logger.info(
             "Deleted %d/%d atoms"
-            % (len(selection) - numpy.count_nonzero(selection), coords.shape[0])
+            % (len(selection) - np.count_nonzero(selection), coords.shape[0])
         )
 
         # Return the atoms
@@ -2024,7 +2016,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             length_x = cuboid["length_x"]
             length_y = cuboid["length_y"]
             length_z = cuboid["length_z"]
-            length = numpy.array((length_x, length_y, length_z))
+            length = np.array((length_x, length_y, length_z))
             x0 = centre - length / 2.0
             x1 = centre + length / 2.0
             return coords[((coords >= x0) & (coords < x1)).all(axis=1)]
@@ -2051,7 +2043,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         }[shape["type"]](coords, centre, shape[shape["type"]])
 
     # Cast input
-    centre = numpy.array(centre)
+    centre = np.array(centre)
 
     # Get the filename of the water.cif file
     filename = parakeet.data.get_path("water.cif")
@@ -2089,7 +2081,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     offset_x = centre_x - length_x / 2.0
     offset_y = centre_y - length_y / 2.0
     offset_z = centre_z - length_z / 2.0
-    offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
+    offset = np.array((offset_x, offset_y, offset_z), dtype="float32")
 
     # Determine the number of waters to place
     avogadros_number = scipy.constants.Avogadro
@@ -2116,24 +2108,16 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
 
         # Translation
         if shape["type"] != "cylinder":
-            x = numpy.random.uniform(
-                offset_x, offset_x + length_x, size=number_of_waters
-            )
-            y = numpy.random.uniform(
-                offset_y, offset_y + length_y, size=number_of_waters
-            )
-            z = numpy.random.uniform(
-                offset_z, offset_z + length_z, size=number_of_waters
-            )
+            x = np.random.uniform(offset_x, offset_x + length_x, size=number_of_waters)
+            y = np.random.uniform(offset_y, offset_y + length_y, size=number_of_waters)
+            z = np.random.uniform(offset_z, offset_z + length_z, size=number_of_waters)
         else:
-            r = radius * numpy.sqrt(numpy.random.uniform(0, 1, size=number_of_waters))
-            t = numpy.random.uniform(0, 2 * pi, size=number_of_waters)
-            x = centre_x + r * numpy.cos(t)
-            y = numpy.random.uniform(
-                offset_y, offset_y + length_z, size=number_of_waters
-            )
-            z = centre_z + r * numpy.sin(t)
-        translation = numpy.array((x, y, z)).T
+            r = radius * np.sqrt(np.random.uniform(0, 1, size=number_of_waters))
+            t = np.random.uniform(0, 2 * pi, size=number_of_waters)
+            x = centre_x + r * np.cos(t)
+            y = np.random.uniform(offset_y, offset_y + length_z, size=number_of_waters)
+            z = centre_z + r * np.sin(t)
+        translation = np.array((x, y, z)).T
 
         # Random orientations
         rotation = Rotation.from_rotvec(random_uniform_rotation(number_of_waters))
@@ -2148,7 +2132,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             # Create a new array
             def new_array(size, name, value):
                 return (
-                    numpy.zeros(
+                    np.zeros(
                         shape=(size,), dtype=parakeet.sample.AtomData.column_data[name]
                     )
                     + value
@@ -2237,7 +2221,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             coords = []
             for node in x_slice:
                 coords.extend(node)
-            coords = numpy.flip(numpy.array(coords, dtype="float32"), axis=1) + offset
+            coords = np.flip(np.array(coords, dtype="float32"), axis=1) + offset
 
             # Filter the coordinates by the shape to ensure no ice is outside the
             # shape. This is only really necessary for the cylinder shape
@@ -2256,7 +2240,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
                 # Create a new array
                 def new_array(size, name, value):
                     return (
-                        numpy.zeros(shape=(size,), dtype=AtomData.column_data[name])
+                        np.zeros(shape=(size,), dtype=AtomData.column_data[name])
                         + value
                     )
 
@@ -2402,8 +2386,8 @@ def add_single_molecule(sample, name):
 
     # Get atom data bounds
     coords = atoms.data[["x", "y", "z"]]
-    x0 = numpy.min(coords, axis=0) + sample.centre
-    x1 = numpy.max(coords, axis=0) + sample.centre
+    x0 = np.min(coords, axis=0) + sample.centre
+    x1 = np.max(coords, axis=0) + sample.centre
 
     # Check the coords
     assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
@@ -2493,7 +2477,7 @@ def add_multiple_molecules(sample, molecules):
             coords = rotation.apply(atoms.data[["x", "y", "z"]])
             all_orientations.append(rotation.as_rotvec())
             all_positions.append(item.get("position", None))
-            all_boxes.append(numpy.max(coords, axis=0) - numpy.min(coords, axis=0))
+            all_boxes.append(np.max(coords, axis=0) - np.min(coords, axis=0))
             all_labels.append(name)
 
     # Put the molecules in the sample
@@ -2605,7 +2589,7 @@ def mill(filename, box=None, centre=None, shape=None, **kwargs):
             length_x = cuboid["length_x"]
             length_y = cuboid["length_y"]
             length_z = cuboid["length_z"]
-            length = numpy.array((length_x, length_y, length_z))
+            length = np.array((length_x, length_y, length_z))
             x0 = centre - length / 2.0
             x1 = centre + length / 2.0
             return ((coords >= x0) & (coords < x1)).all(axis=1)
@@ -2751,28 +2735,28 @@ def sputter(filename, element=None, thickness=20):
     offset_x = centre_x - length_x / 2.0
     offset_y = centre_y - length_y / 2.0
     offset_z = centre_z - length_z / 2.0
-    # offset = numpy.array((offset_x, offset_y, offset_z), dtype="float32")
+    # offset = np.array((offset_x, offset_y, offset_z), dtype="float32")
 
     # Translation
     if shape["type"] != "cylinder":
         # Generate positions in the thickness range
         volume = length_x * length_y * thickness
         number_of_atoms = int(number_density * volume)
-        x = numpy.random.uniform(offset_x, offset_x + length_x, size=number_of_atoms)
-        y = numpy.random.uniform(offset_y, offset_y + length_y, size=number_of_atoms)
-        z = numpy.random.uniform(offset_z - thickness, offset_z, size=number_of_atoms)
+        x = np.random.uniform(offset_x, offset_x + length_x, size=number_of_atoms)
+        y = np.random.uniform(offset_y, offset_y + length_y, size=number_of_atoms)
+        z = np.random.uniform(offset_z - thickness, offset_z, size=number_of_atoms)
         print("Placed %d atoms" % number_of_atoms)
         print("WARNING - ONLY APPLYING TO TOP OF SAMPLE")
     else:
         raise RuntimeError("Not implemented")
-    position = numpy.array((x, y, z)).T
+    position = np.array((x, y, z)).T
 
     def create_atom_data(atomic_number, coords):
 
         # Create a new array
         def new_array(size, name, value):
             return (
-                numpy.zeros(
+                np.zeros(
                     shape=(size,), dtype=parakeet.sample.AtomData.column_data[name]
                 )
                 + value

@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import numpy
+import numpy as np
 import scipy.interpolate
 
 
@@ -25,13 +25,13 @@ class DQETable(object):
         """
 
         # The spatial frequency
-        self.spatial_freq = numpy.arange(65) / (65.0 - 1.0)
+        self.spatial_freq = np.arange(65) / (65.0 - 1.0)
 
         # The electrons per second
-        self.eps = numpy.array((1.5, 5))
+        self.eps = np.array((1.5, 5))
 
         # The DQE, shape = (spatial_freq, eps)
-        self.dqe_300kev = numpy.array(
+        self.dqe_300kev = np.array(
             [
                 (0.95, 0.8),
                 (0.947707152938843, 0.795177001953125),
@@ -108,8 +108,8 @@ class DQETable(object):
         """
         table = []
         for i in range(self.dqe_300kev.shape[0]):
-            table.append(numpy.interp(eps, self.eps, self.dqe_300kev[i, :]))
-        return numpy.array(table)
+            table.append(np.interp(eps, self.eps, self.dqe_300kev[i, :]))
+        return np.array(table)
 
     def dqe_fs(self, energy, eps, shape):
         """
@@ -121,8 +121,8 @@ class DQETable(object):
         dqe_table = self.dqe_table(energy, eps)
 
         # Compute the spatial frequencies (in terms of nyquist)
-        Y, X = numpy.mgrid[0 : shape[0], 0 : shape[1]]
-        F = numpy.sqrt(
+        Y, X = np.mgrid[0 : shape[0], 0 : shape[1]]
+        F = np.sqrt(
             ((Y - shape[0] // 2) / shape[0]) ** 2
             + ((X - shape[1] // 2) / shape[1]) ** 2
         )

@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import os
 import pytest
 import parakeet.sample
@@ -33,8 +33,8 @@ def test_translate(atom_data_4v5d):
     coords = data[["x", "y", "z"]].to_numpy()
     x10 = coords.min(axis=0)
     x11 = coords.max(axis=0)
-    numpy.testing.assert_allclose(x10, x00 + (1, 2, 3))
-    numpy.testing.assert_allclose(x11, x01 + (1, 2, 3))
+    np.testing.assert_allclose(x10, x00 + (1, 2, 3))
+    np.testing.assert_allclose(x11, x01 + (1, 2, 3))
 
     # Check dtypes
     for name, dtype in parakeet.sample.AtomData.column_data.items():
@@ -46,7 +46,7 @@ def test_recentre(atom_data_4v5d):
     coords = data[["x", "y", "z"]]
     x0 = coords.min()
     x1 = coords.max()
-    numpy.testing.assert_allclose((x1 + x0) / 2.0, (0, 0, 0))
+    np.testing.assert_allclose((x1 + x0) / 2.0, (0, 0, 0))
 
     # Check dtypes
     for name, dtype in parakeet.sample.AtomData.column_data.items():
@@ -239,8 +239,8 @@ def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
     my_molecule.positions = positions
     my_molecule.orientations = orientations
     assert my_molecule.atoms.equals(atom_data_4v5d.data)
-    assert (my_molecule.positions == numpy.array(positions)).all()
-    assert (my_molecule.orientations == numpy.array(orientations)).all()
+    assert (my_molecule.positions == np.array(positions)).all()
+    assert (my_molecule.orientations == np.array(orientations)).all()
     assert len(molecules) == 1
 
     # Test atoms
