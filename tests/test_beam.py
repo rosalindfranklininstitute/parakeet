@@ -1,40 +1,19 @@
-import numpy
-import pytest
-import parakeet.scan
+import parakeet.beam
 
 
-def test_still():
-    scan = parakeet.scan.new(mode="still")
-    assert scan.axis == (0, 1, 0)
-    assert scan.angles == [0]
-    assert scan.positions == [0]
+def test_beam():
 
-
-def test_tilt_series():
-    scan = parakeet.scan.new(
-        mode="tilt_series", axis=(1, 2, 3), start_angle=0, num_images=8, step_angle=45
+    beam = parakeet.beam.new(
+        energy=300,
+        energy_spread=1,
+        acceleration_voltage_spread=2,
+        source_spread=0.1,
+        electrons_per_angstrom=30,
+        drift=None,
     )
-    assert scan.axis == (1, 2, 3)
-    assert numpy.all(numpy.equal(scan.angles, [0, 45, 90, 135, 180, 225, 270, 315]))
-    assert numpy.all(numpy.equal(scan.positions, [0, 0, 0, 0, 0, 0, 0, 0]))
 
-
-def test_helical_scan():
-    scan = parakeet.scan.new(
-        mode="helical_scan",
-        axis=(1, 2, 3),
-        start_angle=0,
-        num_images=8,
-        step_angle=45,
-        start_pos=0,
-        step_pos=10,
-    )
-    assert scan.axis == (1, 2, 3)
-    assert numpy.all(numpy.equal(scan.angles, [0, 45, 90, 135, 180, 225, 270, 315]))
-    assert numpy.all(numpy.equal(scan.positions, [0, 10, 20, 30, 40, 50, 60, 70]))
-
-
-def test_unknown():
-
-    with pytest.raises(RuntimeError):
-        scan = parakeet.scan.new("unknown")
+    assert beam.energy == 300
+    assert beam.energy_spread == 1
+    assert beam.acceleration_voltage_spread == 2
+    assert beam.source_spread == 0.1
+    assert beam.electrons_per_angstrom == 30
