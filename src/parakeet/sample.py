@@ -92,10 +92,7 @@ def recentre(atom_data, position=None):
     coords = atom_data[["x", "y", "z"]].to_numpy()
 
     # Compute the translation
-    translation = (
-        np.array(position, dtype=coords.dtype)
-        - (coords.max(axis=0) + coords.min(axis=0)) / 2.0
-    )
+    translation = np.array(position, dtype=coords.dtype) - coords.mean(axis=0)
 
     # Do the translation
     return translate(atom_data, translation)
