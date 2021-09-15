@@ -233,8 +233,6 @@ def exit_wave(args=None):
         radius = sample.shape_radius
         config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
     scan = parakeet.scan.new(**config["scan"])
-    if scan.positions[-1] > sample.containing_box[1][1]:
-        raise RuntimeError("Scan goes beyond sample containing box")
 
     # Create the simulation
     simulation = parakeet.simulation.exit_wave(

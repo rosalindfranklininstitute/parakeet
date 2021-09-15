@@ -151,6 +151,8 @@ class MrcFileWriter(Writer):
                     self.handle.extended_header[j]["Shift X"] = d
                 elif i == 1:
                     self.handle.extended_header[j]["Shift Y"] = d
+                elif i == 2:
+                    self.handle.extended_header[j]["Z-Stage"] = d
 
             # Get the indices from the item
             x = self.x[item]
@@ -543,47 +545,6 @@ class Reader(object):
             step = 1
         else:
             step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
-        # assert all(
-        #     abs((b - a) - step) < tol for a, b in zip(self.angle[0:-1], self.angle[1:])
-        # )
-        return step
-
-    @property
-    def start_position(self):
-        """
-        Returns:
-            float: the start position
-
-        """
-        return self.position[0][1]
-
-    @property
-    def stop_position(self):
-        """
-        Returns:
-            float: The stop position
-
-        """
-        return self.position[-1][1]
-
-    @property
-    def step_position(self):
-        """
-        Returns:
-            float: The stop position
-
-        """
-        tol = 1e-7
-        if self.position.shape[0] > 1:
-            step = (self.position[-1, 1] - self.position[0, 1]) / (
-                self.position.shape[0] - 1
-            )
-            assert all(
-                abs((b - a) - step) < tol
-                for a, b in zip(self.position[0:-1, 1], self.position[1:1])
-            )
-        else:
-            step = 0
         return step
 
     @property
@@ -624,7 +585,7 @@ class Reader(object):
             for i in range(handle.extended_header.shape[0]):
                 position[i, 0] = handle.extended_header[i]["Shift X"]
                 position[i, 1] = handle.extended_header[i]["Shift Y"]
-                position[i, 2] = 0
+                position[i, 2] = handle.extended_header[i]["Z-Stage"]
         else:
             angle = numpy.zeros(handle.data.shape[0], dtype=numpy.float32)
             position = numpy.zeros(shape=(handle.data.shape[0], 3), dtype=numpy.float32)

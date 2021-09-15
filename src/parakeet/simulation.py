@@ -283,7 +283,7 @@ class Simulation(object):
                 if writer:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
-                    writer.position[i] = (0, position, 0)
+                    writer.position[i] = position
                     if drift:
                         writer.drift[i] = drift
         else:
@@ -319,7 +319,7 @@ class Simulation(object):
                     if writer:
                         writer.data[i, :, :] = image
                         writer.angle[i] = angle
-                        writer.position[i] = (0, position, 0)
+                        writer.position[i] = position
                         if drift:
                             writer.drift[i] = drift
 

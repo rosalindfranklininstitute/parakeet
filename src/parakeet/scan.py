@@ -70,15 +70,15 @@ class SingleAxisScan(Scan):
         if axis is None:
             self.axis = np.array((0, 1, 0))
         else:
-            self.axis = axis
+            self.axis = np.array(axis)
         if angles is None:
             self.angles = np.array([0])
         else:
             self.angles = np.array(angles)
         if positions is None:
-            self.positions = np.zeros(shape=len(angles), dtype=np.float32)
+            self.positions = np.zeros(shape=(len(angles), 3), dtype=np.float32)
         else:
-            self.positions = np.array(positions)
+            self.positions = np.array([self.axis * p for p in positions])
         assert len(self.angles) == len(self.positions)
         self.exposure_time = exposure_time
 
@@ -133,7 +133,7 @@ class UniformAngularScan(Scan):
 
     @property
     def positions(self):
-        return np.zeros(self.n, dtype=np.float32)
+        return np.zeros(shape=(self.n, 3), dtype=np.float32)
 
     @property
     def exposure_times(self) -> np.ndarray:
