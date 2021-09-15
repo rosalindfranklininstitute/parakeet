@@ -1161,6 +1161,7 @@ class ImageSimulator(object):
         )
 
         # Compute the electrons per pixel second
+        print(self.scan.exposure_time)
         electrons_per_second = electrons_per_pixel / self.scan.exposure_time
         energy = self.microscope.beam.energy
 
