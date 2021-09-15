@@ -239,7 +239,7 @@ class Simulation(object):
         self.scan = scan
         self.cluster = cluster
         self.simulate_image = simulate_image
-        self.scan.poses.write_star_file('TEST_POSE_FILE.star')
+        self.scan.poses.write_star_file("TEST_POSE_FILE.star")
 
     @property
     def shape(self):
