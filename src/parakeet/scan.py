@@ -34,6 +34,14 @@ class Scan(ABC):
     def exposure_times(self) -> np.ndarray:
         pass
 
+    @property
+    def is_single_axis_scan(self):
+        return False
+
+    @property
+    def is_uniform_angular_scan(self):
+        return False
+
     def __len__(self) -> int:
         """
         The number of images to sample
@@ -81,7 +89,8 @@ class SingleAxisScan(Scan):
         angles = np.array(self.angles) * pi / 180.0
         orientations = np.array([axis * a for a in angles])
         orientations = R.from_rotvec(orientations).as_matrix()
-        return PoseSet(orientations, self.positions)
+        shifts = np.array([axis * p for p in self.positions])
+        return PoseSet(orientations, axis * shifts)
 
     @property
     def exposure_times(self):
@@ -91,6 +100,10 @@ class SingleAxisScan(Scan):
 
         """
         return np.ones(len(self)) * self.exposure_time
+
+    @property
+    def is_single_axis_scan(self):
+        return True
 
 
 class UniformAngularScan(Scan):
@@ -116,7 +129,7 @@ class UniformAngularScan(Scan):
 
     @property
     def angles(self) -> np.ndarray:
-        return np.linalg.norm(self.orientations.as_rotvec(), axis=1)
+        return np.linalg.norm(self.orientations.as_rotvec(), axis=1) * 180.0 / pi
 
     @property
     def positions(self):
@@ -130,6 +143,10 @@ class UniformAngularScan(Scan):
     def poses(self) -> PoseSet:
         # Create and return PoseSet object
         return PoseSet(self.orientations.as_matrix(), self.positions)
+
+    @property
+    def is_uniform_angular_scan(self):
+        return True
 
 
 def new(

@@ -67,12 +67,12 @@ class Writer(object):
         return self._position
 
     @property
-    def shift(self):
+    def drift(self):
         """
-        The shift property
+        The drift property
 
         """
-        return self._shift
+        return self._drift
 
     @property
     def pixel_size(self):
@@ -250,7 +250,7 @@ class NexusWriter(Writer):
 
         def __init__(self, handle):
             self.handle = handle
-            n = self.handle["x_shift"].shape[0]
+            n = self.handle["x_drift"].shape[0]
             self.x, self.y = numpy.meshgrid(numpy.arange(0, 2), numpy.arange(0, n))
 
         def __setitem__(self, item, data):
@@ -258,9 +258,9 @@ class NexusWriter(Writer):
             # Set the items
             def setitem_internal(j, i, d):
                 if i == 0:
-                    self.handle["x_shift"][j] = d
+                    self.handle["x_drift"][j] = d
                 elif i == 1:
-                    self.handle["y_shift"][j] = d
+                    self.handle["y_drift"][j] = d
 
             # Get the indices from the item
             x = self.x[item]
@@ -346,8 +346,8 @@ class NexusWriter(Writer):
         sample.create_dataset("x_translation", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("y_translation", shape=(shape[0],), dtype=numpy.float32)
         sample.create_dataset("z_translation", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("x_shift", shape=(shape[0],), dtype=numpy.float32)
-        sample.create_dataset("y_shift", shape=(shape[0],), dtype=numpy.float32)
+        sample.create_dataset("x_drift", shape=(shape[0],), dtype=numpy.float32)
+        sample.create_dataset("y_drift", shape=(shape[0],), dtype=numpy.float32)
 
         # Create the data
         data = entry.create_group("data")
@@ -356,15 +356,15 @@ class NexusWriter(Writer):
         data["x_translation"] = sample["x_translation"]
         data["y_translation"] = sample["y_translation"]
         data["z_translation"] = sample["z_translation"]
-        data["x_shift"] = sample["x_shift"]
-        data["y_shift"] = sample["y_shift"]
+        data["x_drift"] = sample["x_drift"]
+        data["y_drift"] = sample["y_drift"]
         data["image_key"] = detector["image_key"]
 
         # Set the data ptr
         self._data = data["data"]
         self._angle = data["rotation_angle"]
         self._position = NexusWriter.PositionProxy(data)
-        self._shift = NexusWriter.ShiftProxy(data)
+        self._drift = NexusWriter.ShiftProxy(data)
 
     @property
     def pixel_size(self):
