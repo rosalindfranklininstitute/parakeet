@@ -238,9 +238,11 @@ class Simulation(object):
         self.pixel_size = pixel_size
         self.image_size = image_size
         self.scan = scan
+        if scan.mode == 'single_particle':
+            self.scan.poses.write_star_file(self.scan.metadata_file)
         self.cluster = cluster
         self.simulate_image = simulate_image
-        self.scan.poses.write_star_file('TEST_POSE_FILE.star')
+
 
     @property
     def shape(self):
