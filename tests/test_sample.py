@@ -44,9 +44,8 @@ def test_translate(atom_data_4v5d):
 def test_recentre(atom_data_4v5d):
     data = parakeet.sample.recentre(atom_data_4v5d.data)
     coords = data[["x", "y", "z"]]
-    x0 = coords.min()
-    x1 = coords.max()
-    np.testing.assert_allclose((x1 + x0) / 2.0, (0, 0, 0))
+    xm = coords.mean()
+    np.testing.assert_allclose(xm, (0, 0, 0), atol=1e-5)
 
     # Check dtypes
     for name, dtype in parakeet.sample.AtomData.column_data.items():
