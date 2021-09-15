@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import pandas as pd
+import starfile
 
 
 class PoseSet:
@@ -53,3 +55,18 @@ class PoseSet:
                 "Number of orientations is different to the number of shifts."
             )
         return n_shifts
+
+    def write_star_file(self, output_file):
+        """Write a RELION format STAR file containing simulation metadata."""
+        relion_eulers = self.orientations.inv().as_euler('ZYZ', degrees=True)
+        relion_shifts = -self.shifts
+        data = {
+            'rlnAngleRot': relion_eulers[:, 0],
+            'rlnAngleTilt': relion_eulers[:, 1],
+            'rlnAnglePsi': relion_eulers[:, 2],
+            'rlnOriginX': relion_shifts[:, 0],
+            'rlnOriginY': relion_shifts[:, 1],
+            'rlnOriginZ': relion_shifts[:, 2]
+        }
+        df = pd.DataFrame.from_dict(data)
+        starfile.write(df, output_file, overwrite=True)

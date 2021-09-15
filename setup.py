@@ -72,6 +72,8 @@ def main():
             "python-multem",
             "scipy",
             "pyyaml",
+            "pandas",
+            "starfile",
         ],
         tests_require=tests_require,
         test_suite="tests",
