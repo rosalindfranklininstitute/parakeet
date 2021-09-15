@@ -652,7 +652,7 @@ class ExitWaveImageSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                Rotation.from_rotvec((0, angle * pi / 180, 0)).apply(
+                self.scan.angles[index].apply(
                     coords - self.sample.centre
                 )
                 + self.sample.centre
@@ -723,7 +723,8 @@ class ExitWaveImageSimulator(object):
 
             # Rotate
             origin = centre
-            masker.set_rotation(origin, (0, angle * pi / 180.0, 0))
+            # temporarily remove rotation
+            masker.set_rotation(origin, (0, 0, 0))
 
             # Run the simulation
             output_multislice = multem.simulate(system_conf, input_multislice, masker)
