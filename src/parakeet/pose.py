@@ -46,7 +46,7 @@ class PoseSet:
         The number of poses
 
         """
-        n_orientations = self.orientations.shape[0]
+        n_orientations = len(self.orientations)  # .shape[0]
         n_shifts = self.shifts.shape[0]
         if n_orientations != n_shifts:
             raise RuntimeError(

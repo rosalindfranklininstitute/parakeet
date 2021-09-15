@@ -11,7 +11,9 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+from math import pi
 from scipy.stats import special_ortho_group
+from scipy.spatial.transform import Rotation as R
 
 from parakeet.pose import PoseSet
 
@@ -33,7 +35,10 @@ class Scan(ABC):
         pass
 
     def __len__(self) -> int:
-        """The number of images to sample"""
+        """
+        The number of images to sample
+
+        """
         return len(self.poses)
 
 
@@ -55,28 +60,37 @@ class SingleAxisScan(Scan):
 
         """
         if axis is None:
-            self.axis = (0, 1, 0)
+            self.axis = np.array((0, 1, 0))
         else:
             self.axis = axis
         if angles is None:
-            self.angles = [0]
+            self.angles = np.array([0])
         else:
-            self.angles = angles
+            self.angles = np.array(angles)
         if positions is None:
             self.positions = np.zeros(shape=len(angles), dtype=np.float32)
         else:
-            self.positions = positions
+            self.positions = np.array(positions)
         assert len(self.angles) == len(self.positions)
         self.exposure_time = exposure_time
 
-    def __len__(self):
+    @property
+    def poses(self) -> PoseSet:
+        axis = np.array(self.axis)
+        axis = axis / np.linalg.norm(axis)
+        angles = np.array(self.angles) * pi / 180.0
+        orientations = np.array([axis * a for a in angles])
+        orientations = R.from_rotvec(orientations).as_matrix()
+        return PoseSet(orientations, self.positions)
+
+    @property
+    def exposure_times(self):
         """
         Returns:
-            int: The number of images in the scan
+            np.ndarray: The exposure times array
 
         """
-        assert len(self.angles) == len(self.positions)
-        return len(self.angles)
+        return np.ones(len(self)) * exposure_time
 
 
 class UniformAngularScan(Scan):
