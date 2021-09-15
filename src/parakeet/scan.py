@@ -90,7 +90,7 @@ class SingleAxisScan(Scan):
             np.ndarray: The exposure times array
 
         """
-        return np.ones(len(self)) * exposure_time
+        return np.ones(len(self)) * self.exposure_time
 
 
 class UniformAngularScan(Scan):
