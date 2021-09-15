@@ -112,13 +112,14 @@ class UniformAngularScan(Scan):
 
     """
 
-    def __init__(self, n: int):
+    def __init__(self, n: int, metadata_file: str = None):
         """
         Args:
             n (int): The number of uniform orientational samples
 
         """
         self.n = int(n)
+        self.metadata_file = metadata_file
 
         # Draw n uniform samples from SO(3)
         self.orientations = R.from_matrix(special_ortho_group.rvs(dim=3, size=self.n))
@@ -160,6 +161,7 @@ def new(
     step_pos=0,
     num_images=1,
     exposure_time=1,
+    metadata_file=None,
 ):
     """
     Create an scan
@@ -178,13 +180,15 @@ def new(
         step_pos (float): The step in position (A)
         num_images (int): The number of images
         exposure_time (float): The exposure time (seconds)
+        metadata_file (str): file in which to save experimental metadata
+                             !! only for single particle !!
 
     Returns:
         object: The scan object
 
     """
     if mode == "single_particle":
-        return UniformAngularScan(num_images)
+        return UniformAngularScan(n=num_images, metadata_file=metadata_file)
     if angles is None:
         if mode == "still":
             angles = [start_angle]
