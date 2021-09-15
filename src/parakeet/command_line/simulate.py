@@ -511,7 +511,6 @@ def image(args=None):
     config["scan"]["angles"] = optics.angle
     config["scan"]["positions"] = optics.position[:, 1]
     scan = parakeet.scan.new(**config["scan"])
-    scan.angles = [optics.angle[i] for i in range(optics.data.shape[0])]
 
     # Create the simulation
     simulation = parakeet.simulation.image(

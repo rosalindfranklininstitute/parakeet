@@ -125,7 +125,7 @@ class UniformAngularScan(Scan):
 
     @property
     def exposure_time(self) -> float:
-        1
+        return 1
 
     @property
     def angles(self) -> np.ndarray:

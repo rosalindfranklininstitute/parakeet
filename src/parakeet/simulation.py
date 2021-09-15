@@ -239,6 +239,7 @@ class Simulation(object):
         self.scan = scan
         self.cluster = cluster
         self.simulate_image = simulate_image
+        self.scan.poses.write_star_file('TEST_POSE_FILE.star')
 
     @property
     def shape(self):
@@ -1050,6 +1051,7 @@ class ImageSimulator(object):
         )
 
         # Compute the electrons per pixel second
+        print(self.scan.exposure_time)
         electrons_per_second = electrons_per_pixel / self.scan.exposure_time
         energy = self.microscope.beam.energy
 
