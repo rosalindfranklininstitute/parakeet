@@ -69,4 +69,4 @@ class PoseSet:
             "rlnOriginZ": relion_shifts[:, 2],
         }
         df = pd.DataFrame.from_dict(data)
-        starfile.write(df, output_file)
+        starfile.write(df, output_file, overwrite=True)
