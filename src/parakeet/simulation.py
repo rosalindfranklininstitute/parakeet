@@ -420,7 +420,6 @@ class ProjectedPotentialSimulator(object):
                 self.scan.poses.orientations[index].apply(coords - self.sample.centre)
                 + self.sample.centre
                 - self.scan.poses.shifts[index]
-                + np.array([driftx, drifty, 0])
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
