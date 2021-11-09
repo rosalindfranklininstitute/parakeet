@@ -155,7 +155,7 @@ def create_input_multislice(
     ssf_sigma = multem.mrad_to_sigma(
         input_multislice.E_0, microscope.beam.source_spread
     )
-    input_multislice.cond_lens_ssf_sigma = ssf_sigma
+    input_multislice.cond_lens_si_sigma = ssf_sigma
 
     # Objective lens
     input_multislice.obj_lens_m = microscope.lens.m
@@ -192,7 +192,7 @@ def create_input_multislice(
         input_multislice.phase_shift = pi / 2.0
 
     # defocus spread function
-    input_multislice.obj_lens_dsf_sigma = multem.iehwgd_to_sigma(
+    input_multislice.obj_lens_ti_sigma = multem.iehwgd_to_sigma(
         defocus_spread(
             microscope.lens.c_c * 1e-3 / 1e-10,  # Convert from mm to A
             microscope.beam.energy_spread,
@@ -282,13 +282,15 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, position, image, drift = self.simulate_image(i)
-                if writer:
+                _, angle, position, image, drift, defocus = self.simulate_image(i)
+                if writer is not None:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
                     writer.position[i] = position
-                    if drift:
+                    if drift is not None:
                         writer.drift[i] = drift
+                    if defocus is not None:
+                        writer.defocus[i] = defocus
         else:
 
             # Set the maximum number of workers
@@ -316,15 +318,17 @@ class Simulation(object):
                 for j, future in enumerate(parakeet.futures.as_completed(futures)):
 
                     # Get the result
-                    i, angle, position, image = future.result()
+                    i, angle, position, image, drift, defocus = future.result()
 
                     # Set the output in the writer
-                    if writer:
+                    if writer is not None:
                         writer.data[i, :, :] = image
                         writer.angle[i] = angle
                         writer.position[i] = position
-                        if drift:
+                        if drift is not None:
                             writer.drift[i] = drift
+                        if defocus is not None:
+                            writer.defocus[i] = defocus
 
                     # Write some info
                     vmin = np.min(image)
@@ -456,7 +460,7 @@ class ProjectedPotentialSimulator(object):
         handle.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, None, None)
+        return (index, angle, position, None, None, None)
 
 
 class ExitWaveImageSimulator(object):
@@ -674,6 +678,19 @@ class ExitWaveImageSimulator(object):
         ).to_multem()
         logger.info("   Got spec atoms")
 
+        print(
+            "Atoms X min/max: %.1f, %.1f"
+            % (atoms.data["x"].min(), atoms.data["x"].max())
+        )
+        print(
+            "Atoms Y min/max: %.1f, %.1f"
+            % (atoms.data["y"].min(), atoms.data["y"].max())
+        )
+        print(
+            "Atoms Z min/max: %.1f, %.1f"
+            % (atoms.data["z"].min(), atoms.data["z"].max())
+        )
+
         if self.simulation["ice"] == True:
 
             # Get the masker
@@ -702,7 +719,7 @@ class ExitWaveImageSimulator(object):
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty))
+        return (index, angle, position, image, (driftx, drifty), None)
 
 
 class OpticsImageSimulator(object):
@@ -744,10 +761,51 @@ class OpticsImageSimulator(object):
 
         """
 
-        def compute_image(psi, microscope, simulation, x_fov, y_fov, offset, device):
+        def get_defocus(index, angle):
+            """
+            Get the defocus
+
+            Returns:
+                float: defocus
+            """
+
+            defocus = self.microscope.lens.c_10
+            drift = 0
+            defocus_drift = self.microscope.beam.defocus_drift
+            if defocus_drift and not defocus_drift["type"] is None:
+                if defocus_drift["type"] == "random":
+                    drift = np.random.normal(0, defocus_drift["magnitude"])
+                elif defocus_drift["type"] == "random_smoothed":
+                    if index == 0:
+
+                        def generate_smoothed_random(magnitude, num_images):
+                            drift = np.random.normal(0, magnitude, size=(num_images))
+                            drift = np.convolve(drift, np.ones(5) / 5, mode="same")
+                            return drift
+
+                        self._defocus_drift = generate_smoothed_random(
+                            defocus_drift["magnitude"], len(self.scan)
+                        )
+                    drift = self._defocus_drift[index]
+                elif defocus_drift["type"] == "sinusoidal":
+                    drift = sin(angle * pi / 180) * defocus_drift["magnitude"]
+                else:
+                    raise RuntimeError("Unknown drift type")
+                logger.info("Adding defocus drift of %f" % (drift))
+
+            # Return the defocus
+            return defocus + drift
+
+        def compute_image(
+            psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
+        ):
 
             # Create the multem system configuration
             system_conf = create_system_configuration(device)
+
+            # Set the defocus
+            if defocus is not None:
+                microscope.lens.c_10 = defocus
 
             # Create the multem input multislice object
             input_multislice = create_input_multislice(
@@ -807,7 +865,13 @@ class OpticsImageSimulator(object):
         # Set the input wave
         psi = self.exit_wave.data[index]
 
+        # Get the beam drift
+        driftx, drifty = self.exit_wave.drift[index, :]
+
         microscope = copy.deepcopy(self.microscope)
+
+        # Get the defocus
+        defocus = get_defocus(index, angle)
 
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero
@@ -816,7 +880,14 @@ class OpticsImageSimulator(object):
 
             # If no inelastic model just calculate image as normal
             image = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
             electron_fraction = 1.0
 
@@ -824,7 +895,14 @@ class OpticsImageSimulator(object):
 
             # Compute the image
             image = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Calculate the fraction of electrons in the zero loss peak
@@ -880,7 +958,14 @@ class OpticsImageSimulator(object):
 
             # Compute the zero loss image
             image1 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Add the energy loss
@@ -895,7 +980,14 @@ class OpticsImageSimulator(object):
 
             # Compute the MPL image
             image2 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Compute the zero loss and mpl image fraction
@@ -915,7 +1007,14 @@ class OpticsImageSimulator(object):
 
             # Compute the zero loss image
             image1 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Add the energy loss
@@ -928,7 +1027,14 @@ class OpticsImageSimulator(object):
 
             # Compute the MPL image
             image2 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Compute the zero loss and mpl image fraction
@@ -955,7 +1061,14 @@ class OpticsImageSimulator(object):
 
             # Compute the zero loss image
             image1 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Add the energy loss
@@ -968,7 +1081,14 @@ class OpticsImageSimulator(object):
 
             # Compute the MPL image
             image2 = compute_image(
-                psi, microscope, self.simulation, x_fov, y_fov, offset, self.device
+                psi,
+                microscope,
+                self.simulation,
+                x_fov,
+                y_fov,
+                offset,
+                self.device,
+                defocus,
             )
 
             # Compute the zero loss and mpl image fraction
@@ -1000,7 +1120,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, None)
+        return (index, angle, position, image, (driftx, drifty), defocus)
 
 
 class ImageSimulator(object):
@@ -1059,6 +1179,10 @@ class ImageSimulator(object):
         # Get the image
         image = self.optics.data[index]
 
+        # Get some other properties to propagate
+        beam_drift = self.optics.drift[index]
+        defocus = self.optics.defocus[index]
+
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
             logger.info("Applying DQE")
@@ -1084,7 +1208,7 @@ class ImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image.astype("float32"), None)
+        return (index, angle, position, image.astype("float32"), beam_drift, defocus)
 
 
 class CTFSimulator(object):
@@ -1144,7 +1268,7 @@ class CTFSimulator(object):
         image = np.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
-        return (index, 0, 0, image, None)
+        return (index, 0, 0, image, None, None)
 
 
 class SimpleImageSimulator(object):
@@ -1233,7 +1357,7 @@ class SimpleImageSimulator(object):
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, None)
+        return (index, angle, position, image, None, None)
 
 
 def projected_potential(

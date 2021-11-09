@@ -83,6 +83,14 @@ class Writer(object):
         return self._pixel_size
 
     @property
+    def defocus(self):
+        """
+        The defocus property
+
+        """
+        return self._defocus
+
+    @property
     def is_mrcfile_writer(self):
         """
         Return if is mrcfile
@@ -165,6 +173,49 @@ class MrcFileWriter(Writer):
             else:
                 setitem_internal(y, x, data)
 
+    class DriftProxy(object):
+        """
+        Proxy interface to drifts
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+            n = len(self.handle.extended_header)
+            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
+
+        def __setitem__(self, item, data):
+
+            # Set the items
+            def setitem_internal(j, i, d):
+                if i == 0:
+                    self.handle.extended_header[j]["Shift offset X"] = d
+                elif i == 1:
+                    self.handle.extended_header[j]["Shift offset Y"] = d
+
+            # Get the indices from the item
+            x = self.x[item]
+            y = self.y[item]
+
+            # Set the item
+            if isinstance(x, np.ndarray):
+                for j, i, d in zip(y, x, data):
+                    setitem_internal(j, i, d)
+            else:
+                setitem_internal(y, x, data)
+
+    class DefocusProxy(object):
+        """
+        Proxy interface to angles
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __setitem__(self, item, data):
+            self.handle.extended_header[item]["Defocus"] = data
+
     def __init__(self, filename, shape, pixel_size, dtype="uint8"):
         """
         Initialise the writer
@@ -221,6 +272,8 @@ class MrcFileWriter(Writer):
         self._data = self.handle.data
         self._angle = MrcFileWriter.AngleProxy(self.handle)
         self._position = MrcFileWriter.PositionProxy(self.handle)
+        self._drift = MrcFileWriter.DriftProxy(self.handle)
+        self._defocus = MrcFileWriter.DefocusProxy(self.handle)
 
     @property
     def pixel_size(self):
@@ -244,37 +297,6 @@ class NexusWriter(Writer):
 
     """
 
-    class ShiftProxy(object):
-        """
-        Proxy interface to positions
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = self.handle["x_drift"].shape[0]
-            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle["x_drift"][j] = d
-                elif i == 1:
-                    self.handle["y_drift"][j] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, np.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
     class PositionProxy(object):
         """
         Proxy interface to positions
@@ -296,6 +318,37 @@ class NexusWriter(Writer):
                     self.handle["y_translation"][j] = d
                 elif i == 2:
                     self.handle["z_translation"][j] = d
+
+            # Get the indices from the item
+            x = self.x[item]
+            y = self.y[item]
+
+            # Set the item
+            if isinstance(x, np.ndarray):
+                for j, i, d in zip(y, x, data):
+                    setitem_internal(j, i, d)
+            else:
+                setitem_internal(y, x, data)
+
+    class ShiftProxy(object):
+        """
+        Proxy interface to shifts
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+            n = self.handle["x_drift"].shape[0]
+            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
+
+        def __setitem__(self, item, data):
+
+            # Set the items
+            def setitem_internal(j, i, d):
+                if i == 0:
+                    self.handle["x_drift"][j] = d
+                elif i == 1:
+                    self.handle["y_drift"][j] = d
 
             # Get the indices from the item
             x = self.x[item]
@@ -350,6 +403,7 @@ class NexusWriter(Writer):
         sample.create_dataset("z_translation", shape=(shape[0],), dtype=np.float32)
         sample.create_dataset("x_drift", shape=(shape[0],), dtype=np.float32)
         sample.create_dataset("y_drift", shape=(shape[0],), dtype=np.float32)
+        sample.create_dataset("defocus", shape=(shape[0],), dtype=np.float32)
 
         # Create the data
         data = entry.create_group("data")
@@ -360,6 +414,7 @@ class NexusWriter(Writer):
         data["z_translation"] = sample["z_translation"]
         data["x_drift"] = sample["x_drift"]
         data["y_drift"] = sample["y_drift"]
+        data["defocus"] = sample["defocus"]
         data["image_key"] = detector["image_key"]
 
         # Set the data ptr
@@ -367,6 +422,7 @@ class NexusWriter(Writer):
         self._angle = data["rotation_angle"]
         self._position = NexusWriter.PositionProxy(data)
         self._drift = NexusWriter.ShiftProxy(data)
+        self._defocus = data["defocus"]
 
     @property
     def pixel_size(self):
@@ -491,7 +547,9 @@ class Reader(object):
 
     """
 
-    def __init__(self, handle, data, angle, position, pixel_size):
+    def __init__(
+        self, handle, data, angle, position, pixel_size, drift=None, defocus=None
+    ):
         """
         Initialise the data
 
@@ -500,6 +558,8 @@ class Reader(object):
             angle (array): The angle array
             position (array): The position array
             pixel_size (float): The pixel size array
+            drift (float): The drift array
+            defocus (float): The defocus array
 
         """
         # Check the size
@@ -512,6 +572,8 @@ class Reader(object):
         self.angle = angle
         self.position = position
         self.pixel_size = pixel_size
+        self.drift = drift
+        self.defocus = defocus
         self.shape = data.shape
         self.dtype = data.dtype
 
@@ -580,12 +642,22 @@ class Reader(object):
             for i in range(handle.extended_header.shape[0]):
                 angle[i] = handle.extended_header[i]["Alpha tilt"]
 
-            # Read the positions
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
+            drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
+            defocus = np.zeros(shape=(handle.data.shape[0]), dtype=np.float32)
             for i in range(handle.extended_header.shape[0]):
+
+                # Read the positions
                 position[i, 0] = handle.extended_header[i]["Shift X"]
                 position[i, 1] = handle.extended_header[i]["Shift Y"]
                 position[i, 2] = handle.extended_header[i]["Z-Stage"]
+
+                # Read the drift
+                drift[i, 0] = handle.extended_header[i]["Shift offset X"]
+                drift[i, 1] = handle.extended_header[i]["Shift offset Y"]
+
+                # Read the defocus
+                defocus[i] = handle.extended_header[i]["Defocus"]
         else:
             angle = np.zeros(handle.data.shape[0], dtype=np.float32)
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
@@ -594,7 +666,15 @@ class Reader(object):
         pixel_size = handle.voxel_size["x"]
 
         # Create the reader
-        return Reader(handle, handle.data, angle, position, pixel_size)
+        return Reader(
+            handle,
+            handle.data,
+            angle,
+            position,
+            pixel_size,
+            drift=drift,
+            defocus=defocus,
+        )
 
     @classmethod
     def from_nexus(Class, filename):
@@ -626,12 +706,24 @@ class Reader(object):
             (data["x_translation"], data["y_translation"], data["z_translation"])
         ).T
 
+        # Get the drifts
+        drift = np.array((data["x_drift"], data["y_drift"])).T
+
+        # Get the defocus
+        defocus = data.get("defocus", None)
+
         # Get the pixel size
         pixel_size = detector["x_pixel_size"][0]
 
         # Create the reader
         return Reader(
-            handle, data["data"], data["rotation_angle"], position, pixel_size
+            handle,
+            data["data"],
+            data["rotation_angle"],
+            position,
+            pixel_size,
+            drift=drift,
+            defocus=defocus,
         )
 
     @classmethod

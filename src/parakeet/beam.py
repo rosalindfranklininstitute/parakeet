@@ -24,6 +24,7 @@ class Beam(object):
         source_spread=0.1,
         electrons_per_angstrom=30,
         drift=None,
+        defocus_drift=None,
     ):
         """
         Initialise the beam
@@ -34,7 +35,8 @@ class Beam(object):
             acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
             source_spread (float): The source spread (mrad)
             electrons_per_angstrom (float): The number of electrons per angstrom
-            drift (float): The beam drift sigma (A)
+            drift (obj): The beam drift
+            defocus_drift (obj): The defocus drift
 
         """
         self.energy = energy
@@ -43,6 +45,7 @@ class Beam(object):
         self.source_spread = source_spread
         self.electrons_per_angstrom = electrons_per_angstrom
         self.drift = drift
+        self.defocus_drift = defocus_drift
 
 
 def new(
@@ -52,6 +55,7 @@ def new(
     source_spread=0.1,
     electrons_per_angstrom=None,
     drift=None,
+    defocus_drift=None,
 ):
     """
     Create a beam
@@ -62,7 +66,8 @@ def new(
         acceleration_voltage_spread (float): dV / V where dV is the 1 / e half width
         source_spread (float): The source spread (mrad)
         electrons_per_angstrom (float): The number of electrons per angstrom
-        drift (float): The beam drift sigma (A)
+        drift (obj): The beam drift
+        defocus_drift (obj): The defocus drift
 
     Returns:
         object: The beam object
@@ -75,4 +80,5 @@ def new(
         source_spread=source_spread,
         electrons_per_angstrom=electrons_per_angstrom,
         drift=drift,
+        defocus_drift=defocus_drift,
     )

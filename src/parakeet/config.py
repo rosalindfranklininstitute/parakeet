@@ -90,7 +90,9 @@ def default():
                 drift:
                     type: null
                     magnitude: 0
-
+                defocus_drift:
+                    type: null
+                    magnitude: 0
             objective_lens:
                 m: 0
                 c_10: -20000

@@ -209,6 +209,14 @@ def export(argv=None):
         dest="vmax",
         help="The maximum pixel value when exporting to an image",
     )
+    parser.add_argument(
+        "--sort",
+        type=str,
+        default=None,
+        dest="sort",
+        choices=["angle"],
+        help="Sort the images",
+    )
 
     # Parse the arguments
     args = parser.parse_args(argv)
@@ -256,6 +264,11 @@ def export(argv=None):
             indices = interlaced_indices
         else:
             random.shuffle(indices)
+
+    # Sort the images
+    if args.sort is not None:
+        if args.sort == "angle":
+            indices = sorted(indices, key=lambda i: reader.angle[indices[i]])
 
     # Get the region of interest
     if args.roi is not None:
@@ -335,6 +348,8 @@ def export(argv=None):
         angle = reader.angle[i]
         position = reader.position[i]
         pixel_size = reader.pixel_size
+        drift = reader.drift[i]
+        defocus = reader.defocus[i]
 
         # Rotate if necessary
         if args.rot90:
@@ -368,6 +383,10 @@ def export(argv=None):
         writer.data[j, :, :] = image
         writer.angle[j] = angle
         writer.position[j] = position
+        if drift is not None:
+            writer.drift[j] = drift
+        if defocus is not None:
+            writer.defocus[j] = defocus
 
     # Update the writer
     writer.update()
