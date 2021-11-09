@@ -443,7 +443,7 @@ class ProjectedPotentialSimulator(object):
         potential = mrcfile.new_mmap(
             "projected_potential_%d.mrc" % index,
             shape=(zsize, ny, nx),
-            mrc_mode=mrcfile.utils.mode_from_dtype(numpy.dtype(numpy.float32)),
+            mrc_mode=mrcfile.utils.mode_from_dtype(np.dtype(np.float32)),
             overwrite=True,
         )
         potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
