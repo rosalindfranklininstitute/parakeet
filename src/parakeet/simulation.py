@@ -440,8 +440,13 @@ class ProjectedPotentialSimulator(object):
         volume_z1 = self.sample.shape_box[1][2]
         slice_thickness = self.simulation["slice_thickness"]
         zsize = int(floor((volume_z1 - volume_z0) / slice_thickness))
-        handle = mrcfile.new("projected_potential_%d.mrc" % index, overwrite=True)
-        potential = np.zeros(shape=(zsize, ny, nx), dtype="float32")
+        potential = mrcfile.new_mmap(
+            "projected_potential_%d.mrc" % index,
+            shape=(zsize, ny, nx),
+            mrc_mode=mrcfile.utils.mode_from_dtype(numpy.dtype(numpy.float32)),
+            overwrite=True,
+        )
+        potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         def callback(z0, z1, V):
             V = np.array(V)
@@ -451,13 +456,10 @@ class ProjectedPotentialSimulator(object):
                 "Calculating potential for slice: %.2f -> %.2f (index: %d)"
                 % (z0, z1, index)
             )
-            potential[index, :, :] = V[margin:-margin, margin:-margin].T
+            potential.data[index, :, :] = V[margin:-margin, margin:-margin].T
 
         # Run the simulation
         multem.compute_projected_potential(system_conf, input_multislice, callback)
-
-        handle.set_data(potential)
-        handle.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         # Compute the image scaled with Poisson noise
         return (index, angle, position, None, None, None)

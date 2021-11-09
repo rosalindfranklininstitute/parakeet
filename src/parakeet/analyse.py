@@ -79,6 +79,7 @@ def average_particles(
     half_1_filename,
     half_2_filename,
     particle_size=0,
+    num_particles=0,
 ):
     """
     Average particles to compute averaged reconstruction
@@ -167,7 +168,8 @@ def average_particles(
             half_length = particle_size // 2
         length = 2 * half_length
         assert len(positions) == len(orientations)
-        num_particles = len(positions)
+        if num_particles <= 0:
+            num_particles = len(positions)
         print(
             "Averaging %d %s particles with box size %d" % (num_particles, name, length)
         )
@@ -228,6 +230,10 @@ def average_particles(
                 else:
                     half_2 += data
                     num_2 += 1
+
+            # Break if we have enough particles
+            if num_1 + num_2 >= num_particles:
+                break
 
         # Average the sub tomograms
         print("Averaging half 1 with %d particles" % num_1)

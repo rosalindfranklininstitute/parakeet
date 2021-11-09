@@ -162,6 +162,14 @@ def average_particles(args=None):
         dest="particle_size",
         help="The size of for the particles extracted",
     )
+    parser.add_argument(
+        "-n",
+        "--num_particles",
+        type=int,
+        default=0,
+        dest="num_particles",
+        help="The nunber of particles to use",
+    )
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -186,6 +194,7 @@ def average_particles(args=None):
         args.half1,
         args.half2,
         args.particle_size,
+        args.num_particles,
     )
 
     # Write some timing stats
