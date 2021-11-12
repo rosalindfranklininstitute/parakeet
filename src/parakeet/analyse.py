@@ -72,7 +72,14 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     )
 
 
-def correct(image_filename, corrected_filename, microscope, simulation, device="gpu", min_max_defocus_filename=None):
+def correct(
+    image_filename,
+    corrected_filename,
+    microscope,
+    simulation,
+    device="gpu",
+    min_max_defocus_filename=None,
+):
     """
     Do the 3D CTF correction
 
@@ -116,7 +123,9 @@ def correct(image_filename, corrected_filename, microscope, simulation, device="
     )
 
 
-def reconstruct_corrected(corrected_filename, rec_filename, device="gpu", min_max_defocus_filename=None):
+def reconstruct_corrected(
+    corrected_filename, rec_filename, device="gpu", min_max_defocus_filename=None
+):
     """
     Reconstruct the volume and assume that the 3D CTF correction has already been performed
 
