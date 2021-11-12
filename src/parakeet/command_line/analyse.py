@@ -101,6 +101,177 @@ def reconstruct(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
+def correct(args=None):
+    """
+    Do the 3D CTF correction
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Reconstruct the volume")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-d",
+        "--device",
+        choices=["cpu", "gpu"],
+        default=None,
+        dest="device",
+        help="Choose the device to use",
+    )
+    parser.add_argument(
+        "-i",
+        "--image",
+        type=str,
+        default="image.mrc",
+        dest="image",
+        help="The filename for the image",
+    )
+    parser.add_argument(
+        "-cr",
+        "--corrected",
+        type=str,
+        default="corrected.mrc",
+        dest="corrected",
+        help="The filename for the reconstruction",
+    )
+    parser.add_argument(
+        "-mmds",
+        "--min-max-defocus-store",
+        type=str,
+        default=None,
+        dest="min_max_defocus_output_filename",
+        help="The file containing the mix-max relative defocus from the CTF",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args(args=args)
+
+    # Configure some basic logging
+    parakeet.command_line.configure_logging()
+
+    # Set the command line args in a dict
+    command_line = {}
+    if args.device is not None:
+        command_line["device"] = args.device
+
+    # Load the full configuration
+    config = parakeet.config.load(args.config, command_line)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the microscope
+    microscope = parakeet.microscope.new(**config["microscope"])
+
+    # Do the reconstruction
+    parakeet.analyse.correct(
+        args.image,
+        args.corrected,
+        microscope=microscope,
+        simulation=config["simulation"],
+        device=config["device"],
+        min_max_defocus_filename=args.min_max_defocus_output_filename,
+    )
+
+    # Write some timing stats
+    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def reconstruct_corrected(args=None):
+    """
+    Reconstruct the volume and assume that the 3D CTF correction has already been performed
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Reconstruct the volume")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default=None,
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-d",
+        "--device",
+        choices=["cpu", "gpu"],
+        default=None,
+        dest="device",
+        help="Choose the device to use",
+    )
+    parser.add_argument(
+        "-cr",
+        "--corrected",
+        type=str,
+        default="corrected.mrc",
+        dest="corrected",
+        help="The filename for the image",
+    )
+    parser.add_argument(
+        "-r",
+        "--rec",
+        type=str,
+        default="rec.mrc",
+        dest="rec",
+        help="The filename for the reconstruction",
+    )
+    parser.add_argument(
+        "-mmds",
+        "--min-max-defocus-store",
+        type=str,
+        default=None,
+        dest="min_max_defocus_output_filename",
+        help="The file containing the mix-max relative defocus from the CTF",
+    )
+
+    # Parse the arguments
+    args = parser.parse_args(args=args)
+
+    # Configure some basic logging
+    parakeet.command_line.configure_logging()
+
+    # Set the command line args in a dict
+    command_line = {}
+    if args.device is not None:
+        command_line["device"] = args.device
+
+    # Load the full configuration
+    config = parakeet.config.load(args.config, command_line)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Do the reconstruction
+    parakeet.analyse.reconstruct_corrected(
+        args.corrected,
+        args.rec,
+        device=config["device"],
+        min_max_defocus_filename=args.min_max_defocus_output_filename,
+    )
+
+    # Write some timing stats
+    logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
 def average_particles(args=None):
     """
     Perform sub tomogram averaging
