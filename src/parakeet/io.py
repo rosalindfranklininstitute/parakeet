@@ -661,6 +661,8 @@ class Reader(object):
         else:
             angle = np.zeros(handle.data.shape[0], dtype=np.float32)
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
+            drift = None
+            defocus = None
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
