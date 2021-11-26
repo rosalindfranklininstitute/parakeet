@@ -101,6 +101,7 @@ def main():
                 "parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles",
                 "parakeet.analyse.extract_particles=parakeet.command_line.analyse:extract_particles",
                 "parakeet.analyse.refine=parakeet.command_line.analyse:refine",
+                "parakeet.analyse.correct=parakeet.command_line.analyse:correct",
             ]
         },
         extras_require={
