@@ -89,6 +89,8 @@ def filter_image(data, pixel_size, resolution, shape):
         shape (str): The filter shape
 
     """
+    if pixel_size == 0:
+        pixel_size = 1
     f = numpy.fft.fft2(data)
     f = numpy.fft.fftshift(f)
     yc, xc = data.shape[0] // 2, data.shape[1] // 2
@@ -103,6 +105,7 @@ def filter_image(data, pixel_size, resolution, shape):
         g = r < 1.0 / resolution
     elif shape == "guassian":
         g = numpy.exp(-0.5 * r ** 2 * resolution ** 2)
+    f = f * g
     f = numpy.fft.ifftshift(f)
     d = numpy.fft.ifft2(f)
     return d.real

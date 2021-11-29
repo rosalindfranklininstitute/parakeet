@@ -506,6 +506,8 @@ class ImageWriter(Writer):
         # Create dummy arrays for angle and position
         self._angle = np.zeros(shape=shape[0], dtype=np.float32)
         self._position = np.zeros(shape=(shape[0], 3), dtype=np.float32)
+        self._drift = np.zeros(shape=(shape[0], 2), dtype=np.float32)
+        self._defocus = np.zeros(shape=shape[0], dtype=np.float32)
         self._pixel_size = 0
 
     @property
@@ -661,8 +663,8 @@ class Reader(object):
         else:
             angle = np.zeros(handle.data.shape[0], dtype=np.float32)
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
-            drift = None
-            defocus = None
+            drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
+            defocus = np.zeros(handle.data.shape[0], dtype=np.float32)
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
