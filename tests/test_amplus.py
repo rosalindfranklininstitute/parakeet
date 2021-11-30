@@ -127,31 +127,32 @@ def test_analyse_average_particles(config_path):
 
 def test_export(config_path):
 
-    exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))
-    optics = os.path.abspath(os.path.join(config_path, "optics.h5"))
-    image = os.path.abspath(os.path.join(config_path, "image.mrc"))
-    corrected = os.path.abspath(os.path.join(config_path, "corrected.mrc"))
+    exit_wave1 = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))
+    exit_wave2 = os.path.abspath(os.path.join(config_path, "exit_wave2.mrc"))
+    exit_wave3 = os.path.abspath(os.path.join(config_path, "exit_wave3.h5"))
+    optics1 = os.path.abspath(os.path.join(config_path, "optics.h5"))
+    optics2 = os.path.abspath(os.path.join(config_path, "optics2.mrc"))
+    optics3 = os.path.abspath(os.path.join(config_path, "optics3.h5"))
+    image1 = os.path.abspath(os.path.join(config_path, "image.mrc"))
+    image2 = os.path.abspath(os.path.join(config_path, "image2.h5"))
+    image3 = os.path.abspath(os.path.join(config_path, "image3.mrc"))
+    corrected1 = os.path.abspath(os.path.join(config_path, "corrected.mrc"))
 
-    assert os.path.exists(exit_wave)
-    assert os.path.exists(optics)
-    assert os.path.exists(image)
-    assert os.path.exists(corrected)
+    assert os.path.exists(exit_wave1)
+    assert os.path.exists(optics1)
+    assert os.path.exists(image1)
+    assert os.path.exists(corrected1)
 
-    parakeet.command_line.export([exit_wave, "-o", "exit_wave.mrc"])
+    parakeet.command_line.export([exit_wave1, "-o", exit_wave2])
+    parakeet.command_line.export([exit_wave2, "-o", exit_wave3])
+    parakeet.command_line.export([optics1, "-o", optics2])
+    parakeet.command_line.export([optics2, "-o", optics3])
+    parakeet.command_line.export([image1, "-o", image2])
+    parakeet.command_line.export([image2, "-o", image3])
 
-    parakeet.command_line.export(["exit_wave.mrc", "-o", "exit_wave2.h5"])
-
-    parakeet.command_line.export([optics, "-o", "optics.mrc"])
-
-    parakeet.command_line.export(["optics.mrc", "-o", "optics2.h5"])
-
-    parakeet.command_line.export([image, "-o", "image.h5"])
-
-    parakeet.command_line.export(["image.h5", "-o", "image2.mrc"])
-
-    assert os.path.exists("exit_wave.mrc")
-    assert os.path.exists("exit_wave2.h5")
-    assert os.path.exists("optics.mrc")
-    assert os.path.exists("optics2.h5")
-    assert os.path.exists("image.h5")
-    assert os.path.exists("image2.mrc")
+    assert os.path.exists(exit_wave2)
+    assert os.path.exists(exit_wave3)
+    assert os.path.exists(optics2)
+    assert os.path.exists(optics3)
+    assert os.path.exists(image2)
+    assert os.path.exists(image3)
