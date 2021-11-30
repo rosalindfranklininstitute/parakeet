@@ -82,6 +82,19 @@ def test_simulate_image(config_path):
     assert os.path.exists(image)
 
 
+def test_analyse_correct(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    image = os.path.abspath(os.path.join(config_path, "image.mrc"))
+    corrected = os.path.abspath(os.path.join(config_path, "corrected.mrc"))
+    assert os.path.exists(config)
+    assert os.path.exists(image)
+    parakeet.command_line.analyse.correct(
+        ["-c", config, "-i", image, "-cr", corrected, "-d", "cpu"]
+    )
+    assert os.path.exists(corrected)
+
+
 def test_analyse_reconstruct(config_path):
 
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
@@ -110,3 +123,35 @@ def test_analyse_average_particles(config_path):
     )
     assert os.path.exists(half1)
     assert os.path.exists(half2)
+
+
+def test_export(config_path):
+
+    exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))
+    optics = os.path.abspath(os.path.join(config_path, "optics.h5"))
+    image = os.path.abspath(os.path.join(config_path, "image.mrc"))
+    corrected = os.path.abspath(os.path.join(config_path, "corrected.mrc"))
+
+    assert os.path.exists(exit_wave)
+    assert os.path.exists(optics)
+    assert os.path.exists(image)
+    assert os.path.exists(corrected)
+
+    parakeet.command_line.export([exit_wave, "-o", "exit_wave.mrc"])
+
+    parakeet.command_line.export(["exit_wave.mrc", "-o", "exit_wave2.h5"])
+
+    parakeet.command_line.export([optics, "-o", "optics.mrc"])
+
+    parakeet.command_line.export(["optics.mrc", "-o", "optics2.h5"])
+
+    parakeet.command_line.export([image, "-o", "image.h5"])
+
+    parakeet.command_line.export(["image.h5", "-o", "image2.mrc"])
+
+    assert os.path.exists("exit_wave.mrc")
+    assert os.path.exists("exit_wave2.h5")
+    assert os.path.exists("optics.mrc")
+    assert os.path.exists("optics2.h5")
+    assert os.path.exists("image.h5")
+    assert os.path.exists("image2.mrc")
