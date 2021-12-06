@@ -72,7 +72,14 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     )
 
 
-def correct(image_filename, corrected_filename, microscope, simulation, num_defocus=None, device="gpu"):
+def correct(
+    image_filename,
+    corrected_filename,
+    microscope,
+    simulation,
+    num_defocus=None,
+    device="gpu",
+):
     """
     Correct the images using 3D CTF correction
 
