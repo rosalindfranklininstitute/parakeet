@@ -72,7 +72,14 @@ def reconstruct(image_filename, rec_filename, microscope, simulation, device="gp
     )
 
 
-def correct(image_filename, corrected_filename, microscope, simulation, device="gpu"):
+def correct(
+    image_filename,
+    corrected_filename,
+    microscope,
+    simulation,
+    num_defocus=None,
+    device="gpu",
+):
     """
     Correct the images using 3D CTF correction
 
@@ -86,7 +93,8 @@ def correct(image_filename, corrected_filename, microscope, simulation, device="
     pixel_size = microscope.detector.pixel_size
     energy = microscope.beam.energy
     defocus = -microscope.lens.c_10
-    num_defocus = int((nx * pixel_size) / 100)
+    if num_defocus is None:
+        num_defocus = int((nx * pixel_size) / 100)
 
     # Set the spherical aberration
     if simulation["inelastic_model"] == "cc_corrected":
