@@ -149,7 +149,7 @@ def correct(args=None):
     parser.add_argument(
         "-ndf",
         "--num-defocus",
-        type=str,
+        type=int,
         default=None,
         dest="num_defocus",
         help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
