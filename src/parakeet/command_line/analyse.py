@@ -146,6 +146,14 @@ def correct(args=None):
         dest="corrected",
         help="The filename for the corrected image",
     )
+    parser.add_argument(
+        "-ndf",
+        "--num-defocus",
+        type=str,
+        default=None,
+        dest="num_defocus",
+        help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
+    )
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -173,6 +181,7 @@ def correct(args=None):
         args.corrected,
         microscope=microscope,
         simulation=config["simulation"],
+        num_defocus=args.num_defocus,
         device=config["device"],
     )
 
