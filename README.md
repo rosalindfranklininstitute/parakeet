@@ -79,6 +79,42 @@ To run the tests, follow the installation instructions for developers and then d
 pytest
 ```
 
+## Docker
+
+Parakeet can also be installed and used via Docker (https://www.docker.com/get-started). To download parakeet's docker container you can do the following:
+
+```sh
+docker pull quay.io/rosalindfranklininstitute/parakeet:master
+```
+
+To use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed.
+
+To easily input and output data from the container the volume mechanism can be used, where in a workspace directory in the host machine all the relevent files are present (e.g. config.yaml, sample.h5, etc.)
+
+Below is an example on how to use parakeet with docker to simulate the exit wave:
+
+```sh
+docker run --gpus all -v <host_workspace>:/mnt --rm -i -t parakeet:master parakeet.simulate.exit_wave -c /mnt/config.yaml -d gpu -s /mnt/sample.h5 -e /mnt/exit_wave.h5
+```
+
+## Singularity
+
+Parakeet can also be installed and used via Singularity (https://sylabs.io/guides/2.6/user-guide/installation.html). To download parakeet's singularity container you can do the following:
+
+```sh
+singularity pull library://rosalindfranklininstitute/parakeet/parakeet:master
+```
+
+Again similar to docker, to use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed.
+
+To easily input and output data from the container a workspace directory in the host machine, that all the relevent files (e.g. config.yaml, sample.h5, etc.), is binded with a location in the container.
+
+Below is an example on how to use parakeet with singularity to simulate the exit wave:
+
+```sh
+singularity run --nv --bind <host_workspace>:/mnt parakeet.sif parakeet.simulate.exit_wave -c /mnt/config_new.yaml -d gpu -s /mnt/sample.h5 -e /mnt/exit_wave.h5
+```
+
 ## Usage
 
 Simulation of datasets is split into a number of different commands. Each
