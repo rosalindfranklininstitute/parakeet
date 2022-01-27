@@ -89,7 +89,7 @@ docker pull quay.io/rosalindfranklininstitute/parakeet:master
 
 To use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed.
 
-To easily input and output data from the container the volume mechanism can be used, where in a workspace directory in the host machine all the relevent files are present (e.g. config.yaml, sample.h5, etc.)
+To easily input and output data from the container the volume mechanism can be used, where a workspace directory of the host machine is mounted to a directory in the container (in the folder /mnt in the example below). For this reason it is advised that all the relevent files (e.g. config.yaml, sample.h5, etc.) should be present in the host workspace directory.
 
 Below is an example on how to use parakeet with docker to simulate the exit wave:
 
@@ -105,9 +105,9 @@ Parakeet can also be installed and used via Singularity (https://sylabs.io/guide
 singularity pull library://rosalindfranklininstitute/parakeet/parakeet:master
 ```
 
-Again similar to docker, to use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed.
+Again similar to docker, to use parakeet with singularity and GPU support, the host machine should have the approprate Nvidia drivers installed.
 
-To easily input and output data from the container a workspace directory in the host machine, that all the relevent files (e.g. config.yaml, sample.h5, etc.), is binded with a location in the container.
+To easily input and output data from the container, a workspace directory in the host machine, where all the relevent files (e.g. config.yaml, sample.h5, etc.) should be present, can be binded to a directory in the container.
 
 Below is an example on how to use parakeet with singularity to simulate the exit wave:
 
