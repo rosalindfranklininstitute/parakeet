@@ -84,17 +84,17 @@ pytest
 Parakeet can also be installed and used via Docker (https://www.docker.com/get-started). To download parakeet's docker container you can do the following:
 
 ```sh
-docker pull quay.io/rosalindfranklininstitute/parakeet:master
+docker pull ghcr.io/rosalindfranklininstitute/parakeet:master
 ```
 
-To use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed.
+To use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed and docker needs to be installed with the nvidia container toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
 To easily input and output data from the container the volume mechanism can be used, where a workspace directory of the host machine is mounted to a directory in the container (in the folder /mnt in the example below). For this reason it is advised that all the relevent files (e.g. config.yaml, sample.h5, etc.) should be present in the host workspace directory.
 
 Below is an example on how to use parakeet with docker to simulate the exit wave:
 
 ```sh
-docker run --gpus all -v <host_workspace>:/mnt --rm -i -t parakeet:master parakeet.simulate.exit_wave -c /mnt/config.yaml -d gpu -s /mnt/sample.h5 -e /mnt/exit_wave.h5
+docker run --gpus all -v $(pwd):/mnt --workdir=/mnt parakeet:master parakeet.simulate.exit_wave -c config.yaml -d gpu -s sample.h5 -e exit_wave.h5
 ```
 
 ## Singularity
@@ -102,17 +102,15 @@ docker run --gpus all -v <host_workspace>:/mnt --rm -i -t parakeet:master parake
 Parakeet can also be installed and used via Singularity (https://sylabs.io/guides/2.6/user-guide/installation.html). To download parakeet's singularity container you can do the following:
 
 ```sh
-singularity pull library://rosalindfranklininstitute/parakeet/parakeet:master
+singularity build parakeet.sif docker://gchr.io/rosalindfranklininstitute/parakeet:master
 ```
 
 Again similar to docker, to use parakeet with singularity and GPU support, the host machine should have the approprate Nvidia drivers installed.
 
-To easily input and output data from the container, a workspace directory in the host machine, where all the relevent files (e.g. config.yaml, sample.h5, etc.) should be present, can be binded to a directory in the container.
-
 Below is an example on how to use parakeet with singularity to simulate the exit wave:
 
 ```sh
-singularity run --nv --bind <host_workspace>:/mnt parakeet.sif parakeet.simulate.exit_wave -c /mnt/config_new.yaml -d gpu -s /mnt/sample.h5 -e /mnt/exit_wave.h5
+singularity run --nv parakeet.sif parakeet.simulate.exit_wave -c config_new.yaml -d gpu -s sample.h5 -e exit_wave.h5
 ```
 
 ## Usage
