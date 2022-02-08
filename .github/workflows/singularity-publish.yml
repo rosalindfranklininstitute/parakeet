@@ -63,13 +63,13 @@ jobs:
       # Build the container from the docker image
       - name: Build container
         run: |
-          sudo -E singularity build container.sif docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          sudo -E singularity build container.sif docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
 
       # Deploy the singularity container
       - name: Deploy container
         if: (github.event_name != 'pull_request')
         run: |         
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://${{ env.REGISTRY }}
-            singularity push container.sif oras://${{ env.REGISTRY}/${{ env.IMAGE_NAME }}
+          echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://${{ env.REGISTRY }}
+          singularity push container.sif oras://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
           
             
