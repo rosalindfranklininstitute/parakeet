@@ -1,14 +1,11 @@
 name: Singularity
 
 on:
-  schedule:
-    - cron: '18 19 * * *'
-  push:
-    branches: [ master ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ master ]
+  workflow_run:
+      workflows: ["Docker"]
+      branches: [master]
+      types: 
+        - completed
 
 env:
   REGISTRY: ghcr.io
@@ -18,6 +15,7 @@ env:
 jobs:
   
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,12 +23,14 @@ jobs:
       
     steps:
 
-      - name: Set up Go 1.13
+      # Install Golang
+      - name: Set up Go
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
         id: go
 
+      # Install singularity dependencies
       - name: Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y \
@@ -42,6 +42,7 @@ jobs:
             libseccomp-dev \
             pkg-config
 
+      # Install singularity
       - name: Install Singularity
         env:
           SINGULARITY_VERSION: 3.8.1
@@ -58,26 +59,17 @@ jobs:
           ./mconfig -p /usr/local && \
           make -C builddir && \
           sudo make -C builddir install          
-
-      - name: Check out code for the container build
-        uses: actions/checkout@v2
-
-      - name: Build Container
+      
+      # Build the container from the docker image
+      - name: Build container
         run: |
-         ls 
-         sudo -E singularity build container.sif ${{ matrix.changed_file }}
-         #tag=$(echo "${recipe/Singularity\./}")
-         #if [ "$tag" == "Singularity" ]; then
-         #    tag=latest
-         #fi
-         ## Build the container and name by tag
-         #echo "Tag is $tag."
-         #echo "tag=$tag" >> $GITHUB_ENV
+          sudo -E singularity build container.sif docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Login and Deploy Container
+      # Deploy the singularity container
+      - name: Deploy container
         if: (github.event_name != 'pull_request')
         run: |         
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
-            singularity push container.sif oras://ghcr.io/${{ env.IMAGE_NAME }}
+            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://${{ env.REGISTRY }}
+            singularity push container.sif oras://${{ env.REGISTRY}/${{ env.IMAGE_NAME }}
           
             
