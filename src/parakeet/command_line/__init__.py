@@ -69,7 +69,7 @@ def rebin(data, shape):
     x1 = x0 + shape[1]
     y1 = y0 + shape[0]
     y, x = numpy.mgrid[0 : data.shape[0], 0 : data.shape[1]]
-    r = (y - yc) ** 2 / yh ** 2 + (x - xc) ** 2 / xh ** 2
+    r = (y - yc) ** 2 / yh**2 + (x - xc) ** 2 / xh**2
     mask = r < 1.0
     f = f * mask
     f = f[y0:y1, x0:x1]
@@ -104,7 +104,7 @@ def filter_image(data, pixel_size, resolution, shape):
     if shape == "square":
         g = r < 1.0 / resolution
     elif shape == "guassian":
-        g = numpy.exp(-0.5 * r ** 2 * resolution ** 2)
+        g = numpy.exp(-0.5 * r**2 * resolution**2)
     f = f * g
     f = numpy.fft.ifftshift(f)
     d = numpy.fft.ifft2(f)

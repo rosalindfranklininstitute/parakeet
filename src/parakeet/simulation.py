@@ -650,7 +650,7 @@ class ExitWaveImageSimulator(object):
         if self.simulation["radiation_damage_model"]:
             input_multislice.static_B_factor = (
                 8
-                * pi ** 2
+                * pi**2
                 * (
                     self.simulation["sensitivity_coefficient"]
                     * self.microscope.beam.electrons_per_angstrom
@@ -1171,7 +1171,7 @@ class ImageSimulator(object):
         # Compute the number of counts per pixel
         electrons_per_pixel = (
             self.microscope.beam.electrons_per_angstrom
-            * self.microscope.detector.pixel_size ** 2
+            * self.microscope.detector.pixel_size**2
         )
 
         # Compute the electrons per pixel second

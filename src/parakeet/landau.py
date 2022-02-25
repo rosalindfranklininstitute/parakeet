@@ -31,7 +31,7 @@ def electron_velocity(energy):
     m0 = scipy.constants.electron_mass
     e = scipy.constants.elementary_charge
     eV = e * energy
-    return sqrt(1 - (m0 * c ** 2 / (m0 * c ** 2 + eV)) ** 2)
+    return sqrt(1 - (m0 * c**2 / (m0 * c**2 + eV)) ** 2)
 
 
 def landau(l):
@@ -73,7 +73,7 @@ def mpl_and_fwhm(energy, thickness):
     x = thickness * 1e-10  # m
 
     # Convert to SI
-    rho *= 100 ** 3 / 1000  # kg / m^3
+    rho *= 100**3 / 1000  # kg / m^3
     A /= 1000  # kg / mol
 
     # Some physical quantities
@@ -93,11 +93,11 @@ def mpl_and_fwhm(energy, thickness):
     lambda_2w = 8.960
 
     # Compute xi and eps and dE0
-    xi = 2 * pi * Na * re ** 2 * m0 * c ** 2 * Z * rho * x / (beta ** 2 * A)
-    eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
+    xi = 2 * pi * Na * re**2 * m0 * c**2 * Z * rho * x / (beta**2 * A)
+    eps = I**2 * (1 - beta**2) / (beta**2 * 2 * m0 * c**2)
     eps = eps / e
     xi = xi / e
-    dE0 = xi * (np.log(xi / eps) + 1 - beta ** 2 - gamma)
+    dE0 = xi * (np.log(xi / eps) + 1 - beta**2 - gamma)
 
     # Compute the MPL and FWHM energy loss
     dE_MP = lambda_M * xi + dE0
@@ -129,7 +129,7 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
     x = thickness * 1e-10
 
     # Convert to SI
-    rho *= 100 ** 3 / 1000  # kg / m^3
+    rho *= 100**3 / 1000  # kg / m^3
     A /= 1000  # kg / mol
 
     # Some physical quantities
@@ -144,11 +144,11 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
     gamma = 0.577215664901532860606512090  # Euler's constant
 
     # Compute xi and eps and dE0
-    xi = 2 * pi * Na * re ** 2 * m0 * c ** 2 * Z * rho * x / (beta ** 2 * A)
-    eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
+    xi = 2 * pi * Na * re**2 * m0 * c**2 * Z * rho * x / (beta**2 * A)
+    eps = I**2 * (1 - beta**2) / (beta**2 * 2 * m0 * c**2)
     eps = eps / e
     xi = xi / e
-    dE0 = xi * (log(xi / eps) + 1 - beta ** 2 - gamma)
+    dE0 = xi * (log(xi / eps) + 1 - beta**2 - gamma)
 
     # Compute the points at which to compute psi
     lam = (dE - dE0) / xi
@@ -221,7 +221,7 @@ class Landau(object):
         x = thickness * 1e-10  # m
 
         # Convert to SI
-        rho *= 100 ** 3 / 1000  # kg / m^3
+        rho *= 100**3 / 1000  # kg / m^3
         A /= 1000  # kg / mol
 
         # Some physical quantities
@@ -236,11 +236,11 @@ class Landau(object):
         gamma = 0.577215664901532860606512090  # Euler's constant
 
         # Compute xi and eps and dE0
-        xi = 2 * pi * Na * re ** 2 * m0 * c ** 2 * Z * rho * x / (beta ** 2 * A)
-        eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
+        xi = 2 * pi * Na * re**2 * m0 * c**2 * Z * rho * x / (beta**2 * A)
+        eps = I**2 * (1 - beta**2) / (beta**2 * 2 * m0 * c**2)
         eps = eps / e
         xi = xi / e
-        dE0 = xi * (log(xi / eps) + 1 - beta ** 2 - gamma)
+        dE0 = xi * (log(xi / eps) + 1 - beta**2 - gamma)
 
         # Convert dE to lambda
         l = (dE - dE0) / xi
@@ -269,7 +269,7 @@ class Landau(object):
         x = thickness * 1e-10  # m
 
         # Convert to SI
-        rho *= 100 ** 3 / 1000  # kg / m^3
+        rho *= 100**3 / 1000  # kg / m^3
         A /= 1000  # kg / mol
 
         # Some physical quantities
@@ -284,11 +284,11 @@ class Landau(object):
         gamma = 0.577215664901532860606512090  # Euler's constant
 
         # Compute xi and eps and dE0
-        xi = 2 * pi * Na * re ** 2 * m0 * c ** 2 * Z * rho * x / (beta ** 2 * A)
-        eps = I ** 2 * (1 - beta ** 2) / (beta ** 2 * 2 * m0 * c ** 2)
+        xi = 2 * pi * Na * re**2 * m0 * c**2 * Z * rho * x / (beta**2 * A)
+        eps = I**2 * (1 - beta**2) / (beta**2 * 2 * m0 * c**2)
         eps = eps / e
         xi = xi / e
-        dE0 = xi * (log(xi / eps) + 1 - beta ** 2 - gamma)
+        dE0 = xi * (log(xi / eps) + 1 - beta**2 - gamma)
 
         # Convert lambda to dE
         dE = l * xi + dE0

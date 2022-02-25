@@ -44,7 +44,7 @@ def get_atom_sigma_sq(atom):
 
     """
     b_iso = atom.b_iso
-    return b_iso / (8 * pi ** 2)
+    return b_iso / (8 * pi**2)
 
 
 def get_atom_sigma(atom):
@@ -115,7 +115,7 @@ def number_of_water_molecules(volume, density=940.0):
     avogadros_number = scipy.constants.Avogadro
     molar_mass_of_water = 18.01528  # grams / mole
     density_of_water = density  # kg / m^3
-    mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
+    mass_of_water = (density_of_water * 1000) * (volume * 1e-10**3)  # g
     return int(floor((mass_of_water / molar_mass_of_water) * avogadros_number))
 
 
@@ -269,13 +269,13 @@ def shape_bounding_cylinder(centre, shape):
 
     def cube_bounding_cylinder(cube):
         length = cube["length"]
-        return (length, sqrt(length ** 2 + length ** 2))
+        return (length, sqrt(length**2 + length**2))
 
     def cuboid_bounding_cylinder(cuboid):
         length_x = cuboid["length_x"]
         length_y = cuboid["length_y"]
         length_z = cuboid["length_z"]
-        return (length_x, sqrt(length_y ** 2 + length_z ** 2))
+        return (length_x, sqrt(length_y**2 + length_z**2))
 
     def cylinder_bounding_cylinder(cylinder):
         length = cylinder["length"]
@@ -413,10 +413,10 @@ def is_box_inside_shape(box, centre, shape):
         length = cylinder["length"]
         radius = np.mean(cylinder["radius"])
         return (
-            (x0[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius ** 2
-            and (x0[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
-            and (x1[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius ** 2
+            (x0[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius**2
+            and (x1[0] - centre[0]) ** 2 + (x0[2] - centre[2]) ** 2 <= radius**2
+            and (x0[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius**2
+            and (x1[0] - centre[0]) ** 2 + (x1[2] - centre[2]) ** 2 <= radius**2
             and x0[1] >= centre[1] - length / 2.0
             and x1[1] < centre[1] + length / 2.0
         )
@@ -2029,7 +2029,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             return coords[
                 (y >= y0[0])
                 & (y < y1[0])
-                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius ** 2)
+                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius**2)
             ]
 
         # Filter the coords
@@ -2054,7 +2054,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     # Set the volume in A^3
     if shape["type"] == "cube":
         length = shape["cube"]["length"]
-        volume = length ** 3
+        volume = length**3
         length_x = length
         length_y = length
         length_z = length
@@ -2066,7 +2066,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     elif shape["type"] == "cylinder":
         length = shape["cylinder"]["length"]
         radius = shape["cylinder"]["radius"]
-        volume = pi * radius ** 2 * length
+        volume = pi * radius**2 * length
         length_x = 2 * radius
         length_y = length
         length_z = 2 * radius
@@ -2084,7 +2084,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     avogadros_number = scipy.constants.Avogadro
     molar_mass_of_water = 18.01528  # grams / mole
     density_of_water = density  # kg / m^3
-    mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
+    mass_of_water = (density_of_water * 1000) * (volume * 1e-10**3)  # g
     number_of_waters = int(
         floor((mass_of_water / molar_mass_of_water) * avogadros_number)
     )
@@ -2169,7 +2169,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
 
         # Compute the total volume in the spheres
         volume_of_spheres = (
-            (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
+            (4.0 / 3.0) * pi * van_der_waals_radius**3 * number_of_waters
         )
 
         # Create the grid. The sphere packer takes the grid is (z, y, x) but
@@ -2602,7 +2602,7 @@ def mill(filename, box=None, centre=None, shape=None, **kwargs):
             return (
                 (y >= y0[0])
                 & (y < y1[0])
-                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius ** 2)
+                & ((z - centre[2]) ** 2 + (x - centre[1]) ** 2 <= radius**2)
             )
 
         # Filter the coords
@@ -2674,7 +2674,7 @@ def sputter(filename, element=None, thickness=20):
         sputter_length_x = length_x + thickness * 2
         sputter_length_y = length_y + thickness * 2
         sputter_length_z = length_z + thickness * 2
-        shape_volume = length ** 3
+        shape_volume = length**3
         # sputter_volume = (
         #     sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
         # )
@@ -2697,7 +2697,7 @@ def sputter(filename, element=None, thickness=20):
         length_z = 2 * radius
         sputter_length = length + thickness * 2
         sputter_radius = radius + thickness * 2
-        shape_volume = pi * radius ** 2 * length
+        shape_volume = pi * radius**2 * length
         # sputter_volume = pi * sputter_radius ** 2 * sputter_length - shape_volume
     else:
         raise RuntimeError("Unknown shape")
@@ -2724,7 +2724,7 @@ def sputter(filename, element=None, thickness=20):
     else:
         raise RuntimeError("Unknown element %s" % element)
     avogadros_number = scipy.constants.Avogadro
-    number_density = ((density * 1e-8 ** 3) / molar_mass) * avogadros_number
+    number_density = ((density * 1e-8**3) / molar_mass) * avogadros_number
     print("Placing %g %s atoms per A^3" % (number_density, element))
 
     # Get the centre and offset

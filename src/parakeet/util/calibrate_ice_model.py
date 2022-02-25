@@ -286,15 +286,15 @@ def compute_expected_mean(size):
             Ai = P[i][0]
             Bi = P[i][1]
             if Bi > 0:
-                k = me * qe / (2 * pi * hbar ** 2)  # C m^-2 s
-                k = 1.0 / (k * 1e-10 ** 2)  # C A^-2 s
-                Bj = pi ** 2 / Bi
+                k = me * qe / (2 * pi * hbar**2)  # C m^-2 s
+                k = 1.0 / (k * 1e-10**2)  # C A^-2 s
+                Bj = pi**2 / Bi
                 Aj = Ai * k * (Bj / pi) ** (3.0 / 2.0)
                 # Bj = (2*pi/Bi)**2
                 # Aj = 2*Ai*k*(Bj)**(3.0/2.0)/pi**2
                 mean += (1 / k) * Aj
         N = 1
-        mean = mean * N / (size ** 2)
+        mean = mean * N / (size**2)
         return mean
 
     # Return the mean
@@ -317,11 +317,11 @@ def compute_mean_correction(ax=None):
         m = m / expected
         mean.append(m)
 
-    area = [0] + list(pixel_size ** 2)
+    area = [0] + list(pixel_size**2)
     mean = [1] + list(mean)
 
     # Write out the table to file
-    print("Mean0 = %f" % (expected * s ** 2))
+    print("Mean0 = %f" % (expected * s**2))
     with open("mean_table.csv", "w") as outfile:
         for x, y in zip(area, mean):
             outfile.write("%.2f, %.7f\n" % (x, y))
@@ -366,7 +366,7 @@ def compute_variance_correction(ax=None):
         density = num_molecules / (area)
 
         # Append the pixel area and variance / density
-        X.append(pixel_size ** 2)
+        X.append(pixel_size**2)
         Y.append(var / density)
 
     X = numpy.array(X)
@@ -436,8 +436,8 @@ def compute_power(ax=None):
 
         def func(q, A0, A1, A2, A3):
             M = 1.0 / 2.88
-            P = A0 * numpy.exp(-0.5 * q ** 2 / A1 ** 2) + A2 * numpy.exp(
-                -0.5 * (q - M) ** 2 / A3 ** 2
+            P = A0 * numpy.exp(-0.5 * q**2 / A1**2) + A2 * numpy.exp(
+                -0.5 * (q - M) ** 2 / A3**2
             )
             # I = (2*pi*(A0*A1**2 + A2*M*sqrt(2*pi*A3**2)))
             # P /= I
@@ -472,8 +472,8 @@ def compute_power(ax=None):
         #     return A + B
 
         # Compute the variance correction factor
-        Cv = numpy.exp(-3.2056 * pixel_size ** 2)
-        C = Cv * num_molecules / (pixel_size ** 4)
+        Cv = numpy.exp(-3.2056 * pixel_size**2)
+        C = Cv * num_molecules / (pixel_size**4)
 
         # Compute the total integral of the power
         I = numpy.sum(power) * (1 / pixel_size) ** 2 / power.size

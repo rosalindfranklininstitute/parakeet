@@ -190,8 +190,8 @@ class EnergyFilterOptimizer(object):
         energy_loss_distribution /= self.dE_step * np.sum(energy_loss_distribution)
 
         # The zero loss distribution
-        zero_loss_distribution = (1.0 / sqrt(pi * self.energy_spread ** 2)) * np.exp(
-            -(dE ** 2) / self.energy_spread ** 2
+        zero_loss_distribution = (1.0 / sqrt(pi * self.energy_spread**2)) * np.exp(
+            -(dE**2) / self.energy_spread**2
         )
 
         # Compute the fractions for the zero loss and energy losses
@@ -223,8 +223,8 @@ class EnergyFilterOptimizer(object):
         dE = np.arange(self.dE_min, self.dE_max, self.dE_step)
 
         # The zero loss distribution
-        P = (1.0 / sqrt(pi * self.energy_spread ** 2)) * np.exp(
-            -(dE ** 2) / self.energy_spread ** 2
+        P = (1.0 / sqrt(pi * self.energy_spread**2)) * np.exp(
+            -(dE**2) / self.energy_spread**2
         )
         C = self.dE_step * np.cumsum(P)
 

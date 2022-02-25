@@ -88,23 +88,23 @@ def freeze(atoms, x0, x1):
     y_length = x1[1] - x0[1]
     z_length = x1[2] - x0[2]
     total_volume = x_length * y_length * z_length  # A^3
-    filled_volume = numpy.sum(grid) * 10 ** 3
+    filled_volume = numpy.sum(grid) * 10**3
     remaining_volume = total_volume - filled_volume
 
     # Determine the number of waters to place
     avogadros_number = scipy.constants.Avogadro
     molar_mass_of_water = 18.01528  # grams / mole
     density_of_water = 997  # kg / m^3
-    mass_of_water = (density_of_water * 1000) * (remaining_volume * 1e-10 ** 3)  # g
+    mass_of_water = (density_of_water * 1000) * (remaining_volume * 1e-10**3)  # g
     number_of_waters = int(
         floor((mass_of_water / molar_mass_of_water) * avogadros_number)
     )
 
     # Print some stuff of water
     logger.info("Water information:")
-    logger.info("    Total volume %g m^3" % (total_volume * 1e-10 ** 3))
-    logger.info("    Sample volume %g m^3" % (filled_volume * 1e-10 ** 3))
-    logger.info("    Volume of water: %g m^3" % (remaining_volume * 1e-10 ** 3))
+    logger.info("    Total volume %g m^3" % (total_volume * 1e-10**3))
+    logger.info("    Sample volume %g m^3" % (filled_volume * 1e-10**3))
+    logger.info("    Volume of water: %g m^3" % (remaining_volume * 1e-10**3))
     logger.info("    Density of water: %g kg/m^3" % density_of_water)
     logger.info("    Mass of water: %g kg" % (mass_of_water / 1000))
     logger.info("    Number of water molecules to place: %d" % number_of_waters)
