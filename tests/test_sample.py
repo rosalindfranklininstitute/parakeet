@@ -54,7 +54,7 @@ def test_recentre(atom_data_4v5d):
 
 def test_number_of_water_molecules():
 
-    n = parakeet.sample.number_of_water_molecules(1000 ** 3)
+    n = parakeet.sample.number_of_water_molecules(1000**3)
     assert n == 31422283
 
 

@@ -15,7 +15,7 @@ def test_sphere_packer():
     avogadros_number = 6.02214086e23
     molar_mass_of_water = 18.01528  # grams / mole
     density_of_water = 940.0  # kg / m^3
-    mass_of_water = (density_of_water * 1000) * (volume * 1e-10 ** 3)  # g
+    mass_of_water = (density_of_water * 1000) * (volume * 1e-10**3)  # g
     number_of_waters = int(
         floor((mass_of_water / molar_mass_of_water) * avogadros_number)
     )
@@ -24,7 +24,7 @@ def test_sphere_packer():
     van_der_waals_radius = 2.7 / 2.0  # A
 
     # Compute the total volume in the spheres
-    volume_of_spheres = (4.0 / 3.0) * pi * van_der_waals_radius ** 3 * number_of_waters
+    volume_of_spheres = (4.0 / 3.0) * pi * van_der_waals_radius**3 * number_of_waters
     print("Fraction of volume filled: %.2f" % (100 * volume_of_spheres / volume))
 
     # Create the grid
