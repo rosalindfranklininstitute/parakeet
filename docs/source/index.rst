@@ -1,5 +1,5 @@
 .. parakeet documentation master file, created by
-   sphinx-quickstart on Thu Feb 24 16:49:28 2022.
+   sphinx-quickstart on Fri Feb 25 09:31:39 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
