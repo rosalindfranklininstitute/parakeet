@@ -302,6 +302,9 @@ parakeet.export file.h5 -o file.mrc
 
 The export command can also be used to rebin the image or select a region of interest. 
 
+## Documentation
+
+Checkout the [documentation](https://rosalindfranklininstitute.github.io/amplus-digital-twin/) for more information!
 
 ## Issues
 
