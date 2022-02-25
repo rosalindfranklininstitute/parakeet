@@ -78,21 +78,21 @@ def test_shape_bounding_box():
     b1 = parakeet.sample.shape_bounding_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
-    assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
-    assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
+    assert pytest.approx(b1[0]) == (-0.5, -0.5, -0.5)
+    assert pytest.approx(b1[1]) == (0.5, 0.5, 0.5)
 
     b2 = parakeet.sample.shape_bounding_box(
         (0, 0, 0),
         {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
-    assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
-    assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
+    assert pytest.approx(b2[0]) == (-0.5, -1.0, -1.5)
+    assert pytest.approx(b2[1]) == (0.5, 1.0, 1.5)
 
     b3 = parakeet.sample.shape_bounding_box(
         (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
     )
-    assert pytest.approx(b3[0], (-0.5, -2.0, -2.0))
-    assert pytest.approx(b3[1], (0.5, 2.0, 2.0))
+    assert pytest.approx(b3[0]) == (-2.0, -0.5, -2.0)
+    assert pytest.approx(b3[1]) == (2.0, 0.5, 2.0)
 
 
 def test_shape_enclosed_box():
@@ -100,21 +100,21 @@ def test_shape_enclosed_box():
     b1 = parakeet.sample.shape_enclosed_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
-    assert pytest.approx(b1[0], (-0.5, -0.5, -0.5))
-    assert pytest.approx(b1[1], (0.5, 0.5, 0.5))
+    assert pytest.approx(b1[0]) == (-0.5, -0.5, -0.5)
+    assert pytest.approx(b1[1]) == (0.5, 0.5, 0.5)
 
     b2 = parakeet.sample.shape_enclosed_box(
         (0, 0, 0),
         {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
-    assert pytest.approx(b2[0], (-0.5, -1.0, -1.5))
-    assert pytest.approx(b2[1], (0.5, 1.0, 1.5))
+    assert pytest.approx(b2[0]) == (-0.5, -1.0, -1.5)
+    assert pytest.approx(b2[1]) == (0.5, 1.0, 1.5)
 
     b3 = parakeet.sample.shape_enclosed_box(
         (0, 0, 0), {"type": "cylinder", "cylinder": {"length": 1, "radius": 2}}
     )
-    assert pytest.approx(b3[0], (-0.5, -1 / sqrt(2.0), -1 / sqrt(2.0)))
-    assert pytest.approx(b3[1], (0.5, 1 / sqrt(2.0), 1 / sqrt(2.0)))
+    assert pytest.approx(b3[0]) == (-sqrt(2.0), -0.5, -sqrt(2.0))
+    assert pytest.approx(b3[1]) == (sqrt(2.0), 0.5, sqrt(2.0))
 
 
 def test_is_shape_inside_box():
