@@ -143,8 +143,8 @@ def create_input_multislice(
 
     # Microscope parameters
     input_multislice.E_0 = microscope.beam.energy
-    input_multislice.theta = 0.0
-    input_multislice.phi = 0.0
+    input_multislice.theta = microscope.beam.theta
+    input_multislice.phi = microscope.beam.phi
 
     # Illumination model
     input_multislice.illumination_model = "Partial_Coherent"
