@@ -1,0 +1,123 @@
+name: parakeet
+base: core20
+
+architectures:
+  - build-on: [amd64]
+
+version: '0.2.7'
+summary: A digital twin for cryo-ET
+description: |
+  A digital twin for cryo-ET.
+
+grade: devel
+confinement: classic
+
+package-repositories:
+  - type: apt
+    formats: [deb]
+    key-id: AE09FE4BBD223A84B2CCFCE3F60F4B3D7FA2AF80
+    url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64
+
+build-packages:
+  - g++
+  - git
+  - libfftw3-dev
+  - wget
+  - cuda
+
+parts:
+  parakeet:
+    source: .
+    plugin: python
+    build-environment:
+      - CUDACXX: /usr/local/cuda/bin/nvcc
+    stage-packages:
+      - libfftw3-double3
+      - libfftw3-single3
+      - python3-venv
+
+apps:
+  analyse-average-all-particles:
+    command: bin/parakeet.analyse.average_all_particles
+    environment:
+      PATH: $SNAP/bin
+  analyse-average-particles:
+    command: bin/parakeet.analyse.average_particles
+    environment:
+      PATH: $SNAP/bin
+  analyse-correct:
+    command: bin/parakeet.analyse.correct
+    environment:
+      PATH: $SNAP/bin
+  analyse-extract-particles:
+    command: bin/parakeet.analyse.extract_particles
+    environment:
+      PATH: $SNAP/bin
+  analyse-reconstruct:
+    command: bin/parakeet.analyse.reconstruct
+    environment:
+      PATH: $SNAP/bin
+  analyse-refine:
+    command: bin/parakeet.analyse.refine
+    environment:
+      PATH: $SNAP/bin
+  config-edit:
+    command: bin/parakeet.config.edit
+    environment:
+      PATH: $SNAP/bin
+  config-show:
+    command: bin/parakeet.config.show
+    environment:
+      PATH: $SNAP/bin
+  export:
+    command: bin/parakeet.export
+    environment:
+      PATH: $SNAP/bin
+  read-pdb:
+    command: bin/parakeet.read_pdb
+    environment:
+      PATH: $SNAP/bin
+  sample-add-molecules:
+    command: bin/parakeet.sample.add_molecules
+    environment:
+      PATH: $SNAP/bin
+  sample-mill:
+    command: bin/parakeet.sample.mill
+    environment:
+      PATH: $SNAP/bin
+  sample-new:
+    command: bin/parakeet.sample.new
+    environment:
+      PATH: $SNAP/bin
+  sample-show:
+    command: bin/parakeet.sample.show
+    environment:
+      PATH: $SNAP/bin
+  sample-sputter:
+    command: bin/parakeet.sample.sputter
+    environment:
+      PATH: $SNAP/bin
+  simulate-ctf:
+    command: bin/parakeet.simulate.ctf
+    environment:
+      PATH: $SNAP/bin
+  simulate-exit-wave:
+    command: bin/parakeet.simulate.exit_wave
+    environment:
+      PATH: $SNAP/bin
+  simulate-image:
+    command: bin/parakeet.simulate.image
+    environment:
+      PATH: $SNAP/bin
+  simulate-optics:
+    command: bin/parakeet.simulate.optics
+    environment:
+      PATH: $SNAP/bin
+  simulate-projected-potential:
+    command: bin/parakeet.simulate.projected_potential
+    environment:
+      PATH: $SNAP/bin
+  simulate-simple:
+    command: bin/parakeet.simulate.simple
+    environment:
+      PATH: $SNAP/bin
