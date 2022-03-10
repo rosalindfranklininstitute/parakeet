@@ -417,14 +417,16 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.add_molecules(
-        os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"pdb": {"4v5d": 1}}
+        os.path.join(tmp_path, "test_add_molecules.h5"),
+        molecules={"pdb": [{"id": "4v5d", "instances": 1}]},
     )
 
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
 
     sample = parakeet.sample.add_molecules(
-        os.path.join(tmp_path, "test_add_molecules.h5"), molecules={"pdb": {"4v1w": 10}}
+        os.path.join(tmp_path, "test_add_molecules.h5"),
+        molecules={"pdb": [{"id": "4v1w", "instances": 10}]},
     )
 
     assert sample.number_of_molecules == 2
@@ -444,7 +446,8 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.add_molecules(
-        os.path.join(tmp_path, "test_add_molecules2.h5"), molecules={"pdb": {"4v5d": 1}}
+        os.path.join(tmp_path, "test_add_molecules2.h5"),
+        molecules={"pdb": [{"id": "4v5d", "instances": 1}]},
     )
 
     assert sample.number_of_molecules == 1

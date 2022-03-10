@@ -2543,26 +2543,27 @@ def add_molecules(filename, molecules=None, **kwargs):
 
     # Convert to list of positions/orientations
     temp = {}
-    if "local" in molecules:
-        for item in molecules["local"]:
-            key = item["filename"]
-            value = item["instances"]
-            temp[key] = {
-                "type": "local",
-            }
-            if isinstance(value, int):
-                temp[key]["instances"] = [{} for i in range(value)]
+    for origin, items in molecules.items():
+        for item in items:
+
+            # Get the key
+            if origin == "local":
+                key = item["filename"]
+            elif origin == "pdb":
+                key = item["id"]
             else:
-                temp[key]["instances"] = value
-    if "pdb" in molecules:
-        for key, value in molecules["pdb"].items():
+                raise RuntimeError("Unknown origin")
+
+            # Get the instances
+            instances = item["instances"]
+
+            # Set the instances
             temp[key] = {
-                "type": "pdb",
+                "type": origin,
+                "instances": [{} for i in range(instances)]
+                if isinstance(instances, int)
+                else instances,
             }
-            if isinstance(value, int):
-                temp[key]["instances"] = [{} for i in range(value)]
-            else:
-                temp[key]["instances"] = value
 
     molecules = temp
 

@@ -70,7 +70,7 @@ def default():
 
                 local: []
 
-                pdb: {}
+                pdb: []
 
             sputter:
                 element: null

@@ -90,6 +90,7 @@ def test_load(tmp_path):
             },
             "molecules": {
                 "local": [],
+                "pdb": [],
             },
         },
         "scan": {"axis": [0, 1, 0]},
