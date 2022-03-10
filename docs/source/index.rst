@@ -6,7 +6,7 @@
 Welcome to parakeet's documentation!
 ====================================
 
-.. image:: parakeet.png
+.. image:: images/parakeet.png
    :width: 300
 
 .. toctree::
