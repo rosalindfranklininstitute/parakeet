@@ -23,7 +23,7 @@ However, because the package needs to be built locally from source and has some
 external dependencies you may need to ensure your environment is ready before
 running this command. For full instructions please see the installation
 documentation
-![here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/installation.html).
+[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/installation.html).
 
 ## Usage
 
@@ -39,9 +39,9 @@ Parakeet can be used as a suite of command line tools as follows:
 
 For full command line usage instructions please see the command line
 documentation here
-![here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/usage.html).
+[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/usage.html).
 Alternatively, there is a complementary high level Python API which can be seen
-![here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/api.html).
+[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/api.html).
 
 ## Documentation
 
