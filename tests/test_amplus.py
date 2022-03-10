@@ -15,7 +15,7 @@ def config_path(tmpdir_factory):
     config["microscope"]["detector"]["ny"] = 250
     config["microscope"]["detector"]["pixel_size"] = 2
     config["microscope"]["beam"]["electrons_per_angstrom"] = 1000
-    config["sample"]["molecules"]["4v1w"] = 2
+    config["sample"]["molecules"]["pdb"]["4v1w"] = 2
     config["sample"]["shape"]["type"] = "cube"
     config["sample"]["shape"]["cube"]["length"] = 500
     config["sample"]["centre"] = (250, 250, 250)

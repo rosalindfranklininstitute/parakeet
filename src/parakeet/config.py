@@ -68,10 +68,9 @@ def default():
 
             molecules:
 
-                4v5d: 0
-                4v1w: 0
-                6qt9: 0
-                6z6u: 0
+                local: []
+
+                pdb: {}
 
             sputter:
                 element: null

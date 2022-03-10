@@ -88,6 +88,9 @@ def test_load(tmp_path):
             "coords": {
                 "orientation": [0, 0, 0],
             },
+            "molecules": {
+                "local": [],
+            },
         },
         "scan": {"axis": [0, 1, 0]},
         "microscope": {"detector": {"origin": [0, 0]}},

@@ -2447,7 +2447,11 @@ def add_multiple_molecules(sample, molecules):
     all_orientations = []
 
     # Generate the orientations and boxes
-    for name, items in molecules.items():
+    for name, value in molecules.items():
+
+        # Get the type and instances
+        mtype = value["type"]
+        items = value["instances"]
 
         # Skip if number is zero
         if len(items) == 0:
@@ -2456,8 +2460,11 @@ def add_multiple_molecules(sample, molecules):
         # Print some info
         logger.info("Adding %d %s molecules" % (len(items), name))
 
-        # Get the filename of the 4v5d.cif file
-        filename = parakeet.data.get_pdb(name)
+        # Get the filename of the PDB entry
+        if mtype == "pdb":
+            filename = parakeet.data.get_pdb(name)
+        elif mtype == "local":
+            filename = name
 
         # Get the atom data
         atoms = AtomData.from_gemmi_file(filename)
@@ -2536,11 +2543,27 @@ def add_molecules(filename, molecules=None, **kwargs):
 
     # Convert to list of positions/orientations
     temp = {}
-    for key, value in molecules.items():
-        if isinstance(value, int):
-            temp[key] = [{} for i in range(value)]
-        else:
-            temp[key] = value
+    if "local" in molecules:
+        for item in molecules["local"]:
+            key = item["filename"]
+            value = item["instances"]
+            temp[key] = {
+                "type": "local",
+            }
+            if isinstance(value, int):
+                temp[key]["instances"] = [{} for i in range(value)]
+            else:
+                temp[key]["instances"] = value
+    if "pdb" in molecules:
+        for key, value in molecules["pdb"].items():
+            temp[key] = {
+                "type": "pdb",
+            }
+            if isinstance(value, int):
+                temp[key]["instances"] = [{} for i in range(value)]
+            else:
+                temp[key]["instances"] = value
+
     molecules = temp
 
     # The total number of molecules
@@ -2554,10 +2577,10 @@ def add_molecules(filename, molecules=None, **kwargs):
         raise RuntimeError("Need at least 1 molecule")
     elif total_number_of_molecules == 1:
         key = [key for key, value in molecules.items() if len(value) > 0][0]
-        if molecules[key][0].get("position", None) is None:
-            molecules[key][0]["position"] = sample.centre
-        if molecules[key][0].get("orientation", None) is None:
-            molecules[key][0]["orientation"] = (0, 0, 0)
+        if molecules[key]["instances"][0].get("position", None) is None:
+            molecules[key]["instances"][0]["position"] = sample.centre
+        if molecules[key]["instances"][0].get("orientation", None) is None:
+            molecules[key]["instances"][0]["orientation"] = (0, 0, 0)
 
     # Add the molecules
     add_multiple_molecules(sample, molecules)
