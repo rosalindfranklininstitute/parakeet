@@ -1,0 +1,36 @@
+# Build a snap and publish
+
+name: snapcraft
+
+on:
+  release:
+    types: [created]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      # Builds the snap
+      - uses: snapcore/action-build@v1
+
+      # Upload the snap as an artefact
+      - uses: actions/upload-artifact@v2
+        with:
+          name: snap
+          path: ${{ steps.snapcraft.outputs.snap }}
+
+      # Publish to snapcraft
+      - uses: snapcore/action-publish@v1
+        with:
+          store_login: ${{ secrets.SNAP_STORE_LOGIN }}
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge
