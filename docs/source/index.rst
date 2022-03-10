@@ -6,10 +6,19 @@
 Welcome to parakeet's documentation!
 ====================================
 
+.. image:: parakeet.png
+   :width: 300
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   installation
+   usage
+   api
+   tutorial
+   development
+   publications
 
 
 Indices and tables

@@ -11,107 +11,13 @@
 
 ## Installation
 
-In order to build this package, the following dependencies are required:
-
-- The CUDA toolkit
-- FFTW
-
-If you have multiple compiler versions or the compilers you want to use are not
-automatically picked up by cmake, you can explicitly state the compiler
-versions you would like to use as follows, where in this case we are using gcc
-as the C++ compiler:
+Parakeet can be installed using pip with the following command:
 
 ```sh
-export CXX=${PATH_TO_CXX}/bin/g++
-export CUDACXX=${PATH_TO_CUDA}/bin/nvcc
+  pip install python-parakeet
 ```
 
-Depending on your GPU and the version of the CUDA toolkit you are using, it may
-also be necessary to set the CMAKE_CUDA_ARCHITECTURES variable. This variable
-is by default set to "OFF" in the CMakeLists.txt file which has the effect of
-compiling CUDA kernels on the fly. If you have an old GPU, this may not work
-and you will receive CUDA errors when attemping to run the simulations on the
-GPU. In this case simply set the variable to the architecture supported by your
-GPU as follows (the example below is for the compute_37 architecture):
-
-```sh
-export CMAKE_CUDA_ARCHITECTURES=37
-```
-
-To install from the github repository ensure you have the latest version of pip installed and do the following
-
-```sh
-python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
-```
-
-To install from source, clone this repository. The repository has a submodule
-for pybind11 so after cloning the repository run
-
-```sh
-git submodule update --init --recursive
-```
-
-Then do the following:
-
-```sh
-python -m pip install .
-```
-
-If you would like to run the tests then, clone this repository and then do the following:
-
-```sh
-python -m pip install .[test]
-```
-
-## Installation for developers
-
-To install for development, clone this repository and then do the following:
-
-```sh
-python -m pip install -e .
-```
-
-## Testing
-
-To run the tests, follow the installation instructions for developers and then do the following:
-
-```sh
-pytest
-```
-
-## Docker
-
-Parakeet can also be installed and used via Docker (https://www.docker.com/get-started). To download parakeet's docker container you can do the following:
-
-```sh
-docker pull ghcr.io/rosalindfranklininstitute/parakeet:master
-```
-
-To use parakeet with docker with GPU support the host machine should have the approprate Nvidia drivers installed and docker needs to be installed with the nvidia container toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
-
-To easily input and output data from the container the volume mechanism can be used, where a workspace directory of the host machine is mounted to a directory in the container (in the folder /mnt in the example below). For this reason it is advised that all the relevent files (e.g. config.yaml, sample.h5, etc.) should be present in the host workspace directory.
-
-Below is an example on how to use parakeet with docker to simulate the exit wave:
-
-```sh
-docker run --gpus all -v $(pwd):/mnt --workdir=/mnt parakeet:master parakeet.simulate.exit_wave -c config.yaml -d gpu -s sample.h5 -e exit_wave.h5
-```
-
-## Singularity
-
-Parakeet can also be installed and used via Singularity (https://sylabs.io/guides/2.6/user-guide/installation.html). To download parakeet's singularity container you can do the following:
-
-```sh
-singularity build parakeet.sif docker://gchr.io/rosalindfranklininstitute/parakeet:master
-```
-
-Again similar to docker, to use parakeet with singularity and GPU support, the host machine should have the approprate Nvidia drivers installed.
-
-Below is an example on how to use parakeet with singularity to simulate the exit wave:
-
-```sh
-singularity run --nv parakeet.sif parakeet.simulate.exit_wave -c config_new.yaml -d gpu -s sample.h5 -e exit_wave.h5
-```
+However, because the package needs to be built locally from source and has some external dependencies you may need to ensure your environment is ready before running this command. For full instructions please see the installation documentation ![here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/installation.html).
 
 ## Usage
 
