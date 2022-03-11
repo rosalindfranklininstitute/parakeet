@@ -22,14 +22,11 @@ import parakeet.sample
 logger = logging.getLogger(__name__)
 
 
-def reconstruct(args=None):
+def get_reconstruct_parser():
     """
-    Reconstruct the volume
+    Get the parakeet.analyse.reconstruct parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Reconstruct the volume")
@@ -68,6 +65,21 @@ def reconstruct(args=None):
         help="The filename for the reconstruction",
     )
 
+    return parser
+
+
+def reconstruct(args=None):
+    """
+    Reconstruct the volume
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_reconstruct_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -101,14 +113,11 @@ def reconstruct(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def correct(args=None):
+def get_correct_parser():
     """
-    Correct the images using 3D CTF correction
+    Get the parakeet.analyse.correct parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="3D CTF correction of the images")
@@ -155,6 +164,21 @@ def correct(args=None):
         help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
     )
 
+    return parser
+
+
+def correct(args=None):
+    """
+    Correct the images using 3D CTF correction
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_correct_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -189,14 +213,11 @@ def correct(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def average_particles(args=None):
+def get_average_particles_parser():
     """
-    Perform sub tomogram averaging
+    Get the parakeet.analyse.average_particles parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Perform sub tomogram averaging")
@@ -259,6 +280,21 @@ def average_particles(args=None):
         help="The nunber of particles to use",
     )
 
+    return parser
+
+
+def average_particles(args=None):
+    """
+    Perform sub tomogram averaging
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_average_particles_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -289,14 +325,11 @@ def average_particles(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def average_all_particles(args=None):
+def get_average_all_particles_parser():
     """
-    Perform sub tomogram averaging
+    Get the parakeet.analyse.average_all_particles parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Perform sub tomogram averaging")
@@ -343,6 +376,21 @@ def average_all_particles(args=None):
         help="The size of for the particles extracted",
     )
 
+    return parser
+
+
+def average_all_particles(args=None):
+    """
+    Perform sub tomogram averaging
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get parse
+    parser = get_average_all_particles_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -367,14 +415,11 @@ def average_all_particles(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def extract_particles(args=None):
+def get_extract_parser():
     """
-    Perform sub tomogram extraction
+    Get the parakeet.analyse.extract parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Perform sub tomogram extraction")
@@ -421,6 +466,21 @@ def extract_particles(args=None):
         help="The size of for the particles extracted",
     )
 
+    return parser
+
+
+def extract_particles(args=None):
+    """
+    Perform sub tomogram extraction
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_extract_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -445,14 +505,11 @@ def extract_particles(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def refine(args=None):
+def get_refine_parser():
     """
-    Refine against the model
+    Get the parakeet.analyse.refine parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Refine map and model")
@@ -482,6 +539,21 @@ def refine(args=None):
         dest="rec",
         help="The filename for the reconstruction",
     )
+
+    return parser
+
+
+def refine(args=None):
+    """
+    Refine against the model
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_refine_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)

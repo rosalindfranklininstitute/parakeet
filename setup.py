@@ -105,7 +105,7 @@ def main():
             ]
         },
         extras_require={
-            "build_sphinx": ["sphinx", "sphinx_rtd_theme"],
+            "build_sphinx": ["sphinx", "sphinx_rtd_theme", "sphinx-argparse"],
             "test": tests_require,
         },
         include_package_data=True,

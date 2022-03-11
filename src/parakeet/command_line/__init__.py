@@ -111,11 +111,12 @@ def filter_image(data, pixel_size, resolution, shape):
     return d.real
 
 
-def export(argv=None):
+def get_export_parser():
     """
-    Convert the input file type to a different file type
+    Get the parser for parakeet.export
 
     """
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Read a PDB file")
 
@@ -220,6 +221,17 @@ def export(argv=None):
         choices=["angle"],
         help="Sort the images",
     )
+
+    return parser
+
+
+def export(argv=None):
+    """
+    Convert the input file type to a different file type
+
+    """
+    # Get the parser
+    parser = get_export_parser()
 
     # Parse the arguments
     args = parser.parse_args(argv)

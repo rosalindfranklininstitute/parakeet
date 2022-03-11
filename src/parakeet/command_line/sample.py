@@ -20,12 +20,11 @@ import parakeet.sample
 logger = logging.getLogger(__name__)
 
 
-def new(args=None):
+def get_new_parser():
     """
-    Create an ice sample and save it
+    Get the parakeet.sample.new parser
 
     """
-    st = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Create an ice sample and save it")
@@ -47,6 +46,19 @@ def new(args=None):
         dest="sample",
         help="The filename for the sample file",
     )
+
+    return parser
+
+
+def new(args=None):
+    """
+    Create an ice sample and save it
+
+    """
+    st = time.time()
+
+    # Get the parser
+    parser = get_new_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -66,12 +78,11 @@ def new(args=None):
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
-def add_molecules(args=None):
+def get_add_molecules_parser():
     """
-    Add molecules to the sample
+    Get the add molecules parser
 
     """
-    st = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Create an ice sample and save it")
@@ -94,6 +105,19 @@ def add_molecules(args=None):
         help="The filename for the sample file",
     )
 
+    return parser
+
+
+def add_molecules(args=None):
+    """
+    Add molecules to the sample
+
+    """
+    st = time.time()
+
+    # Get the add_molecules parser
+    parser = get_add_molecules_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -112,12 +136,11 @@ def add_molecules(args=None):
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
-def mill(args=None):
+def get_mill_parser():
     """
-    Mill to the shape of the sample
+    Get the mill parser
 
     """
-    st = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Mill the sample")
@@ -140,6 +163,19 @@ def mill(args=None):
         help="The filename for the sample file",
     )
 
+    return parser
+
+
+def mill(args=None):
+    """
+    Mill to the shape of the sample
+
+    """
+    st = time.time()
+
+    # Get the mill parser
+    parser = get_mill_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -158,13 +194,11 @@ def mill(args=None):
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
-def sputter(args=None):
+def get_sputter_parser():
     """
-    Sputter the sample
+    Get the sputter parser
 
     """
-    st = time.time()
-
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Sputter the sample")
 
@@ -186,6 +220,19 @@ def sputter(args=None):
         help="The filename for the sample file",
     )
 
+    return parser
+
+
+def sputter(args=None):
+    """
+    Sputter the sample
+
+    """
+    st = time.time()
+
+    # Get the sputter parser
+    parser = get_sputter_parser()
+
     # Parse the arguments
     args = parser.parse_args(args=args)
 
@@ -204,9 +251,9 @@ def sputter(args=None):
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
-def show():
+def get_show_parser():
     """
-    Show the sample information
+    Get the parakeet.sample.show parser
 
     """
     # Create the argument parser
@@ -221,6 +268,17 @@ def show():
         dest="sample",
         help="The filename for the sample file",
     )
+
+    return parser
+
+
+def show():
+    """
+    Show the sample information
+
+    """
+    # Get the parser
+    parser = get_show_parser()
 
     # Parse the arguments
     args = parser.parse_args()

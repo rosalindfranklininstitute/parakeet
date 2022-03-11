@@ -25,14 +25,11 @@ from math import pi
 logger = logging.getLogger(__name__)
 
 
-def projected_potential(args=None):
+def get_projected_potential_parser():
     """
-    Simulate the projected potential from the sample
+    Get the parser for parakeet.simulate.projected_potential
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(
@@ -79,6 +76,21 @@ def projected_potential(args=None):
         dest="sample",
         help="The filename for the sample",
     )
+
+    return parser
+
+
+def projected_potential(args=None):
+    """
+    Simulate the projected potential from the sample
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get parser
+    parser = get_projected_potential_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -135,14 +147,11 @@ def projected_potential(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def exit_wave(args=None):
+def get_exit_wave_parser():
     """
-    Simulate the exit wave from the sample
+    Get the parakeet.simulate.exit_wave parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(
@@ -197,6 +206,21 @@ def exit_wave(args=None):
         dest="exit_wave",
         help="The filename for the exit wave",
     )
+
+    return parser
+
+
+def exit_wave(args=None):
+    """
+    Simulate the exit wave from the sample
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get exit wave parser
+    parser = get_exit_wave_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -260,14 +284,11 @@ def exit_wave(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def optics(args=None):
+def get_optics_parser():
     """
-    Simulate the optics
+    Get the parakeet.simulate.optics parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Simulate the optics")
@@ -320,6 +341,21 @@ def optics(args=None):
         dest="optics",
         help="The filename for the optics",
     )
+
+    return parser
+
+
+def optics(args=None):
+    """
+    Simulate the optics
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_optics_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -383,14 +419,11 @@ def optics(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def ctf(args=None):
+def get_ctf_parser():
     """
-    Simulate the ctf
+    Get the parakeet.simulate.ctf parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Simulate the ctf")
@@ -411,6 +444,21 @@ def ctf(args=None):
         dest="output",
         help="The filename for the output",
     )
+
+    return parser
+
+
+def ctf(args=None):
+    """
+    Simulate the ctf
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_ctf_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -448,14 +496,11 @@ def ctf(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def image(args=None):
+def get_image_parser():
     """
-    Simulate the image with noise
+    Get the parakeet.simulate.image parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Simulate the image")
@@ -485,6 +530,21 @@ def image(args=None):
         dest="image",
         help="The filename for the image",
     )
+
+    return parser
+
+
+def image(args=None):
+    """
+    Simulate the image with noise
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get parser
+    parser = get_image_parser()
 
     # Parse the arguments
     args = parser.parse_args(args=args)
@@ -536,14 +596,11 @@ def image(args=None):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def simple():
+def get_simple_parser():
     """
-    Simulate the image
+    Get the parakeet.simulate.simple parser
 
     """
-
-    # Get the start time
-    start_time = time.time()
 
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Simulate the image")
@@ -572,6 +629,21 @@ def simple():
         nargs="?",
         help="The filename for the input atoms",
     )
+
+    return parser
+
+
+def simple():
+    """
+    Simulate the image
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get parser
+    parser = get_simple_parser()
 
     # Parse the arguments
     args = parser.parse_args()

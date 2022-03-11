@@ -18,11 +18,12 @@ import parakeet.command_line
 logger = logging.getLogger(__name__)
 
 
-def show():
+def get_show_parser():
     """
-    Show the full configuration
+    Get the parser for the parakeet.config.show command
 
     """
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Show the configuration")
 
@@ -36,6 +37,18 @@ def show():
         help="The yaml file to configure the simulation",
     )
 
+    return parser
+
+
+def show():
+    """
+    Show the full configuration
+
+    """
+
+    # Get the show parser
+    parser = get_show_parser()
+
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
@@ -46,11 +59,12 @@ def show():
     parakeet.config.show(config, full=True)
 
 
-def edit():
+def get_edit_parser():
     """
-    Edit the configuration
+    Get the parser for the parakeet.config.edit command
 
     """
+
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Edit the configuration")
 
@@ -76,6 +90,18 @@ def edit():
     parser.add_argument(
         "-s", type=str, default="", dest="config", help="The configuration string"
     )
+
+    return parser
+
+
+def edit():
+    """
+    Edit the configuration
+
+    """
+
+    # Get the edit parser
+    parser = get_edit_parser()
 
     # Parse the command line
     args = parser.parse_args()
