@@ -1,7 +1,6 @@
 <div align="center">
 
-# Parakeet
-:parrot:
+# Parakeet <br> :parrot:
 
 ![Parakeet](docs/source/images/parakeet_small.png)
 
