@@ -18,6 +18,8 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       
       # Builds the snap
       - uses: snapcore/action-build@v1
@@ -27,10 +29,3 @@ jobs:
         with:
           name: snap
           path: ${{ steps.snapcraft.outputs.snap }}
-
-      # Publish to snapcraft
-      - uses: snapcore/action-publish@v1
-        with:
-          store_login: ${{ secrets.SNAP_STORE_LOGIN }}
-          snap: ${{ steps.build.outputs.snap }}
-          release: edge
