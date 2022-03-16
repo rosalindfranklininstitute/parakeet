@@ -3,6 +3,8 @@
 name: snapcraft
 
 on:
+  schedule:
+    - cron: '0 0 * * 1'
   release:
     types: [created]
 
