@@ -1,6 +1,6 @@
 # Build a snap and publish
 
-name: snapcraft
+name: Snapcraft
 
 on:
   schedule:
