@@ -82,18 +82,6 @@ def correct_internal(config_file, image, corrected, num_defocus=1, device="gpu")
 
     """
 
-    # Get the start time
-    start_time = time.time()
-
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
-    # Configure some basic logging
-    parakeet.command_line.configure_logging()
-
     # Load the full configuration
     config = parakeet.config.load(config_file)
 

@@ -116,7 +116,7 @@ def reconstruct(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the reconstruction
-    reconstruct_internal(args.config, args.image, args.rec, argds.device)
+    reconstruct_internal(args.config, args.image, args.rec, args.device)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
