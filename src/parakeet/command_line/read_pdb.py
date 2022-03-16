@@ -60,7 +60,7 @@ def read_pdb():
         exit(0)
 
     # Configure some basic logging
-    configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Read the structure
     structure = gemmi.read_structure(args.filename)

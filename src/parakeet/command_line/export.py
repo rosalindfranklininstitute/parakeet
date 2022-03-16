@@ -9,7 +9,6 @@
 # which is included in the root directory of this package.
 #
 import argparse
-import gemmi
 import logging
 import logging.config
 import numpy
@@ -209,7 +208,7 @@ def export(argv=None):
     args = parser.parse_args(argv)
 
     # Configure some basic logging
-    configure_logging()
+    parakeet.command_line.configure_logging()
 
     # Read the input
     logger.info(f"Reading data from {args.filename}")
@@ -377,61 +376,3 @@ def export(argv=None):
 
     # Update the writer
     writer.update()
-
-
-def export():
-    """
-    Read the given PDB file and show the atom positions
-
-    """
-
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Read a PDB file")
-
-    # Add an argument for the filename
-    parser.add_argument(
-        "-f",
-        "--filename",
-        type=str,
-        default=None,
-        dest="filename",
-        help="The path to the PDB file",
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Check a filename has been given
-    if args.filename is None:
-        parser.print_help()
-        exit(0)
-
-    # Configure some basic logging
-    configure_logging()
-
-    # Read the structure
-    structure = gemmi.read_structure(args.filename)
-
-    # Iterate through atoms
-    prefix = " " * 4
-    logger.info("Structure: %s" % structure.name)
-    for model in structure:
-        logger.info("%sModel: %s" % (prefix, model.name))
-        for chain in model:
-            logger.info("%sChain: %s" % (prefix * 2, chain.name))
-            for residue in chain:
-                logger.info("%sResidue: %s" % (prefix * 3, residue.name))
-                for atom in residue:
-                    logger.info(
-                        "%sAtom: %s, %f, %f, %f, %f, %f, %f"
-                        % (
-                            prefix * 4,
-                            atom.element.name,
-                            atom.pos.x,
-                            atom.pos.y,
-                            atom.pos.z,
-                            atom.occ,
-                            atom.charge,
-                            parakeet.sample.get_atom_sigma(atom),
-                        )
-                    )
