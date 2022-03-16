@@ -94,9 +94,6 @@ def extract(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-
     # Load the full configuration
     config = parakeet.config.load(args.config)
 
