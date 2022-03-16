@@ -52,7 +52,10 @@ def show():
     parakeet.command_line.configure_logging()
 
     # Parse the arguments
-    config = parakeet.config.load(parser.parse_args().config)
+    args = parser.parse_args()
+
+    # Parse the arguments
+    config = parakeet.config.load(args.config)
 
     # Print some options
-    parakeet.config.show(parser.parse_args().config, full=True)
+    parakeet.config.show(config, full=True)

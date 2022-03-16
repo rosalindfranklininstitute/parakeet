@@ -213,3 +213,22 @@ with random position and orientation.
       pdb:
         - id: 4V5D
           instances: 10
+
+Applying radiation damage
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Parakeet implements a simple radiation damage model which uses an isotropic B
+factor to blur the atomic potential during simulation. The B factor increases
+linearly with the incident electron dose according to a sensitivity
+coefficient. To apply the beam damage model you can set the following
+parameters which will enable the beam damage model and simulate the images
+using a dose symmetric scheme.
+
+.. code-block:: yaml
+
+  simulation:
+    radiation_damage_model: true
+    sensitivity_coefficient: 0.022
+
+  scan:
+    mode: dose_symmetric
