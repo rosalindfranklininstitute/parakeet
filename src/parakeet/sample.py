@@ -2543,7 +2543,10 @@ def add_molecules(filename, molecules=None, **kwargs):
 
     # Convert to list of positions/orientations
     temp = {}
+    print(molecules)
     for origin, items in molecules.items():
+        if items is None:
+            continue
         for item in items:
 
             # Get the key

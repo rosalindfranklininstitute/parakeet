@@ -10,22 +10,34 @@ import parakeet.command_line.analyse
 @pytest.fixture(scope="session")
 def config_path(tmpdir_factory):
     directory = tmpdir_factory.mktemp("proc")
-    config = parakeet.config.load()
-    config["microscope"]["detector"]["nx"] = 250
-    config["microscope"]["detector"]["ny"] = 250
-    config["microscope"]["detector"]["pixel_size"] = 2
-    config["microscope"]["beam"]["electrons_per_angstrom"] = 1000
-    config["sample"]["molecules"]["pdb"] = [{"id": "4v1w", "instances": 2}]
-    config["sample"]["shape"]["type"] = "cube"
-    config["sample"]["shape"]["cube"]["length"] = 500
-    config["sample"]["centre"] = (250, 250, 250)
-    config["sample"]["box"] = (500, 500, 500)
-    config["scan"]["mode"] = "tilt_series"
-    config["scan"]["num_images"] = 10
-    config["scan"]["start_angle"] = -90
-    config["scan"]["step_angle"] = 18
+
+    config_dict = {
+        "microscope": {
+            "detector": {"nx": 250, "ny": 250, "pixel_size": 2},
+            "beam": {
+                "electrons_per_angstrom": 1000,
+            },
+        },
+        "sample": {
+            "molecules": {"pdb": [{"id": "4v1w", "instances": 2}]},
+            "shape": {
+                "type": "cube",
+                "cube": {"length": 500},
+                "centre": (250, 250, 250),
+                "box": (500, 500, 500),
+            },
+        },
+        "scan": {
+            "mode": "tilt_series",
+            "num_images": 10,
+            "start_angle": -90,
+            "step_angle": 18,
+        },
+    }
+
+    config = parakeet.config.load(config_dict)
     config_path = os.path.abspath(os.path.join(directory, "config.yaml"))
-    yaml.safe_dump(config, open(config_path, "w"))
+    yaml.safe_dump(config.dict(), open(config_path, "w"))
     return directory
 
 

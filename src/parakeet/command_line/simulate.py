@@ -98,35 +98,32 @@ def projected_potential(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-    if args.cluster_max_workers is not None or args.cluster_method is not None:
-        command_line["cluster"] = {}
-    if args.cluster_max_workers is not None:
-        command_line["cluster"]["max_workers"] = args.cluster_max_workers
-    if args.cluster_method is not None:
-        command_line["cluster"]["method"] = args.cluster_method
-
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
+
+    # Set the command line args in a dict
+    if args.device is not None:
+        config.device = args.device
+    if args.cluster_max_workers is not None:
+        config.cluster.max_workers = args.cluster_max_workers
+    if args.cluster_method is not None:
+        config.cluster.method = args.cluster_method
 
     # Print some options
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
     sample = parakeet.sample.load(args.sample)
 
     # Create the scan
-    if config["scan"]["step_pos"] == "auto":
+    if config.scan.step_pos == "auto":
         radius = sample.shape_radius
-        config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = parakeet.scan.new(**config["scan"])
+        config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
+    scan = parakeet.scan.new(**config.scan.dict())
     if scan.positions[-1] > sample.containing_box[1][0]:
         raise RuntimeError("Scan goes beyond sample containing box")
 
@@ -135,9 +132,9 @@ def projected_potential(args=None):
         microscope=microscope,
         sample=sample,
         scan=scan,
-        device=config["device"],
-        simulation=config["simulation"],
-        cluster=config["cluster"],
+        device=config.device,
+        simulation=config.simulation,
+        cluster=config.cluster,
     )
 
     # Run the simulation
@@ -228,44 +225,41 @@ def exit_wave(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-    if args.cluster_max_workers is not None or args.cluster_method is not None:
-        command_line["cluster"] = {}
-    if args.cluster_max_workers is not None:
-        command_line["cluster"]["max_workers"] = args.cluster_max_workers
-    if args.cluster_method is not None:
-        command_line["cluster"]["method"] = args.cluster_method
-
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
+
+    # Set the command line args in a dict
+    if args.device is not None:
+        config.device = args.device
+    if args.cluster_max_workers is not None:
+        config.cluster.max_workers = args.cluster_max_workers
+    if args.cluster_method is not None:
+        config.cluster.method = args.cluster_method
 
     # Print some options
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the sample
     logger.info(f"Loading sample from {args.sample}")
     sample = parakeet.sample.load(args.sample)
 
     # Create the scan
-    if config["scan"]["step_pos"] == "auto":
+    if config.scan.step_pos == "auto":
         radius = sample.shape_radius
-        config["scan"]["step_pos"] = config["scan"]["step_angle"] * radius * pi / 180.0
-    scan = parakeet.scan.new(**config["scan"])
+        config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
+    scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
     simulation = parakeet.simulation.exit_wave(
         microscope=microscope,
         sample=sample,
         scan=scan,
-        device=config["device"],
-        simulation=config["simulation"],
-        cluster=config["cluster"],
+        device=config.device,
+        simulation=config.simulation.dict(),
+        cluster=config.cluster.dict(),
     )
 
     # Create the writer
@@ -363,44 +357,41 @@ def optics(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-    if args.cluster_max_workers is not None or args.cluster_method is not None:
-        command_line["cluster"] = {}
-    if args.cluster_max_workers is not None:
-        command_line["cluster"]["max_workers"] = args.cluster_max_workers
-    if args.cluster_method is not None:
-        command_line["cluster"]["method"] = args.cluster_method
-
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
+
+    # Set the command line args in a dict
+    if args.device is not None:
+        config.device = args.device
+    if args.cluster_max_workers is not None:
+        config.cluster.max_workers = args.cluster_max_workers
+    if args.cluster_method is not None:
+        config.cluster.method = args.cluster_method
 
     # Print some options
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.exit_wave}")
     exit_wave = parakeet.io.open(args.exit_wave)
 
     # Create the scan
-    config["scan"]["angles"] = exit_wave.angle
-    config["scan"]["positions"] = exit_wave.position[:, 1]
-    scan = parakeet.scan.new(**config["scan"])
+    scan = parakeet.scan.new(
+        angles=exit_wave.angle, positions=exit_wave.position[:, 1], **config.scan.dict()
+    )
 
     # Create the simulation
     simulation = parakeet.simulation.optics(
         microscope=microscope,
         exit_wave=exit_wave,
         scan=scan,
-        device=config["device"],
-        simulation=config["simulation"],
-        sample=config["sample"],
-        cluster=config["cluster"],
+        device=config.device,
+        simulation=config.simulation.dict(),
+        sample=config.sample.dict(),
+        cluster=config.cluster.dict(),
     )
 
     # Create the writer
@@ -473,11 +464,11 @@ def ctf(args=None):
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the simulation
     simulation = parakeet.simulation.ctf(
-        microscope=microscope, simulation=config["simulation"]
+        microscope=microscope, simulation=config.simulation.dict()
     )
 
     # Create the writer
@@ -559,25 +550,25 @@ def image(args=None):
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.optics}")
     optics = parakeet.io.open(args.optics)
 
     # Create the scan
-    config["scan"]["angles"] = optics.angle
-    config["scan"]["positions"] = optics.position[:, 1]
-    scan = parakeet.scan.new(**config["scan"])
+    scan = parakeet.scan.new(
+        angles=optics.angle, positions=optics.position[:, 1], **config.scan.dict()
+    )
 
     # Create the simulation
     simulation = parakeet.simulation.image(
         microscope=microscope,
         optics=optics,
         scan=scan,
-        device=config["device"],
-        simulation=config["simulation"],
-        cluster=config["cluster"],
+        device=config.device,
+        simulation=config.simulation.dict(),
+        cluster=config.cluster.dict(),
     )
 
     # Create the writer
@@ -658,7 +649,7 @@ def simple():
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
     logger.info(f"Loading sample from {args.atoms}")
@@ -668,8 +659,8 @@ def simple():
     simulation = parakeet.simulation.simple(
         microscope=microscope,
         atoms=atoms,
-        device=config["device"],
-        simulation=config["simulation"],
+        device=config.device,
+        simulation=config.simulation,
     )
 
     # Create the writer

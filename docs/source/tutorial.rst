@@ -8,9 +8,6 @@ format.
 Show default configuration
 --------------------------
 
-The default configuration parameters can be seen by typing the following
-command:
-
 .. code-block:: bash
 
   parakeet.config.show

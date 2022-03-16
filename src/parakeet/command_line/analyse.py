@@ -86,27 +86,26 @@ def reconstruct(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
+
+    # Set the command line args in a dict
+    if args.device is not None:
+        config.device = args.device
 
     # Print some options
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Do the reconstruction
     parakeet.analyse.reconstruct(
         args.image,
         args.rec,
         microscope=microscope,
-        simulation=config["simulation"],
-        device=config["device"],
+        simulation=config.simulation.dict(),
+        device=config.device,
     )
 
     # Write some timing stats
@@ -185,28 +184,27 @@ def correct(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Set the command line args in a dict
-    command_line = {}
-    if args.device is not None:
-        command_line["device"] = args.device
-
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
+
+    # Set the command line args in a dict
+    if args.device is not None:
+        config.device = args.device
 
     # Print some options
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config["microscope"])
+    microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Do the reconstruction
     parakeet.analyse.correct(
         args.image,
         args.corrected,
         microscope=microscope,
-        simulation=config["simulation"],
+        simulation=config.simulation.dict(),
         num_defocus=args.num_defocus,
-        device=config["device"],
+        device=config.device,
     )
 
     # Write some timing stats
@@ -305,14 +303,14 @@ def average_particles(args=None):
     command_line = {}
 
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
 
     # Print some options
     parakeet.config.show(config)
 
     # Do the sub tomogram averaging
     parakeet.analyse.average_particles(
-        config["scan"],
+        config.scan.dict(),
         args.sample,
         args.rec,
         args.half1,
@@ -401,14 +399,14 @@ def average_all_particles(args=None):
     command_line = {}
 
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
 
     # Print some options
     parakeet.config.show(config)
 
     # Do the sub tomogram averaging
     parakeet.analyse.average_all_particles(
-        config["scan"], args.sample, args.rec, args.average, args.particle_size
+        config.scan.dict(), args.sample, args.rec, args.average, args.particle_size
     )
 
     # Write some timing stats
@@ -491,14 +489,14 @@ def extract_particles(args=None):
     command_line = {}
 
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
 
     # Print some options
     parakeet.config.show(config)
 
     # Do the sub tomogram averaging
     parakeet.analyse.extract_particles(
-        config["scan"], args.sample, args.rec, args.particles, args.particle_size
+        config.scan.dict(), args.sample, args.rec, args.particles, args.particle_size
     )
 
     # Write some timing stats
@@ -565,7 +563,7 @@ def refine(args=None):
     command_line = {}
 
     # Load the full configuration
-    config = parakeet.config.load(args.config, command_line)
+    config = parakeet.config.load(args.config)
 
     # Print some options
     parakeet.config.show(config)

@@ -74,7 +74,7 @@ def new(args=None):
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    parakeet.sample.new(args.sample, **config["sample"])
+    parakeet.sample.new(args.sample, **config.sample.dict())
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -132,7 +132,7 @@ def add_molecules(args=None):
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    parakeet.sample.add_molecules(args.sample, **config["sample"])
+    parakeet.sample.add_molecules(args.sample, **config.sample.dict())
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -190,7 +190,7 @@ def mill(args=None):
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    parakeet.sample.mill(args.sample, **config["sample"])
+    parakeet.sample.mill(args.sample, **config.sample.dict())
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 
@@ -247,7 +247,7 @@ def sputter(args=None):
 
     # Create the sample
     logger.info(f"Writing sample to {args.sample}")
-    parakeet.sample.sputter(args.sample, **config["sample"]["sputter"])
+    parakeet.sample.sputter(args.sample, **config.sample.sputter.dict())
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
 
 

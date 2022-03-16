@@ -1,6 +1,23 @@
 import os
-import yaml
+import pytest
 import parakeet.config
+
+
+def dict_approx_equal(a, b):
+    def walk(a, b):
+        if isinstance(a, dict):
+            if a.keys() != b.keys():
+                return False
+            return all([walk(a[k], b[k]) for k in a.keys()])
+        elif isinstance(a, list):
+            if len(a) != len(b):
+                return False
+            return all([walk(a[i], b[i]) for i in range(len(a))])
+        else:
+            print(a, b, a == pytest.approx(b))
+            return a == pytest.approx(b)
+
+    return walk(a, b)
 
 
 def test_temp_directory():
@@ -13,92 +30,28 @@ def test_default():
     config = parakeet.config.default()
 
 
-def test_deepmerge():
+def test_save(tmp_path):
 
-    a = {
-        "A": 10,
-        "B": "Hello World",
-        "C": {"D": {"E": True}, "F": [1, 2, 3], "G": [{"H": 0.1}, {"H": 0.2}]},
-        "I": "unchanged",
-    }
-
-    b = {
-        "A": 20,
-        "C": {"D": {"E": False}, "F": [4, 5, 6], "G": [{"H": 0.3}, {"H": 0.4}]},
-        "J": "also unchanged",
-        "K": ["Spam", "Eggs"],
-    }
-
-    expected = {
-        "A": 20,
-        "B": "Hello World",
-        "C": {"D": {"E": False}, "F": [4, 5, 6], "G": [{"H": 0.3}, {"H": 0.4}]},
-        "I": "unchanged",
-        "J": "also unchanged",
-        "K": ["Spam", "Eggs"],
-    }
-
-    assert parakeet.config.deepmerge(a, b) == expected
-    assert parakeet.config.deepmerge(a, {}) == a
-    assert parakeet.config.deepmerge({}, b) == b
+    filename = os.path.join(tmp_path, "tmp-save.yaml")
+    config = parakeet.config.default()
+    parakeet.config.save(config, filename)
 
 
-def test_difference():
+def test_new(tmp_path):
 
-    master = {
-        "A": 10,
-        "B": "Hello World",
-        "C": {"D": {"E": True}, "F": [1, 2, 3], "G": [{"H": 0.1}, {"H": 0.2}]},
-        "I": "a string",
-        "J": "another string",
-        "K": ["Spam", "Eggs"],
-    }
-
-    config = {
-        "A": 10,
-        "C": {"D": {"E": False}, "F": [4, 5, 6], "G": [{"H": 0.3}, {"H": 0.4}]},
-        "I": "modified",
-        "K": ["Beans"],
-    }
-
-    expected = {
-        "C": {"D": {"E": False}, "F": [4, 5, 6], "G": [{"H": 0.3}, {"H": 0.4}]},
-        "I": "modified",
-        "K": ["Beans"],
-    }
-
-    assert parakeet.config.difference(master, config) == expected
+    filename = os.path.join(tmp_path, "tmp.yaml")
+    config = parakeet.config.new(filename)
 
 
 def test_load(tmp_path):
 
-    config = parakeet.config.load()
-
     filename = os.path.join(tmp_path, "tmp.yaml")
-    with open(filename, "w") as outfile:
-        yaml.dump(config, outfile)
-
+    config = parakeet.config.new(filename)
     config = parakeet.config.load(filename)
 
-    expected = {
-        "sample": {
-            "box": [4000, 4000, 4000],
-            "centre": [2000, 2000, 2000],
-            "shape": {"margin": [0, 0, 0]},
-            "coords": {
-                "orientation": [0, 0, 0],
-            },
-            "molecules": {
-                "local": [],
-                "pdb": [],
-            },
-        },
-        "scan": {"axis": [0, 1, 0]},
-        "microscope": {"detector": {"origin": [0, 0]}},
-    }
-    assert parakeet.config.difference(config, parakeet.config.default()) == expected
+    assert dict_approx_equal(config.dict(), parakeet.config.default().dict())
 
 
 def test_show():
 
-    parakeet.config.show({})
+    parakeet.config.show(parakeet.config.Config())

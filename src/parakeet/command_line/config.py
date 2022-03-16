@@ -59,6 +59,56 @@ def show():
     parakeet.config.show(config, full=True)
 
 
+def get_new_parser():
+    """
+    Get the parser for the parakeet.config.new command
+
+    """
+
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description="Generate a new comfig file")
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default="config.yaml",
+        dest="config",
+        help="The yaml file to configure the simulation",
+    )
+
+    parser.add_argument(
+        "-f",
+        "--full",
+        type=bool,
+        default=False,
+        dest="full",
+        help="Generate a file with the full configuration specification",
+    )
+
+    return parser
+
+
+def new():
+    """
+    Show the full configuration
+
+    """
+
+    # Get the parser
+    parser = get_new_parser()
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Configure some basic logging
+    parakeet.command_line.configure_logging()
+
+    # Parse the arguments
+    parakeet.config.new(filename=args.config, full=args.full)
+
+
 def get_edit_parser():
     """
     Get the parser for the parakeet.config.edit command
@@ -117,4 +167,4 @@ def edit():
 
     # Save the config
     with open(args.output, "w") as outfile:
-        yaml.safe_dump(config, outfile)
+        yaml.safe_dump(config.dict(), outfile)

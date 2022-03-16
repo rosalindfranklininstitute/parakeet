@@ -4,6 +4,14 @@ Command line programs
 Config file manipulation programs
 ---------------------------------
 
+parakeet.config.new
+^^^^^^^^^^^^^^^^^^^
+
+.. argparse::
+   :module: parakeet.command_line.config
+   :func: get_new_parser
+   :prog: parakeet.config.new
+
 parakeet.config.show
 ^^^^^^^^^^^^^^^^^^^^
 

@@ -16,6 +16,7 @@ Welcome to parakeet's documentation!
    installation
    usage
    api
+   configuration
    tutorial
    development
    publications

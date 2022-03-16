@@ -40,14 +40,14 @@ class Microscope(object):
         self.phase_plate = phase_plate
 
 
-def new(model=None, beam=None, objective_lens=None, detector=None, phase_plate=False):
+def new(model=None, beam=None, lens=None, detector=None, phase_plate=False):
     """
     Make a new detector
 
     Args:
         model (str): The microscope model
         beam (dict): The beam parameters
-        objective_lens (dict): The objective lens parameters
+        lens (dict): The objective lens parameters
         detector (dict): The detector parameters
         phase_plate (bool): The phase plate
 
@@ -58,7 +58,7 @@ def new(model=None, beam=None, objective_lens=None, detector=None, phase_plate=F
 
     # Construct the basic models from the input
     beam = parakeet.beam.new(**beam)
-    lens = parakeet.lens.new(**objective_lens)
+    lens = parakeet.lens.new(**lens)
     detector = parakeet.detector.new(**detector)
 
     # Override the parameters for the different microscope models
