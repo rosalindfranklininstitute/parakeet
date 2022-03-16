@@ -5,117 +5,121 @@ Simulation of datasets is split into a number of different commands. Each
 command takes a set of command line options or a configuration file in YAML
 format.
 
-Show default configuration
---------------------------
+Generate a new configuration file
+---------------------------------
 
 .. code-block:: bash
 
-  parakeet.config.show
+  parakeet.config.new
 
-This will give some output like the following which can then be copied to a
-yaml file (e.g. config.yaml):
+This will generate a new file called config.yaml which will contain the
+following configuration.
 
-.. code-block:: bash
+.. code-block:: yaml
 
-  Configuration:
-      cluster:
-          max_workers: 1
-          method: null
-      device: gpu
-      microscope:
-          beam:
-              acceleration_voltage_spread: 8.0e-07
-              drift: null
-              electrons_per_angstrom: 30
-              energy: 300
-              energy_spread: 3.3e-07
-          detector:
-              dqe: true
-              nx: 4000
-              ny: 4000
-              pixel_size: 1
-          model: null
-          objective_lens:
-              c_10: 20000
-              c_12: 0.0
-              c_21: 0.0
-              c_23: 0.0
-              c_30: 2.7
-              c_32: 0.0
-              c_34: 0.0
-              c_41: 0.0
-              c_43: 0.0
-              c_45: 0.0
-              c_50: 0.0
-              c_52: 0.0
-              c_54: 0.0
-              c_56: 0.0
-              c_c: 2.7
-              current_spread: 3.3e-07
-              inner_aper_ang: 0.0
-              m: 0
-              outer_aper_ang: 0.0
-              phi_12: 0.0
-              phi_21: 0.0
-              phi_23: 0.0
-              phi_32: 0.0
-              phi_34: 0.0
-              phi_41: 0.0
-              phi_43: 0.0
-              phi_45: 0.0
-              phi_52: 0.0
-              phi_54: 0.0
-              phi_56: 0.0
-          phase_plate: false
-      sample:
-          box:
-          - 4000
-          - 4000
-          - 4000
-          centre:
-          - 2000
-          - 2000
-          - 2000
-          coords:
-              filename: null
-              recentre: false
-          ice:
-              density: 940
-              generate: false
-          molecules:
-              4v1w: 0
-              4v5d: 0
-              6qt9: 0
-          shape:
-              cube:
-                  length: 4000
-              cuboid:
-                  length_x: 4000
-                  length_y: 4000
-                  length_z: 4000
-              cylinder:
-                  length: 10000
-                  radius: 1500
-              type: cube
-      scan:
-          axis:
-          - 0
-          - 1
-          - 0
-          exposure_time: 1
-          mode: still
-          num_images: 1
-          start_angle: 0
-          start_pos: 0
-          step_angle: 10
-          step_pos: auto
-      simulation:
-          division_thickness: 100
-          ice: false
-          margin: 100
-          padding: 100
-          slice_thickness: 3.0
+  microscope:
+    beam:
+      electrons_per_angstrom: 30
+      energy: 300
+      source_spread: 0.1
+    detector:
+      nx: 1000
+      ny: 1000
+      pixel_size: 1
+    lens:
+      c_10: -20000
+      c_30: 2.7
+      c_c: 2.7
+  sample:
+    box:
+    - 1000
+    - 1000
+    - 1000
+    centre:
+    - 500
+    - 500
+    - 500
+    molecules: null
+    shape:
+      cube:
+        length: 1000.0
+      cuboid:
+        length_x: 1000.0
+        length_y: 1000.0
+        length_z: 1000.0
+      cylinder:
+        length: 1000.0
+        radius: 500.0
+      margin:
+      - 0
+      - 0
+      - 0
+      type: cube
+  scan:
+    mode: still
+    num_images: 1
+    start_angle: 0
+    step_angle: 0
+  simulation:
+    ice: false
 
+Edit the configuration file
+---------------------------
+
+The configuration file now needs to be edited to perform the desired
+simulation. For example, to simulate with a single molecule we modify the
+sample.molecules field as follows.
+
+.. code-block:: yaml
+
+  microscope:
+    beam:
+      electrons_per_angstrom: 30
+      energy: 300
+      source_spread: 0.1
+    detector:
+      nx: 1000
+      ny: 1000
+      pixel_size: 1
+    lens:
+      c_10: -20000
+      c_30: 2.7
+      c_c: 2.7
+  sample:
+    box:
+    - 1000
+    - 1000
+    - 1000
+    centre:
+    - 500
+    - 500
+    - 500
+    molecules:
+      pdb:
+        - id: 4v1w
+          instances: 1
+    shape:
+      cube:
+        length: 1000.0
+      cuboid:
+        length_x: 1000.0
+        length_y: 1000.0
+        length_z: 1000.0
+      cylinder:
+        length: 1000.0
+        radius: 500.0
+      margin:
+      - 0
+      - 0
+      - 0
+      type: cube
+  scan:
+    mode: still
+    num_images: 1
+    start_angle: 0
+    step_angle: 0
+  simulation:
+    ice: false
 
 Generate sample model
 ---------------------

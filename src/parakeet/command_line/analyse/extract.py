@@ -76,6 +76,24 @@ def get_parser():
     return parser
 
 
+def extract_internal(config_file, sample, rec, particles, particle_size):
+    """
+    Perform sub tomogram extraction
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Do the sub tomogram averaging
+    parakeet.analyse.extract_particles(
+        config.scan.dict(), sample, rec, particles, particle_size
+    )
+
+
 def extract(args=None):
     """
     Perform sub tomogram extraction
@@ -94,15 +112,9 @@ def extract(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Load the full configuration
-    config = parakeet.config.load(args.config)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Do the sub tomogram averaging
-    parakeet.analyse.extract_particles(
-        config.scan.dict(), args.sample, args.rec, args.particles, args.particle_size
+    # Do the work
+    extract_internal(
+        args.config, args.sample, args.rec, args.particles, args.particle_size
     )
 
     # Write some timing stats

@@ -50,6 +50,22 @@ def get_parser():
     return parser
 
 
+def mill_internal(config_file, sample):
+    """
+    Mill to the shape of the sample
+
+    """
+    # Load the configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the sample
+    logger.info(f"Writing sample to {sample}")
+    parakeet.sample.mill(sample, **config.sample.dict())
+
+
 def mill(args=None):
     """
     Mill to the shape of the sample
@@ -66,13 +82,8 @@ def mill(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Load the configuration
-    config = parakeet.config.load(args.config)
+    # Do work
+    mill_internal(args.config, args.sample)
 
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the sample
-    logger.info(f"Writing sample to {args.sample}")
-    parakeet.sample.mill(args.sample, **config.sample.dict())
+    # Print output
     logger.info("Time taken: %.1f seconds" % (time.time() - st))

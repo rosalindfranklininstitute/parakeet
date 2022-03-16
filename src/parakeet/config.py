@@ -8,6 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import copy
 import logging
 import yaml
 
@@ -691,3 +692,27 @@ def show(config, full=False):
             ]
         )
     )
+
+
+def deepmerge(a, b):
+    """
+    Perform a deep merge of two dictionaries
+    Args:
+        a (dict): The first dictionary
+        b (dict): The second dictionary
+    Returns:
+        dict: The merged dictionary
+    """
+
+    def deepmerge_internal(self, other):
+        for key, value in other.items():
+            if key in self:
+                if isinstance(value, dict):
+                    deepmerge_internal(self[key], value)
+                else:
+                    self[key] = copy.deepcopy(value)
+            else:
+                self[key] = copy.deepcopy(value)
+        return self
+
+    return deepmerge_internal(copy.deepcopy(a), b)

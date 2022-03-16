@@ -55,4 +55,4 @@ def show():
     config = parakeet.config.load(parser.parse_args().config)
 
     # Print some options
-    parakeet.config.show(config, full=True)
+    parakeet.config.show(parser.parse_args().config, full=True)

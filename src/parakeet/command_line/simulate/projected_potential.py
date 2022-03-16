@@ -79,34 +79,24 @@ def get_parser():
     return parser
 
 
-def projected_potential(args=None):
+def projected_potential_internal(
+    config_file, sample, device="gpu", cluster_method=None, cluster_max_workers=1
+):
     """
     Simulate the projected potential from the sample
 
     """
 
-    # Get the start time
-    start_time = time.time()
-
-    # Get parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
-    # Configure some basic logging
-    parakeet.command_line.configure_logging()
-
     # Load the full configuration
-    config = parakeet.config.load(args.config)
+    config = parakeet.config.load(config_file)
 
     # Set the command line args in a dict
-    if args.device is not None:
-        config.device = args.device
-    if args.cluster_max_workers is not None:
-        config.cluster.max_workers = args.cluster_max_workers
-    if args.cluster_method is not None:
-        config.cluster.method = args.cluster_method
+    if device is not None:
+        config.device = device
+    if cluster_max_workers is not None:
+        config.cluster.max_workers = cluster_max_workers
+    if cluster_method is not None:
+        config.cluster.method = cluster_method
 
     # Print some options
     parakeet.config.show(config)
@@ -115,8 +105,8 @@ def projected_potential(args=None):
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the sample
-    logger.info(f"Loading sample from {args.sample}")
-    sample = parakeet.sample.load(args.sample)
+    logger.info(f"Loading sample from {sample}")
+    sample = parakeet.sample.load(sample)
 
     # Create the scan
     if config.scan.step_pos == "auto":
@@ -138,6 +128,34 @@ def projected_potential(args=None):
 
     # Run the simulation
     simulation.run()
+
+
+def projected_potential(args=None):
+    """
+    Simulate the projected potential from the sample
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get parser
+    parser = get_parser()
+
+    # Parse the arguments
+    args = parser.parse_args(args=args)
+
+    # Configure some basic logging
+    parakeet.command_line.configure_logging()
+
+    # Do the work
+    projected_potential_internal(
+        args.config,
+        args.sample,
+        args.device,
+        args.cluster_method,
+        args.cluster_max_workers,
+    )
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

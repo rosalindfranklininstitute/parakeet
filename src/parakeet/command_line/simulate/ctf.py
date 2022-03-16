@@ -53,6 +53,39 @@ def get_parser():
     return parser
 
 
+def ctf_internal(config_file, output):
+    """
+    Simulate the ctf
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the microscope
+    microscope = parakeet.microscope.new(**config.microscope.dict())
+
+    # Create the simulation
+    simulation = parakeet.simulation.ctf(
+        microscope=microscope, simulation=config.simulation.dict()
+    )
+
+    # Create the writer
+    logger.info(f"Opening file: {output}")
+    writer = parakeet.io.new(
+        output,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.complex64,
+    )
+
+    # Run the simulation
+    simulation.run(writer)
+
+
 def ctf(args=None):
     """
     Simulate the ctf
@@ -71,31 +104,8 @@ def ctf(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Load the full configuration
-    config = parakeet.config.load(args.config)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
-
-    # Create the simulation
-    simulation = parakeet.simulation.ctf(
-        microscope=microscope, simulation=config.simulation.dict()
-    )
-
-    # Create the writer
-    logger.info(f"Opening file: {args.output}")
-    writer = parakeet.io.new(
-        args.output,
-        shape=simulation.shape,
-        pixel_size=simulation.pixel_size,
-        dtype=numpy.complex64,
-    )
-
-    # Run the simulation
-    simulation.run(writer)
+    # Do the work
+    ctf_internal(args.config, args.output)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

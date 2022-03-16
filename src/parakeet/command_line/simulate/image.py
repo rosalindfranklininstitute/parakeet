@@ -62,6 +62,53 @@ def get_parser():
     return parser
 
 
+def image_internal(config_file, optics, image):
+    """
+    Simulate the image with noise
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the microscope
+    microscope = parakeet.microscope.new(**config.microscope.dict())
+
+    # Create the exit wave data
+    logger.info(f"Loading sample from {optics}")
+    optics = parakeet.io.open(optics)
+
+    # Create the scan
+    scan = parakeet.scan.new(
+        angles=optics.angle, positions=optics.position[:, 1], **config.scan.dict()
+    )
+
+    # Create the simulation
+    simulation = parakeet.simulation.image(
+        microscope=microscope,
+        optics=optics,
+        scan=scan,
+        device=config.device,
+        simulation=config.simulation.dict(),
+        cluster=config.cluster.dict(),
+    )
+
+    # Create the writer
+    logger.info(f"Opening file: {image}")
+    writer = parakeet.io.new(
+        image,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.float32,
+    )
+
+    # Run the simulation
+    simulation.run(writer)
+
+
 def image(args=None):
     """
     Simulate the image with noise
@@ -80,45 +127,8 @@ def image(args=None):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Load the full configuration
-    config = parakeet.config.load(args.config)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
-
-    # Create the exit wave data
-    logger.info(f"Loading sample from {args.optics}")
-    optics = parakeet.io.open(args.optics)
-
-    # Create the scan
-    scan = parakeet.scan.new(
-        angles=optics.angle, positions=optics.position[:, 1], **config.scan.dict()
-    )
-
-    # Create the simulation
-    simulation = parakeet.simulation.image(
-        microscope=microscope,
-        optics=optics,
-        scan=scan,
-        device=config.device,
-        simulation=config.simulation.dict(),
-        cluster=config.cluster.dict(),
-    )
-
-    # Create the writer
-    logger.info(f"Opening file: {args.image}")
-    writer = parakeet.io.new(
-        args.image,
-        shape=simulation.shape,
-        pixel_size=simulation.pixel_size,
-        dtype=numpy.float32,
-    )
-
-    # Run the simulation
-    simulation.run(writer)
+    # Do the work
+    image_internal(args.config, args.optics, args.image)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

@@ -85,34 +85,29 @@ def get_parser():
     return parser
 
 
-def optics(args=None):
+def optics_internal(
+    config_file,
+    exit_wave,
+    optics,
+    device="gpu",
+    cluster_method=None,
+    cluster_max_workers=1,
+):
     """
     Simulate the optics
 
     """
 
-    # Get the start time
-    start_time = time.time()
-
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
-    # Configure some basic logging
-    parakeet.command_line.configure_logging()
-
     # Load the full configuration
-    config = parakeet.config.load(args.config)
+    config = parakeet.config.load(config_file)
 
-    # Set the command line args in a dict
-    if args.device is not None:
-        config.device = args.device
-    if args.cluster_max_workers is not None:
-        config.cluster.max_workers = args.cluster_max_workers
-    if args.cluster_method is not None:
-        config.cluster.method = args.cluster_method
+    # Set the device in a dict
+    if device is not None:
+        config.device = device
+    if cluster_max_workers is not None:
+        config.cluster.max_workers = cluster_max_workers
+    if cluster_method is not None:
+        config.cluster.method = cluster_method
 
     # Print some options
     parakeet.config.show(config)
@@ -121,8 +116,8 @@ def optics(args=None):
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
-    logger.info(f"Loading sample from {args.exit_wave}")
-    exit_wave = parakeet.io.open(args.exit_wave)
+    logger.info(f"Loading sample from {exit_wave}")
+    exit_wave = parakeet.io.open(exit_wave)
 
     # Create the scan
     scan = parakeet.scan.new(
@@ -141,9 +136,9 @@ def optics(args=None):
     )
 
     # Create the writer
-    logger.info(f"Opening file: {args.optics}")
+    logger.info(f"Opening file: {optics}")
     writer = parakeet.io.new(
-        args.optics,
+        optics,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=numpy.float32,
@@ -151,6 +146,35 @@ def optics(args=None):
 
     # Run the simulation
     simulation.run(writer)
+
+
+def optics(args=None):
+    """
+    Simulate the optics
+
+    """
+
+    # Get the start time
+    start_time = time.time()
+
+    # Get the parser
+    parser = get_parser()
+
+    # Parse the arguments
+    args = parser.parse_args(args=args)
+
+    # Configure some basic logging
+    parakeet.command_line.configure_logging()
+
+    # Do the work
+    optics_internal(
+        args.config,
+        args.exit_wave,
+        args.optics,
+        args.device,
+        args.cluster_method,
+        args.cluster_max_workers,
+    )
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
