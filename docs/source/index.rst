@@ -18,7 +18,6 @@ Welcome to parakeet's documentation!
    api
    configuration
    tutorial
-   development
    publications
 
 
