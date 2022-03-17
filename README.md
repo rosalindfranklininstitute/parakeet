@@ -43,6 +43,7 @@ documentation
 Parakeet can be used as a suite of command line tools as follows:
 
 ```sh
+  parakeet.config.new -c config.yaml
   parakeet.sample.new -c config.yaml
   parakeet.sample.add_molecules -c config.yaml
   parakeet.simulate.exit_wave -c config.yaml
