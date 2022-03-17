@@ -60,6 +60,19 @@ GPU as follows (the example below is for the compute_37 architecture):
   export CMAKE_CUDA_ARCHITECTURES=37
 
 
+Python virtual environments
+---------------------------
+
+Before installing parakeet, you may want to setup a python virtual environment
+in which to install it rather than installing into your system library. Use the
+following commands before following the instructions below.
+
+.. code-block:: bash
+
+  python3 -m venv env
+  source env/bin/activate
+
+
 Install from source
 -------------------
 
@@ -111,6 +124,19 @@ any other branch) directly using pip by using the following command:
 
   python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
 
+Install using conda
+-------------------
+
+You can install parakeet using conda as follows:
+
+.. code-block:: bash
+
+  # Create a conda environment
+  conda create -n parakeet python=3.9
+
+  # Install parakeet
+  conda install -c james.parkhurst python-parakeet
+
 
 Install as a Docker container
 -----------------------------
@@ -145,6 +171,7 @@ wave:
       -d gpu \
       -s sample.h5 \
       -e exit_wave.h5
+
 
 Install as a Singularity image
 ------------------------------
@@ -183,6 +210,7 @@ command.
 .. code-block:: bash
 
   sudo snap install parakeet_0.2.7.snap --dangerous --classic
+
 
 Install on Baskerville
 ----------------------
@@ -249,6 +277,7 @@ Then run the simulations as follows:
 .. code-block:: bash
 
   sbatch run.sh
+
 
 Testing
 -------
