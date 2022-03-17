@@ -1,0 +1,36 @@
+name: Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    
+    runs-on: ubuntu-latest
+
+    environment: parakeet-environment
+
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        conda env update --file conda/environment.yaml --name base
+        conda config --env --add channels james.parkhurst
+        conda config --set anaconda_upload yes
+        
+    - name: Build package
+      run: |
+        conda build conda/ --token=${{ secrets.ANACONDA_TOKEN }}

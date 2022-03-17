@@ -1,0 +1,129 @@
+{% set name = "python-parakeet" %}
+{% set version = "0.3.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 7019887bc4c0020bcd8b413fde91aaa79a1666fb2e5af5a73960ca9d0cb7e718
+
+build:
+  number: 0
+  entry_points:
+    - parakeet.read_pdb=parakeet.command_line:read_pdb
+    - parakeet.export=parakeet.command_line:export
+    - parakeet.config.show=parakeet.command_line.config:show
+    - parakeet.config.new=parakeet.command_line.config:new
+    - parakeet.config.edit=parakeet.command_line.config:edit
+    - parakeet.sample.new=parakeet.command_line.sample:new
+    - parakeet.sample.add_molecules=parakeet.command_line.sample:add_molecules
+    - parakeet.sample.mill=parakeet.command_line.sample:mill
+    - parakeet.sample.sputter=parakeet.command_line.sample:sputter
+    - parakeet.sample.show=parakeet.command_line.sample:show
+    - parakeet.simulate.projected_potential=parakeet.command_line.simulate:projected_potential
+    - parakeet.simulate.exit_wave=parakeet.command_line.simulate:exit_wave
+    - parakeet.simulate.optics=parakeet.command_line.simulate:optics
+    - parakeet.simulate.image=parakeet.command_line.simulate:image
+    - parakeet.simulate.simple=parakeet.command_line.simulate:simple
+    - parakeet.simulate.ctf=parakeet.command_line.simulate:ctf
+    - parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct
+    - parakeet.analyse.average_particles=parakeet.command_line.analyse:average_particles
+    - parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles
+    - parakeet.analyse.extract=parakeet.command_line.analyse:extract
+    - parakeet.analyse.refine=parakeet.command_line.analyse:refine
+    - parakeet.analyse.correct=parakeet.command_line.analyse:correct
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - cmake
+    - fftw
+    - cudatoolkit
+    - distributed
+    - gemmi
+    - guanaco
+    - h5py
+    - maptools
+    - mrcfile
+    - numpy
+    - pandas
+    - pillow
+    - pip
+    - pydantic
+    - python
+    - python-multem
+    - pyyaml
+    - scipy
+    - starfile
+  run:
+    - cmake
+    - fftw
+    - cudatoolkit
+    - distributed
+    - gemmi
+    - guanaco
+    - h5py
+    - maptools
+    - mrcfile
+    - numpy
+    - pandas
+    - pillow
+    - pydantic
+    - python
+    - python-multem
+    - pyyaml
+    - scipy
+    - starfile
+
+test:
+  imports:
+    - parakeet
+    - parakeet.command_line
+    - parakeet.command_line.analyse
+    - parakeet.command_line.config
+    - parakeet.command_line.sample
+    - parakeet.command_line.simulate
+    - parakeet.data
+    - parakeet.freeze
+  commands:
+    - parakeet.read_pdb --help
+    - parakeet.export --help
+    - parakeet.config.show --help
+    - parakeet.config.new --help
+    - parakeet.config.edit --help
+    - parakeet.sample.new --help
+    - parakeet.sample.add_molecules --help
+    - parakeet.sample.mill --help
+    - parakeet.sample.sputter --help
+    - parakeet.sample.show --help
+    - parakeet.simulate.projected_potential --help
+    - parakeet.simulate.exit_wave --help
+    - parakeet.simulate.optics --help
+    - parakeet.simulate.image --help
+    - parakeet.simulate.simple --help
+    - parakeet.simulate.ctf --help
+    - parakeet.analyse.reconstruct --help
+    - parakeet.analyse.average_particles --help
+    - parakeet.analyse.average_all_particles --help
+    - parakeet.analyse.extract --help
+    - parakeet.analyse.refine --help
+    - parakeet.analyse.correct --help
+  requires:
+    - mock
+    - pytest
+    - pytest-cov
+
+about:
+  home: The package home page
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: "A phantom generator"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
