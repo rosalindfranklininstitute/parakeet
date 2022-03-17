@@ -17,6 +17,7 @@
 [![Building](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml)
 [![Publishing](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml)
 [![Docker](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/docker-publish.yml)
+[![Conda](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/conda.yml)
 [![Snapcraft](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/snapcraft.yml)
 
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
