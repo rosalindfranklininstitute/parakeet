@@ -6,8 +6,7 @@ package:
   version: "{{ version }}"
 
 source:
-  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
-  sha256: 7019887bc4c0020bcd8b413fde91aaa79a1666fb2e5af5a73960ca9d0cb7e718
+  path: ..
 
 build:
   number: 0
@@ -117,13 +116,4 @@ test:
 
 about:
   home: The package home page
-  license: BSD
-  license_family: BSD
-  license_file: 
   summary: "A phantom generator"
-  doc_url: 
-  dev_url: 
-
-extra:
-  recipe-maintainers:
-    - your-github-id-here

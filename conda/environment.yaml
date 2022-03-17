@@ -1,8 +1,10 @@
 name: parakeet
 channels:
   - james.parkhurst
+  - conda-forge
 dependencies:
   - python=3.9
   - conda-build
   - conda-verify
   - anaconda-client
+  - cudatoolkit-dev
