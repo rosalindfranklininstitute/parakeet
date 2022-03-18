@@ -78,7 +78,7 @@ def get_parser():
         type=int,
         default=0,
         dest="particle_size",
-        help="The size of for the particles extracted",
+        help="The size of the particles extracted (px)",
     )
     parser.add_argument(
         "-n",
@@ -86,7 +86,7 @@ def get_parser():
         type=int,
         default=0,
         dest="num_particles",
-        help="The nunber of particles to use",
+        help="The number of particles to use",
     )
 
     return parser

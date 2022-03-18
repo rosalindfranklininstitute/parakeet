@@ -25,7 +25,7 @@ def get_parser():
 
     """
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Create an ice sample and save it")
+    parser = argparse.ArgumentParser(description="Print details about the sample model")
 
     # Add some command line arguments
     parser.add_argument(

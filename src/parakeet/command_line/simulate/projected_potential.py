@@ -32,7 +32,7 @@ def get_parser():
 
     # Create the argument parser
     parser = argparse.ArgumentParser(
-        description="Simulate the exit wave from the sample"
+        description="Simulate the projected potential from the sample"
     )
 
     # Add some command line arguments

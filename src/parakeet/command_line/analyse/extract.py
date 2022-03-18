@@ -70,7 +70,7 @@ def get_parser():
         type=int,
         default=0,
         dest="particle_size",
-        help="The size of for the particles extracted",
+        help="The size of the particles extracted (px)",
     )
 
     return parser

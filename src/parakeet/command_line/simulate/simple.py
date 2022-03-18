@@ -31,7 +31,7 @@ def get_parser():
     """
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Simulate the image")
+    parser = argparse.ArgumentParser(description="Simulate the whole process")
 
     # Add some command line arguments
     parser.add_argument(

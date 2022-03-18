@@ -31,7 +31,9 @@ def get_parser():
     """
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Simulate the optics")
+    parser = argparse.ArgumentParser(
+        description="Simulate the optics and infinite dose image"
+    )
 
     # Add some command line arguments
     parser.add_argument(

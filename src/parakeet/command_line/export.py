@@ -89,7 +89,7 @@ def get_parser():
     """
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Read a PDB file")
+    parser = argparse.ArgumentParser(description="Export images to a different format")
 
     # Add an argument for the filename
     parser.add_argument("filename", type=str, default=None, help="The input filename")
@@ -117,7 +117,12 @@ def get_parser():
         type=str,
         default=None,
         dest="rotation_range",
-        help="Select a rotation range",
+        help=(
+            "Select a rotation range (deg).\n"
+            "\n"
+            "Multiple rotation ranges can be specified as:\n"
+            "--rotation_range=start1,stop1;start2,stop2"
+        ),
     )
     group.add_argument(
         "--select_images",
@@ -127,7 +132,11 @@ def get_parser():
         help="Select a range of images (start,stop,step)",
     )
     parser.add_argument(
-        "--roi", type=str, default=None, dest="roi", help="Select a region of interest"
+        "--roi",
+        type=str,
+        default=None,
+        dest="roi",
+        help=("Select a region of interest (--roi=x0,y0,x1,y1)"),
     )
     parser.add_argument(
         "--complex_mode",
@@ -150,17 +159,26 @@ def get_parser():
         type=int,
         default=None,
         dest="interlace",
-        help="Interlace the scan",
+        help=(
+            "Interlace the scan. If the value <= 1 then the images are kept in "
+            "the same order, otherwise, the images are reordered by skipping "
+            "images. For example, if --interlace=2 is set then the images will "
+            "be written out as [1, 3, 5, ... , 2, 4, 6, ...]"
+        ),
     )
     parser.add_argument(
-        "--rebin", type=int, default=1, dest="rebin", help="The rebinned factor"
+        "--rebin",
+        type=int,
+        default=1,
+        dest="rebin",
+        help="The rebinned factor. The shape of the output images will be original_shape / rebin",
     )
     parser.add_argument(
         "--filter_resolution",
         dest="filter_resolution",
         type=float,
         default=None,
-        help="The resolution",
+        help="The resolution of the filter (A)",
     )
     parser.add_argument(
         "--filter_shape",
