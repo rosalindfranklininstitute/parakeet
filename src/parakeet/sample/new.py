@@ -19,6 +19,8 @@ from math import pi, floor
 from scipy.spatial.transform import Rotation
 from functools import singledispatch
 from parakeet.sample import Sample
+from parakeet.sample import AtomData
+from parakeet.sample import random_uniform_rotation
 
 
 # Get the logger
@@ -353,10 +355,10 @@ def new_internal(config: dict, filename: str):
         object: The test sample
 
     """
-    box = config["box"]
-    centre = config["centre"]
-    shape = config["shape"]
-    ice = config["ice"]
+    box = config.get("box", None)
+    centre = config.get("centre", None)
+    shape = config.get("shape", None)
+    ice = config.get("ice", None)
     coords = None
 
     # Check the dimensions are valid

@@ -8,15 +8,17 @@ High level API
 
 The functionality of the command line programs can be called from python as shown below.
 
+.. autofunction:: parakeet.config.new
+
 .. autofunction:: parakeet.sample.new
 
 .. autofunction:: parakeet.sample.add_molecules
 
-.. autofunction:: parakeet.simulation.exit_wave
+.. autofunction:: parakeet.simulate.exit_wave
 
-.. autofunction:: parakeet.simulation.optics
+.. autofunction:: parakeet.simulate.optics
 
-.. autofunction:: parakeet.simulation.image
+.. autofunction:: parakeet.simulate.image
 
 
 Data models

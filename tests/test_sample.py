@@ -318,12 +318,16 @@ def test_Sample(tmp_path, atom_data_4v5d):
 
 def test_AtomSliceExtractor(tmp_path):
 
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cube", "cube": {"length": 40}},
+        "ice": {"generate": True, "density": 940},
+    }
+
     sample = parakeet.sample.new(
+        config,
         os.path.join(tmp_path, "test_AtomSliceExtractor.h5"),
-        box=(50, 50, 50),
-        centre=(25, 25, 25),
-        shape={"type": "cube", "cube": {"length": 40}},
-        ice={"generate": True, "density": 940},
     )
 
     extractor = parakeet.sample.AtomSliceExtractor(sample, 0, 0.1, (0, 0), (50, 50))
@@ -342,12 +346,16 @@ def test_AtomSliceExtractor(tmp_path):
 
 def test_AtomDeleter(tmp_path):
 
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cube", "cube": {"length": 40}},
+        "ice": {"generate": True, "density": 940},
+    }
+
     sample = parakeet.sample.new(
+        config,
         os.path.join(tmp_path, "test_AtomDeleter.h5"),
-        box=(50, 50, 50),
-        centre=(25, 25, 25),
-        shape={"type": "cube", "cube": {"length": 50}},
-        ice={"generate": True, "density": 940},
     )
 
     atoms = sample.get_atoms_in_range((0, 0, 0), (50, 50, 50))
@@ -364,11 +372,15 @@ def test_AtomDeleter(tmp_path):
 
 def test_load(tmp_path):
 
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+    }
+
     sample = parakeet.sample.new(
+        config,
         os.path.join(tmp_path, "test_load.h5"),
-        box=(50, 50, 50),
-        centre=(25, 25, 25),
-        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
     )
 
     del sample
@@ -378,19 +390,27 @@ def test_load(tmp_path):
 
 def test_new(tmp_path):
 
-    sample = parakeet.sample.new(
-        os.path.join(tmp_path, "test_new1.h5"),
-        box=(50, 50, 50),
-        centre=(25, 25, 25),
-        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
-    )
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+    }
 
     sample = parakeet.sample.new(
+        config,
+        os.path.join(tmp_path, "test_new1.h5"),
+    )
+
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+        "ice": {"generate": True, "density": 940},
+    }
+
+    sample = parakeet.sample.new(
+        config,
         os.path.join(tmp_path, "test_new2.h5"),
-        box=(50, 50, 50),
-        centre=(25, 25, 25),
-        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
-        ice={"generate": True, "density": 940},
     )
 
     atoms = sample.get_atoms_in_range((0, 0, 0), (50, 50, 50))
@@ -407,18 +427,22 @@ def test_new(tmp_path):
 
 def test_add_molecules(tmp_path):
 
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+    }
+
     sample = parakeet.sample.new(
+        config,
         os.path.join(tmp_path, "test_add_molecules.h5"),
-        box=(4000, 4000, 4000),
-        centre=(2000, 2000, 2000),
-        shape={"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}},
     )
 
     sample.close()
 
     sample = parakeet.sample.add_molecules(
+        {"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}},
         os.path.join(tmp_path, "test_add_molecules.h5"),
-        molecules={"pdb": [{"id": "4v5d", "instances": 1}]},
     )
 
     assert sample.number_of_molecules == 1
@@ -435,11 +459,13 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.new(
+        {
+            "box": (4000, 4000, 4000),
+            "centre": (2000, 2000, 2000),
+            "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+            "ice": {"generate": True, "density": 940},
+        },
         os.path.join(tmp_path, "test_add_molecules2.h5"),
-        box=(4000, 4000, 4000),
-        centre=(2000, 2000, 2000),
-        shape={"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
-        ice={"generate": True, "density": 940},
     )
 
     sample.shape = {"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}}
