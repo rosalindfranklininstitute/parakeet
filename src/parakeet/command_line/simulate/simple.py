@@ -10,7 +10,6 @@
 #
 import argparse
 import logging
-import numpy
 import time
 import parakeet.io
 import parakeet.command_line
@@ -18,7 +17,7 @@ import parakeet.config
 import parakeet.microscope
 import parakeet.sample
 import parakeet.scan
-import parakeet.simulation
+import parakeet.simulate
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -61,46 +60,6 @@ def get_parser():
     return parser
 
 
-def simple_internal(config_file, atoms, output):
-    """
-    Simulate the image
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
-
-    # Create the exit wave data
-    logger.info(f"Loading sample from {atoms}")
-    atoms = parakeet.sample.AtomData.from_text_file(atoms)
-
-    # Create the simulation
-    simulation = parakeet.simulation.simple(
-        microscope=microscope,
-        atoms=atoms,
-        device=config.device,
-        simulation=config.simulation,
-    )
-
-    # Create the writer
-    logger.info(f"Opening file: {output}")
-    writer = parakeet.io.new(
-        output,
-        shape=simulation.shape,
-        pixel_size=simulation.pixel_size,
-        dtype=numpy.complex64,
-    )
-
-    # Run the simulation
-    simulation.run(writer)
-
-
 def simple():
     """
     Simulate the image
@@ -120,7 +79,7 @@ def simple():
     parakeet.command_line.configure_logging()
 
     # Do the work
-    simple_internal(args.config, args.atoms, args.output)
+    parakeet.simulate.simple(args.config, args.atoms, args.output)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

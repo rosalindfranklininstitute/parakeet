@@ -1,0 +1,198 @@
+#
+# parakeet.simulate.simple.py
+#
+# Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
+#
+# Author: James Parkhurst
+#
+# This code is distributed under the GPLv3 license, a copy of
+# which is included in the root directory of this package.
+#
+
+import logging
+import numpy as np
+import parakeet.config
+import parakeet.dqe
+import parakeet.freeze
+import parakeet.futures
+import parakeet.inelastic
+import parakeet.sample
+from parakeet.microscope import Microscope
+from functools import singledispatch
+
+# Get the logger
+logger = logging.getLogger(__name__)
+
+
+class SimpleImageSimulator(object):
+    """
+    A class to do the actual simulation
+
+    """
+
+    def __init__(
+        self, microscope=None, atoms=None, scan=None, simulation=None, device="gpu"
+    ):
+        self.microscope = microscope
+        self.atoms = atoms
+        self.scan = scan
+        self.simulation = simulation
+        self.device = device
+
+    def __call__(self, index):
+        """
+        Simulate a single frame
+
+        Args:
+            simulation (object): The simulation object
+            index (int): The frame number
+
+        Returns:
+            tuple: (angle, image)
+
+        """
+
+        # Get the rotation angle
+        angle = self.scan.angles[index]
+        position = self.scan.positions[index]
+
+        # The field of view
+        nx = self.microscope.detector.nx
+        ny = self.microscope.detector.ny
+        pixel_size = self.microscope.detector.pixel_size
+        margin = self.simulation["margin"]
+        x_fov = nx * pixel_size
+        y_fov = ny * pixel_size
+        offset = margin * pixel_size
+
+        # Get the specimen atoms
+        logger.info(f"Simulating image {index+1}")
+
+        # Set the rotation angle
+        # input_multislice.spec_rot_theta = angle
+        # input_multislice.spec_rot_u0 = simulation.scan.axis
+
+        # x0 = (-offset, -offset)
+        # x1 = (x_fov + offset, y_fov + offset)
+
+        # Create the multem system configuration
+        system_conf = parakeet.simulate.simulation.create_system_configuration(
+            self.device
+        )
+
+        # Create the multem input multislice object
+        input_multislice = parakeet.simulate.simulation.create_input_multislice(
+            self.microscope,
+            self.simulation["slice_thickness"],
+            self.simulation["margin"],
+            "EWRS",
+        )
+
+        # Set the specimen size
+        input_multislice.spec_lx = x_fov + offset * 2
+        input_multislice.spec_ly = y_fov + offset * 2
+        input_multislice.spec_lz = np.max(self.atoms.data["z"])
+
+        # Set the atoms in the input after translating them for the offset
+        input_multislice.spec_atoms = self.atoms.translate(
+            (offset, offset, 0)
+        ).to_multem()
+
+        # Run the simulation
+        output_multislice = multem.simulate(system_conf, input_multislice)
+
+        # Get the ideal image data
+        # Multem outputs data in column major format. In C++ and Python we
+        # generally deal with data in row major format so we must do a
+        # transpose here.
+        image = np.array(output_multislice.data[0].psi_coh).T
+
+        # Print some info
+        psi_tot = np.abs(image) ** 2
+        logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
+
+        # Compute the image scaled with Poisson noise
+        return (index, angle, position, image, None, None)
+
+
+def simple_internal(
+    microscope: Microscope, atoms: str, device: str = "gpu", simulation: dict = None
+):
+    """
+    Create the simulation
+
+    Args:
+        microscope (object); The microscope object
+        atoms (object): The atom data
+        device (str): The device to use
+        simulation (object): The simulation parameters
+        cluster (object): The cluster parameters
+
+    Returns:
+        object: The simulation object
+
+    """
+    scan = parakeet.scan.new("still")
+
+    # Create the simulation
+    return parakeet.simulate.simulation.Simulation(
+        image_size=(
+            microscope.detector.nx + 2 * simulation["margin"],
+            microscope.detector.ny + 2 * simulation["margin"],
+        ),
+        pixel_size=microscope.detector.pixel_size,
+        scan=scan,
+        cluster={"method": None},
+        simulate_image=SimpleImageSimulator(
+            microscope=microscope,
+            scan=scan,
+            atoms=atoms,
+            simulation=simulation,
+            device=device,
+        ),
+    )
+
+
+@singledispatch
+def simple(config_file: str, atoms: str, output: str):
+    """
+    Simulate the image
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the microscope
+    microscope = parakeet.microscope.new(**config.microscope.dict())
+
+    # Create the exit wave data
+    logger.info(f"Loading sample from {atoms}")
+    atoms = parakeet.sample.AtomData.from_text_file(atoms)
+
+    # Create the simulation
+    simulation = parakeet.simulate.simple(
+        microscope=microscope,
+        atoms=atoms,
+        device=config.device,
+        simulation=config.simulation,
+    )
+
+    # Create the writer
+    logger.info(f"Opening file: {output}")
+    writer = parakeet.io.new(
+        output,
+        shape=simulation.shape,
+        pixel_size=simulation.pixel_size,
+        dtype=numpy.complex64,
+    )
+
+    # Run the simulation
+    simulation.run(writer)
+
+
+# Register function for single dispatch
+simple.register(simple_internal)

@@ -1,17 +1,53 @@
-High level Python API
-=====================
+Python API
+==========
+
+High level API
+--------------
 
 .. warning:: This is under developement
 
 The functionality of the command line programs can be called from python as shown below.
 
-.. autofunction:: parakeet.command_line.sample.new.new_internal
+.. autofunction:: parakeet.sample.new
 
-.. autofunction:: parakeet.command_line.sample.add_molecules.add_molecules_internal
+.. autofunction:: parakeet.sample.add_molecules
 
-.. autofunction:: parakeet.command_line.simulate.exit_wave.exit_wave_internal
+.. autofunction:: parakeet.simulation.exit_wave
 
-.. autofunction:: parakeet.command_line.simulate.optics.optics_internal
+.. autofunction:: parakeet.simulation.optics
 
-.. autofunction:: parakeet.command_line.simulate.image.image_internal
+.. autofunction:: parakeet.simulation.image
 
+
+Data models
+-----------
+
+.. autoclass:: parakeet.beam.Beam
+  :members:
+  
+  .. automethod:: __init__
+
+.. autoclass:: parakeet.detector.Detector
+  :members:
+  
+  .. automethod:: __init__
+
+.. autoclass:: parakeet.lens.Lens
+  :members:
+  
+  .. automethod:: __init__
+
+.. autoclass:: parakeet.microscope.Microscope
+  :members:
+  
+  .. automethod:: __init__
+
+.. autoclass:: parakeet.scan.Scan
+  :members:
+  
+  .. automethod:: __init__
+
+.. autoclass:: parakeet.sample.Sample
+  :members:
+  
+  .. automethod:: __init__
