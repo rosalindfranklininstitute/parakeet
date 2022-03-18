@@ -9,7 +9,7 @@
 # which is included in the root directory of this package.
 #
 import logging
-import numpy
+import numpy as np
 import pandas
 import scipy.ndimage.morphology
 from math import ceil, floor
@@ -42,12 +42,12 @@ def freeze(atoms, x0, x1):
     x = atoms["x"]
     y = atoms["y"]
     z = atoms["z"]
-    min_x = numpy.min(x)
-    max_x = numpy.max(x)
-    min_y = numpy.min(y)
-    max_y = numpy.max(y)
-    min_z = numpy.min(z)
-    max_z = numpy.max(z)
+    min_x = np.min(x)
+    max_x = np.max(x)
+    min_y = np.min(y)
+    max_y = np.max(y)
+    min_z = np.min(z)
+    max_z = np.max(z)
 
     # Ensure the atoms are within the box
     assert min_x >= x0[0]
@@ -65,12 +65,12 @@ def freeze(atoms, x0, x1):
     )
     logger.info("Allocating grid")
     logger.info("    shape: %s" % str(shape))
-    grid = numpy.zeros(shape=shape, dtype="bool")
+    grid = np.zeros(shape=shape, dtype="bool")
 
     # Fill in any spaces in the grid
-    x_index = numpy.floor((x - x0[0]) / grid_size).astype("int32")
-    y_index = numpy.floor((y - x0[1]) / grid_size).astype("int32")
-    z_index = numpy.floor((z - x0[2]) / grid_size).astype("int32")
+    x_index = np.floor((x - x0[0]) / grid_size).astype("int32")
+    y_index = np.floor((y - x0[1]) / grid_size).astype("int32")
+    z_index = np.floor((z - x0[2]) / grid_size).astype("int32")
     grid[z_index, y_index, x_index] = True
     grid = scipy.ndimage.morphology.binary_fill_holes(grid)
     logger.info("Filled grid with atom positions:")
@@ -81,14 +81,14 @@ def freeze(atoms, x0, x1):
     logger.info("    y1: %g" % x1[1])
     logger.info("    z1: %g" % x1[2])
     logger.info("    num elements: %d" % grid.size)
-    logger.info("    num filled: %d" % numpy.sum(grid))
+    logger.info("    num filled: %d" % np.sum(grid))
 
     # Determine the remaining volume
     x_length = x1[0] - x0[0]
     y_length = x1[1] - x0[1]
     z_length = x1[2] - x0[2]
     total_volume = x_length * y_length * z_length  # A^3
-    filled_volume = numpy.sum(grid) * 10**3
+    filled_volume = np.sum(grid) * 10**3
     remaining_volume = total_volume - filled_volume
 
     # Determine the number of waters to place
@@ -112,15 +112,15 @@ def freeze(atoms, x0, x1):
     # Loop adding waters until complete
     logger.info("Placing waters:")
     number_to_place = number_of_waters
-    water_coords = numpy.zeros(shape=(0, 3), dtype="float64")
+    water_coords = np.zeros(shape=(0, 3), dtype="float64")
     while number_to_place > 0:
-        coords = numpy.random.uniform(x0, x1, size=(number_to_place, 3))
-        x_index = numpy.floor((coords[:, 0] - x0[0]) / grid_size).astype("int32")
-        y_index = numpy.floor((coords[:, 1] - x0[1]) / grid_size).astype("int32")
-        z_index = numpy.floor((coords[:, 2] - x0[2]) / grid_size).astype("int32")
+        coords = np.random.uniform(x0, x1, size=(number_to_place, 3))
+        x_index = np.floor((coords[:, 0] - x0[0]) / grid_size).astype("int32")
+        y_index = np.floor((coords[:, 1] - x0[1]) / grid_size).astype("int32")
+        z_index = np.floor((coords[:, 2] - x0[2]) / grid_size).astype("int32")
         selection = grid[z_index, y_index, x_index] == False
         coords = coords[selection, :]
-        water_coords = numpy.concatenate((water_coords, coords), axis=0)
+        water_coords = np.concatenate((water_coords, coords), axis=0)
         number_to_place -= len(coords)
         logger.info("    placed %d waters" % len(coords))
 
@@ -131,17 +131,17 @@ def freeze(atoms, x0, x1):
     shape = number_of_waters
     water_atoms = pandas.DataFrame(
         {
-            "model": numpy.zeros(shape=shape, dtype="uint32"),
-            "chain": numpy.zeros(shape=shape, dtype="str"),
-            "residue": numpy.zeros(shape=shape, dtype="str"),
-            "atomic_number": numpy.full(shape=shape, fill_value=8, dtype="uint32"),
+            "model": np.zeros(shape=shape, dtype="uint32"),
+            "chain": np.zeros(shape=shape, dtype="str"),
+            "residue": np.zeros(shape=shape, dtype="str"),
+            "atomic_number": np.full(shape=shape, fill_value=8, dtype="uint32"),
             "x": water_coords[:, 0],
             "y": water_coords[:, 1],
             "z": water_coords[:, 2],
-            "occ": numpy.ones(shape=shape, dtype="float64"),
-            "charge": numpy.zeros(shape=shape, dtype="uint32"),
-            "sigma": numpy.full(shape=shape, fill_value=0.085, dtype="float64"),
-            "region": numpy.zeros(shape=shape, dtype="uint32"),
+            "occ": np.ones(shape=shape, dtype="float64"),
+            "charge": np.zeros(shape=shape, dtype="uint32"),
+            "sigma": np.full(shape=shape, fill_value=0.085, dtype="float64"),
+            "region": np.zeros(shape=shape, dtype="uint32"),
         }
     )
 

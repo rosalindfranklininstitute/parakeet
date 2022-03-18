@@ -11,7 +11,7 @@
 import argparse
 import logging
 import logging.config
-import numpy
+import numpy as np
 import random
 import parakeet.io
 import parakeet.config
@@ -30,8 +30,8 @@ def rebin(data, shape):
         shape (tuple): The new shape
 
     """
-    f = numpy.fft.fft2(data)
-    f = numpy.fft.fftshift(f)
+    f = np.fft.fft2(data)
+    f = np.fft.fftshift(f)
     yc, xc = data.shape[0] // 2, data.shape[1] // 2
     yh = shape[0] // 2
     xh = shape[1] // 2
@@ -39,13 +39,13 @@ def rebin(data, shape):
     y0 = yc - yh
     x1 = x0 + shape[1]
     y1 = y0 + shape[0]
-    y, x = numpy.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+    y, x = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
     r = (y - yc) ** 2 / yh**2 + (x - xc) ** 2 / xh**2
     mask = r < 1.0
     f = f * mask
     f = f[y0:y1, x0:x1]
-    f = numpy.fft.ifftshift(f)
-    d = numpy.fft.ifft2(f)
+    f = np.fft.ifftshift(f)
+    d = np.fft.ifft2(f)
     return d.real
 
 
@@ -62,23 +62,21 @@ def filter_image(data, pixel_size, resolution, shape):
     """
     if pixel_size == 0:
         pixel_size = 1
-    f = numpy.fft.fft2(data)
-    f = numpy.fft.fftshift(f)
+    f = np.fft.fft2(data)
+    f = np.fft.fftshift(f)
     yc, xc = data.shape[0] // 2, data.shape[1] // 2
-    y, x = numpy.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+    y, x = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
     r = (
-        numpy.sqrt(
-            (y - yc) ** 2 / data.shape[0] ** 2 + (x - xc) ** 2 / data.shape[1] ** 2
-        )
+        np.sqrt((y - yc) ** 2 / data.shape[0] ** 2 + (x - xc) ** 2 / data.shape[1] ** 2)
         / pixel_size
     )
     if shape == "square":
         g = r < 1.0 / resolution
     elif shape == "guassian":
-        g = numpy.exp(-0.5 * r**2 * resolution**2)
+        g = np.exp(-0.5 * r**2 * resolution**2)
     f = f * g
-    f = numpy.fft.ifftshift(f)
-    d = numpy.fft.ifft2(f)
+    f = np.fft.ifftshift(f)
+    d = np.fft.ifft2(f)
     return d.real
 
 
@@ -319,17 +317,17 @@ def export(argv=None):
                 # Transform if necessary
                 image = {
                     "complex": lambda x: x,
-                    "real": lambda x: numpy.real(x),
-                    "imaginary": lambda x: numpy.imag(x),
-                    "amplitude": lambda x: numpy.abs(x),
-                    "phase": lambda x: numpy.real(numpy.angle(x)),
-                    "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
-                    "square": lambda x: numpy.abs(x) ** 2,
-                    "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
+                    "real": lambda x: np.real(x),
+                    "imaginary": lambda x: np.imag(x),
+                    "amplitude": lambda x: np.abs(x),
+                    "phase": lambda x: np.real(np.angle(x)),
+                    "phase_unwrap": lambda x: np.unwrap(np.real(np.angle(x))),
+                    "square": lambda x: np.abs(x) ** 2,
+                    "imaginary_square": lambda x: np.imag(x) ** 2 + 1,
                 }[args.complex_mode](reader.data[i, y0:y1, x0:x1])
 
-                min_image.append(numpy.min(image))
-                max_image.append(numpy.max(image))
+                min_image.append(np.min(image))
+                max_image.append(np.max(image))
                 logger.info(
                     "    Reading image %d: min/max: %.2f/%.2f"
                     % (i, min_image[-1], max_image[-1])
@@ -357,19 +355,19 @@ def export(argv=None):
 
         # Rotate if necessary
         if args.rot90:
-            image = numpy.rot90(image)
+            image = np.rot90(image)
             position = (position[1], position[0], position[2])
 
         # Transform if necessary
         image = {
             "complex": lambda x: x,
-            "real": lambda x: numpy.real(x),
-            "imaginary": lambda x: numpy.imag(x),
-            "amplitude": lambda x: numpy.abs(x),
-            "phase": lambda x: numpy.real(numpy.angle(x)),
-            "phase_unwrap": lambda x: numpy.unwrap(numpy.real(numpy.angle(x))),
-            "square": lambda x: numpy.abs(x) ** 2,
-            "imaginary_square": lambda x: numpy.imag(x) ** 2 + 1,
+            "real": lambda x: np.real(x),
+            "imaginary": lambda x: np.imag(x),
+            "amplitude": lambda x: np.abs(x),
+            "phase": lambda x: np.real(np.angle(x)),
+            "phase_unwrap": lambda x: np.unwrap(np.real(np.angle(x))),
+            "square": lambda x: np.abs(x) ** 2,
+            "imaginary_square": lambda x: np.imag(x) ** 2 + 1,
         }[args.complex_mode](image)
 
         # Filter the images
@@ -380,7 +378,7 @@ def export(argv=None):
 
         # Rebin the array
         if args.rebin != 1:
-            new_shape = numpy.array(image.shape) // args.rebin
+            new_shape = np.array(image.shape) // args.rebin
             image = rebin(image, new_shape)
 
         # Write the image info

@@ -9,7 +9,7 @@
 import parakeet.sample
 import argparse
 import multem
-import numpy
+import numpy as np
 import os.path
 import pandas
 import scipy.constants
@@ -67,12 +67,12 @@ def radial_average(data):
     Compute the radial average
 
     """
-    Y, X = numpy.indices((data.shape))
+    Y, X = np.indices((data.shape))
     ysize, xsize = data.shape
-    distance = numpy.sqrt((X - xsize / 2.0) ** 2 + (Y - ysize / 2.0) ** 2)
-    distance = numpy.floor(distance).astype("int32")
-    c1 = numpy.bincount(distance.ravel()).astype("float32")
-    c2 = numpy.bincount(distance.ravel(), data.ravel()).astype("float32")
+    distance = np.sqrt((X - xsize / 2.0) ** 2 + (Y - ysize / 2.0) ** 2)
+    distance = np.floor(distance).astype("int32")
+    c1 = np.bincount(distance.ravel()).astype("float32")
+    c2 = np.bincount(distance.ravel(), data.ravel()).astype("float32")
     return c2 / c1
 
 
@@ -177,23 +177,23 @@ def compute_projected_potential():
         potential = []
 
         def callback(z0, z1, V):
-            V = numpy.array(V)
+            V = np.array(V)
             potential.append(V)
 
         # Run the simulation
         multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         # Save the potential
-        potential = numpy.sum(potential, axis=0)
+        potential = np.sum(potential, axis=0)
         filename = "projected_potential_%.1f_%d.npz" % (pixel_size, thickness)
-        numpy.savez(filename, potential=potential, num_atoms=num_atoms)
+        np.savez(filename, potential=potential, num_atoms=num_atoms)
 
     # Read the atom data
     atom_data = load_water_atomic_model()
 
     # Simulate the projected potential
-    for pixel_size in numpy.arange(0.1, 2.1, 0.1):
-        for thickness in numpy.arange(5, 25, 5):
+    for pixel_size in np.arange(0.1, 2.1, 0.1):
+        for thickness in np.arange(5, 25, 5):
             print(
                 "Compute projected potential for px = %f, dz = %f"
                 % (pixel_size, thickness)
@@ -236,8 +236,8 @@ def compute_observed_mean(size, pixel_size):
     for j in range(10):
 
         # Compute the position
-        x0 = numpy.random.uniform(0, 1) + nx // 2
-        y0 = numpy.random.uniform(0, 1) + ny // 2
+        x0 = np.random.uniform(0, 1) + nx // 2
+        y0 = np.random.uniform(0, 1) + ny // 2
         x0 = pixel_size * x0
         y0 = pixel_size * y0
 
@@ -254,7 +254,7 @@ def compute_observed_mean(size, pixel_size):
         potential = []
 
         def callback(z0, z1, V):
-            V = numpy.array(V)
+            V = np.array(V)
             thickness.append(z1 - z0)
             potential.append(V)
 
@@ -262,11 +262,11 @@ def compute_observed_mean(size, pixel_size):
         multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         # Compute the mean potential
-        V = numpy.sum(potential, axis=0)
-        means.append(numpy.mean(V))
+        V = np.sum(potential, axis=0)
+        means.append(np.mean(V))
 
     # Return the size and mean potential
-    return size, numpy.mean(means)
+    return size, np.mean(means)
 
 
 def compute_expected_mean(size):
@@ -309,7 +309,7 @@ def compute_mean_correction(ax=None):
 
     size = 40
 
-    pixel_size = numpy.arange(0.1, 2.1, 0.1)
+    pixel_size = np.arange(0.1, 2.1, 0.1)
     mean = []
     for ps in pixel_size:
         s, m = compute_observed_mean(size, ps)
@@ -343,10 +343,10 @@ def compute_variance_correction(ax=None):
 
     # Loop through the pixel sizes
     thickness = 20
-    for pixel_size in numpy.arange(0.1, 2.1, 0.1):
+    for pixel_size in np.arange(0.1, 2.1, 0.1):
 
         # Read the projected potential
-        handle = numpy.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
+        handle = np.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
         num_atoms = handle["num_atoms"]
 
@@ -362,15 +362,15 @@ def compute_variance_correction(ax=None):
         num_molecules = num_atoms / 3.0
         ny, nx = potential.shape
         area = (nx * pixel_size) * (ny * pixel_size)
-        var = numpy.var(potential)
+        var = np.var(potential)
         density = num_molecules / (area)
 
         # Append the pixel area and variance / density
         X.append(pixel_size**2)
         Y.append(var / density)
 
-    X = numpy.array(X)
-    Y = numpy.array(Y)
+    X = np.array(X)
+    Y = np.array(Y)
 
     # Extrapolate to zero and nornalize
     Y0 = Y[0] - X[0] * (Y[1] - Y[0]) / (X[1] - X[0])
@@ -402,7 +402,7 @@ def compute_power(ax=None):
     for thickness in [20]:  # , 19, 18, 15, 10, 5]:
 
         # Read the projected potential
-        handle = numpy.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
+        handle = np.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
         num_atoms = handle["num_atoms"]
 
@@ -418,25 +418,25 @@ def compute_power(ax=None):
         num_molecules = num_atoms / 3.0
         ny, nx = potential.shape
         area = (nx * pixel_size) * (ny * pixel_size)
-        var = numpy.var(potential)
-        mean = numpy.mean(potential)
+        var = np.var(potential)
+        mean = np.mean(potential)
         # density = num_molecules / (area)
         potential -= mean
         print("Mean: %.3f; Variance: %.3f" % (mean, var))
 
         # Compute the FFT of the data and the power spectrum
-        fft_data = numpy.fft.fft2(potential)
-        power = numpy.abs(fft_data) ** 2
-        Y, X = numpy.mgrid[0 : power.shape[0], 0 : power.shape[1]]
-        q = (1 / pixel_size) * numpy.sqrt(
+        fft_data = np.fft.fft2(potential)
+        power = np.abs(fft_data) ** 2
+        Y, X = np.mgrid[0 : power.shape[0], 0 : power.shape[1]]
+        q = (1 / pixel_size) * np.sqrt(
             ((X - power.shape[1] / 2) / power.shape[1]) ** 2
             + ((Y - power.shape[0] / 2) / power.shape[0]) ** 2
         )
-        q = numpy.fft.fftshift(q)
+        q = np.fft.fftshift(q)
 
         def func(q, A0, A1, A2, A3):
             M = 1.0 / 2.88
-            P = A0 * numpy.exp(-0.5 * q**2 / A1**2) + A2 * numpy.exp(
+            P = A0 * np.exp(-0.5 * q**2 / A1**2) + A2 * np.exp(
                 -0.5 * (q - M) ** 2 / A3**2
             )
             # I = (2*pi*(A0*A1**2 + A2*M*sqrt(2*pi*A3**2)))
@@ -451,14 +451,14 @@ def compute_power(ax=None):
 
         # def residuals(p, q, normalized_power):
         #     A0, A1, A2, A3 = p
-        #     A0 = numpy.abs(A0)
-        #     A2 = numpy.abs(A2)
+        #     A0 = np.abs(A0)
+        #     A2 = np.abs(A2)
         #     # A0 = 0.1608
         #     # A2, A3 = 0.822372155, 0.08153797
 
         #     # A1, A3 = 0.68518427, 0.08693241
         #     M = 1.0 / 2.88
-        #     P = A0 * numpy.exp(-0.5 * q ** 2 / A1 ** 2) + A2 * numpy.exp(
+        #     P = A0 * np.exp(-0.5 * q ** 2 / A1 ** 2) + A2 * np.exp(
         #         -0.5 * (q - M) ** 2 / A3 ** 2
         #     )
         #     # I = (2*pi*(A0*A1**2 + A2*M*sqrt(2*pi*A3**2)))
@@ -466,17 +466,17 @@ def compute_power(ax=None):
         #     model = P
         #     model[0, 0] = normalized_power[0, 0]
         #     W = 1.0 / (q * power.shape[0] + 1)
-        #     A = numpy.sum(W * (model - normalized_power) ** 2) / numpy.sum(W)
-        #     B = (numpy.sum(model) - numpy.sum(normalized_power)) ** 2 / model.size
+        #     A = np.sum(W * (model - normalized_power) ** 2) / np.sum(W)
+        #     B = (np.sum(model) - np.sum(normalized_power)) ** 2 / model.size
         #     print(p, A, B)
         #     return A + B
 
         # Compute the variance correction factor
-        Cv = numpy.exp(-3.2056 * pixel_size**2)
+        Cv = np.exp(-3.2056 * pixel_size**2)
         C = Cv * num_molecules / (pixel_size**4)
 
         # Compute the total integral of the power
-        I = numpy.sum(power) * (1 / pixel_size) ** 2 / power.size
+        I = np.sum(power) * (1 / pixel_size) ** 2 / power.size
         normalized_power = power / I
 
         # Fit a model to the normalized power
@@ -493,9 +493,9 @@ def compute_power(ax=None):
         model = model * C
 
         # Compute the radial spectrum
-        rp = radial_average(numpy.fft.fftshift(power))
-        rm = radial_average(numpy.fft.fftshift(model))
-        d = numpy.arange(rp.size) / (pixel_size * power.shape[0])
+        rp = radial_average(np.fft.fftshift(power))
+        rm = radial_average(np.fft.fftshift(model))
+        d = np.arange(rp.size) / (pixel_size * power.shape[0])
 
         # Plot the power spectrum and best fit
         ax.plot(d[1:], rp[1:] / C, label="%d" % thickness)
@@ -601,7 +601,7 @@ def compute_exit_wave(atom_data, pixel_size):
     output_multislice = multem.simulate(system_conf, input_multislice)
 
     # Get the image
-    physical_image = numpy.array(output_multislice.data[0].psi_coh).T
+    physical_image = np.array(output_multislice.data[0].psi_coh).T
 
     # Create the masker
     masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
@@ -621,11 +621,11 @@ def compute_exit_wave(atom_data, pixel_size):
     output_multislice = multem.simulate(system_conf, input_multislice, masker)
 
     # Get the image
-    random_image = numpy.array(output_multislice.data[0].psi_coh).T
+    random_image = np.array(output_multislice.data[0].psi_coh).T
 
     # Return the images
-    x0 = numpy.array((x_box_size / 2 - x_size / 2, y_box_size / 2 - y_size / 2))
-    x1 = numpy.array((x_box_size / 2 + x_size / 2, y_box_size / 2 + y_size / 2))
+    x0 = np.array((x_box_size / 2 - x_size / 2, y_box_size / 2 - y_size / 2))
+    x1 = np.array((x_box_size / 2 + x_size / 2, y_box_size / 2 + y_size / 2))
     return physical_image, random_image, x0, x1
 
 
@@ -645,29 +645,29 @@ def validate():
         # Get the simulated exit wave
         physical_data, random_data, xmin, xmax = compute_exit_wave(atom_data, ps)
 
-        x0 = numpy.floor(xmin / ps).astype("int32")
-        x1 = numpy.floor(xmax / ps).astype("int32")
+        x0 = np.floor(xmin / ps).astype("int32")
+        x1 = np.floor(xmax / ps).astype("int32")
         xr = x1 - x0
         x0 = x0 + xr // 4
         x1 = x1 - xr // 4
 
         random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
         physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-        physical_middle_mean_real = numpy.mean(physical_middle.flatten().real)
-        physical_middle_mean_imag = numpy.mean(physical_middle.flatten().imag)
-        random_middle_mean_real = numpy.mean(random_middle.flatten().real)
-        random_middle_mean_imag = numpy.mean(random_middle.flatten().imag)
+        physical_middle_mean_real = np.mean(physical_middle.flatten().real)
+        physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
+        random_middle_mean_real = np.mean(random_middle.flatten().real)
+        random_middle_mean_imag = np.mean(random_middle.flatten().imag)
 
-        # pylab.imshow(numpy.abs(random_middle))
+        # pylab.imshow(np.abs(random_middle))
         # pylab.show()
-        # pylab.imshow(numpy.abs(physical_middle))
+        # pylab.imshow(np.abs(physical_middle))
         # pylab.show()
         # continue
 
-        physical_middle_std_real = numpy.std(physical_middle.flatten().real)
-        physical_middle_std_imag = numpy.std(physical_middle.flatten().imag)
-        random_middle_std_real = numpy.std(random_middle.flatten().real)
-        random_middle_std_imag = numpy.std(random_middle.flatten().imag)
+        physical_middle_std_real = np.std(physical_middle.flatten().real)
+        physical_middle_std_imag = np.std(physical_middle.flatten().imag)
+        random_middle_std_real = np.std(random_middle.flatten().real)
+        random_middle_std_imag = np.std(random_middle.flatten().imag)
 
         # print("Hola")
         width = 0.0393701 * 190
@@ -730,12 +730,12 @@ def validate():
         fig.savefig("histograms_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
 
         def compute_power(data, pixel_size):
-            f = numpy.fft.fft2(data)
-            p = numpy.abs(f) ** 2
-            p = numpy.fft.fftshift(p)
+            f = np.fft.fft2(data)
+            p = np.abs(f) ** 2
+            p = np.fft.fftshift(p)
 
             r = radial_average(p)[0 : data.shape[0] // 2]
-            d = numpy.arange(r.size) / (pixel_size * data.shape[0])
+            d = np.arange(r.size) / (pixel_size * data.shape[0])
             return d[1:], r[1:]
 
         random_d, random_power = compute_power(random_middle, ps)
@@ -752,8 +752,8 @@ def validate():
         ax.legend()
         fig.savefig("power_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
 
-        x0 = numpy.floor(xmin / ps).astype("int32")
-        # x1 = numpy.floor(xmax / ps).astype("int32")
+        x0 = np.floor(xmin / ps).astype("int32")
+        # x1 = np.floor(xmax / ps).astype("int32")
         x1 = 2 * x0  # + x0 // 2
         x0[:] = 0  # x0 // 2
         random_edge = random_data[x0[0] : x1[0], x0[1] : x1[1]]
@@ -763,14 +763,10 @@ def validate():
         fig, ax = pylab.subplots(
             figsize=(width, height), ncols=2, constrained_layout=True
         )
-        vmin = min(
-            numpy.min(numpy.abs(random_edge)), numpy.min(numpy.abs(physical_edge))
-        )
-        vmax = max(
-            numpy.max(numpy.abs(random_edge)), numpy.max(numpy.abs(physical_edge))
-        )
-        ax[0].imshow(numpy.abs(physical_edge), vmin=vmin, vmax=vmax)
-        ax[1].imshow(numpy.abs(random_edge), vmin=vmin, vmax=vmax)
+        vmin = min(np.min(np.abs(random_edge)), np.min(np.abs(physical_edge)))
+        vmax = max(np.max(np.abs(random_edge)), np.max(np.abs(physical_edge)))
+        ax[0].imshow(np.abs(physical_edge), vmin=vmin, vmax=vmax)
+        ax[1].imshow(np.abs(random_edge), vmin=vmin, vmax=vmax)
         ax[0].set_title("Physical model", fontweight="bold")
         ax[1].set_title("Random model", fontweight="bold")
         ax[0].set_xticks([])

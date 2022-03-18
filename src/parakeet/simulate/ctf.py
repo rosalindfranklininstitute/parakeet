@@ -136,7 +136,7 @@ def ctf(config_file: str, output: str):
         output,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
-        dtype=numpy.complex64,
+        dtype=np.complex64,
     )
 
     # Run the simulation
