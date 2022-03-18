@@ -49,23 +49,6 @@ def get_parser():
     return parser
 
 
-def sputter_internal(config_file, sample):
-    """
-    Sputter the sample
-
-    """
-
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    parakeet.sample.sputter(sample, **config.sample.sputter.dict())
-
-
 def sputter(args=None):
     """
     Sputter the sample
@@ -83,7 +66,7 @@ def sputter(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    sputter_internal(args.config, args.sample)
+    parakeet.sample.sputter(args.config, args.sample)
 
     # Print output
     logger.info("Time taken: %.1f seconds" % (time.time() - st))

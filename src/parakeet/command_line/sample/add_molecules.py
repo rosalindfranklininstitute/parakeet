@@ -50,22 +50,6 @@ def get_parser():
     return parser
 
 
-def add_molecules_internal(config_file, sample):
-    """
-    Add molecules to the sample
-
-    """
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    parakeet.sample.add_molecules(sample, **config.sample.dict())
-
-
 def add_molecules(args=None):
     """
     Add molecules to the sample
@@ -83,7 +67,7 @@ def add_molecules(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    add_molecules_internal(args.config, args.sample)
+    parakeet.sample.add_molecules(args.config, args.sample)
 
     # Print output
     logger.info("Time taken: %.1f seconds" % (time.time() - st))

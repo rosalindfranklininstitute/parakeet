@@ -50,23 +50,6 @@ def get_parser():
     return parser
 
 
-def new_internal(config_file, sample):
-    """
-    Create an ice sample and save it
-
-    """
-
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    parakeet.sample.new(sample, **config.sample.dict())
-
-
 def new(args=None):
     """
     Create an ice sample and save it
@@ -84,7 +67,7 @@ def new(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    new_internal(args.config, args.sample)
+    parakeet.sample.new(args.config, args.sample)
 
     # Print output
     logger.info("Time taken: %.1f seconds" % (time.time() - st))
