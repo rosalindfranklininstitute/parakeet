@@ -1988,6 +1988,7 @@ def load(filename, mode="r"):
 # fmt: off
 from parakeet.sample.new import new # noqa
 from parakeet.sample.add_molecules import add_molecules # noqa
+from parakeet.sample.add_molecules import add_single_molecule # noqa
 from parakeet.sample.mill import mill # noqa
 from parakeet.sample.sputter import sputter # noqa
 # fmt: on

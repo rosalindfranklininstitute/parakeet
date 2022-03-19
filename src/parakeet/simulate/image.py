@@ -154,7 +154,7 @@ def image_internal(
 
 
 @singledispatch
-def image(config_file: str, optics: str, image: str):
+def image(config_file: str, optics_file: str, image_file: str):
     """
     Simulate the image with noise
 
@@ -170,8 +170,8 @@ def image(config_file: str, optics: str, image: str):
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
-    logger.info(f"Loading sample from {optics}")
-    optics = parakeet.io.open(optics)
+    logger.info(f"Loading sample from {optics_file}")
+    optics = parakeet.io.open(optics_file)
 
     # Create the scan
     scan = parakeet.scan.new(
@@ -189,9 +189,9 @@ def image(config_file: str, optics: str, image: str):
     )
 
     # Create the writer
-    logger.info(f"Opening file: {image}")
+    logger.info(f"Opening file: {image_file}")
     writer = parakeet.io.new(
-        image,
+        image_file,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.float32,

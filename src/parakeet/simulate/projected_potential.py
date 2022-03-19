@@ -209,7 +209,7 @@ def projected_potential_internal(
 @singledispatch
 def projected_potential(
     config_file: str,
-    sample: str,
+    sample_file: str,
     device: str = "gpu",
     cluster_method: str = None,
     cluster_max_workers: int = 1,
@@ -237,8 +237,8 @@ def projected_potential(
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the sample
-    logger.info(f"Loading sample from {sample}")
-    sample = parakeet.sample.load(sample)
+    logger.info(f"Loading sample from {sample_file}")
+    sample = parakeet.sample.load(sample_file)
 
     # Create the scan
     if config.scan.step_pos == "auto":

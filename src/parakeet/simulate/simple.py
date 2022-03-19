@@ -154,7 +154,7 @@ def simple_internal(
 
 
 @singledispatch
-def simple(config_file: str, atoms: str, output: str):
+def simple(config_file: str, atoms_file: str, output_file: str):
     """
     Simulate the image
 
@@ -170,11 +170,11 @@ def simple(config_file: str, atoms: str, output: str):
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
-    logger.info(f"Loading sample from {atoms}")
-    atoms = parakeet.sample.AtomData.from_text_file(atoms)
+    logger.info(f"Loading sample from {atoms_file}")
+    atoms = parakeet.sample.AtomData.from_text_file(atoms_file)
 
     # Create the simulation
-    simulation = parakeet.simulate.simple(
+    simulation = simple_internal(
         microscope=microscope,
         atoms=atoms,
         device=config.device,
@@ -182,9 +182,9 @@ def simple(config_file: str, atoms: str, output: str):
     )
 
     # Create the writer
-    logger.info(f"Opening file: {output}")
+    logger.info(f"Opening file: {output_file}")
     writer = parakeet.io.new(
-        output,
+        output_file,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.complex64,

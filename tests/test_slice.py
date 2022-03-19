@@ -62,7 +62,9 @@ def test_slice(tmpdir_factory):
     box = (400, 400, 400)
     centre = (200, 200, 200)
     shape = {"type": "cube", "cube": {"length": 400}}
-    sample = parakeet.sample.new(filename, box, centre, shape)
+    sample = parakeet.sample.new(
+        {"box": box, "centre": centre, "shape": shape}, filename
+    )
     parakeet.sample.add_single_molecule(sample, "4v5d")
 
     # Create the system configuration

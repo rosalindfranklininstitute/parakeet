@@ -343,8 +343,8 @@ def exit_wave_internal(
 @singledispatch
 def exit_wave(
     config_file: str,
-    sample: str,
-    exit_wave: str,
+    sample_file: str,
+    exit_wave_file: str,
     device: str = "gpu",
     cluster_method: str = None,
     cluster_max_workers: int = 1,
@@ -372,8 +372,8 @@ def exit_wave(
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the sample
-    logger.info(f"Loading sample from {sample}")
-    sample = parakeet.sample.load(sample)
+    logger.info(f"Loading sample from {sample_file}")
+    sample = parakeet.sample.load(sample_file)
 
     # Create the scan
     if config.scan.step_pos == "auto":
@@ -392,9 +392,9 @@ def exit_wave(
     )
 
     # Create the writer
-    logger.info(f"Opening file: {exit_wave}")
+    logger.info(f"Opening file: {exit_wave_file}")
     writer = parakeet.io.new(
-        exit_wave,
+        exit_wave_file,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.complex64,

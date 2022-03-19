@@ -428,9 +428,9 @@ def test_new(tmp_path):
 def test_add_molecules(tmp_path):
 
     config = {
-        "box": (500, 500, 500),
-        "centre": (250, 250, 250),
-        "shape": {"type": "cylinder", "cylinder": {"length": 500, "radius": 250}},
+        "box": (1000, 1000, 1000),
+        "centre": (500, 500, 500),
+        "shape": {"type": "cube", "cube": {"length": 1000}},
     }
 
     sample = parakeet.sample.new(
