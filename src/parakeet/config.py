@@ -619,10 +619,7 @@ def load(config: Union[str, dict] = None) -> Config:
         config_file = {}
 
     # Get the configuration
-    config = Config(**config_file)
-
-    # Return the config
-    return config
+    return Config(**config_file)
 
 
 def new(filename: str = "config.yaml", full: bool = False) -> Config:

@@ -200,7 +200,7 @@ def simple(config_file, atoms_file: str, output_file: str):
         microscope=microscope,
         atoms=atoms,
         device=config.device,
-        simulation=config.simulation,
+        simulation=config.simulation.dict(),
     )
 
     # Create the writer
