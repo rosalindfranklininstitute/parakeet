@@ -17,12 +17,19 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
+import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+# Try to input MULTEM
+try:
+    import multem
+except ImportError:
+    warnings.warn("Could not import MULTEM")
 
 
 class CTFSimulator(object):
@@ -60,10 +67,10 @@ class CTFSimulator(object):
         y_fov = ny * pixel_size
 
         # Create the multem system configuration
-        system_conf = create_system_configuration("cpu")
+        system_conf = parakeet.simulation.simulation.create_system_configuration("cpu")
 
         # Create the multem input multislice object
-        input_multislice = create_input_multislice(
+        input_multislice = parakeet.simulation.simulation.create_input_multislice(
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],

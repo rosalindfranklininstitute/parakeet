@@ -17,6 +17,7 @@ import parakeet.dqe
 import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
+import parakeet.io
 import parakeet.sample
 import parakeet.simulate.simulation
 from parakeet.microscope import Microscope

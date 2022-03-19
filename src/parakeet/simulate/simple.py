@@ -16,6 +16,7 @@ import parakeet.dqe
 import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
+import parakeet.io
 import parakeet.sample
 from parakeet.microscope import Microscope
 from functools import singledispatch
