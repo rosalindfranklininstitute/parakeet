@@ -76,36 +76,6 @@ def get_parser():
     return parser
 
 
-def correct_internal(config_file, image, corrected, num_defocus=1, device="gpu"):
-    """
-    Correct the images using 3D CTF correction
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Set the command line args in a dict
-    if device is not None:
-        config.device = device
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
-
-    # Do the reconstruction
-    parakeet.analyse.correct(
-        image,
-        corrected,
-        microscope=microscope,
-        simulation=config.simulation.dict(),
-        num_defocus=num_defocus,
-        device=config.device,
-    )
-
-
 def correct(args=None):
     """
     Correct the images using 3D CTF correction
@@ -125,7 +95,7 @@ def correct(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    correct_internal(
+    parakeet.analyse.correct(
         args.config, args.image, args.corrected, args.num_defocus, args.device
     )
 

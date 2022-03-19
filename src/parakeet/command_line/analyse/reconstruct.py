@@ -68,35 +68,6 @@ def get_parser():
     return parser
 
 
-def reconstruct_internal(config_file, image, rec, device="gpu"):
-    """
-    Reconstruct the volume
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Set the device
-    if device is not None:
-        config.device = device
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
-
-    # Do the reconstruction
-    parakeet.analyse.reconstruct(
-        image,
-        rec,
-        microscope=microscope,
-        simulation=config.simulation.dict(),
-        device=config.device,
-    )
-
-
 def reconstruct(args=None):
     """
     Reconstruct the volume
@@ -116,7 +87,7 @@ def reconstruct(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the reconstruction
-    reconstruct_internal(args.config, args.image, args.rec, args.device)
+    parakeet.analyse.reconstruct(args.config, args.image, args.rec, args.device)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))

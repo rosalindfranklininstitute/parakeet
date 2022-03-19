@@ -76,24 +76,6 @@ def get_parser():
     return parser
 
 
-def average_all_particles_internal(config_file, sample, rec, average, particle_size):
-    """
-    Perform sub tomogram averaging
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Do the sub tomogram averaging
-    parakeet.analyse.average_all_particles(
-        config.scan.dict(), sample, rec, average, particle_size
-    )
-
-
 def average_all_particles(args=None):
     """
     Perform sub tomogram averaging
@@ -113,7 +95,7 @@ def average_all_particles(args=None):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    average_all_particles_internal(
+    parakeet.analyse.average_all_particles(
         args.config, args.sample, args.rec, args.average, args.particle_size
     )
 
