@@ -18,12 +18,19 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
+import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+# Try to input MULTEM
+try:
+    import multem
+except ImportError:
+    warnings.warn("Could not import MULTEM")
 
 
 class SimpleImageSimulator(object):
