@@ -20,6 +20,14 @@ The functionality of the command line programs can be called from python as show
 
 .. autofunction:: parakeet.simulate.image
 
+.. autofunction:: parakeet.analyse.correct
+
+.. autofunction:: parakeet.analyse.reconstruct
+
+.. autofunction:: parakeet.analyse.average_particles
+
+.. autofunction:: parakeet.analyse.extract
+
 
 Data models
 -----------
