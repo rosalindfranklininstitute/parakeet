@@ -12,6 +12,7 @@ import os.path
 import guanaco
 import random
 import parakeet.sample
+from parakeet.config import Device
 
 # Set the random seed
 random.seed(0)
@@ -67,9 +68,17 @@ def reconstruct_internal(
     )
 
 
-def reconstruct(config_file, image, rec, device="gpu"):
+def reconstruct(
+    config_file: str, image_file: str, rec_file: str, device: Device = Device.gpu
+):
     """
     Reconstruct the volume
+
+    Args:
+        config_file: The input config filename
+        image_file: The input image filename
+        rec_file: The output CTF corrected reconstruction filename
+        device: The device to use (CPU or GPU)
 
     """
 
@@ -88,8 +97,8 @@ def reconstruct(config_file, image, rec, device="gpu"):
 
     # Do the reconstruction
     reconstruct_internal(
-        image,
-        rec,
+        image_file,
+        rec_file,
         microscope=microscope,
         simulation=config.simulation.dict(),
         device=config.device,

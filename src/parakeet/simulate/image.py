@@ -22,6 +22,7 @@ from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
+from parakeet.config import Device
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -119,7 +120,7 @@ def image_internal(
     microscope: Microscope,
     optics: object,
     scan: Scan,
-    device: str = "gpu",
+    device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ):
@@ -159,6 +160,11 @@ def image_internal(
 def image(config_file, optics_file: str, image_file: str):
     """
     Simulate the image with noise
+
+    Args:
+        config_file: The config filename
+        optics_file: The optics image filename
+        image_file: The output image filename
 
     """
 

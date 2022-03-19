@@ -104,6 +104,10 @@ def mill(config_file, sample: str):
     """
     Mill to the shape of the sample
 
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+
     """
     # Load the configuration
     config = parakeet.config.load(config_file)

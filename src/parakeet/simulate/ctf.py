@@ -122,6 +122,10 @@ def ctf(config_file, output: str):
     """
     Simulate the ctf
 
+    Args:
+        config_file: The config filename
+        output_file: The output ctf filename
+
     """
 
     # Load the full configuration

@@ -12,6 +12,7 @@ import os.path
 import guanaco
 import random
 import parakeet.sample
+from parakeet.config import Device
 
 # Set the random seed
 random.seed(0)
@@ -69,14 +70,21 @@ def correct_internal(
 
 
 def correct(
-    config_file,
+    config_file: str,
     image_file: str,
     corrected_file: str,
     num_defocus: int = 1,
-    device: str = "gpu",
+    device: Device = Device.gpu,
 ):
     """
     Correct the images using 3D CTF correction
+
+    Args:
+        config_file: The input config filename
+        image_file: The input image filename
+        corrected_file: The output CTF corrected filename
+        num_defocus: The number of defoci
+        device: The device to use (CPU or GPU)
 
     """
 

@@ -27,6 +27,9 @@ from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
 from parakeet.simulate.simulation import Simulation
+from parakeet.config import Device
+from parakeet.config import ClusterMethod
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -303,7 +306,7 @@ def exit_wave_internal(
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
-    device: str = "gpu",
+    device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ):
@@ -349,12 +352,20 @@ def exit_wave(
     config_file,
     sample_file: str,
     exit_wave_file: str,
-    device: str = "gpu",
-    cluster_method: str = None,
+    device: Device = Device.gpu,
+    cluster_method: ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
     Simulate the exit wave from the sample
+
+    Args:
+        config_file: The config filename
+        sample_file: The sample filename
+        exit_wave_file: The exit wave filename
+        device: The device to run on (CPU or GPU)
+        cluster_method: The cluster method to use (default None)
+        cluster_max_workers: The maximum number of cluster jobs
 
     """
 

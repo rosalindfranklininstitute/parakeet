@@ -25,6 +25,8 @@ from parakeet.scan import Scan
 from parakeet.simulate.simulation import Simulation
 from functools import singledispatch
 from math import pi, floor
+from parakeet.config import Device
+from parakeet.config import ClusterMethod
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -168,7 +170,7 @@ def projected_potential_internal(
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
-    device: str = "gpu",
+    device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ):
@@ -213,12 +215,19 @@ def projected_potential_internal(
 def projected_potential(
     config_file,
     sample_file: str,
-    device: str = "gpu",
-    cluster_method: str = None,
+    device: Device = Device.gpu,
+    cluster_method: ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
     Simulate the projected potential from the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The input sample filename
+        device: The device to run on (CPU or GPU)
+        cluster_method: The cluster method to use (default None)
+        cluster_max_workers: The maximum number of cluster jobs
 
     """
 

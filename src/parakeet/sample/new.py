@@ -408,6 +408,10 @@ def new(config_file, sample: str):
     """
     Create an ice sample and save it
 
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+
     """
 
     # Load the configuration

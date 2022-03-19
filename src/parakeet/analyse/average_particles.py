@@ -369,10 +369,25 @@ def average_all_particles_internal(
 
 
 def average_particles(
-    config_file, sample, rec, half1, half2, particle_size, num_particles
+    config_file: str,
+    sample_file: str,
+    rec_file: str,
+    half1_file: str,
+    half2_file: str,
+    particle_size: int,
+    num_particles: int,
 ):
     """
     Perform sub tomogram averaging
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        half1_file: The particle average filename for half 1
+        half2_file: The particle average filename for half 2
+        particle_size: The particle size (px)
+        num_particles: The number of particles to average
 
     """
 
@@ -385,18 +400,31 @@ def average_particles(
     # Do the sub tomogram averaging
     average_particles_internal(
         config.scan.dict(),
-        sample,
-        rec,
-        half1,
-        half2,
+        sample_file,
+        rec_file,
+        half1_file,
+        half2_file,
         particle_size,
         num_particles,
     )
 
 
-def average_all_particles(config_file, sample, rec, average, particle_size):
+def average_all_particles(
+    config_file: str,
+    sample_file: str,
+    rec_file: str,
+    average_file: str,
+    particle_size: int,
+):
     """
     Perform sub tomogram averaging
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        average_file: The particle average filename
+        particle_size: The particle size (px)
 
     """
 
@@ -408,5 +436,5 @@ def average_all_particles(config_file, sample, rec, average, particle_size):
 
     # Do the sub tomogram averaging
     average_all_particles_internal(
-        config.scan.dict(), sample, rec, average, particle_size
+        config.scan.dict(), sample_file, rec_file, average_file, particle_size
     )

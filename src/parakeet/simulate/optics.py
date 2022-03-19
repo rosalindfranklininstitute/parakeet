@@ -25,6 +25,8 @@ from parakeet.scan import Scan
 from functools import singledispatch
 from math import sqrt, pi, sin
 from parakeet.simulate.simulation import Simulation
+from parakeet.config import Device
+from parakeet.config import ClusterMethod
 
 # Try to input MULTEM
 try:
@@ -444,7 +446,7 @@ def optics_internal(
     microscope: Microscope,
     exit_wave: object,
     scan: Scan,
-    device: str = "gpu",
+    device: Device = Device.gpu,
     simulation: dict = None,
     sample: dict = None,
     cluster: dict = None,
@@ -487,12 +489,20 @@ def optics(
     config_file,
     exit_wave_file: str,
     optics_file: str,
-    device: str = "gpu",
-    cluster_method: str = None,
+    device: Device = Device.gpu,
+    cluster_method: ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
     Simulate the optics
+
+    Args:
+        config_file: The input config filename
+        exit_wave_file: The input exit wave filename
+        optics_file: The output optics filename
+        device: The device to run on (CPU or GPU)
+        cluster_method: The cluster method to use (default None)
+        cluster_max_workers: The maximum number of cluster jobs
 
     """
 

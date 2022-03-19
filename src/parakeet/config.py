@@ -569,7 +569,7 @@ class Config(BaseModel):
     cluster: Cluster = Field(Cluster(), description="The cluster parameters")
 
 
-def default():
+def default() -> Config:
     """
     Return:
         obj: the default configuration
@@ -578,7 +578,7 @@ def default():
     return Config()
 
 
-def save(config, filename="config.yaml", **kwargs):
+def save(config: Config, filename: str = "config.yaml", **kwargs):
     """
     Save the configuration file
 
@@ -596,7 +596,7 @@ def save(config, filename="config.yaml", **kwargs):
         yaml.safe_dump(d, outfile)
 
 
-def load(config=None):
+def load(config: Union[str, dict] = None) -> Config:
     """
     Load the configuration from the various inputs
 
@@ -625,12 +625,13 @@ def load(config=None):
     return config
 
 
-def new(filename="config.yaml", full=False):
+def new(filename: str = "config.yaml", full: bool = False) -> Config:
     """
     Generate a new config file
 
     Args:
-        full (bool): Full or basic configuration
+        filename: The config filename
+        full: Full or basic configuration
 
     """
 
@@ -673,13 +674,17 @@ def new(filename="config.yaml", full=False):
     # Save the config file
     save(config, filename, include=include)
 
+    # Return the config
+    return config
 
-def show(config, full=False):
+
+def show(config: Config, full: bool = False):
     """
     Print the command line arguments
 
     Args:
-        config (object): The configuration object
+        config: The configuration object
+        full: Show the full configuration (True or False)
 
     """
     logger.info(
@@ -694,14 +699,16 @@ def show(config, full=False):
     )
 
 
-def deepmerge(a, b):
+def deepmerge(a: dict, b: dict) -> dict:
     """
     Perform a deep merge of two dictionaries
+
     Args:
-        a (dict): The first dictionary
-        b (dict): The second dictionary
+        a: The first dictionary
+        b: The second dictionary
     Returns:
-        dict: The merged dictionary
+        The merged dictionary
+
     """
 
     def deepmerge_internal(self, other):

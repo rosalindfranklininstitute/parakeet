@@ -185,9 +185,22 @@ def extract_particles(
         handle.close()
 
 
-def extract(config_file, sample, rec, particles, particle_size):
+def extract(
+    config_file: str,
+    sample_file: str,
+    rec_file: str,
+    particles_file: str,
+    particle_size: int,
+):
     """
     Perform sub tomogram extraction
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        particles_file: The file to extract the particles to
+        particle_size: The particle size (px)
 
     """
 
@@ -198,4 +211,6 @@ def extract(config_file, sample, rec, particles, particle_size):
     parakeet.config.show(config)
 
     # Do the sub tomogram averaging
-    extract_particles(config.scan.dict(), sample, rec, particles, particle_size)
+    extract_particles(
+        config.scan.dict(), sample_file, rec_file, particles_file, particle_size
+    )

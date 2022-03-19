@@ -268,9 +268,13 @@ def add_molecules_internal(config: dict, filename: str):
 
 
 @singledispatch
-def add_molecules(config_file, sample: str):
+def add_molecules(config_file, sample_file: str):
     """
     Add molecules to the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The input sample filename
 
     """
     # Load the configuration
@@ -280,8 +284,8 @@ def add_molecules(config_file, sample: str):
     parakeet.config.show(config)
 
     # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    add_molecules_internal(config.sample.dict(), sample)
+    logger.info(f"Writing sample to {sample_file}")
+    add_molecules_internal(config.sample.dict(), sample_file)
 
 
 # Register function for single dispatch

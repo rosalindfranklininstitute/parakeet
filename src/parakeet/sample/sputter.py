@@ -170,9 +170,13 @@ def sputter_internal(config: dict, filename: str):
 
 
 @singledispatch
-def sputter(config_file, sample: str):
+def sputter(config_file, sample_file: str):
     """
     Sputter the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
 
     """
 
@@ -183,8 +187,11 @@ def sputter(config_file, sample: str):
     parakeet.config.show(config)
 
     # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    sputter_internal(config.sample.sputter.dict(), sample)
+    if config.sample.sputter:
+        logger.info(f"Writing sample to {sample_file}")
+        sputter_internal(config.sample.sputter.dict(), sample_file)
+    else:
+        logger.info("No sputter parameters found in config")
 
 
 # Register function for single dispatch

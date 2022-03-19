@@ -22,6 +22,7 @@ import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
+from parakeet.config import Device
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -125,7 +126,10 @@ class SimpleImageSimulator(object):
 
 
 def simple_internal(
-    microscope: Microscope, atoms: str, device: str = "gpu", simulation: dict = None
+    microscope: Microscope,
+    atoms: str,
+    device: Device = Device.gpu,
+    simulation: dict = None,
 ):
     """
     Create the simulation
@@ -170,6 +174,11 @@ def simple_internal(
 def simple(config_file, atoms_file: str, output_file: str):
     """
     Simulate the image
+
+    Args:
+        config_file: The config filename
+        atoms_file: The input atoms filename
+        output_filename: The output filename
 
     """
 
