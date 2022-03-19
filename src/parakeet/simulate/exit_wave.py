@@ -25,6 +25,7 @@ from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
+from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -320,12 +321,14 @@ def exit_wave_internal(
         object: The simulation object
 
     """
+    # Get the margin
+    margin = 0 if simulation is None else simulation.get("margin", 0)
 
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(
-            microscope.detector.nx + 2 * simulation["margin"],
-            microscope.detector.ny + 2 * simulation["margin"],
+            microscope.detector.nx + 2 * margin,
+            microscope.detector.ny + 2 * margin,
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
@@ -342,7 +345,7 @@ def exit_wave_internal(
 
 @singledispatch
 def exit_wave(
-    config_file: str,
+    config_file,
     sample_file: str,
     exit_wave_file: str,
     device: str = "gpu",

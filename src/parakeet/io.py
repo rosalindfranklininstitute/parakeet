@@ -518,14 +518,6 @@ class ImageWriter(Writer):
         """
         return self._data.vmin
 
-    @property
-    def vmax(self):
-        """
-        The vmax property
-
-        """
-        return self._data.vmax
-
     @vmin.setter
     def vmin(self, vmin):
         """
@@ -533,6 +525,14 @@ class ImageWriter(Writer):
 
         """
         self._data.vmin = vmin
+
+    @property
+    def vmax(self):
+        """
+        The vmax property
+
+        """
+        return self._data.vmax
 
     @vmax.setter
     def vmax(self, vmax):

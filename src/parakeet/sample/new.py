@@ -404,7 +404,7 @@ def new_internal(config: dict, filename: str):
 
 
 @singledispatch
-def new(config_file: str, sample: str):
+def new(config_file, sample: str):
     """
     Create an ice sample and save it
 

@@ -19,6 +19,7 @@ import parakeet.inelastic
 import parakeet.sample
 from parakeet.microscope import Microscope
 from functools import singledispatch
+from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ def ctf_internal(microscope: Microscope, simulation: dict):
     """
 
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
         pixel_size=microscope.detector.pixel_size,
         simulate_image=CTFSimulator(microscope=microscope, simulation=simulation),
@@ -110,7 +111,7 @@ def ctf_internal(microscope: Microscope, simulation: dict):
 
 
 @singledispatch
-def ctf(config_file: str, output: str):
+def ctf(config_file, output: str):
     """
     Simulate the ctf
 

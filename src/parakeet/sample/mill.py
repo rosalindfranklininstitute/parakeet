@@ -100,7 +100,7 @@ def mill_internal(config: dict, filename: str):
 
 
 @singledispatch
-def mill(config_file: str, sample: str):
+def mill(config_file, sample: str):
     """
     Mill to the shape of the sample
 

@@ -170,7 +170,7 @@ def sputter_internal(config: dict, filename: str):
 
 
 @singledispatch
-def sputter(config_file: str, sample: str):
+def sputter(config_file, sample: str):
     """
     Sputter the sample
 

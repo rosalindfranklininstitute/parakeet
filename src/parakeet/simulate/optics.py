@@ -23,6 +23,7 @@ from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import sqrt, pi, sin
+from parakeet.simulate.simulation import Simulation
 
 # Try to input MULTEM
 try:
@@ -464,7 +465,7 @@ def optics_internal(
     """
 
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
@@ -482,9 +483,9 @@ def optics_internal(
 
 @singledispatch
 def optics(
-    config_file: str,
-    exit_wave: str,
-    optics: str,
+    config_file,
+    exit_wave_file: str,
+    optics_file: str,
     device: str = "gpu",
     cluster_method: str = None,
     cluster_max_workers: int = 1,
@@ -512,8 +513,8 @@ def optics(
     microscope = parakeet.microscope.new(**config.microscope.dict())
 
     # Create the exit wave data
-    logger.info(f"Loading sample from {exit_wave}")
-    exit_wave = parakeet.io.open(exit_wave)
+    logger.info(f"Loading sample from {exit_wave_file}")
+    exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
     scan = parakeet.scan.new(
@@ -532,9 +533,9 @@ def optics(
     )
 
     # Create the writer
-    logger.info(f"Opening file: {optics}")
+    logger.info(f"Opening file: {optics_file}")
     writer = parakeet.io.new(
-        optics,
+        optics_file,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.float32,

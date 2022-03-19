@@ -19,6 +19,7 @@ import parakeet.inelastic
 import parakeet.sample
 from parakeet.microscope import Microscope
 from functools import singledispatch
+from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -132,13 +133,17 @@ def simple_internal(
         object: The simulation object
 
     """
+    # Create the scan
     scan = parakeet.scan.new("still")
 
+    # Get the margin
+    margin = 0 if simulation is None else simulation.get("margin", 0)
+
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(
-            microscope.detector.nx + 2 * simulation["margin"],
-            microscope.detector.ny + 2 * simulation["margin"],
+            microscope.detector.nx + 2 * margin,
+            microscope.detector.ny + 2 * margin,
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
@@ -154,7 +159,7 @@ def simple_internal(
 
 
 @singledispatch
-def simple(config_file: str, atoms_file: str, output_file: str):
+def simple(config_file, atoms_file: str, output_file: str):
     """
     Simulate the image
 

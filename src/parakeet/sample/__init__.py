@@ -852,22 +852,6 @@ class SampleHDF5Adapter(object):
             """
             return pandas.DataFrame.from_records(self.__handle["atoms"][:])
 
-        @property
-        def positions(self):
-            """
-            Get the positions
-
-            """
-            return self.__handle["positions"][:]
-
-        @property
-        def orientations(self):
-            """
-            Get the orientations
-
-            """
-            return self.__handle["orientations"][:]
-
         @atoms.setter
         def atoms(self, data):
             """
@@ -879,6 +863,14 @@ class SampleHDF5Adapter(object):
                 "atoms", data=data.to_records(), dtype=dtype, chunks=True
             )
 
+        @property
+        def positions(self):
+            """
+            Get the positions
+
+            """
+            return self.__handle["positions"][:]
+
         @positions.setter
         def positions(self, positions):
             """
@@ -886,6 +878,14 @@ class SampleHDF5Adapter(object):
 
             """
             self.__handle.create_dataset("positions", data=positions, dtype="float32")
+
+        @property
+        def orientations(self):
+            """
+            Get the orientations
+
+            """
+            return self.__handle["orientations"][:]
 
         @orientations.setter
         def orientations(self, orientations):

@@ -268,7 +268,7 @@ def add_molecules_internal(config: dict, filename: str):
 
 
 @singledispatch
-def add_molecules(config_file: str, sample: str):
+def add_molecules(config_file, sample: str):
     """
     Add molecules to the sample
 

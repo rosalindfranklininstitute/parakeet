@@ -22,6 +22,7 @@ import parakeet.sample
 from parakeet.microscope import Microscope
 from parakeet.sample import Sample
 from parakeet.scan import Scan
+from parakeet.simulate.simulation import Simulation
 from functools import singledispatch
 from math import pi, floor
 
@@ -186,12 +187,14 @@ def projected_potential_internal(
         object: The simulation object
 
     """
+    # Get the margin
+    margin = 0 if simulation is None else simulation.get("margin", 0)
 
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(
-            microscope.detector.nx + 2 * simulation["margin"],
-            microscope.detector.ny + 2 * simulation["margin"],
+            microscope.detector.nx + 2 * margin,
+            microscope.detector.ny + 2 * margin,
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
@@ -208,7 +211,7 @@ def projected_potential_internal(
 
 @singledispatch
 def projected_potential(
-    config_file: str,
+    config_file,
     sample_file: str,
     device: str = "gpu",
     cluster_method: str = None,

@@ -20,6 +20,7 @@ import parakeet.sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
+from parakeet.simulate.simulation import Simulation
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -138,7 +139,7 @@ def image_internal(
     """
 
     # Create the simulation
-    return parakeet.simulate.simulation.Simulation(
+    return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
@@ -154,7 +155,7 @@ def image_internal(
 
 
 @singledispatch
-def image(config_file: str, optics_file: str, image_file: str):
+def image(config_file, optics_file: str, image_file: str):
     """
     Simulate the image with noise
 
