@@ -428,9 +428,9 @@ def test_new(tmp_path):
 def test_add_molecules(tmp_path):
 
     config = {
-        "box": (50, 50, 50),
-        "centre": (25, 25, 25),
-        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+        "box": (500, 500, 500),
+        "centre": (250, 250, 250),
+        "shape": {"type": "cylinder", "cylinder": {"length": 500, "radius": 250}},
     }
 
     sample = parakeet.sample.new(
@@ -449,8 +449,8 @@ def test_add_molecules(tmp_path):
     assert sample.number_of_molecular_models == 1
 
     sample = parakeet.sample.add_molecules(
+        {"molecules": {"pdb": [{"id": "4v1w", "instances": 10}]}},
         os.path.join(tmp_path, "test_add_molecules.h5"),
-        molecules={"pdb": [{"id": "4v1w", "instances": 10}]},
     )
 
     assert sample.number_of_molecules == 2
@@ -472,8 +472,8 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.add_molecules(
+        {"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}},
         os.path.join(tmp_path, "test_add_molecules2.h5"),
-        molecules={"pdb": [{"id": "4v5d", "instances": 1}]},
     )
 
     assert sample.number_of_molecules == 1
