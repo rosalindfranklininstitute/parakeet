@@ -57,6 +57,10 @@ class Beam(object):
 
     @property
     def energy(self) -> float:
+        """
+        The beam energy (keV)
+
+        """
         return self._energy
 
     @energy.setter
@@ -65,6 +69,10 @@ class Beam(object):
 
     @property
     def energy_spread(self) -> float:
+        """
+        dE / E where dE is the 1/e half width
+
+        """
         return self._energy_spread
 
     @energy_spread.setter
@@ -73,6 +81,10 @@ class Beam(object):
 
     @property
     def acceleration_voltage_spread(self) -> float:
+        """
+        dV / V where dV is the 1 / e half width
+
+        """
         return self._acceleration_voltage_spread
 
     @acceleration_voltage_spread.setter
@@ -81,6 +93,10 @@ class Beam(object):
 
     @property
     def source_spread(self) -> float:
+        """
+        The source spread (mrad)
+
+        """
         return self._source_spread
 
     @source_spread.setter
@@ -89,6 +105,10 @@ class Beam(object):
 
     @property
     def electrons_per_angstrom(self) -> float:
+        """
+        The number of electrons per angstrom
+
+        """
         return self._electrons_per_angstrom
 
     @electrons_per_angstrom.setter
@@ -97,6 +117,10 @@ class Beam(object):
 
     @property
     def theta(self) -> float:
+        """
+        The beam tilt theta
+
+        """
         return self._theta
 
     @theta.setter
@@ -105,6 +129,10 @@ class Beam(object):
 
     @property
     def phi(self) -> float:
+        """
+        The beam tilt phi
+
+        """
         return self._phi
 
     @phi.setter
@@ -113,6 +141,10 @@ class Beam(object):
 
     @property
     def drift(self) -> Optional[dict]:
+        """
+        The beam drift
+
+        """
         return self._drift
 
     @drift.setter
@@ -121,6 +153,10 @@ class Beam(object):
 
     @property
     def defocus_drift(self) -> Optional[dict]:
+        """
+        The defocus drift
+
+        """
         return self._defocus_drift
 
     @defocus_drift.setter
