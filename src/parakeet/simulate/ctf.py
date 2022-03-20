@@ -135,7 +135,7 @@ def ctf(config_file, output: str):
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Create the simulation
     simulation = ctf_internal(

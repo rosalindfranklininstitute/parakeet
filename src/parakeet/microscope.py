@@ -8,9 +8,11 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import parakeet.config
 import parakeet.beam
 import parakeet.detector
 import parakeet.lens
+from typing import Optional
 
 
 class Microscope(object):
@@ -20,66 +22,113 @@ class Microscope(object):
     """
 
     def __init__(
-        self, model=None, beam=None, lens=None, detector=None, phase_plate=False
+        self,
+        model: parakeet.config.MicroscopeModel = None,
+        beam: parakeet.beam.Beam = parakeet.beam.Beam(),
+        lens: parakeet.lens.Lens = parakeet.lens.Lens(),
+        detector: parakeet.detector.Detector = parakeet.detector.Detector(),
+        phase_plate: bool = False,
     ):
         """
         Initialise the detector
 
         Args:
-            model (str): The microscope model name
-            beam (object): The beam object
-            lens (object): The lens object
-            detector (object): The detector object
-            phase_plate (bool): The phase plate
+            model: The microscope model name
+            beam: The beam object
+            lens: The lens object
+            detector: The detector object
+            phase_plate: The phase plate
 
         """
-        self.model = model
-        self.beam = beam
-        self.lens = lens
-        self.detector = detector
-        self.phase_plate = phase_plate
+        self._model = model
+        self._beam = beam
+        self._lens = lens
+        self._detector = detector
+        self._phase_plate = phase_plate
+
+    @property
+    def model(self) -> Optional[parakeet.config.MicroscopeModel]:
+        """
+        The microscope model type
+
+        """
+        return self._model
+
+    @property
+    def beam(self) -> parakeet.beam.Beam:
+        """
+        The beam model
+
+        """
+        return self._beam
+
+    @property
+    def lens(self) -> parakeet.lens.Lens:
+        """
+        The lens model
+
+        """
+        return self._lens
+
+    @property
+    def detector(self) -> parakeet.detector.Detector:
+        """
+        The detector model
+
+        """
+        return self._detector
+
+    @property
+    def phase_plate(self) -> bool:
+        """
+        Do we have a phase plate
+
+        """
+        return self._phase_plate
 
 
-def new(model=None, beam=None, lens=None, detector=None, phase_plate=False):
+def new(
+    config: parakeet.config.Microscope = parakeet.config.Microscope(),
+) -> Microscope:
     """
-    Make a new detector
+    Make a new microscope object
 
     Args:
-        model (str): The microscope model
-        beam (dict): The beam parameters
-        lens (dict): The objective lens parameters
-        detector (dict): The detector parameters
-        phase_plate (bool): The phase plate
+        config: The microscope model
 
     Returns:
-        obj: The detector object
+        The microscope object
 
     """
 
     # Construct the basic models from the input
-    beam = parakeet.beam.new(**beam)
-    lens = parakeet.lens.new(**lens)
-    detector = parakeet.detector.new(**detector)
+    beam = parakeet.beam.new(**config.beam.dict())
+    lens = parakeet.lens.new(**config.lens.dict())
+    detector = parakeet.detector.new(**config.detector.dict())
 
     # Override the parameters for the different microscope models
-    if model == "krios":
+    if config.model == "krios":
         beam.energy = 300
         beam.energy_spread = 2.66 * 1e-6
         beam.acceleration_voltage_spread = 0.8 * 1e-6
         lens.c_30 = 2.7
         lens.c_c = 2.7
         lens.current_spread = 0.33 * 1e-6
-    elif model == "talos":
+    elif config.model == "talos":
         beam.energy = 200
         beam.energy_spread = 2.66 * 1e-6
         beam.acceleration_voltage_spread = 0.8 * 1e-6
         lens.c_30 = 2.7
         lens.c_c = 2.7
         lens.current_spread = 0.33 * 1e-6
-    elif model is not None:
+    elif config.model is not None:
         raise RuntimeError("Unknown microscope model")
 
     # Return the miroscope object
     return Microscope(
-        model=model, beam=beam, lens=lens, detector=detector, phase_plate=phase_plate
+        model=config.model,
+        beam=beam,
+        lens=lens,
+        detector=detector,
+        phase_plate=config.phase_plate,
     )

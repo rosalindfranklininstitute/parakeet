@@ -246,7 +246,7 @@ def projected_potential(
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Create the sample
     logger.info(f"Loading sample from {sample_file}")

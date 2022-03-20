@@ -189,7 +189,7 @@ def simple(config_file, atoms_file: str, output_file: str):
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Create the exit wave data
     logger.info(f"Loading sample from {atoms_file}")

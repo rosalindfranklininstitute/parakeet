@@ -521,7 +521,7 @@ def optics(
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Create the exit wave data
     logger.info(f"Loading sample from {exit_wave_file}")

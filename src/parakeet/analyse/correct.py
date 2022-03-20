@@ -99,7 +99,7 @@ def correct(
     parakeet.config.show(config)
 
     # Create the microscope
-    microscope = parakeet.microscope.new(**config.microscope.dict())
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Do the reconstruction
     correct_internal(
