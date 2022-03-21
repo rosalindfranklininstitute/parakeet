@@ -183,6 +183,8 @@ def new(config: parakeet.config.Beam) -> Beam:
         electrons_per_angstrom=config.electrons_per_angstrom,
         theta=config.theta,
         phi=config.phi,
-        drift=config.drift,
-        defocus_drift=config.defocus_drift,
+        drift={} if config.drift is None else config.drift.dict(),
+        defocus_drift={}
+        if config.defocus_drift is None
+        else config.defocus_drift.dict(),
     )

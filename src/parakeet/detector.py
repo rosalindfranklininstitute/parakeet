@@ -8,6 +8,8 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import parakeet.config
+from typing import Tuple
 
 
 class Detector(object):
@@ -16,16 +18,23 @@ class Detector(object):
 
     """
 
-    def __init__(self, nx=None, ny=None, pixel_size=None, origin=None, dqe=True):
+    def __init__(
+        self,
+        nx: int = 0,
+        ny: int = 0,
+        pixel_size: float = 1,
+        origin: Tuple[float, float, float] = (0, 0, 0),
+        dqe: bool = True,
+    ):
         """
         Initialise the detector
 
         Args:
-            nx (int): The size of the detector in X
-            ny (int): The size of the detector in Y
-            pixel_size (float): The effective size of the pixels in A
-            origin (tuple): The detector origin (A, A)
-            dqe (bool): Use the detector DQE
+            nx: The size of the detector in X
+            ny: The size of the detector in Y
+            pixel_size: The effective size of the pixels in A
+            origin: The detector origin (A, A)
+            dqe: Use the detector DQE
 
         """
         self.nx = nx
@@ -35,19 +44,15 @@ class Detector(object):
         self.dqe = dqe
 
 
-def new(nx=None, ny=None, pixel_size=None, origin=None, dqe=True):
+def new(config: parakeet.config.Detector) -> Detector:
     """
     Make a new detector
 
     Args:
-        nx (int): The size of the detector in X
-        ny (int): The size of the detector in Y
-        pixel_size (float): The effective size of the pixels in A
-        origin (tuple): The detector origin (A, A)
-        dqe (bool): Use the detector DQE
+        config: The detector configuration
 
     Returns:
-        obj: The detector object
+        The detector model object
 
     """
-    return Detector(nx=nx, ny=ny, pixel_size=pixel_size, origin=origin, dqe=dqe)
+    return Detector(**config.dict())

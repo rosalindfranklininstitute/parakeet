@@ -13,6 +13,7 @@ import numpy as np
 import pandas
 import scipy.constants
 import time
+import parakeet.config
 import parakeet.data
 import parakeet.freeze
 from math import pi, floor
@@ -340,7 +341,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
     return sample
 
 
-def new_internal(config: dict, filename: str):
+def new_internal(config: parakeet.config.Sample, filename: str) -> Sample:
     """
     Create the sample
 
@@ -356,10 +357,10 @@ def new_internal(config: dict, filename: str):
         object: The test sample
 
     """
-    box = config.get("box", None)
-    centre = config.get("centre", None)
-    shape = config.get("shape", None)
-    ice = config.get("ice", None)
+    box = config.box
+    centre = config.centre
+    shape = config.shape.dict()
+    ice = config.ice
     coords = None
 
     # Check the dimensions are valid
@@ -374,8 +375,8 @@ def new_internal(config: dict, filename: str):
     sample.shape = shape
 
     # Add some ice
-    if ice is not None and ice["generate"]:
-        add_ice(sample, centre, shape, ice["density"])
+    if ice is not None and ice.generate:
+        add_ice(sample, centre, shape, ice.density)
 
     # Add atoms from coordinates file
     if coords is not None and coords["filename"]:
@@ -404,7 +405,7 @@ def new_internal(config: dict, filename: str):
 
 
 @singledispatch
-def new(config_file, sample: str):
+def new(config_file, sample: str) -> Sample:
     """
     Create an ice sample and save it
 
@@ -422,7 +423,7 @@ def new(config_file, sample: str):
 
     # Create the sample
     logger.info(f"Writing sample to {sample}")
-    new_internal(config.sample.dict(), sample)
+    return new_internal(config.sample, sample)
 
 
 # Register function for single dispatch

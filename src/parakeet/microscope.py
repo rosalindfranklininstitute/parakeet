@@ -103,8 +103,8 @@ def new(
 
     # Construct the basic models from the input
     beam = parakeet.beam.new(config.beam)
-    lens = parakeet.lens.new(**config.lens.dict())
-    detector = parakeet.detector.new(**config.detector.dict())
+    lens = parakeet.lens.new(config.lens)
+    detector = parakeet.detector.new(config.detector)
 
     # Override the parameters for the different microscope models
     if config.model == "krios":

@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import pytest
+import parakeet.config
 import parakeet.sample
 from math import sqrt
 
@@ -326,7 +327,7 @@ def test_AtomSliceExtractor(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_AtomSliceExtractor.h5"),
     )
 
@@ -354,7 +355,7 @@ def test_AtomDeleter(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_AtomDeleter.h5"),
     )
 
@@ -379,7 +380,7 @@ def test_load(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_load.h5"),
     )
 
@@ -397,7 +398,7 @@ def test_new(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_new1.h5"),
     )
 
@@ -409,7 +410,7 @@ def test_new(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_new2.h5"),
     )
 
@@ -434,7 +435,7 @@ def test_add_molecules(tmp_path):
     }
 
     sample = parakeet.sample.new(
-        config,
+        parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_add_molecules.h5"),
     )
 
@@ -459,12 +460,14 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.new(
-        {
-            "box": (4000, 4000, 4000),
-            "centre": (2000, 2000, 2000),
-            "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
-            "ice": {"generate": True, "density": 940},
-        },
+        parakeet.config.Sample(
+            **{
+                "box": (4000, 4000, 4000),
+                "centre": (2000, 2000, 2000),
+                "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+                "ice": {"generate": True, "density": 940},
+            }
+        ),
         os.path.join(tmp_path, "test_add_molecules2.h5"),
     )
 
