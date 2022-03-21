@@ -1,0 +1,20 @@
+name: Parakeet
+version: 0.1.0
+company: Rosalind Franklin Institute
+channels:
+    # The following three channels are on the VM itself
+    # and may need updating if their conda installation prefix changes.
+    - file:///usr/share/miniconda3/envs/test/conda-bld/  # [linux]
+    # remote channels
+    - https://conda.anaconda.org/conda-forge/
+    -
+ignore_duplicate_files: true
+menu_packages:
+    - parakeet
+specs:
+    - python 3.9.*
+    - parakeet 0.1.0
+    - conda
+    - menuinst # [win]
+initialize_by_default: false
+register_python_default: false
