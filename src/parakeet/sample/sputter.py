@@ -12,6 +12,7 @@ import logging
 import numpy as np
 import pandas
 import scipy.constants
+import parakeet.config
 import parakeet.data
 import parakeet.freeze
 from math import pi
@@ -25,25 +26,21 @@ from parakeet.sample import Sample
 logger = logging.getLogger(__name__)
 
 
-def sputter_internal(config: dict, filename: str):
+def sputter_internal(config: parakeet.config.Sputter, sample: Sample) -> Sample:
     """
     Add a sputter coating to the sample of the desired thickness
 
     This is very crude and adds atoms at random positions
 
     Params:
-        atomic_number (int): The atomic number
-        density (float): The density of atoms (g/cm3)
-        thickness (float): The thickness (A)
+        config: The sputter configuration
+        sample: The sample object
 
 
     """
 
-    element = config["element"]
-    thickness = config["thickness"]
-
-    # Open the sample
-    sample = Sample(filename, mode="r+")
+    element = config.element
+    thickness = config.thickness
 
     # Get the sample shape
     shape = sample.shape
@@ -168,9 +165,11 @@ def sputter_internal(config: dict, filename: str):
 
     sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
 
+    return sample
+
 
 @singledispatch
-def sputter(config_file, sample_file: str):
+def sputter(config_file, sample_file: str) -> Sample:
     """
     Sputter the sample
 
@@ -186,12 +185,16 @@ def sputter(config_file, sample_file: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
     # Create the sample
     if config.sample.sputter:
         logger.info(f"Writing sample to {sample_file}")
-        sputter_internal(config.sample.sputter.dict(), sample_file)
+        sample = sputter_internal(config.sample.sputter, sample)
     else:
         logger.info("No sputter parameters found in config")
+    return sample
 
 
 # Register function for single dispatch

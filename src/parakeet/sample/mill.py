@@ -10,6 +10,7 @@
 #
 import logging
 import numpy as np
+import parakeet.config
 import parakeet.data
 import parakeet.freeze
 from functools import singledispatch
@@ -20,7 +21,7 @@ from parakeet.sample import Sample
 logger = logging.getLogger(__name__)
 
 
-def mill_internal(config: dict, filename: str):
+def mill_internal(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Mill the sample
 
@@ -74,12 +75,9 @@ def mill_internal(config: dict, filename: str):
             )
             return atoms[selection]
 
-    box = config["box"]
-    centre = config["centre"]
-    shape = config["shape"]
-
-    # Open the sample
-    sample = Sample(filename, mode="r+")
+    box = config.box
+    centre = config.centre
+    shape = config.shape.dict()
 
     # Set the sample box and shape
     sample.containing_box = ((0, 0, 0), box)
@@ -98,9 +96,11 @@ def mill_internal(config: dict, filename: str):
     # Print some info
     logger.info(sample.info())
 
+    return sample
+
 
 @singledispatch
-def mill(config_file, sample: str):
+def mill(config_file, sample_file: str) -> Sample:
     """
     Mill to the shape of the sample
 
@@ -115,9 +115,12 @@ def mill(config_file, sample: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
     # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    mill_internal(config.sample.dict(), sample)
+    logger.info(f"Writing sample to {sample_file}")
+    return mill_internal(config.sample, sample)
 
 
 # Register function for single dispatch

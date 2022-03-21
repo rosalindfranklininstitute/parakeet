@@ -10,11 +10,12 @@
 #
 import logging
 import numpy as np
+import parakeet.config
 import parakeet.data
 import parakeet.freeze
-from scipy.spatial.transform import Rotation
 from collections import defaultdict
 from functools import singledispatch
+from scipy.spatial.transform import Rotation
 from parakeet.sample import AtomData
 from parakeet.sample import AtomDeleter
 from parakeet.sample import Sample
@@ -199,19 +200,22 @@ def add_multiple_molecules(sample, molecules):
         )
 
 
-def add_molecules_internal(config: dict, filename: str):
+def add_molecules_internal(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Take a sample and add a load of molecules
 
     Args:
-        filename (str): The filename of the sample
-        molecules (dict): The molecules
+        config: The sample configuration
+        filename: The filename of the sample
 
     Returns:
-        object: The test sample
+        The sample object
 
     """
-    molecules = config["molecules"]
+    if config.molecules is not None:
+        molecules = config.molecules.dict()
+    else:
+        molecules = {}
 
     # Convert to list of positions/orientations
     temp = {}
@@ -244,9 +248,6 @@ def add_molecules_internal(config: dict, filename: str):
     # The total number of molecules
     total_number_of_molecules = sum(map(len, molecules.values()))
 
-    # Open the sample
-    sample = Sample(filename, mode="r+")
-
     # Put the molecule in the centre if only one
     if total_number_of_molecules == 0:
         raise RuntimeError("Need at least 1 molecule")
@@ -268,7 +269,7 @@ def add_molecules_internal(config: dict, filename: str):
 
 
 @singledispatch
-def add_molecules(config_file, sample_file: str):
+def add_molecules(config_file, sample_file: str) -> Sample:
     """
     Add molecules to the sample
 
@@ -283,9 +284,12 @@ def add_molecules(config_file, sample_file: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
     # Create the sample
     logger.info(f"Writing sample to {sample_file}")
-    add_molecules_internal(config.sample.dict(), sample_file)
+    return add_molecules_internal(config.sample, sample)
 
 
 # Register function for single dispatch

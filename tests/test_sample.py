@@ -442,16 +442,20 @@ def test_add_molecules(tmp_path):
     sample.close()
 
     sample = parakeet.sample.add_molecules(
-        {"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}},
-        os.path.join(tmp_path, "test_add_molecules.h5"),
+        parakeet.config.Sample(
+            **{"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}}
+        ),
+        parakeet.sample.load(os.path.join(tmp_path, "test_add_molecules.h5"), "r+"),
     )
 
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
 
     sample = parakeet.sample.add_molecules(
-        {"molecules": {"pdb": [{"id": "4v1w", "instances": 10}]}},
-        os.path.join(tmp_path, "test_add_molecules.h5"),
+        parakeet.config.Sample(
+            **{"molecules": {"pdb": [{"id": "4v1w", "instances": 10}]}}
+        ),
+        parakeet.sample.load(os.path.join(tmp_path, "test_add_molecules.h5"), "r+"),
     )
 
     assert sample.number_of_molecules == 2
@@ -468,15 +472,17 @@ def test_add_molecules(tmp_path):
                 "ice": {"generate": True, "density": 940},
             }
         ),
-        os.path.join(tmp_path, "test_add_molecules2.h5"),
+        os.path.join(tmp_path, "test_add_molecules.h5"),
     )
 
     sample.shape = {"type": "cylinder", "cylinder": {"length": 4000, "radius": 2000}}
     sample.close()
 
     sample = parakeet.sample.add_molecules(
-        {"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}},
-        os.path.join(tmp_path, "test_add_molecules2.h5"),
+        parakeet.config.Sample(
+            **{"molecules": {"pdb": [{"id": "4v5d", "instances": 1}]}}
+        ),
+        parakeet.sample.load(os.path.join(tmp_path, "test_add_molecules.h5"), "r+"),
     )
 
     assert sample.number_of_molecules == 1

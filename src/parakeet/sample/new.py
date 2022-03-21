@@ -346,15 +346,11 @@ def new_internal(config: parakeet.config.Sample, filename: str) -> Sample:
     Create the sample
 
     Args:
-        filename (str): The filename of the sample
-        box (list): The containing box of the sample
-        centre (list): The centering of the sample in the box
-        shape (object): The shape of the sample
-        ice (object): The ice description
-        coords (object): The coordinates
+        config: The sample configuration
+        filename: The filename of the sample
 
     Returns:
-        object: The test sample
+        The sample object
 
     """
     box = config.box
@@ -405,7 +401,7 @@ def new_internal(config: parakeet.config.Sample, filename: str) -> Sample:
 
 
 @singledispatch
-def new(config_file, sample: str) -> Sample:
+def new(config_file, sample_file: str) -> Sample:
     """
     Create an ice sample and save it
 
@@ -422,8 +418,8 @@ def new(config_file, sample: str) -> Sample:
     parakeet.config.show(config)
 
     # Create the sample
-    logger.info(f"Writing sample to {sample}")
-    return new_internal(config.sample, sample)
+    logger.info(f"Writing sample to {sample_file}")
+    return new_internal(config.sample, sample_file)
 
 
 # Register function for single dispatch
