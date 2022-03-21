@@ -1970,16 +1970,16 @@ class AtomDeleter(object):
         return atoms[selection]
 
 
-def load(filename, mode="r"):
+def load(filename: str, mode: str = "r") -> Sample:
     """
     Load the sample
 
     Args:
-        filename (str): The filename of the sample
-        mode (str): The opening mode
+        filename: The filename of the sample
+        mode: The opening mode
 
     Returns:
-        object: The test sample
+        The test sample
 
     """
     return Sample(filename, mode=mode)

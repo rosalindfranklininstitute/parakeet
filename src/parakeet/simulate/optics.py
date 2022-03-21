@@ -442,7 +442,7 @@ class OpticsImageSimulator(object):
         return (index, angle, position, image, (driftx, drifty), defocus)
 
 
-def optics_internal(
+def simulation_factory(
     microscope: Microscope,
     exit_wave: object,
     scan: Scan,
@@ -450,7 +450,7 @@ def optics_internal(
     simulation: dict = None,
     sample: dict = None,
     cluster: dict = None,
-):
+) -> Simulation:
     """
     Create the simulation
 
@@ -520,6 +520,24 @@ def optics(
     # Print some options
     parakeet.config.show(config)
 
+    # Do the work
+    optics_internal(config, exit_wave_file, optics_file)
+
+
+@optics.register
+def optics_internal(
+    config: parakeet.config.Config, exit_wave_file: str, optics_file: str
+):
+    """
+    Simulate the optics
+
+    Args:
+        config: The input config
+        exit_wave_file: The input exit wave filename
+        optics_file: The output optics filename
+
+    """
+
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
@@ -533,7 +551,7 @@ def optics(
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
-    simulation = optics_internal(
+    simulation = simulation_factory(
         microscope,
         exit_wave,
         scan,
@@ -554,7 +572,3 @@ def optics(
 
     # Run the simulation
     simulation.run(writer)
-
-
-# Register function for single dispatch
-optics.register(optics_internal)

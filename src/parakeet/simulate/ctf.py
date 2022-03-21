@@ -92,7 +92,7 @@ class CTFSimulator(object):
         return (index, 0, 0, image, None, None)
 
 
-def ctf_internal(microscope: Microscope, simulation: dict):
+def simulation_factory(microscope: Microscope, simulation: dict) -> Simulation:
     """
     Create the simulation
 
@@ -118,7 +118,7 @@ def ctf_internal(microscope: Microscope, simulation: dict):
 
 
 @singledispatch
-def ctf(config_file, output: str):
+def ctf(config_file, output_file: str):
     """
     Simulate the ctf
 
@@ -134,18 +134,33 @@ def ctf(config_file, output: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Do the work
+    ctf_internal(config, output_file)
+
+
+@ctf.register
+def ctf_internal(config: parakeet.config.Config, output_file: str):
+    """
+    Simulate the ctf
+
+    Args:
+        config: The config object
+        output_file: The output ctf filename
+
+    """
+
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
     # Create the simulation
-    simulation = ctf_internal(
+    simulation = simulation_factory(
         microscope=microscope, simulation=config.simulation.dict()
     )
 
     # Create the writer
-    logger.info(f"Opening file: {output}")
+    logger.info(f"Opening file: {output_file}")
     writer = parakeet.io.new(
-        output,
+        output_file,
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.complex64,
@@ -153,7 +168,3 @@ def ctf(config_file, output: str):
 
     # Run the simulation
     simulation.run(writer)
-
-
-# Register function for single dispatch
-ctf.register(ctf_internal)

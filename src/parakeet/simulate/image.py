@@ -116,14 +116,14 @@ class ImageSimulator(object):
         return (index, angle, position, image.astype("float32"), beam_drift, defocus)
 
 
-def image_internal(
+def simulation_factory(
     microscope: Microscope,
     optics: object,
     scan: Scan,
     device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
-):
+) -> Simulation:
     """
     Create the simulation
 
@@ -174,6 +174,22 @@ def image(config_file, optics_file: str, image_file: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Do the work
+    image_internal(config, optics_file, image_file)
+
+
+@image.register
+def image_internal(config: parakeet.config.Config, optics_file: str, image_file: str):
+    """
+    Simulate the image with noise
+
+    Args:
+        config: The config object
+        optics_file: The optics image filename
+        image_file: The output image filename
+
+    """
+
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
@@ -187,7 +203,7 @@ def image(config_file, optics_file: str, image_file: str):
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
-    simulation = image_internal(
+    simulation = simulation_factory(
         microscope=microscope,
         optics=optics,
         scan=scan,
@@ -207,7 +223,3 @@ def image(config_file, optics_file: str, image_file: str):
 
     # Run the simulation
     simulation.run(writer)
-
-
-# Register function for single dispatch
-image.register(image_internal)

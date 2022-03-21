@@ -200,13 +200,59 @@ def add_multiple_molecules(sample, molecules):
         )
 
 
-def add_molecules_internal(config: parakeet.config.Sample, sample: Sample) -> Sample:
+@singledispatch
+def add_molecules(config_file, sample_file: str) -> Sample:
+    """
+    Add molecules to the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The input sample filename
+
+    """
+    # Load the configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the sample
+    logger.info(f"Writing sample to {sample_file}")
+    return add_molecules_from_config(config, sample_file)
+
+
+@add_molecules.register
+def add_molecules_from_config(
+    config: parakeet.config.Config, sample_file: str
+) -> Sample:
     """
     Take a sample and add a load of molecules
 
     Args:
         config: The sample configuration
-        filename: The filename of the sample
+        sample_file: The filename of the sample
+
+    Returns:
+        The sample object
+
+    """
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
+    # Do the work
+    return add_molecules_from_config_sample(config.sample, sample)
+
+
+@add_molecules.register
+def add_molecules_from_config_sample(
+    config: parakeet.config.Sample, sample: Sample
+) -> Sample:
+    """
+    Take a sample and add a load of molecules
+
+    Args:
+        config: The sample configuration
+        sample: The sample object
 
     Returns:
         The sample object
@@ -266,31 +312,3 @@ def add_molecules_internal(config: parakeet.config.Sample, sample: Sample) -> Sa
 
     # Return the sample
     return sample
-
-
-@singledispatch
-def add_molecules(config_file, sample_file: str) -> Sample:
-    """
-    Add molecules to the sample
-
-    Args:
-        config_file: The input config filename
-        sample_file: The input sample filename
-
-    """
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Open the sample
-    sample = Sample(sample_file, mode="r+")
-
-    # Create the sample
-    logger.info(f"Writing sample to {sample_file}")
-    return add_molecules_internal(config.sample, sample)
-
-
-# Register function for single dispatch
-add_molecules.register(add_molecules_internal)

@@ -125,7 +125,7 @@ class SimpleImageSimulator(object):
         return (index, angle, position, image, None, None)
 
 
-def simple_internal(
+def simulation_factory(
     microscope: Microscope,
     atoms: str,
     device: Device = Device.gpu,
@@ -188,6 +188,18 @@ def simple(config_file, atoms_file: str, output_file: str):
     # Print some options
     parakeet.config.show(config)
 
+
+@simple.register
+def simple_internal(config: parakeet.config.Config, atoms_file: str, output_file: str):
+    """
+    Simulate the image
+
+    Args:
+        config: The config object
+        atoms_file: The input atoms filename
+        output_filename: The output filename
+
+    """
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
@@ -196,7 +208,7 @@ def simple(config_file, atoms_file: str, output_file: str):
     atoms = parakeet.sample.AtomData.from_text_file(atoms_file)
 
     # Create the simulation
-    simulation = simple_internal(
+    simulation = simulation_factory(
         microscope=microscope,
         atoms=atoms,
         device=config.device,
@@ -214,7 +226,3 @@ def simple(config_file, atoms_file: str, output_file: str):
 
     # Run the simulation
     simulation.run(writer)
-
-
-# Register function for single dispatch
-simple.register(simple_internal)

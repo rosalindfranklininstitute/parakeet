@@ -166,14 +166,14 @@ class ProjectedPotentialSimulator(object):
         return (index, angle, position, None, None, None)
 
 
-def projected_potential_internal(
+def simulation_factory(
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
     device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
-):
+) -> Simulation:
     """
     Create the simulation
 
@@ -245,6 +245,21 @@ def projected_potential(
     # Print some options
     parakeet.config.show(config)
 
+    # Do the work
+    projected_potential_internal(config, sample_file)
+
+
+@projected_potential.register
+def projected_potential_internal(config: parakeet.config.Config, sample_file: str):
+    """
+    Simulate the projected potential from the sample
+
+    Args:
+        config: The input config
+        sample_file: The input sample filename
+
+    """
+
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
@@ -259,7 +274,7 @@ def projected_potential(
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
-    simulation = projected_potential_internal(
+    simulation = simulation_factory(
         microscope=microscope,
         sample=sample,
         scan=scan,
@@ -270,7 +285,3 @@ def projected_potential(
 
     # Run the simulation
     simulation.run()
-
-
-# Register function for single dispatch
-projected_potential.register(projected_potential_internal)
