@@ -302,14 +302,14 @@ class ExitWaveImageSimulator(object):
         return (index, angle, position, image, (driftx, drifty), None)
 
 
-def exit_wave_internal(
+def simulation_factory(
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
     device: Device = Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
-):
+) -> Simulation:
     """
     Create the simulation
 
@@ -383,12 +383,30 @@ def exit_wave(
     # Print some options
     parakeet.config.show(config)
 
-    # Create the microscope
-    microscope = parakeet.microscope.new(config.microscope)
-
     # Create the sample
     logger.info(f"Loading sample from {sample_file}")
     sample = parakeet.sample.load(sample_file)
+
+    # The exit wave file
+    exit_wave_internal(config, sample, exit_wave_file)
+
+
+@exit_wave.register
+def exit_wave_internal(
+    config: parakeet.config.Config, sample: parakeet.sample.Sample, exit_wave_file: str
+):
+    """
+    Simulate the exit wave from the sample
+
+    Args:
+        config: The config object
+        sample: The sample object
+        exit_wave_file: The exit wave filename
+
+    """
+
+    # Create the microscope
+    microscope = parakeet.microscope.new(config.microscope)
 
     # Create the scan
     if config.scan.step_pos == "auto":
@@ -397,7 +415,7 @@ def exit_wave(
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
-    simulation = exit_wave_internal(
+    simulation = simulation_factory(
         microscope,
         sample,
         scan,
@@ -417,7 +435,3 @@ def exit_wave(
 
     # Run the simulation
     simulation.run(writer)
-
-
-# Register function for single dispatch
-exit_wave.register(exit_wave_internal)
