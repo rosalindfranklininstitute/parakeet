@@ -23,9 +23,9 @@ def config_path(tmpdir_factory):
             "shape": {
                 "type": "cube",
                 "cube": {"length": 500},
-                "centre": (250, 250, 250),
-                "box": (500, 500, 500),
             },
+            "centre": (250, 250, 250),
+            "box": (500, 500, 500),
         },
         "scan": {
             "mode": "tilt_series",
