@@ -388,11 +388,11 @@ def exit_wave(
     sample = parakeet.sample.load(sample_file)
 
     # The exit wave file
-    exit_wave_internal(config, sample, exit_wave_file)
+    _exit_wave_Config(config, sample, exit_wave_file)
 
 
 @exit_wave.register
-def exit_wave_internal(
+def _exit_wave_Config(
     config: parakeet.config.Config, sample: parakeet.sample.Sample, exit_wave_file: str
 ):
     """

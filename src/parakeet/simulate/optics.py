@@ -521,11 +521,11 @@ def optics(
     parakeet.config.show(config)
 
     # Do the work
-    optics_internal(config, exit_wave_file, optics_file)
+    _optics_Config(config, exit_wave_file, optics_file)
 
 
 @optics.register
-def optics_internal(
+def _optics_Config(
     config: parakeet.config.Config, exit_wave_file: str, optics_file: str
 ):
     """

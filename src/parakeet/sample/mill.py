@@ -21,9 +21,61 @@ from parakeet.sample import Sample
 logger = logging.getLogger(__name__)
 
 
-def mill_internal(config: parakeet.config.Sample, sample: Sample) -> Sample:
+@singledispatch
+def mill(config_file, sample_file: str) -> Sample:
+    """
+    Mill to the shape of the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+
+    Returns:
+        The sample object
+
+    """
+    # Load the configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the sample
+    logger.info(f"Writing sample to {sample_file}")
+    return _mill_Config(config, sample_file)
+
+
+@mill.register
+def _mill_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
+    """
+    Take a sample and add a load of molecules
+
+    Args:
+        config: The sample configuration
+        sample_file: The filename of the sample
+
+    Returns:
+        The sample object
+
+    """
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
+    # Do the work
+    return _mill_Sample(config.sample, sample)
+
+
+@mill.register
+def _mill_Sample(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Mill the sample
+
+    Args:
+        config: The input config
+        sample: The sample model
+
+    Returns:
+        The sample object
 
     """
 
@@ -97,31 +149,3 @@ def mill_internal(config: parakeet.config.Sample, sample: Sample) -> Sample:
     logger.info(sample.info())
 
     return sample
-
-
-@singledispatch
-def mill(config_file, sample_file: str) -> Sample:
-    """
-    Mill to the shape of the sample
-
-    Args:
-        config_file: The input config filename
-        sample_file: The sample filename
-
-    """
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Open the sample
-    sample = Sample(sample_file, mode="r+")
-
-    # Create the sample
-    logger.info(f"Writing sample to {sample_file}")
-    return mill_internal(config.sample, sample)
-
-
-# Register function for single dispatch
-mill.register(mill_internal)

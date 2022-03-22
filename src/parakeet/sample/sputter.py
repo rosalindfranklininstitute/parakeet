@@ -26,7 +26,54 @@ from parakeet.sample import Sample
 logger = logging.getLogger(__name__)
 
 
-def sputter_internal(config: parakeet.config.Sputter, sample: Sample) -> Sample:
+@singledispatch
+def sputter(config_file, sample_file: str) -> Sample:
+    """
+    Sputter the sample
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+
+    """
+
+    # Load the configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the sample
+    logger.info(f"Writing sample to {sample_file}")
+    return _sputter_Config(config, sample_file)
+
+
+@sputter.register
+def _sputter_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
+    """
+    Take a sample and add a load of molecules
+
+    Args:
+        config: The sample configuration
+        sample_file: The filename of the sample
+
+    Returns:
+        The sample object
+
+    """
+    # Open the sample
+    sample = Sample(sample_file, mode="r+")
+
+    # Do the work
+    if config.sample.sputter:
+        sample = _sputter_Sputter(config.sample.sputter, sample)
+    else:
+        logger.info("No sputter parameters found in config")
+    return sample
+
+
+@sputter.register
+def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
     """
     Add a sputter coating to the sample of the desired thickness
 
@@ -166,36 +213,3 @@ def sputter_internal(config: parakeet.config.Sputter, sample: Sample) -> Sample:
     sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
 
     return sample
-
-
-@singledispatch
-def sputter(config_file, sample_file: str) -> Sample:
-    """
-    Sputter the sample
-
-    Args:
-        config_file: The input config filename
-        sample_file: The sample filename
-
-    """
-
-    # Load the configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Open the sample
-    sample = Sample(sample_file, mode="r+")
-
-    # Create the sample
-    if config.sample.sputter:
-        logger.info(f"Writing sample to {sample_file}")
-        sample = sputter_internal(config.sample.sputter, sample)
-    else:
-        logger.info("No sputter parameters found in config")
-    return sample
-
-
-# Register function for single dispatch
-sputter.register(sputter_internal)

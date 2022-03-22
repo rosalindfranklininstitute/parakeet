@@ -360,11 +360,11 @@ def new(config_file, sample_file: str) -> Sample:
 
     # Create the sample
     logger.info(f"Writing sample to {sample_file}")
-    return new_from_config(config, sample_file)
+    return _new_Config(config, sample_file)
 
 
 @new.register
-def new_from_config(config: parakeet.config.Config, filename: str) -> Sample:
+def _new_Config(config: parakeet.config.Config, filename: str) -> Sample:
     """
     Create the sample
 
@@ -376,11 +376,11 @@ def new_from_config(config: parakeet.config.Config, filename: str) -> Sample:
         The sample object
 
     """
-    return new_from_config_sample(config.sample, filename)
+    return _new_Sample(config.sample, filename)
 
 
 @new.register
-def new_from_config_sample(config: parakeet.config.Sample, filename: str) -> Sample:
+def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     """
     Create the sample
 

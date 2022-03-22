@@ -188,9 +188,12 @@ def simple(config_file, atoms_file: str, output_file: str):
     # Print some options
     parakeet.config.show(config)
 
+    # Do the work
+    _simple_Config(config, atoms_file, output_file)
+
 
 @simple.register
-def simple_internal(config: parakeet.config.Config, atoms_file: str, output_file: str):
+def _simple_Config(config: parakeet.config.Config, atoms_file: str, output_file: str):
     """
     Simulate the image
 

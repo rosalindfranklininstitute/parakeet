@@ -15,14 +15,54 @@ import h5py
 import scipy.ndimage
 import scipy.spatial.transform
 import parakeet.sample
+from typing import Any
+from functools import singledispatch
 from math import sqrt, ceil
 
 # Set the random seed
 random.seed(0)
 
 
-def extract_particles(
-    scan, sample_filename, rec_filename, extract_filename, particle_size=0
+@singledispatch
+def extract(
+    config_file,
+    sample_file: str,
+    rec_file: str,
+    particles_file: str,
+    particle_size: int,
+):
+    """
+    Perform sub tomogram extraction
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        particles_file: The file to extract the particles to
+        particle_size: The particle size (px)
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Load the sample
+    sample = parakeet.sample.load(sample_file)
+
+    # Do the sub tomogram averaging
+    _extract_Config(config, sample, rec_file, particles_file, particle_size)
+
+
+@extract.register
+def _extract_Config(
+    config: parakeet.config.Config,
+    sample: parakeet.sample.Sample,
+    rec_file: str,
+    extract_file: str,
+    particle_size: int = 0,
 ):
     """
     Extract particles for post-processing
@@ -66,14 +106,13 @@ def extract_particles(
         result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
         return result
 
-    # Load the sample
-    sample = parakeet.sample.load(sample_filename)
+    scan = config.scan.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
 
     # Read the reconstruction file
-    tomo_file = mrcfile.mmap(rec_filename)
+    tomo_file = mrcfile.mmap(rec_file)
     tomogram = tomo_file.data
 
     # Get the size of the volume
@@ -117,7 +156,7 @@ def extract_particles(
         )
 
         # Create the average array
-        extract_map = []
+        extract_map: Any = []
         particle_instance = np.zeros(shape=(length, length, length), dtype="float32")
         num = 0
 
@@ -178,39 +217,8 @@ def extract_particles(
         # pylab.show()
 
         # Save the averaged data
-        print("Saving extracted particles to %s" % extract_filename)
-        handle = h5py.File(extract_filename, "w")
+        print("Saving extracted particles to %s" % extract_file)
+        handle = h5py.File(extract_file, "w")
         data_handle = handle.create_dataset("data", extract_map.shape, chunks=True)
         data_handle[:] = extract_map[:]
         handle.close()
-
-
-def extract(
-    config_file: str,
-    sample_file: str,
-    rec_file: str,
-    particles_file: str,
-    particle_size: int,
-):
-    """
-    Perform sub tomogram extraction
-
-    Args:
-        config_file: The input config filename
-        sample_file: The sample filename
-        rec_file: The reconstruction filename
-        particles_file: The file to extract the particles to
-        particle_size: The particle size (px)
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Do the sub tomogram averaging
-    extract_particles(
-        config.scan.dict(), sample_file, rec_file, particles_file, particle_size
-    )

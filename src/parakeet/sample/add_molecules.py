@@ -218,13 +218,11 @@ def add_molecules(config_file, sample_file: str) -> Sample:
 
     # Create the sample
     logger.info(f"Writing sample to {sample_file}")
-    return add_molecules_from_config(config, sample_file)
+    return _add_molecules_Config(config, sample_file)
 
 
 @add_molecules.register
-def add_molecules_from_config(
-    config: parakeet.config.Config, sample_file: str
-) -> Sample:
+def _add_molecules_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     """
     Take a sample and add a load of molecules
 
@@ -240,13 +238,11 @@ def add_molecules_from_config(
     sample = Sample(sample_file, mode="r+")
 
     # Do the work
-    return add_molecules_from_config_sample(config.sample, sample)
+    return _add_molecules_Sample(config.sample, sample)
 
 
 @add_molecules.register
-def add_molecules_from_config_sample(
-    config: parakeet.config.Sample, sample: Sample
-) -> Sample:
+def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Take a sample and add a load of molecules
 

@@ -14,20 +14,67 @@ import random
 import scipy.ndimage
 import scipy.spatial.transform
 import parakeet.sample
+from functools import singledispatch
 from math import sqrt, ceil
 
 # Set the random seed
 random.seed(0)
 
 
-def average_particles_internal(
-    scan,
-    sample_filename,
-    rec_filename,
-    half_1_filename,
-    half_2_filename,
-    particle_size=0,
-    num_particles=0,
+@singledispatch
+def average_particles(
+    config_file,
+    sample_file: str,
+    rec_file: str,
+    half1_file: str,
+    half2_file: str,
+    particle_size: int,
+    num_particles: int,
+):
+    """
+    Perform sub tomogram averaging
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        half1_file: The particle average filename for half 1
+        half2_file: The particle average filename for half 2
+        particle_size: The particle size (px)
+        num_particles: The number of particles to average
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Load the sample
+    sample = parakeet.sample.load(sample_file)
+
+    # Do the sub tomogram averaging
+    _average_particles_Config(
+        config.scan,
+        sample,
+        rec_file,
+        half1_file,
+        half2_file,
+        particle_size,
+        num_particles,
+    )
+
+
+@average_particles.register
+def _average_particles_Config(
+    config: parakeet.config.Scan,
+    sample: parakeet.sample.Sample,
+    rec_filename: str,
+    half_1_filename: str,
+    half_2_filename: str,
+    particle_size: int = 0,
+    num_particles: int = 0,
 ):
     """
     Average particles to compute averaged reconstruction
@@ -71,8 +118,8 @@ def average_particles_internal(
         result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
         return result
 
-    # Load the sample
-    sample = parakeet.sample.load(sample_filename)
+    # Get the scan dict
+    scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
@@ -206,8 +253,48 @@ def average_particles_internal(
         handle.voxel_size = tomo_file.voxel_size
 
 
-def average_all_particles_internal(
-    scan, sample_filename, rec_filename, average_filename, particle_size=0
+@singledispatch
+def average_all_particles(
+    config_file,
+    sample_file: str,
+    rec_file: str,
+    average_file: str,
+    particle_size: int,
+):
+    """
+    Perform sub tomogram averaging
+
+    Args:
+        config_file: The input config filename
+        sample_file: The sample filename
+        rec_file: The reconstruction filename
+        average_file: The particle average filename
+        particle_size: The particle size (px)
+
+    """
+
+    # Load the full configuration
+    config = parakeet.config.load(config_file)
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Load the sample
+    sample = parakeet.sample.load(sample_file)
+
+    # Do the sub tomogram averaging
+    _average_all_particles_Config(
+        config.scan, sample, rec_file, average_file, particle_size
+    )
+
+
+@average_all_particles.register
+def _average_all_particles_Config(
+    config: parakeet.config.Scan,
+    sample: parakeet.sample.Sample,
+    rec_filename: str,
+    average_filename: str,
+    particle_size: int = 0,
 ):
     """
     Average particles to compute averaged reconstruction
@@ -251,8 +338,8 @@ def average_all_particles_internal(
         result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
         return result
 
-    # Load the sample
-    sample = parakeet.sample.load(sample_filename)
+    # Get the scan config
+    scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
@@ -366,75 +453,3 @@ def average_all_particles_internal(
         handle = mrcfile.new(average_filename, overwrite=True)
         handle.set_data(average)
         handle.voxel_size = tomo_file.voxel_size
-
-
-def average_particles(
-    config_file: str,
-    sample_file: str,
-    rec_file: str,
-    half1_file: str,
-    half2_file: str,
-    particle_size: int,
-    num_particles: int,
-):
-    """
-    Perform sub tomogram averaging
-
-    Args:
-        config_file: The input config filename
-        sample_file: The sample filename
-        rec_file: The reconstruction filename
-        half1_file: The particle average filename for half 1
-        half2_file: The particle average filename for half 2
-        particle_size: The particle size (px)
-        num_particles: The number of particles to average
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Do the sub tomogram averaging
-    average_particles_internal(
-        config.scan.dict(),
-        sample_file,
-        rec_file,
-        half1_file,
-        half2_file,
-        particle_size,
-        num_particles,
-    )
-
-
-def average_all_particles(
-    config_file: str,
-    sample_file: str,
-    rec_file: str,
-    average_file: str,
-    particle_size: int,
-):
-    """
-    Perform sub tomogram averaging
-
-    Args:
-        config_file: The input config filename
-        sample_file: The sample filename
-        rec_file: The reconstruction filename
-        average_file: The particle average filename
-        particle_size: The particle size (px)
-
-    """
-
-    # Load the full configuration
-    config = parakeet.config.load(config_file)
-
-    # Print some options
-    parakeet.config.show(config)
-
-    # Do the sub tomogram averaging
-    average_all_particles_internal(
-        config.scan.dict(), sample_file, rec_file, average_file, particle_size
-    )

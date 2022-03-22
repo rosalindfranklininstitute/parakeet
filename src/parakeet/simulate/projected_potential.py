@@ -246,11 +246,11 @@ def projected_potential(
     parakeet.config.show(config)
 
     # Do the work
-    projected_potential_internal(config, sample_file)
+    _projected_potential_Config(config, sample_file)
 
 
 @projected_potential.register
-def projected_potential_internal(config: parakeet.config.Config, sample_file: str):
+def _projected_potential_Config(config: parakeet.config.Config, sample_file: str):
     """
     Simulate the projected potential from the sample
 
