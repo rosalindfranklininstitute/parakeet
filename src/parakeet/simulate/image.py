@@ -183,7 +183,7 @@ def image(config_file, optics_file: str, image_file: str):
 
     # Create the scan
     config.scan.angles = optics.angle
-    config.scan.positions = optics.posision[:, 1]
+    config.scan.positions = optics.position[:, 1]
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
