@@ -528,9 +528,9 @@ def optics(
     exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
-    scan = parakeet.scan.new(
-        angles=exit_wave.angle, positions=exit_wave.position[:, 1], **config.scan.dict()
-    )
+    config.scan.angles = exit_wave.angle
+    config.scan.positions = exit_wave.posision[:, 1]
+    scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
     simulation = optics_internal(

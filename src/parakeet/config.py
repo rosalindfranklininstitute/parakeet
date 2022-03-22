@@ -464,7 +464,7 @@ class Scan(BaseModel):
 
     exposure_time: float = Field(1, description="The exposure time per image (s)")
 
-    angles: List[float] = Field(
+    angles: Optional[List[float]] = Field(
         None,
         description=(
             "The list of angles to use (deg). If this is set, then the "
@@ -472,7 +472,7 @@ class Scan(BaseModel):
         ),
     )
 
-    positions: List[float] = Field(
+    positions: Optional[List[float]] = Field(
         None,
         description=(
             "The list of positions to use (A). If this is set, then the "
