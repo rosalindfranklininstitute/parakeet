@@ -187,6 +187,8 @@ def new(
         object: The scan object
 
     """
+    if angles is not None or positions is not None:
+        mode = None
     if mode == "single_particle":
         return UniformAngularScan(n=num_images, metadata_file=metadata_file)
     if angles is None:
@@ -199,7 +201,7 @@ def new(
             angles = np.array(sorted(angles, key=lambda x: abs(x)))
         elif mode == "helical_scan":
             angles = start_angle + step_angle * np.arange(num_images)
-        else:
+        elif mode is not None:
             raise RuntimeError(f"Scan mode not recognised: {mode}")
     if positions is None:
         if mode == "still":
@@ -214,7 +216,7 @@ def new(
             )
         elif mode == "helical_scan":
             positions = start_pos + step_pos * np.arange(num_images)
-        else:
+        elif mode is not None:
             raise RuntimeError(f"Scan mode not recognised: {mode}")
     return SingleAxisScan(
         axis=axis, angles=angles, positions=positions, exposure_time=exposure_time

@@ -44,6 +44,18 @@ class BaseModel(PydanticBaseModel):
         # Ensure that enums use string values
         use_enum_values = True
 
+        # Don't allow extra fields
+        extra = "forbid"
+
+
+class Auto(Enum):
+    """
+    An enumeration just containing auto
+
+    """
+
+    auto = "auto"
+
 
 class ShapeType(Enum):
     """
@@ -444,13 +456,29 @@ class Scan(BaseModel):
         0, description="The start position for a translational scan (A)"
     )
 
-    step_pos: float = Field(
-        0, description="The step distance for a translational scan (A)"
+    step_pos: Union[float, Auto] = Field(
+        "auto", description="The step distance for a translational scan (A)"
     )
 
     num_images: int = Field(1, description="The number of images to simulate")
 
     exposure_time: float = Field(1, description="The exposure time per image (s)")
+
+    angles: List[float] = Field(
+        None,
+        description=(
+            "The list of angles to use (deg). If this is set, then the "
+            "num_images, start_angle and step_angle fields are overridden"
+        ),
+    )
+
+    positions: List[float] = Field(
+        None,
+        description=(
+            "The list of positions to use (A). If this is set, then the "
+            "num_images, start_pos and step_pos fields are overridden"
+        ),
+    )
 
 
 class InelasticModel(Enum):
