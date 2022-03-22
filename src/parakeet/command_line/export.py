@@ -80,7 +80,7 @@ def filter_image(data, pixel_size, resolution, shape):
     return d.real
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     """
     Get the parser for parakeet.export
 

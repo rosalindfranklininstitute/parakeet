@@ -23,7 +23,7 @@ import parakeet.simulate
 logger = logging.getLogger(__name__)
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     """
     Get the parakeet.simulate.exit_wave parser
 

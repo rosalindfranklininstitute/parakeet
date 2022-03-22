@@ -22,7 +22,7 @@ import parakeet.sample
 logger = logging.getLogger(__name__)
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     """
     Get the parakeet.analyse.correct parser
 

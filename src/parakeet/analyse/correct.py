@@ -11,6 +11,7 @@
 import os.path
 import guanaco
 import random
+import parakeet.microscope
 import parakeet.sample
 from parakeet.config import Device
 

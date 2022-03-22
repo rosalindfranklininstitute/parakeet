@@ -18,7 +18,7 @@ import parakeet.command_line
 logger = logging.getLogger(__name__)
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     """
     Get the parser for the parakeet.config.edit command
 
