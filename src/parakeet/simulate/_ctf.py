@@ -21,6 +21,8 @@ import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.simulation import create_system_configuration
+from parakeet.simulate.simulation import create_input_multislice
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -71,10 +73,10 @@ class CTFSimulator(object):
         y_fov = ny * pixel_size
 
         # Create the multem system configuration
-        system_conf = parakeet.simulation.simulation.create_system_configuration("cpu")
+        system_conf = create_system_configuration("cpu")
 
         # Create the multem input multislice object
-        input_multislice = parakeet.simulation.simulation.create_input_multislice(
+        input_multislice = create_input_multislice(
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
@@ -93,7 +95,7 @@ class CTFSimulator(object):
         image = np.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
-        return (index, 0, 0, image, None, None)
+        return (index, 0, (0, 0, 0), image, None, None)
 
 
 def simulation_factory(microscope: Microscope, simulation: dict) -> Simulation:

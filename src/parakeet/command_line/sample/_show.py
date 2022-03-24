@@ -68,9 +68,9 @@ def show_impl(args):
     logger.info(sample.info())
 
 
-def show():
+def show(args: list[str] = None):
     """
     Show the sample information
 
     """
-    show_impl(get_parser().parse_args())
+    show_impl(get_parser().parse_args(args=args))

@@ -41,6 +41,34 @@ def config_path(tmpdir_factory):
     return directory
 
 
+def test_config_new(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config-new.yaml"))
+    parakeet.command_line.config.new(["-c", config])
+    assert os.path.exists(config)
+
+
+def test_config_edit(config_path):
+
+    config_in = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    config_out = os.path.abspath(os.path.join(config_path, "config-edit.yaml"))
+    config_str = "microscope:\n" "  beam:\n" "    energy: 200\n"
+    assert os.path.exists(config_in)
+    parakeet.command_line.config.edit(
+        ["-i", config_in, "-o", config_out, "-s", config_str]
+    )
+    assert os.path.exists(config_out)
+    config = parakeet.config.load(config_out)
+    assert config.microscope.beam.energy == 200
+
+
+def test_config_show(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    assert os.path.exists(config)
+    parakeet.command_line.config.show(["-c", config])
+
+
 def test_sample_new(config_path):
 
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
@@ -57,6 +85,33 @@ def test_sample_add_molecules(config_path):
     assert os.path.exists(config)
     assert os.path.exists(sample)
     parakeet.command_line.sample.add_molecules(["-c", config, "-s", sample])
+
+
+def test_sample_mill(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.sample.mill(["-c", config, "-s", sample])
+
+
+def test_sample_sputter(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.sample.sputter(["-c", config, "-s", sample])
+
+
+def test_sample_show(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.sample.show(["-s", sample])
 
 
 def test_simulate_exit_wave(config_path):
@@ -92,6 +147,28 @@ def test_simulate_image(config_path):
     assert os.path.exists(optics)
     parakeet.command_line.simulate.image(["-c", config, "-o", optics, "-i", image])
     assert os.path.exists(image)
+
+
+def test_simulate_ctf(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    ctf = os.path.abspath(os.path.join(config_path, "ctf.h5"))
+    assert os.path.exists(config)
+    parakeet.command_line.simulate.ctf(["-c", config, "-o", ctf])
+    assert os.path.exists(ctf)
+
+
+def test_simulate_projected_potential(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.simulate.projected_potential(["-c", config, "-s", sample])
+
+
+def test_simulate_simple(config_path):
+    pass
 
 
 def test_analyse_correct(config_path):
@@ -137,6 +214,40 @@ def test_analyse_average_particles(config_path):
     assert os.path.exists(half2)
 
 
+def test_analyse_average_all_particles(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    rec = os.path.abspath(os.path.join(config_path, "rec.mrc"))
+    average = os.path.abspath(os.path.join(config_path, "average.mrc"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    assert os.path.exists(rec)
+    parakeet.command_line.analyse.average_all_particles(
+        ["-c", config, "-s", sample, "-r", rec, "-avm", average]
+    )
+    assert os.path.exists(average)
+
+
+def test_analyse_extract(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    rec = os.path.abspath(os.path.join(config_path, "rec.mrc"))
+    particles = os.path.abspath(os.path.join(config_path, "particles.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    assert os.path.exists(rec)
+    parakeet.command_line.analyse.extract(
+        ["-c", config, "-s", sample, "-r", rec, "-pm", particles]
+    )
+    assert os.path.exists(particles)
+
+
+def test_analyse_refine(config_path):
+    pass
+
+
 def test_export(config_path):
 
     exit_wave1 = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))
@@ -168,3 +279,24 @@ def test_export(config_path):
     assert os.path.exists(optics3)
     assert os.path.exists(image2)
     assert os.path.exists(image3)
+
+
+def test_read_pdb(config_path):
+    pass
+
+
+def test_run(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample-run.h5"))
+    exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave-run.h5"))
+    optics = os.path.abspath(os.path.join(config_path, "optics-run.h5"))
+    image = os.path.abspath(os.path.join(config_path, "image-run.mrc"))
+    assert os.path.exists(config)
+    parakeet.command_line.run(
+        ["-c", config, "-s", sample, "-e", exit_wave, "-o", optics, "-i", image]
+    )
+    assert os.path.exists(sample)
+    assert os.path.exists(exit_wave)
+    assert os.path.exists(optics)
+    assert os.path.exists(image)
