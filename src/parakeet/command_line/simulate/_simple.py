@@ -97,9 +97,4 @@ def simple():
     Simulate the image
 
     """
-
-    # Get parser
-    parser = get_parser()
-
-    # Parse the arguments
-    simple_impl(parser.parse_args())
+    simple_impl(get_parser().parse_args())

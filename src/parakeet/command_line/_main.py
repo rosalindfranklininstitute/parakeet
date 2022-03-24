@@ -217,6 +217,14 @@ def get_parser() -> ArgumentParser:
         )
     )
 
+    # Add the parakeet run command
+    parakeet.command_line._run.get_parser(
+        subparsers.add_parser(
+            "run",
+            help=parakeet.command_line._run.get_description(),
+        )
+    )
+
     # Return parser
     return parser
 
@@ -296,6 +304,14 @@ def read_pdb_main(parser, args):
     parakeet.command_line._read_pdb.read_pdb_impl(args)
 
 
+def run_main(parser, args):
+    """
+    Perform the parakeet run action
+
+    """
+    parakeet.command_line._run.run_impl(args)
+
+
 def get_subparser(parser, command):
     """
     Helper function to get the relevant sub parser
@@ -331,4 +347,5 @@ def main():
         "analyse": analyse_main,
         "export": export_main,
         "read_pdb": read_pdb_main,
+        "run": run_main,
     }[args.command](get_subparser(parser, args.command), args)
