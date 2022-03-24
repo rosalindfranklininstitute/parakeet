@@ -26,6 +26,9 @@ from parakeet.sample import shape_enclosed_box
 from parakeet.sample import is_box_inside_shape
 
 
+__all__ = ["add_molecules", "add_single_molecule"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

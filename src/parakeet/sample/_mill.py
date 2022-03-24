@@ -17,6 +17,9 @@ from functools import singledispatch
 from parakeet.sample import Sample
 
 
+__all__ = ["mill"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

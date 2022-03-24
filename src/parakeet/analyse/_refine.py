@@ -12,6 +12,10 @@ import maptools
 import random
 import parakeet.sample
 
+
+__all__ = ["refine"]
+
+
 # Set the random seed
 random.seed(0)
 

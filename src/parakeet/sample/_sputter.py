@@ -22,6 +22,9 @@ from parakeet.sample import AtomData
 from parakeet.sample import Sample
 
 
+__all__ = ["sputter"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

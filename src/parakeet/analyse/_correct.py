@@ -1,5 +1,5 @@
 #
-# parakeet.analyse.reconstruct.py
+# parakeet.analyse.correct.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -16,21 +16,30 @@ import parakeet.sample
 from functools import singledispatch
 from parakeet.config import Device
 
+
+__all__ = ["correct"]
+
+
 # Set the random seed
 random.seed(0)
 
 
 @singledispatch
-def reconstruct(
-    config_file, image_file: str, rec_file: str, device: Device = Device.gpu
+def correct(
+    config_file,
+    image_file: str,
+    corrected_file: str,
+    num_defocus: int = 1,
+    device: Device = Device.gpu,
 ):
     """
-    Reconstruct the volume
+    Correct the images using 3D CTF correction
 
     Args:
         config_file: The input config filename
         image_file: The input image filename
-        rec_file: The output CTF corrected reconstruction filename
+        corrected_file: The output CTF corrected filename
+        num_defocus: The number of defoci
         device: The device to use (CPU or GPU)
 
     """
@@ -46,43 +55,45 @@ def reconstruct(
     parakeet.config.show(config)
 
     # Do the reconstruction
-    _reconstruct_Config(
+    _correct_Config(
         config,
         image_file,
-        rec_file,
+        corrected_file,
+        num_defocus=num_defocus,
     )
 
 
-@reconstruct.register
-def _reconstruct_Config(
-    config: parakeet.config.Config, image_filename: str, rec_filename: str
+@correct.register
+def _correct_Config(
+    config: parakeet.config.Config,
+    image_filename: str,
+    corrected_filename: str,
+    num_defocus: int = None,
 ):
     """
-    Reconstruct the volume and use 3D CTF correction beforehand if the input image is uncorrected
+    Correct the images using 3D CTF correction
 
     """
-
-    # Ensure mrc file
-    assert os.path.splitext(image_filename)[1] == ".mrc"
 
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
-    # Get the simulation parameters
-    simulation = config.simulation.dict()
+    # Set the simulation params
+    simulation = config.simulation
 
-    # Set the corrected filename
-    corrected_filename = os.path.join(os.path.dirname(rec_filename), "CORRECTED.dat")
+    # Ensure mrc file
+    assert os.path.splitext(image_filename)[1] == ".mrc"
 
     # Get the parameters for the CTF correction
     nx = microscope.detector.nx
     pixel_size = microscope.detector.pixel_size
     energy = microscope.beam.energy
     defocus = -microscope.lens.c_10
-    num_defocus = int((nx * pixel_size) / 100)
+    if num_defocus is None:
+        num_defocus = int((nx * pixel_size) / 100)
 
     # Set the spherical aberration
-    if simulation["inelastic_model"] == "cc_corrected":
+    if simulation.inelastic_model == "cc_corrected":
         print("Setting spherical aberration to zero")
         spherical_aberration = 0.0
     else:
@@ -93,10 +104,9 @@ def _reconstruct_Config(
     phase_shift = 0
 
     # Do the reconstruction
-    guanaco.reconstruct_file(
+    guanaco.correct_file(
         input_filename=image_filename,
-        output_filename=rec_filename,
-        corrected_filename=corrected_filename,
+        output_filename=corrected_filename,
         centre=None,
         energy=energy,
         defocus=defocus,
@@ -105,6 +115,5 @@ def _reconstruct_Config(
         astigmatism=astigmatism,
         astigmatism_angle=astigmatism_angle,
         phase_shift=phase_shift,
-        angular_weights=True,
         device=config.device,
     )

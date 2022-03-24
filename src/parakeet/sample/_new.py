@@ -25,6 +25,9 @@ from parakeet.sample import random_uniform_rotation
 from parakeet.sample import recentre
 
 
+__all__ = ["new"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

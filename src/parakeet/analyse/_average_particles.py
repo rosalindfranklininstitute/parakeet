@@ -18,6 +18,10 @@ import parakeet.sample
 from functools import singledispatch
 from math import sqrt, ceil
 
+
+__all__ = ["average_particles", "average_all_particles"]
+
+
 # Set the random seed
 random.seed(0)
 
