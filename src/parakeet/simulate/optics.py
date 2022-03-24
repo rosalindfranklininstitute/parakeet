@@ -28,6 +28,10 @@ from parakeet.simulate.simulation import Simulation
 from parakeet.config import Device
 from parakeet.config import ClusterMethod
 
+
+__all__ = ["optics"]
+
+
 # Try to input MULTEM
 try:
     import multem

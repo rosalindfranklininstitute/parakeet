@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.analyse
@@ -17,19 +16,33 @@ import parakeet.command_line
 import parakeet.config
 import parakeet.microscope
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["refine"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Refine map and model"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parakeet.analyse.refine parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Refine map and model")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -60,7 +73,7 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def refine(args=None):
+def refine_impl(args):
     """
     Refine against the model
 
@@ -68,12 +81,6 @@ def refine(args=None):
 
     # Get the start time
     start_time = time.time()
-
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -89,3 +96,11 @@ def refine(args=None):
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def refine(args: list[str] = None):
+    """
+    Refine against the model
+
+    """
+    refine_impl(get_parser().parse_args(args=args))

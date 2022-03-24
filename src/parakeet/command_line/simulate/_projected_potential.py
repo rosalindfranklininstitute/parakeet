@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
@@ -18,21 +17,33 @@ import parakeet.microscope
 import parakeet.sample
 import parakeet.scan
 import parakeet.simulate
+from argparse import ArgumentParser
+
+
+__all__ = ["projected_potential"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Simulate the projected potential from the sample"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parser for parakeet.simulate.projected_potential
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(
-        description="Simulate the projected potential from the sample"
-    )
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -78,7 +89,7 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def projected_potential(args=None):
+def projected_potential_impl(args):
     """
     Simulate the projected potential from the sample
 
@@ -86,12 +97,6 @@ def projected_potential(args=None):
 
     # Get the start time
     start_time = time.time()
-
-    # Get parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -107,3 +112,11 @@ def projected_potential(args=None):
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def projected_potential(args: list[str] = None):
+    """
+    Simulate the projected potential from the sample
+
+    """
+    projected_potential_impl(get_parser().parse_args(args=args))

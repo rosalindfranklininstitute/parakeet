@@ -8,26 +8,39 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
 import parakeet.command_line
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["mill"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Mill the sample"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the mill parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Mill the sample")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -50,18 +63,14 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def mill(args=None):
+def mill_impl(args):
     """
     Mill to the shape of the sample
 
     """
-    st = time.time()
 
-    # Get the mill parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
+    # Get the start time
+    start_time = time.time()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -70,4 +79,12 @@ def mill(args=None):
     parakeet.sample.mill(args.config, args.sample)
 
     # Print output
-    logger.info("Time taken: %.1f seconds" % (time.time() - st))
+    logger.info("Time taken: %.1f seconds" % (time.time() - start_time))
+
+
+def mill(args: list[str] = None):
+    """
+    Mill to the shape of the sample
+
+    """
+    mill_impl(get_parser().parse_args(args=args))

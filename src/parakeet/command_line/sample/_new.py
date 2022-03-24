@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.sample.sputter.py
+# parakeet.command_line.sample.new.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,25 +8,39 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
 import parakeet.command_line
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["new"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the sputter parser
+    Get the program description
 
     """
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Sputter the sample")
+    return "Create a new sample model"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the parakeet.sample.new parser
+
+    """
+
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -49,24 +63,28 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def sputter(args=None):
+def new_impl(args):
     """
-    Sputter the sample
+    Create an ice sample and save it
 
     """
-    st = time.time()
 
-    # Get the sputter parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
+    # Get the start time
+    start_time = time.time()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.sample.sputter(args.config, args.sample)
+    parakeet.sample.new(args.config, args.sample)
 
     # Print output
-    logger.info("Time taken: %.1f seconds" % (time.time() - st))
+    logger.info("Time taken: %.1f seconds" % (time.time() - start_time))
+
+
+def new(args: list[str] = None):
+    """
+    Create an ice sample and save it
+
+    """
+    new_impl(get_parser().parse_args(args=args))

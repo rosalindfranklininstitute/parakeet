@@ -8,24 +8,36 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import yaml
 import parakeet.config
 import parakeet.command_line
+from argparse import ArgumentParser
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+__all__ = ["edit"]
+
+
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Edit the configuration"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parser for the parakeet.config.edit command
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Edit the configuration")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -53,17 +65,11 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def edit():
+def edit_impl(args):
     """
     Edit the configuration
 
     """
-
-    # Get the edit parser
-    parser = get_parser()
-
-    # Parse the command line
-    args = parser.parse_args()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -84,3 +90,11 @@ def edit():
 
     # Save the config
     parakeet.config.save(config, args.output, exclude_unset=True)
+
+
+def edit(args: list[str] = None):
+    """
+    Edit the configuration
+
+    """
+    edit_impl(get_parser().parse_args(args=args))

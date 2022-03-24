@@ -24,6 +24,10 @@ from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 from parakeet.config import Device
 
+
+__all__ = ["simple"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

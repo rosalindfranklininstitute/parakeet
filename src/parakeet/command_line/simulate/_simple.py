@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.simulate.image.py
+# parakeet.command_line.simulate.simple.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
@@ -18,19 +17,33 @@ import parakeet.microscope
 import parakeet.sample
 import parakeet.scan
 import parakeet.simulate
+from argparse import ArgumentParser
+
+
+__all__ = ["simple"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the parakeet.simulate.image parser
+    Get the program description
+
+    """
+    return "Simulate the whole process"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the parakeet.simulate.simple parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Simulate the noisy detector image")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -43,44 +56,50 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-o",
-        "--optics",
+        "--output",
         type=str,
-        default="optics.h5",
-        dest="optics",
-        help="The filename for the optics",
+        default="output.h5",
+        dest="output",
+        help="The filename for the output",
     )
     parser.add_argument(
-        "-i",
-        "--image",
+        "atoms",
         type=str,
-        default="image.h5",
-        dest="image",
-        help="The filename for the image",
+        default=None,
+        nargs="?",
+        help="The filename for the input atoms",
     )
 
     return parser
 
 
-def image(args=None):
+def simple_impl(args):
     """
-    Simulate the image with noise
+    Simulate the image
 
     """
 
     # Get the start time
     start_time = time.time()
 
-    # Get parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.simulate.image(args.config, args.optics, args.image)
+    parakeet.simulate.simple(args.config, args.atoms, args.output)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def simple():
+    """
+    Simulate the image
+
+    """
+
+    # Get parser
+    parser = get_parser()
+
+    # Parse the arguments
+    simple_impl(parser.parse_args())

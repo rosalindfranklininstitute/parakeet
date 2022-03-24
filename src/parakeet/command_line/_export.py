@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import logging.config
 import numpy as np
@@ -16,6 +15,11 @@ import random
 import parakeet.io
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["export"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -80,14 +84,23 @@ def filter_image(data, pixel_size, resolution, shape):
     return d.real
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Export images to a different format"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parser for parakeet.export
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Export images to a different format")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add an argument for the filename
     parser.add_argument("filename", type=str, default=None, help="The input filename")
@@ -212,17 +225,11 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def export(argv=None):
+def export_impl(args):
     """
     Convert the input file type to a different file type
 
     """
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(argv)
-
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
@@ -392,3 +399,11 @@ def export(argv=None):
 
     # Update the writer
     writer.update()
+
+
+def export(args: list[str] = None):
+    """
+    Convert the input file type to a different file type
+
+    """
+    export_impl(get_parser().parse_args(args=args))

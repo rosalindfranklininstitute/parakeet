@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.simulate.optics.py
+# parakeet.command_line.simulate.exit_wave.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
@@ -18,21 +17,33 @@ import parakeet.microscope
 import parakeet.sample
 import parakeet.scan
 import parakeet.simulate
+from argparse import ArgumentParser
+
+
+__all__ = ["exit_wave"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the parakeet.simulate.optics parser
+    Get the program description
+
+    """
+    return "Simulate the exit wave from the sample"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the parakeet.simulate.exit_wave parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(
-        description="Simulate the optics and infinite dose image"
-    )
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -67,6 +78,14 @@ def get_parser() -> argparse.ArgumentParser:
         help="The cluster method to use",
     )
     parser.add_argument(
+        "-s",
+        "--sample",
+        type=str,
+        default="sample.h5",
+        dest="sample",
+        help="The filename for the sample",
+    )
+    parser.add_argument(
         "-e",
         "--exit_wave",
         type=str,
@@ -74,41 +93,27 @@ def get_parser() -> argparse.ArgumentParser:
         dest="exit_wave",
         help="The filename for the exit wave",
     )
-    parser.add_argument(
-        "-o",
-        "--optics",
-        type=str,
-        default="optics.h5",
-        dest="optics",
-        help="The filename for the optics",
-    )
 
     return parser
 
 
-def optics(args=None):
+def exit_wave_impl(args):
     """
-    Simulate the optics
+    Simulate the exit wave from the sample
 
     """
 
     # Get the start time
     start_time = time.time()
 
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.simulate.optics(
+    parakeet.simulate.exit_wave(
         args.config,
+        args.sample,
         args.exit_wave,
-        args.optics,
         device=args.device,
         cluster_method=args.cluster_method,
         cluster_max_workers=args.cluster_max_workers,
@@ -116,3 +121,11 @@ def optics(args=None):
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def exit_wave(args: list[str] = None):
+    """
+    Simulate the exit wave from the sample
+
+    """
+    exit_wave_impl(get_parser().parse_args(args=args))

@@ -8,23 +8,35 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import parakeet.config
 import parakeet.command_line
+from argparse import ArgumentParser
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+__all__ = ["new"]
+
+
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Generate a new config file"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parser for the parakeet.config.new command
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Generate a new comfig file")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -48,20 +60,22 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def new():
+def new_impl(args):
     """
-    Show the full configuration
+    Create a new configuration
 
     """
-
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Parse the arguments
     parakeet.config.new(filename=args.config, full=args.full)
+
+
+def new(args: list[str] = None):
+    """
+    Create a new configuration
+
+    """
+    new_impl(get_parser().parse_args(args=args))

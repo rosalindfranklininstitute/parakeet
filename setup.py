@@ -81,6 +81,7 @@ def main():
         cmdclass={"build_ext": CMakeBuild},
         entry_points={
             "console_scripts": [
+                "parakeet=parakeet.command_line:main",
                 "parakeet.read_pdb=parakeet.command_line:read_pdb",
                 "parakeet.export=parakeet.command_line:export",
                 "parakeet.config.show=parakeet.command_line.config:show",

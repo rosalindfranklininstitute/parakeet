@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
@@ -18,19 +17,33 @@ import parakeet.microscope
 import parakeet.sample
 import parakeet.scan
 import parakeet.simulate
+from argparse import ArgumentParser
+
+
+__all__ = ["ctf"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Simulate the ctf"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parakeet.simulate.ctf parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Simulate the ctf")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -52,7 +65,7 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def ctf(args=None):
+def ctf_impl(args):
     """
     Simulate the ctf
 
@@ -60,12 +73,6 @@ def ctf(args=None):
 
     # Get the start time
     start_time = time.time()
-
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -75,3 +82,11 @@ def ctf(args=None):
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def ctf(args: list[str] = None):
+    """
+    Simulate the ctf
+
+    """
+    ctf_impl(get_parser().parse_args(args=args))

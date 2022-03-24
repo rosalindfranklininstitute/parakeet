@@ -25,6 +25,10 @@ from parakeet.simulate.simulation import Simulation
 # Get the logger
 logger = logging.getLogger(__name__)
 
+
+__all__ = ["ctf"]
+
+
 # Try to input MULTEM
 try:
     import multem

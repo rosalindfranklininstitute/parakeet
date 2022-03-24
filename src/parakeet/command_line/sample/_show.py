@@ -8,24 +8,38 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import parakeet.io
 import parakeet.command_line
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["show"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Print details about the sample model"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parakeet.sample.show parser
 
     """
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Print details about the sample model")
+
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -40,16 +54,11 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def show():
+def show_impl(args):
     """
     Show the sample information
 
     """
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -57,3 +66,11 @@ def show():
     # Create the sample
     sample = parakeet.sample.load(args.sample)
     logger.info(sample.info())
+
+
+def show():
+    """
+    Show the sample information
+
+    """
+    show_impl(get_parser().parse_args())

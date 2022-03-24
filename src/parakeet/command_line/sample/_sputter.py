@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.sample.new.py
+# parakeet.command_line.sample.sputter.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,26 +8,39 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
 import parakeet.command_line
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["sputter"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the parakeet.sample.new parser
+    Get the program description
+
+    """
+    return "Sputter the sample"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the sputter parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Create a new sample model")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -50,24 +63,28 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def new(args=None):
+def sputter_impl(args):
     """
-    Create an ice sample and save it
+    Sputter the sample
 
     """
-    st = time.time()
 
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
+    # Get the start time
+    start_time = time.time()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.sample.new(args.config, args.sample)
+    parakeet.sample.sputter(args.config, args.sample)
 
     # Print output
-    logger.info("Time taken: %.1f seconds" % (time.time() - st))
+    logger.info("Time taken: %.1f seconds" % (time.time() - start_time))
+
+
+def sputter(args: list[str] = None):
+    """
+    Sputter the sample
+
+    """
+    sputter_impl(get_parser().parse_args(args=args))

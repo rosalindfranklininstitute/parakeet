@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.analyse.correct.py
+# parakeet.command_line.analyse.reconstruct.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.analyse
@@ -17,19 +16,33 @@ import parakeet.command_line
 import parakeet.config
 import parakeet.microscope
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["reconstruct"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the parakeet.analyse.correct parser
+    Get the program description
+
+    """
+    return "Reconstruct the volume"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the parakeet.analyse.reconstruct parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="3D CTF correction of the images")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -57,47 +70,39 @@ def get_parser() -> argparse.ArgumentParser:
         help="The filename for the image",
     )
     parser.add_argument(
-        "-cr",
-        "--corrected",
+        "-r",
+        "--rec",
         type=str,
-        default="corrected_image.mrc",
-        dest="corrected",
-        help="The filename for the corrected image",
-    )
-    parser.add_argument(
-        "-ndf",
-        "--num-defocus",
-        type=int,
-        default=None,
-        dest="num_defocus",
-        help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
+        default="rec.mrc",
+        dest="rec",
+        help="The filename for the reconstruction",
     )
 
     return parser
 
 
-def correct(args=None):
+def reconstruct_impl(args):
     """
-    Correct the images using 3D CTF correction
+    Reconstruct the volume
 
     """
 
     # Get the start time
     start_time = time.time()
 
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Do the work
-    parakeet.analyse.correct(
-        args.config, args.image, args.corrected, args.num_defocus, args.device
-    )
+    # Do the reconstruction
+    parakeet.analyse.reconstruct(args.config, args.image, args.rec, args.device)
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def reconstruct(args: list[str] = None):
+    """
+    Reconstruct the volume
+
+    """
+    reconstruct_impl(get_parser().parse_args(args=args))

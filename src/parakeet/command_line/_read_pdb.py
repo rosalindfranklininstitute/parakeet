@@ -8,26 +8,39 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import gemmi
 import logging
 import logging.config
 import parakeet.io
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["read_pdb"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Read a PDB file"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the parser for parakeet.read_pdb
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Read a PDB file")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add an argument for the filename
     parser.add_argument(
@@ -42,22 +55,15 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def read_pdb():
+def read_pdb_impl(args):
     """
     Read the given PDB file and show the atom positions
 
     """
 
-    # Get the parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args()
-
     # Check a filename has been given
     if args.filename is None:
-        parser.print_help()
-        exit(0)
+        raise RuntimeError("filename is not set")
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -88,3 +94,11 @@ def read_pdb():
                             parakeet.sample.get_atom_sigma(atom),
                         )
                     )
+
+
+def read_pdb(args: list[str] = None):
+    """
+    Read the given PDB file and show the atom positions
+
+    """
+    return read_pdb_impl(get_parser().parse_args(args=args))

@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.analyse.average_all_particles.py
+# parakeet.command_line.analyse.extract.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.analyse
@@ -17,19 +16,33 @@ import parakeet.command_line
 import parakeet.config
 import parakeet.microscope
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["extract"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
     """
-    Get the parakeet.analyse.average_all_particles parser
+    Get the program description
+
+    """
+    return "Perform sub tomogram extraction"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
+    """
+    Get the parakeet.analyse.extract parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Perform sub tomogram averaging")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -57,11 +70,11 @@ def get_parser() -> argparse.ArgumentParser:
         help="The filename for the reconstruction",
     )
     parser.add_argument(
-        "-avm",
-        "--average_map",
+        "-pm",
+        "--particle_map",
         type=str,
-        default="average_map.mrc",
-        dest="average",
+        default="particle_map.h5",
+        dest="particles",
         help="The filename for the particle average",
     )
     parser.add_argument(
@@ -76,28 +89,30 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def average_all_particles(args=None):
+def extract_impl(args):
     """
-    Perform sub tomogram averaging
+    Perform sub tomogram extraction
 
     """
 
     # Get the start time
     start_time = time.time()
 
-    # Get parse
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
-
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.analyse.average_all_particles(
-        args.config, args.sample, args.rec, args.average, args.particle_size
+    parakeet.analyse.extract(
+        args.config, args.sample, args.rec, args.particles, args.particle_size
     )
 
     # Write some timing stats
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
+
+
+def extract(args: list[str] = None):
+    """
+    Perform sub tomogram extraction
+
+    """
+    extract_impl(get_parser().parse_args(args=args))

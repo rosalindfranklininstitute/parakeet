@@ -28,6 +28,10 @@ from math import pi, floor
 from parakeet.config import Device
 from parakeet.config import ClusterMethod
 
+
+__all__ = ["projected_potential"]
+
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

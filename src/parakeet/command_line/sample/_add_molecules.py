@@ -8,26 +8,39 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import argparse
 import logging
 import time
 import parakeet.io
 import parakeet.command_line
 import parakeet.config
 import parakeet.sample
+from argparse import ArgumentParser
+
+
+__all__ = ["add_molecules"]
+
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-def get_parser() -> argparse.ArgumentParser:
+def get_description():
+    """
+    Get the program description
+
+    """
+    return "Add molecules to the sample model"
+
+
+def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
     Get the add molecules parser
 
     """
 
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="Add molecules to the sample model")
+    # Initialise the parser
+    if parser is None:
+        parser = ArgumentParser(description=get_description())
 
     # Add some command line arguments
     parser.add_argument(
@@ -50,18 +63,14 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def add_molecules(args=None):
+def add_molecules_impl(args):
     """
     Add molecules to the sample
 
     """
-    st = time.time()
 
-    # Get the add_molecules parser
-    parser = get_parser()
-
-    # Parse the arguments
-    args = parser.parse_args(args=args)
+    # Get the start time
+    start_time = time.time()
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
@@ -70,4 +79,12 @@ def add_molecules(args=None):
     parakeet.sample.add_molecules(args.config, args.sample)
 
     # Print output
-    logger.info("Time taken: %.1f seconds" % (time.time() - st))
+    logger.info("Time taken: %.1f seconds" % (time.time() - start_time))
+
+
+def add_molecules(args: list[str] = None):
+    """
+    Add molecules to the sample
+
+    """
+    add_molecules_impl(get_parser().parse_args(args=args))
