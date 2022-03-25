@@ -17,7 +17,7 @@ from parakeet.config import Device
 from parakeet.config import ClusterMethod
 
 
-__all__ = ["exit_wave"]
+__all__ = ["run"]
 
 
 # Get the logger
