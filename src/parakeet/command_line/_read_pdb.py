@@ -44,12 +44,9 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
 
     # Add an argument for the filename
     parser.add_argument(
-        "-f",
-        "--filename",
         type=str,
         default=None,
         dest="filename",
-        required=True,
         help="The path to the PDB file",
     )
 

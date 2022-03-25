@@ -288,7 +288,10 @@ def test_export(config_path):
 
 
 def test_read_pdb(config_path):
-    pass
+
+    pdb = parakeet.data.get_pdb("4v1w")
+    assert os.path.exists(pdb)
+    parakeet.command_line.read_pdb([pdb])
 
 
 def test_run(config_path):

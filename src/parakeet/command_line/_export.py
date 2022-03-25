@@ -103,9 +103,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         parser = ArgumentParser(description=get_description())
 
     # Add an argument for the filename
-    parser.add_argument(
-        "filename", type=str, default=None, nargs=1, help="The input filename"
-    )
+    parser.add_argument("filename", type=str, default=None, help="The input filename")
 
     # Add an argument for the filename
     parser.add_argument(
@@ -236,8 +234,6 @@ def export_impl(args):
     parakeet.command_line.configure_logging()
 
     # Read the input
-    assert len(args.filename) == 1
-    args.filename = args.filename[0]
     logger.info(f"Reading data from {args.filename}")
     reader = parakeet.io.open(args.filename)
 

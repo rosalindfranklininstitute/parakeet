@@ -151,7 +151,7 @@ class ProjectedPotentialSimulator(object):
         volume_z0 = self.sample.shape_box[0][2]
         volume_z1 = self.sample.shape_box[1][2]
         slice_thickness = self.simulation["slice_thickness"]
-        zsize = int(floor((volume_z1 - volume_z0) / slice_thickness))
+        zsize = int(floor((volume_z1 - volume_z0) / slice_thickness) + 1)
         potential = mrcfile.new_mmap(
             "%s_%d.mrc" % (self.potential_prefix, index),
             shape=(zsize, ny, nx),
