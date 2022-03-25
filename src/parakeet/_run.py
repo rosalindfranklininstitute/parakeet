@@ -13,6 +13,7 @@ import logging
 import parakeet.config
 import parakeet.sample
 import parakeet.simulate
+from functools import singledispatch
 from parakeet.config import Device
 from parakeet.config import ClusterMethod
 
@@ -24,6 +25,7 @@ __all__ = ["run"]
 logger = logging.getLogger(__name__)
 
 
+@singledispatch
 def run(
     config_file,
     sample_file: str,
@@ -49,31 +51,58 @@ def run(
 
     """
 
+    # Load the configuration
+    config = parakeet.config.load(config_file)
+
+    # Set the command line args in a dict
+    if device is not None:
+        config.device = device
+    if cluster_max_workers is not None:
+        config.cluster.max_workers = cluster_max_workers
+    if cluster_method is not None:
+        config.cluster.method = cluster_method
+
+    # Print some options
+    parakeet.config.show(config)
+
+    # Create the sample
+    return _run_Config(config, sample_file, exit_wave_file, optics_file, image_file)
+
+
+@run.register
+def _run_Config(
+    config: parakeet.config.Config,
+    sample_file: str,
+    exit_wave_file: str,
+    optics_file: str,
+    image_file: str,
+):
+    """
+    Simulate the TEM image from the sample
+
+    Args:
+        config: The config object filename
+        sample_file: The sample filename
+        exit_wave_file: The exit wave filename
+        optics_file: The optics filename
+        image_file: The image filename
+
+    """
     # Create the sample model
-    parakeet.sample.new(config_file, sample_file)
+    sample = parakeet.sample.new(config, sample_file)
 
     # Add the molecules
-    parakeet.sample.add_molecules(config_file, sample_file)
+    sample = parakeet.sample.add_molecules(config.sample, sample)  # type: ignore
 
     # Simulate the exit wave
-    parakeet.simulate.exit_wave(
-        config_file,
-        sample_file,
-        exit_wave_file,
-        device=device,
-        cluster_method=cluster_method,
-        cluster_max_workers=cluster_max_workers,
-    )
+    parakeet.simulate.exit_wave(config, sample, exit_wave_file)  # type: ignore
 
     # Simulate the optics
     parakeet.simulate.optics(
-        config_file,
+        config,
         exit_wave_file,
         optics_file,
-        device=device,
-        cluster_method=cluster_method,
-        cluster_max_workers=cluster_max_workers,
     )
 
     # Simulate the image
-    parakeet.simulate.image(config_file, optics_file, image_file)
+    parakeet.simulate.image(config, optics_file, image_file)
