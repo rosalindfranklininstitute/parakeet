@@ -52,7 +52,16 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
+        required=True,
         help="The yaml file to configure the simulation",
+    )
+    parser.add_argument(
+        "-s",
+        "--sample",
+        type=str,
+        default="sample.h5",
+        dest="sample",
+        help="The filename for the sample",
     )
     parser.add_argument(
         "-d",
@@ -76,14 +85,6 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         default=None,
         dest="cluster_method",
         help="The cluster method to use",
-    )
-    parser.add_argument(
-        "-s",
-        "--sample",
-        type=str,
-        default="sample.h5",
-        dest="sample",
-        help="The filename for the sample",
     )
 
     return parser

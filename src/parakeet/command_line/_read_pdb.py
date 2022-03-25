@@ -49,6 +49,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="filename",
+        required=True,
         help="The path to the PDB file",
     )
 

@@ -51,15 +51,8 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
+        required=True,
         help="The yaml file to configure the simulation",
-    )
-    parser.add_argument(
-        "-d",
-        "--device",
-        choices=["cpu", "gpu"],
-        default=None,
-        dest="device",
-        help="Choose the device to use",
     )
     parser.add_argument(
         "-i",
@@ -84,6 +77,14 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         default=None,
         dest="num_defocus",
         help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
+    )
+    parser.add_argument(
+        "-d",
+        "--device",
+        choices=["cpu", "gpu"],
+        default=None,
+        dest="device",
+        help="Choose the device to use",
     )
 
     return parser

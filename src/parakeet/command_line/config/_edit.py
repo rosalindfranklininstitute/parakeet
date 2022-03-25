@@ -44,8 +44,9 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         "-i",
         "--input",
         type=str,
-        default="config.yaml",
+        default=None,
         dest="input",
+        required=True,
         help="The input yaml file to configure the simulation",
     )
 
@@ -53,13 +54,19 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         "-o",
         "--output",
         type=str,
-        default="config_new.yaml",
+        default=None,
         dest="output",
+        required=True,
         help="The output yaml file to configure the simulation",
     )
 
     parser.add_argument(
-        "-s", type=str, default="", dest="config", help="The configuration string"
+        "-s",
+        type=str,
+        default="",
+        dest="config",
+        required=True,
+        help="The configuration string",
     )
 
     return parser

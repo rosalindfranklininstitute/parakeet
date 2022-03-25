@@ -52,6 +52,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
+        required=True,
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
@@ -63,10 +64,11 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         help="The filename for the output",
     )
     parser.add_argument(
-        "atoms",
+        dest="atoms",
         type=str,
         default=None,
         nargs="?",
+        required=True,
         help="The filename for the input atoms",
     )
 

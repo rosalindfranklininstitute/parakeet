@@ -49,30 +49,8 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
+        required=True,
         help="The yaml file to configure the simulation",
-    )
-    parser.add_argument(
-        "-d",
-        "--device",
-        choices=["cpu", "gpu"],
-        default=None,
-        dest="device",
-        help="Choose the device to use",
-    )
-    parser.add_argument(
-        "--cluster.max_workers",
-        type=int,
-        default=None,
-        dest="cluster_max_workers",
-        help="The maximum number of worker processes",
-    )
-    parser.add_argument(
-        "--cluster.method",
-        type=str,
-        choices=["sge"],
-        default=None,
-        dest="cluster_method",
-        help="The cluster method to use",
     )
     parser.add_argument(
         "-s",
@@ -105,6 +83,29 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         default="image.h5",
         dest="image",
         help="The filename for the image",
+    )
+    parser.add_argument(
+        "-d",
+        "--device",
+        choices=["cpu", "gpu"],
+        default=None,
+        dest="device",
+        help="Choose the device to use",
+    )
+    parser.add_argument(
+        "--cluster.max_workers",
+        type=int,
+        default=None,
+        dest="cluster_max_workers",
+        help="The maximum number of worker processes",
+    )
+    parser.add_argument(
+        "--cluster.method",
+        type=str,
+        choices=["sge"],
+        default=None,
+        dest="cluster_method",
+        help="The cluster method to use",
     )
 
     return parser

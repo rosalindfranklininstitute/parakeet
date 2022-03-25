@@ -51,6 +51,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
+        required=True,
         help="The yaml file to configure the simulation",
     )
     parser.add_argument(
