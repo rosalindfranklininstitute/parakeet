@@ -236,6 +236,8 @@ def export_impl(args):
     parakeet.command_line.configure_logging()
 
     # Read the input
+    assert len(args.filename) == 1
+    args.filename = args.filename[0]
     logger.info(f"Reading data from {args.filename}")
     reader = parakeet.io.open(args.filename)
 
