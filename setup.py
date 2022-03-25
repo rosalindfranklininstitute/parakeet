@@ -8,7 +8,6 @@ import subprocess
 import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
-from parakeet import __version__ as version
 
 
 class CMakeBuild(build_ext):
@@ -56,10 +55,9 @@ def main():
     tests_require = ["pytest", "pytest-cov", "mock"]
 
     setup(
-        version=version,
         package_dir={"": "src"},
         packages=find_packages(where="src"),
-        setup_requires=["dask", "pytest-runner"],
+        setup_requires=["setuptools_scm", "dask", "pytest-runner"],
         install_requires=[
             "distributed",
             "dask_jobqueue",
@@ -81,6 +79,7 @@ def main():
         test_suite="tests",
         ext_modules=[Extension("parakeet_ext", [])],
         cmdclass={"build_ext": CMakeBuild},
+        use_scm_version={"write_to": "src/parakeet/_version.py"},
         entry_points={
             "console_scripts": [
                 "parakeet=parakeet.command_line:main",

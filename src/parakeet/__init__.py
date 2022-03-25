@@ -10,7 +10,10 @@
 #
 
 
-__version__ = "0.3.2"
+try:
+    from parakeet._version import version as __version__
+except ImportError:
+    __version__ = "unknown"
 
 
 from parakeet._run import run  # noqa

@@ -12,7 +12,8 @@
 #
 import os
 import sys
-from parakeet import __version__ as version
+import parakeet
+
 
 sys.path.insert(0, os.path.abspath("../../src"))
 sys.path.insert(0, os.path.abspath("./ext"))
@@ -25,7 +26,7 @@ copyright = "2022, James Parkhurst"
 author = "James Parkhurst"
 
 # The full version, including alpha/beta/rc tags
-release = version
+release = parakeet.__version__
 
 
 # -- General configuration ---------------------------------------------------
