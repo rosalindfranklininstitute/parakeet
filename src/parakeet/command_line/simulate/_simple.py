@@ -70,7 +70,6 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         nargs="?",
-        required=True,
         help="The filename for the input atoms",
     )
 
