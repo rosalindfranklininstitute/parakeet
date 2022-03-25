@@ -104,7 +104,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
 
     # Add an argument for the filename
     parser.add_argument(
-        "filename", type=str, default=None, required=True, help="The input filename"
+        "filename", type=str, default=None, nargs=1, help="The input filename"
     )
 
     # Add an argument for the filename
