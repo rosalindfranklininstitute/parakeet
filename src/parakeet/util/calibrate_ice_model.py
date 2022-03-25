@@ -112,7 +112,7 @@ def create_input_multislice():
     return input_multislice
 
 
-def compute_projected_potential():
+def compute_potential():
     """
     Compute the projected potential in slices
 
@@ -185,7 +185,7 @@ def compute_projected_potential():
 
         # Save the potential
         potential = np.sum(potential, axis=0)
-        filename = "projected_potential_%.1f_%d.npz" % (pixel_size, thickness)
+        filename = "potential_%.1f_%d.npz" % (pixel_size, thickness)
         np.savez(filename, potential=potential, num_atoms=num_atoms)
 
     # Read the atom data
@@ -194,13 +194,8 @@ def compute_projected_potential():
     # Simulate the projected potential
     for pixel_size in np.arange(0.1, 2.1, 0.1):
         for thickness in np.arange(5, 25, 5):
-            print(
-                "Compute projected potential for px = %f, dz = %f"
-                % (pixel_size, thickness)
-            )
-            if not os.path.exists(
-                "projected_potential_%.1f_%d.npz" % (pixel_size, thickness)
-            ):
+            print("Compute potential for px = %f, dz = %f" % (pixel_size, thickness))
+            if not os.path.exists("potential_%.1f_%d.npz" % (pixel_size, thickness)):
                 compute(atom_data, pixel_size, thickness)
 
 
@@ -346,7 +341,7 @@ def compute_variance_correction(ax=None):
     for pixel_size in np.arange(0.1, 2.1, 0.1):
 
         # Read the projected potential
-        handle = np.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
+        handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
         num_atoms = handle["num_atoms"]
 
@@ -402,7 +397,7 @@ def compute_power(ax=None):
     for thickness in [20]:  # , 19, 18, 15, 10, 5]:
 
         # Read the projected potential
-        handle = np.load("projected_potential_%.1f_%d.npz" % (pixel_size, thickness))
+        handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
         num_atoms = handle["num_atoms"]
 
@@ -517,7 +512,7 @@ def calibrate():
     get_water_atomic_model()
 
     # Compute the projected potential
-    compute_projected_potential()
+    compute_potential()
 
     # Setup the figure
     width = 0.0393701 * 190

@@ -98,10 +98,10 @@ def add_simulate_command(parser: ArgumentParser):
     )
 
     # Add simulate commands
-    simulate._projected_potential.get_parser(
+    simulate._potential.get_parser(
         subparsers.add_parser(
-            "projected_potential",
-            help=simulate._projected_potential.get_description(),
+            "potential",
+            help=simulate._potential.get_description(),
         )
     )
     simulate._exit_wave.get_parser(
@@ -264,7 +264,7 @@ def simulate_main(parser, args):
     """
     {
         None: lambda x: parser.print_help(),
-        "projected_potential": simulate._projected_potential.projected_potential_impl,
+        "potential": simulate._potential.potential_impl,
         "exit_wave": simulate._exit_wave.exit_wave_impl,
         "optics": simulate._optics.optics_impl,
         "image": simulate._image.image_impl,

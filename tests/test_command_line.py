@@ -1,3 +1,4 @@
+import glob
 import pytest
 import os.path
 import yaml
@@ -158,13 +159,18 @@ def test_simulate_ctf(config_path):
     assert os.path.exists(ctf)
 
 
-def test_simulate_projected_potential(config_path):
+def test_simulate_potential(config_path):
 
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
     sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    potential = os.path.abspath(os.path.join(config_path, "potential"))
     assert os.path.exists(config)
     assert os.path.exists(sample)
-    parakeet.command_line.simulate.projected_potential(["-c", config, "-s", sample])
+    parakeet.command_line.simulate.potential(
+        ["-c", config, "-s", sample, "-p", potential]
+    )
+    filenames = glob.glob("%s*.mrc" % potential)
+    assert len(filenames) > 0
 
 
 def test_simulate_simple(config_path):

@@ -1,5 +1,5 @@
 #
-# parakeet.simulate.projected_potential.py
+# parakeet.simulate.potential.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -29,7 +29,7 @@ from parakeet.config import Device
 from parakeet.config import ClusterMethod
 
 
-__all__ = ["projected_potential"]
+__all__ = ["potential"]
 
 
 # Get the logger
@@ -53,8 +53,15 @@ class ProjectedPotentialSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, sample=None, scan=None, simulation=None, device="gpu"
+        self,
+        potential_prefix="potential_",
+        microscope=None,
+        sample=None,
+        scan=None,
+        simulation=None,
+        device="gpu",
     ):
+        self.potential_prefix = potential_prefix
         self.microscope = microscope
         self.sample = sample
         self.scan = scan
@@ -146,7 +153,7 @@ class ProjectedPotentialSimulator(object):
         slice_thickness = self.simulation["slice_thickness"]
         zsize = int(floor((volume_z1 - volume_z0) / slice_thickness))
         potential = mrcfile.new_mmap(
-            "projected_potential_%d.mrc" % index,
+            "%s_%d.mrc" % (self.potential_prefix, index),
             shape=(zsize, ny, nx),
             mrc_mode=mrcfile.utils.mode_from_dtype(np.dtype(np.float32)),
             overwrite=True,
@@ -171,6 +178,7 @@ class ProjectedPotentialSimulator(object):
 
 
 def simulation_factory(
+    potential_prefix: str,
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
@@ -182,12 +190,13 @@ def simulation_factory(
     Create the simulation
 
     Args:
-        microscope (object); The microscope object
-        sample (object): The sample object
-        scan (object): The scan object
-        device (str): The device to use
-        simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
+        potential_prefix: The filename prefix
+        microscope: The microscope object
+        sample: The sample object
+        scan: The scan object
+        device: The device to use
+        simulation: The simulation parameters
+        cluster: The cluster parameters
 
     Returns:
         object: The simulation object
@@ -206,6 +215,7 @@ def simulation_factory(
         scan=scan,
         cluster=cluster,
         simulate_image=ProjectedPotentialSimulator(
+            potential_prefix=potential_prefix,
             microscope=microscope,
             sample=sample,
             scan=scan,
@@ -216,9 +226,10 @@ def simulation_factory(
 
 
 @singledispatch
-def projected_potential(
+def potential(
     config_file,
     sample_file: str,
+    potential_prefix: str,
     device: Device = Device.gpu,
     cluster_method: ClusterMethod = None,
     cluster_max_workers: int = 1,
@@ -229,6 +240,7 @@ def projected_potential(
     Args:
         config_file: The input config filename
         sample_file: The input sample filename
+        potential_prefix: The input potential filename
         device: The device to run on (CPU or GPU)
         cluster_method: The cluster method to use (default None)
         cluster_max_workers: The maximum number of cluster jobs
@@ -250,17 +262,20 @@ def projected_potential(
     parakeet.config.show(config)
 
     # Do the work
-    _projected_potential_Config(config, sample_file)
+    _potential_Config(config, sample_file, potential_prefix)
 
 
-@projected_potential.register
-def _projected_potential_Config(config: parakeet.config.Config, sample_file: str):
+@potential.register
+def _potential_Config(
+    config: parakeet.config.Config, sample_file: str, potential_prefix: str
+):
     """
     Simulate the projected potential from the sample
 
     Args:
         config: The input config
         sample_file: The input sample filename
+        potential_prefix: The input potential filename
 
     """
 
@@ -279,6 +294,7 @@ def _projected_potential_Config(config: parakeet.config.Config, sample_file: str
 
     # Create the simulation
     simulation = simulation_factory(
+        potential_prefix=potential_prefix,
         microscope=microscope,
         sample=sample,
         scan=scan,

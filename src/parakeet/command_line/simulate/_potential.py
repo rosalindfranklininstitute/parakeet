@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.simulate.projected_potential.py
+# parakeet.command_line.simulate.potential.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -20,7 +20,7 @@ import parakeet.simulate
 from argparse import ArgumentParser
 
 
-__all__ = ["projected_potential"]
+__all__ = ["potential"]
 
 
 # Get the logger
@@ -37,7 +37,7 @@ def get_description():
 
 def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
-    Get the parser for parakeet.simulate.projected_potential
+    Get the parser for parakeet.simulate.potential
 
     """
 
@@ -62,6 +62,14 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         default="sample.h5",
         dest="sample",
         help="The filename for the sample",
+    )
+    parser.add_argument(
+        "-p",
+        "--potential",
+        type=str,
+        default="potential",
+        dest="potential",
+        help="The prefix for the filename for the potential",
     )
     parser.add_argument(
         "-d",
@@ -90,7 +98,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     return parser
 
 
-def projected_potential_impl(args):
+def potential_impl(args):
     """
     Simulate the projected potential from the sample
 
@@ -103,9 +111,10 @@ def projected_potential_impl(args):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.simulate.projected_potential(
+    parakeet.simulate.potential(
         args.config,
         args.sample,
+        args.potential,
         args.device,
         args.cluster_method,
         args.cluster_max_workers,
@@ -115,9 +124,9 @@ def projected_potential_impl(args):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def projected_potential(args: list[str] = None):
+def potential(args: list[str] = None):
     """
     Simulate the projected potential from the sample
 
     """
-    projected_potential_impl(get_parser().parse_args(args=args))
+    potential_impl(get_parser().parse_args(args=args))

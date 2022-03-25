@@ -1,5 +1,5 @@
 # fmt: off
-from parakeet.command_line.simulate._projected_potential import * # noqa
+from parakeet.command_line.simulate._potential import * # noqa
 from parakeet.command_line.simulate._exit_wave import *  # noqa
 from parakeet.command_line.simulate._optics import *  # noqa
 from parakeet.command_line.simulate._ctf import *  # noqa
