@@ -125,34 +125,17 @@ def run_impl(args):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Create the sample model
-    parakeet.sample.new(args.config, args.sample)
-
-    # Add the molecules
-    parakeet.sample.add_molecules(args.config, args.sample)
-
-    # Simulate the exit wave
-    parakeet.simulate.exit_wave(
+    # Do the work
+    parakeet.run(
         args.config,
         args.sample,
         args.exit_wave,
-        device=args.device,
-        cluster_method=args.cluster_method,
-        cluster_max_workers=args.cluster_max_workers,
-    )
-
-    # Simulate the optics
-    parakeet.simulate.optics(
-        args.config,
-        args.exit_wave,
         args.optics,
-        device=args.device,
-        cluster_method=args.cluster_method,
-        cluster_max_workers=args.cluster_max_workers,
+        args.image,
+        args.device,
+        args.cluster_method,
+        args.cluster_max_workers,
     )
-
-    # Simulate the image
-    parakeet.simulate.image(args.config, args.optics, args.image)
 
     # Print output
     logger.info("Time taken: %.1f seconds" % (time.time() - start_time))

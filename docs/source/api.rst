@@ -28,6 +28,8 @@ The functionality of the command line programs can be called from python as show
 
 .. autofunction:: parakeet.analyse.extract
 
+.. autofunction:: parakeet.run
+
 
 Data models
 -----------

@@ -176,7 +176,7 @@ def get_parser() -> ArgumentParser:
     """
 
     # Create the argument parser
-    parser = ArgumentParser(description="Generate a new comfig file")
+    parser = ArgumentParser(description="Parakeet: simulate some TEM images!")
 
     # Add some sub commands
     subparsers = parser.add_subparsers(dest="command", help="The parakeet sub commands")

@@ -75,13 +75,13 @@ parakeet.sample.show
 Image Simulation programs
 -------------------------
 
-parakeet.simulate.projected_potential
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+parakeet.simulate.potential
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate._projected_potential
+   :module: parakeet.command_line.simulate._potential
    :func: get_parser
-   :prog: parakeet.simulate.projected_potential
+   :prog: parakeet.simulate.potential
 
 parakeet.simulate.exit_wave
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -188,7 +188,26 @@ parakeet.export
    :func: get_parser
    :prog: parakeet.export
 
+parakeet.read_pdb
+^^^^^^^^^^^^^^^^^
+
 .. argparse::
    :module: parakeet.command_line._read_pdb
    :func: get_parser
    :prog: parakeet.read_pdb
+
+parakeet.run
+^^^^^^^^^^^^
+
+.. argparse::
+   :module: parakeet.command_line._run
+   :func: get_parser
+   :prog: parakeet.run
+
+parakeet
+^^^^^^^^
+
+.. argparse::
+   :module: parakeet.command_line._main
+   :func: get_parser
+   :prog: parakeet

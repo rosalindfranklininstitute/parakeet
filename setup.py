@@ -8,6 +8,7 @@ import subprocess
 import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
+from parakeet import __version__ as version
 
 
 class CMakeBuild(build_ext):
@@ -55,6 +56,7 @@ def main():
     tests_require = ["pytest", "pytest-cov", "mock"]
 
     setup(
+        version=version,
         package_dir={"": "src"},
         packages=find_packages(where="src"),
         setup_requires=["dask", "pytest-runner"],
