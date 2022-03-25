@@ -8,7 +8,7 @@ parakeet.config.new
 ^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.config.new
+   :module: parakeet.command_line.config._new
    :func: get_parser
    :prog: parakeet.config.new
 
@@ -16,7 +16,7 @@ parakeet.config.show
 ^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.config.show
+   :module: parakeet.command_line.config._show
    :func: get_parser
    :prog: parakeet.config.show
 
@@ -24,7 +24,7 @@ parakeet.config.edit
 ^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.config.edit
+   :module: parakeet.command_line.config._edit
    :func: get_parser
    :prog: parakeet.config.edit
 
@@ -35,7 +35,7 @@ parakeet.sample.new
 ^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.sample.new
+   :module: parakeet.command_line.sample._new
    :func: get_parser
    :prog: parakeet.sample.new
 
@@ -43,7 +43,7 @@ parakeet.sample.add_molecules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.sample.add_molecules
+   :module: parakeet.command_line.sample._add_molecules
    :func: get_parser
    :prog: parakeet.sample.add_molecules
 
@@ -51,7 +51,7 @@ parakeet.sample.mill
 ^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.sample.mill
+   :module: parakeet.command_line.sample._mill
    :func: get_parser
    :prog: parakeet.sample.mill
 
@@ -59,7 +59,7 @@ parakeet.sample.sputter
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.sample.sputter
+   :module: parakeet.command_line.sample._sputter
    :func: get_parser
    :prog: parakeet.sample.sputter
 
@@ -67,7 +67,7 @@ parakeet.sample.show
 ^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.sample.show
+   :module: parakeet.command_line.sample._show
    :func: get_parser
    :prog: parakeet.sample.show
 
@@ -79,7 +79,7 @@ parakeet.simulate.projected_potential
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.projected_potential
+   :module: parakeet.command_line.simulate._projected_potential
    :func: get_parser
    :prog: parakeet.simulate.projected_potential
 
@@ -87,7 +87,7 @@ parakeet.simulate.exit_wave
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.exit_wave
+   :module: parakeet.command_line.simulate._exit_wave
    :func: get_parser
    :prog: parakeet.simulate.exit_wave
 
@@ -95,7 +95,7 @@ parakeet.simulate.optics
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.optics
+   :module: parakeet.command_line.simulate._optics
    :func: get_parser
    :prog: parakeet.simulate.optics
 
@@ -103,7 +103,7 @@ parakeet.simulate.ctf
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.ctf
+   :module: parakeet.command_line.simulate._ctf
    :func: get_parser
    :prog: parakeet.simulate.ctf
 
@@ -111,7 +111,7 @@ parakeet.simulate.image
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.image
+   :module: parakeet.command_line.simulate._image
    :func: get_parser
    :prog: parakeet.simulate.image
 
@@ -119,7 +119,7 @@ parakeet.simulate.simple
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.simulate.simple
+   :module: parakeet.command_line.simulate._simple
    :func: get_parser
    :prog: parakeet.simulate.simple
 
@@ -131,7 +131,7 @@ parakeet.analyse.reconstruct
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.reconstruct
+   :module: parakeet.command_line.analyse._reconstruct
    :func: get_parser
    :prog: parakeet.analyse.reconstruct
 
@@ -139,7 +139,7 @@ parakeet.analyse.correct
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.correct
+   :module: parakeet.command_line.analyse._correct
    :func: get_parser
    :prog: parakeet.analyse.correct
 
@@ -147,7 +147,7 @@ parakeet.analyse.average_particles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.average_particles
+   :module: parakeet.command_line.analyse._average_particles
    :func: get_parser
    :prog: parakeet.analyse.average_particles
 
@@ -155,7 +155,7 @@ parakeet.analyse.average_all_particles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.average_all_particles
+   :module: parakeet.command_line.analyse._average_all_particles
    :func: get_parser
    :prog: parakeet.analyse.average_all_particles
 
@@ -163,7 +163,7 @@ parakeet.analyse.extract
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.extract
+   :module: parakeet.command_line.analyse._extract
    :func: get_parser
    :prog: parakeet.analyse.extract
 
@@ -172,7 +172,7 @@ parakeet.analyse.refine
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.analyse.refine
+   :module: parakeet.command_line.analyse._refine
    :func: get_parser
    :prog: parakeet.analyse.refine
 
@@ -184,11 +184,11 @@ parakeet.export
 ^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line.export
+   :module: parakeet.command_line._export
    :func: get_parser
    :prog: parakeet.export
 
 .. argparse::
-   :module: parakeet.command_line.read_pdb
+   :module: parakeet.command_line._read_pdb
    :func: get_parser
    :prog: parakeet.read_pdb

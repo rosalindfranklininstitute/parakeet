@@ -1,3 +1,3 @@
-from parakeet.command_line.config.new import new  # noqa
-from parakeet.command_line.config.edit import edit  # noqa
-from parakeet.command_line.config.show import show  # noqa
+from parakeet.command_line.config._new import *  # noqa
+from parakeet.command_line.config._edit import *  # noqa
+from parakeet.command_line.config._show import *  # noqa

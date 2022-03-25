@@ -4,12 +4,14 @@ import parakeet.beam
 def test_beam():
 
     beam = parakeet.beam.new(
-        energy=300,
-        energy_spread=1,
-        acceleration_voltage_spread=2,
-        source_spread=0.1,
-        electrons_per_angstrom=30,
-        drift=None,
+        parakeet.config.Beam(
+            energy=300,
+            energy_spread=1,
+            acceleration_voltage_spread=2,
+            source_spread=0.1,
+            electrons_per_angstrom=30,
+            drift=None,
+        )
     )
 
     assert beam.energy == 300

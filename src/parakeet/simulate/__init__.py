@@ -1,8 +1,8 @@
 # fmt: off
-from parakeet.simulate.projected_potential import projected_potential # noqa
-from parakeet.simulate.exit_wave import exit_wave # noqa
-from parakeet.simulate.optics import optics # noqa
-from parakeet.simulate.image import image # noqa
-from parakeet.simulate.ctf import ctf # noqa
-from parakeet.simulate.simple import simple # noqa
+from parakeet.simulate._potential import * # noqa
+from parakeet.simulate._exit_wave import * # noqa
+from parakeet.simulate._optics import * # noqa
+from parakeet.simulate._image import * # noqa
+from parakeet.simulate._ctf import * # noqa
+from parakeet.simulate._simple import * # noqa
 # fmt: on

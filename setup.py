@@ -81,8 +81,10 @@ def main():
         cmdclass={"build_ext": CMakeBuild},
         entry_points={
             "console_scripts": [
+                "parakeet=parakeet.command_line:main",
                 "parakeet.read_pdb=parakeet.command_line:read_pdb",
                 "parakeet.export=parakeet.command_line:export",
+                "parakeet.run=parakeet.command_line:run",
                 "parakeet.config.show=parakeet.command_line.config:show",
                 "parakeet.config.new=parakeet.command_line.config:new",
                 "parakeet.config.edit=parakeet.command_line.config:edit",
@@ -91,7 +93,7 @@ def main():
                 "parakeet.sample.mill=parakeet.command_line.sample:mill",
                 "parakeet.sample.sputter=parakeet.command_line.sample:sputter",
                 "parakeet.sample.show=parakeet.command_line.sample:show",
-                "parakeet.simulate.projected_potential=parakeet.command_line.simulate:projected_potential",
+                "parakeet.simulate.potential=parakeet.command_line.simulate:potential",
                 "parakeet.simulate.exit_wave=parakeet.command_line.simulate:exit_wave",
                 "parakeet.simulate.optics=parakeet.command_line.simulate:optics",
                 "parakeet.simulate.image=parakeet.command_line.simulate:image",

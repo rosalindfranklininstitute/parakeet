@@ -10,8 +10,10 @@
 #
 import logging
 import logging.config
-from parakeet.command_line.export import export  # noqa
-from parakeet.command_line.read_pdb import read_pdb  # noqa
+from parakeet.command_line._export import *  # noqa
+from parakeet.command_line._read_pdb import *  # noqa
+from parakeet.command_line._run import *  # noqa
+from parakeet.command_line._main import *  # noqa
 
 # Get the logger
 logger = logging.getLogger(__name__)

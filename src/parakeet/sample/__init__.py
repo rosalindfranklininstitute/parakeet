@@ -1970,25 +1970,24 @@ class AtomDeleter(object):
         return atoms[selection]
 
 
-def load(filename, mode="r"):
+def load(filename: str, mode: str = "r") -> Sample:
     """
     Load the sample
 
     Args:
-        filename (str): The filename of the sample
-        mode (str): The opening mode
+        filename: The filename of the sample
+        mode: The opening mode
 
     Returns:
-        object: The test sample
+        The test sample
 
     """
     return Sample(filename, mode=mode)
 
 
 # fmt: off
-from parakeet.sample.new import new # noqa
-from parakeet.sample.add_molecules import add_molecules # noqa
-from parakeet.sample.add_molecules import add_single_molecule # noqa
-from parakeet.sample.mill import mill # noqa
-from parakeet.sample.sputter import sputter # noqa
+from parakeet.sample._new import * # noqa
+from parakeet.sample._add_molecules import * # noqa
+from parakeet.sample._mill import * # noqa
+from parakeet.sample._sputter import * # noqa
 # fmt: on

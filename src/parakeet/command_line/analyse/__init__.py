@@ -1,8 +1,8 @@
 # fmt: off
-from parakeet.command_line.analyse.reconstruct import reconstruct  # noqa
-from parakeet.command_line.analyse.correct import correct  # noqa
-from parakeet.command_line.analyse.extract import extract  # noqa
-from parakeet.command_line.analyse.average_particles import average_particles  # noqa
-from parakeet.command_line.analyse.average_all_particles import average_all_particles  # noqa
-from parakeet.command_line.analyse.refine import refine  # noqa
+from parakeet.command_line.analyse._reconstruct import *  # noqa
+from parakeet.command_line.analyse._correct import *  # noqa
+from parakeet.command_line.analyse._extract import *  # noqa
+from parakeet.command_line.analyse._average_particles import *  # noqa
+from parakeet.command_line.analyse._average_all_particles import *  # noqa
+from parakeet.command_line.analyse._refine import *  # noqa
 # fmt: on
