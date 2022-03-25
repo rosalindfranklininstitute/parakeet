@@ -168,7 +168,8 @@ class ProjectedPotentialSimulator(object):
                 "Calculating potential for slice: %.2f -> %.2f (index: %d)"
                 % (z0, z1, index)
             )
-            potential.data[index, :, :] = V[margin:-margin, margin:-margin].T
+            if index < potential.data.shape[0]:
+                potential.data[index, :, :] = V[margin:-margin, margin:-margin].T
 
         # Run the simulation
         multem.compute_projected_potential(system_conf, input_multislice, callback)
