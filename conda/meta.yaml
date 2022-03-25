@@ -9,8 +9,7 @@ source:
   path: ../
 
 build:
-  number: {{ environ.get("GIT_DESCRIBE_NUMBER") }}
-  string: {{ environ.get("GIT_BUILD_STR") }}
+  number: 0
   entry_points:
     - parakeet=parakeet.command_line:main
     - parakeet.read_pdb=parakeet.command_line:read_pdb
