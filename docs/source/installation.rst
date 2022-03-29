@@ -182,7 +182,7 @@ parakeet's singularity container you can do the following:
 
 .. code-block:: bash
 
-  singularity build parakeet.sif docker://gchr.io/rosalindfranklininstitute/parakeet:master
+  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
 
 Again similar to docker, to use parakeet with singularity and GPU support, the
 host machine should have the approprate Nvidia drivers installed.
@@ -270,6 +270,63 @@ following contents:
   source env/bin/activate
 
   # Parakeet commands
+  ...
+
+Then run the simulations as follows:
+
+.. code-block:: bash
+
+  sbatch run.sh
+
+Install on Baskerville with singularity
+---------------------------------------
+
+In order to install parakeet on the baskerville tier 2 supercomputer with
+singularity, write a script called "install.sh" with the following contents.
+
+.. code-block:: bash
+
+  #!/bin/bash
+  #SBATCH --account=$ACCOUNT
+  #SBATCH --qos=$QOS
+  #SBATCH --gpus=1
+
+  # Load required modules
+  module purge
+  module load baskerville
+  module load bask-singularity-conf/live
+
+  # Install package
+  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
+
+You will need an account number and qos to do this. Then run the script using
+the following command:
+
+.. code-block:: bash
+
+  sbatch install.sh
+
+To run parakeet on a baskerville then write a script called run.sh with the
+following contents:
+
+.. code-block:: bash
+
+  #!/bin/bash
+  #SBATCH --account=$ACCOUNT
+  #SBATCH --qos=$QOS
+  #SBATCH --gpus=1
+
+  # Load required modules
+  module purge
+  module load baskerville
+  module load bask-singularity-conf/live
+
+  function run {
+    singularity run --nv ~/Software/parakeet.sif $@
+  }
+
+  # Parakeet commands
+  run parakeet.sample.new -c config.yaml
   ...
 
 Then run the simulations as follows:
