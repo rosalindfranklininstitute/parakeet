@@ -199,17 +199,27 @@ exit wave:
       -s sample.h5 \
       -e exit_wave.h5
 
-
-Install as a snap package
--------------------------
-
-Parakeet is also packaged as a snap package which can be downlowded from from
-the github page. The package can then be installed by running the following
-command. 
+If you need to modify the singularity container for development purposes, it is
+possible to build a parakeet sandbox as follows:
 
 .. code-block:: bash
 
-  sudo snap install parakeet_0.2.7.snap --dangerous --classic
+  singularity build --sandbox parakeet_sandbox/ parakeet.sif
+
+The source code for parakeet resides in the parakeet_sandbox/apps/src/parakeet
+directory. You can then modify the python code in place and execute parakeet
+through the singularity sandbox as follows:
+
+.. code-block:: bash
+
+  singularity run --nv parakeet_sandbox/ parakeet.sample.new -c config.yaml
+
+If you want to rebuild the singularity image from the sandbox you can then do
+the following:
+
+.. code-block:: bash
+
+  singularity build parakeet2.sif parakeet_sandbox/
 
 
 Install on Baskerville
@@ -334,27 +344,6 @@ Then run the simulations as follows:
 .. code-block:: bash
 
   sbatch run.sh
-
-If you need to modify the singularity container for development purposes, it is possible to build a parakeet sandbox as follows:
-
-.. code-block:: bash
-
-  singularity build --sandbox parakeet_sandbox/ parakeet.sif
-
-The source code for parakeet resides in the parakeet_sandbox/apps/src/parakeet
-directory. You can then modify the python code in place and execute parakeet
-through the singularity sandbox as follows:
-
-.. code-block:: bash
-
-  singularity run --nv parakeet_sandbox/ parakeet.sample.new -c config.yaml
-
-If you want to rebuild the singularity image from the sandbox you can then do
-the following:
-
-.. code-block:: bash
-
-  singularity build parakeet2.sif parakeet_sandbox/
 
 
 Testing
