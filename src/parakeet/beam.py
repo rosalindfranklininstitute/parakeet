@@ -65,7 +65,7 @@ class Beam(object):
 
     @energy.setter
     def energy(self, energy: float):
-        self.energy = energy
+        self._energy = energy
 
     @property
     def energy_spread(self) -> float:
@@ -77,7 +77,7 @@ class Beam(object):
 
     @energy_spread.setter
     def energy_spread(self, energy_spread: float):
-        self.energy_spread = energy_spread
+        self._energy_spread = energy_spread
 
     @property
     def acceleration_voltage_spread(self) -> float:
@@ -89,7 +89,7 @@ class Beam(object):
 
     @acceleration_voltage_spread.setter
     def acceleration_voltage_spread(self, acceleration_voltage_spread: float):
-        self.acceleration_voltage_spread = acceleration_voltage_spread
+        self._acceleration_voltage_spread = acceleration_voltage_spread
 
     @property
     def source_spread(self) -> float:
@@ -101,7 +101,7 @@ class Beam(object):
 
     @source_spread.setter
     def source_spread(self, source_spread: float):
-        self.source_spread = source_spread
+        self._source_spread = source_spread
 
     @property
     def electrons_per_angstrom(self) -> float:
@@ -113,7 +113,7 @@ class Beam(object):
 
     @electrons_per_angstrom.setter
     def electrons_per_angstrom(self, electrons_per_angstrom: float):
-        self.electrons_per_angstrom = electrons_per_angstrom
+        self._electrons_per_angstrom = electrons_per_angstrom
 
     @property
     def theta(self) -> float:
@@ -125,7 +125,7 @@ class Beam(object):
 
     @theta.setter
     def theta(self, theta: float):
-        self.theta = theta
+        self._theta = theta
 
     @property
     def phi(self) -> float:
@@ -137,7 +137,7 @@ class Beam(object):
 
     @phi.setter
     def phi(self, phi: float):
-        self.phi = phi
+        self._phi = phi
 
     @property
     def drift(self) -> Optional[dict]:
@@ -149,7 +149,7 @@ class Beam(object):
 
     @drift.setter
     def drift(self, drift: dict):
-        self.drift = drift
+        self._drift = drift
 
     @property
     def defocus_drift(self) -> Optional[dict]:
@@ -161,7 +161,7 @@ class Beam(object):
 
     @defocus_drift.setter
     def defocus_drift(self, defocus_drift: dict):
-        self.defocus_drift = defocus_drift
+        self._defocus_drift = defocus_drift
 
 
 def new(config: parakeet.config.Beam) -> Beam:
