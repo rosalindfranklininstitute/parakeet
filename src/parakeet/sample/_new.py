@@ -22,7 +22,6 @@ from functools import singledispatch
 from parakeet.sample import Sample
 from parakeet.sample import AtomData
 from parakeet.sample import random_uniform_rotation
-from parakeet.sample import recentre
 
 
 __all__ = ["new"]
@@ -399,7 +398,6 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     centre = config.centre
     shape = config.shape.dict()
     ice = config.ice
-    coords = None
 
     # Check the dimensions are valid
     assert parakeet.sample.is_shape_inside_box(box, centre, shape)
@@ -415,25 +413,6 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     # Add some ice
     if ice is not None and ice.generate:
         add_ice(sample, centre, shape, ice.density)
-
-    # Add atoms from coordinates file
-    if coords is not None and coords["filename"]:
-        atoms = AtomData.from_gemmi_file(coords["filename"])
-        if coords["recentre"]:
-            atoms.data = recentre(atoms.data)
-            position = sample.centre
-        else:
-            position = (0, 0, 0)
-
-        # Set the orientation
-        orientation = coords["orientation"]
-        if orientation is None or len(orientation) != 3:
-            orientation = random_uniform_rotation()[0]
-
-        # Add the molecule
-        sample.add_molecule(
-            atoms, positions=[position], orientations=[orientation], name=None
-        )
 
     # Print some info
     logger.info(sample.info())
