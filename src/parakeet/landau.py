@@ -90,7 +90,7 @@ def mpl_and_fwhm(energy, thickness):
     # The peak and fwhm of the universal function
     lambda_M = -0.223
     lambda_FWHM = 4.018
-    lambda_2w = 8.960
+    # lambda_2w = 8.960
 
     # Compute xi and eps and dE0
     xi = 2 * pi * Na * re**2 * m0 * c**2 * Z * rho * x / (beta**2 * A)
@@ -102,7 +102,7 @@ def mpl_and_fwhm(energy, thickness):
     # Compute the MPL and FWHM energy loss
     dE_MP = lambda_M * xi + dE0
     dE_FWHM = lambda_FWHM * xi
-    dE_2w = lambda_2w * xi
+    # dE_2w = lambda_2w * xi
 
     # Return the MPL and FWHM
     return dE_MP, dE_FWHM

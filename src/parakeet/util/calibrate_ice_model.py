@@ -412,7 +412,7 @@ def compute_power(ax=None):
         # Compute the density and variance
         num_molecules = num_atoms / 3.0
         ny, nx = potential.shape
-        area = (nx * pixel_size) * (ny * pixel_size)
+        # area = (nx * pixel_size) * (ny * pixel_size)
         var = np.var(potential)
         mean = np.mean(potential)
         # density = num_molecules / (area)
