@@ -201,7 +201,7 @@ class ExitWaveImageSimulator(object):
         padding = self.simulation["padding"]
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
-        margin_offset = margin * pixel_size
+        # margin_offset = margin * pixel_size
         # padding_offset = padding * pixel_size
         offset = (padding + margin) * pixel_size
 

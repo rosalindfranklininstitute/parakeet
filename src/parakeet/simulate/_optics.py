@@ -248,7 +248,7 @@ class OpticsImageSimulator(object):
             # Save the energy and energy spread
             beam_energy = microscope.beam.energy * 1000  # eV
             beam_energy_spread = microscope.beam.energy_spread  # dE / E
-            beam_energy_sigma = (1.0 / sqrt(2)) * beam_energy_spread * beam_energy  # eV
+            # beam_energy_sigma = (1.0 / sqrt(2)) * beam_energy_spread * beam_energy  # eV
 
             # Set a maximum peak energy loss
             peak = min(peak, beam_energy * 0.1)  # eV

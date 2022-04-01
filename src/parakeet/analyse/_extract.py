@@ -110,7 +110,7 @@ def _extract_Config(
         result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
         return result
 
-    scan = config.scan.dict()
+    # scan = config.scan.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
@@ -173,7 +173,7 @@ def _extract_Config(
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
 
             # Compute p within the volume
-            start_position = np.array([0, scan["start_pos"], 0])
+            # start_position = np.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
             p[2] = size[2] - p[2]
             print(

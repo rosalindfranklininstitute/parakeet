@@ -15,7 +15,6 @@ import scipy.constants
 import parakeet.config
 import parakeet.data
 import parakeet.freeze
-from math import pi
 from functools import singledispatch
 from parakeet.sample import Sample
 from parakeet.sample import AtomData
@@ -102,10 +101,10 @@ def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
         length_x = length
         length_y = length
         length_z = length
-        sputter_length_x = length_x + thickness * 2
-        sputter_length_y = length_y + thickness * 2
-        sputter_length_z = length_z + thickness * 2
-        shape_volume = length**3
+        # sputter_length_x = length_x + thickness * 2
+        # sputter_length_y = length_y + thickness * 2
+        # sputter_length_z = length_z + thickness * 2
+        # shape_volume = length**3
         # sputter_volume = (
         #     sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
         # )
@@ -113,10 +112,10 @@ def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
         length_x = shape["cuboid"]["length_x"]
         length_y = shape["cuboid"]["length_y"]
         length_z = shape["cuboid"]["length_z"]
-        sputter_length_x = length_x + thickness * 2
-        sputter_length_y = length_y + thickness * 2
-        sputter_length_z = length_z + thickness * 2
-        shape_volume = length_x * length_y * length_z
+        # sputter_length_x = length_x + thickness * 2
+        # sputter_length_y = length_y + thickness * 2
+        # sputter_length_z = length_z + thickness * 2
+        # shape_volume = length_x * length_y * length_z
         # sputter_volume = (
         #     sputter_length_x * sputter_length_y * sputter_length_z - shape_volume
         # )
@@ -126,9 +125,9 @@ def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
         length_x = 2 * radius
         length_y = length
         length_z = 2 * radius
-        sputter_length = length + thickness * 2
-        sputter_radius = radius + thickness * 2
-        shape_volume = pi * radius**2 * length
+        # sputter_length = length + thickness * 2
+        # sputter_radius = radius + thickness * 2
+        # shape_volume = pi * radius**2 * length
         # sputter_volume = pi * sputter_radius ** 2 * sputter_length - shape_volume
     else:
         raise RuntimeError("Unknown shape")
