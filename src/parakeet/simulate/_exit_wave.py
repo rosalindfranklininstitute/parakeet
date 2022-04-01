@@ -19,21 +19,21 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
-import parakeet.simulate.simulation
+import parakeet.simulate
+from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
 
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
-Sample = parakeet.sample.Sample
-Simulation = parakeet.simulate.simulation.Simulation
-
 
 __all__ = ["exit_wave"]
 
+
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
+Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
