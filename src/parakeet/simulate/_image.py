@@ -22,7 +22,9 @@ from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
-from parakeet.config import Device
+
+
+Device = parakeet.config.Device
 
 
 __all__ = ["image"]

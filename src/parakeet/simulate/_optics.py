@@ -25,8 +25,10 @@ from parakeet.scan import Scan
 from functools import singledispatch
 from math import sqrt, pi, sin
 from parakeet.simulate.simulation import Simulation
-from parakeet.config import Device
-from parakeet.config import ClusterMethod
+
+
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["optics"]

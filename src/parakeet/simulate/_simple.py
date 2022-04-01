@@ -22,7 +22,8 @@ import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
-from parakeet.config import Device
+
+Device = parakeet.config.Device
 
 
 __all__ = ["simple"]
@@ -30,6 +31,7 @@ __all__ = ["simple"]
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
 
 # Try to input MULTEM
 try:

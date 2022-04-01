@@ -21,14 +21,15 @@ import parakeet.io
 import parakeet.sample
 import parakeet.simulate.simulation
 from parakeet.microscope import Microscope
-from parakeet.sample import Sample
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
-from parakeet.simulate.simulation import Simulation
-from parakeet.config import Device
-from parakeet.config import ClusterMethod
+
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
+Sample = parakeet.sample.Sample
+Simulation = parakeet.simulate.simulation.Simulation
 
 
 __all__ = ["exit_wave"]
