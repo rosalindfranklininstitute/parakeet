@@ -20,13 +20,14 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
 from parakeet.microscope import Microscope
-from parakeet.sample import Sample
 from parakeet.scan import Scan
 from parakeet.simulate.simulation import Simulation
 from functools import singledispatch
 from math import pi, floor
-from parakeet.config import Device
-from parakeet.config import ClusterMethod
+
+Sample = parakeet.sample.Sample
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["potential"]
@@ -34,6 +35,7 @@ __all__ = ["potential"]
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
 
 # Try to input MULTEM
 try:

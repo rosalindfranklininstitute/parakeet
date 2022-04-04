@@ -19,20 +19,21 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
-import parakeet.simulate.simulation
+import parakeet.simulate
+from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
-from parakeet.sample import Sample
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
-from parakeet.simulate.simulation import Simulation
-from parakeet.config import Device
-from parakeet.config import ClusterMethod
 
 
 __all__ = ["exit_wave"]
 
+
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
+Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -201,7 +202,7 @@ class ExitWaveImageSimulator(object):
         padding = self.simulation["padding"]
         x_fov = nx * pixel_size
         y_fov = ny * pixel_size
-        margin_offset = margin * pixel_size
+        # margin_offset = margin * pixel_size
         # padding_offset = padding * pixel_size
         offset = (padding + margin) * pixel_size
 

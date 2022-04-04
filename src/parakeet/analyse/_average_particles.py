@@ -121,7 +121,7 @@ def _iterate_particles(
             print("Getting sub tomogram")
             sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
             if sub_tomo.shape == half_shape[1:]:
-                yield (sub_tomo, position, orientation, j)
+                yield (sub_tomo, offset, orientation, j)
 
 
 @singledispatch
@@ -185,7 +185,7 @@ def _average_particles_Config(
     """
 
     # Get the scan dict
-    scan = config.dict()
+    # scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)

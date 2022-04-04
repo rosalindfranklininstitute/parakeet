@@ -14,8 +14,9 @@ import parakeet.config
 import parakeet.sample
 import parakeet.simulate
 from functools import singledispatch
-from parakeet.config import Device
-from parakeet.config import ClusterMethod
+
+Device = parakeet.config.Device
+ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["run"]

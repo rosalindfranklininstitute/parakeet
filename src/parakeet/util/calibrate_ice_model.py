@@ -412,7 +412,7 @@ def compute_power(ax=None):
         # Compute the density and variance
         num_molecules = num_atoms / 3.0
         ny, nx = potential.shape
-        area = (nx * pixel_size) * (ny * pixel_size)
+        # area = (nx * pixel_size) * (ny * pixel_size)
         var = np.var(potential)
         mean = np.mean(potential)
         # density = num_molecules / (area)
@@ -535,8 +535,6 @@ def compute_exit_wave(atom_data, pixel_size):
     x_max = atom_data.data["x"].max()
     y_min = atom_data.data["y"].min()
     y_max = atom_data.data["y"].max()
-    z_min = atom_data.data["z"].min()
-    z_max = atom_data.data["z"].max()
     x_size = x_max - x_min
     y_size = y_max - y_min
     select = (
