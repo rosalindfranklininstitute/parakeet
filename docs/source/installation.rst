@@ -241,6 +241,37 @@ the following:
   singularity build parakeet_image.sif parakeet_sandbox/
 
 
+Build a container depending on parakeet
+---------------------------------------
+
+You can build a new container depending on the parakeet docker container as
+follows. In your python source code repository create a file called Dockerfile
+with the following contents:
+
+.. code-block:: bash
+
+  FROM ghcr.io/rosalindfranklininstitute/parakeet:master
+
+  WORKDIR /myapp
+  COPY . .
+
+  RUN apt update
+  RUN git submodule update --init --recursive
+  RUN pip install .
+
+Now build locally with docker:
+
+.. code-block:: bash
+
+  sudo docker build . -t me/myapp
+
+Now we can build the singularity image from the docker image
+
+.. code-block:: bash
+
+  singularity build myapp.sif docker-deamon://me/myapp:latest
+
+
 Install on Baskerville (native)
 -------------------------------
 
