@@ -241,8 +241,8 @@ the following:
   singularity build parakeet_image.sif parakeet_sandbox/
 
 
-Build a container depending on parakeet
----------------------------------------
+Build a derivative singularity image
+------------------------------------
 
 You can build a new container depending on the parakeet docker container as
 follows. In your python source code repository create a file called Dockerfile
