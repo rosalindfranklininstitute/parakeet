@@ -241,7 +241,7 @@ the following:
   singularity build parakeet_image.sif parakeet_sandbox/
 
 
-Build a derivative singularity image
+Build a derivative Singularity image
 ------------------------------------
 
 You can build a new container depending on the parakeet docker container as
