@@ -202,8 +202,8 @@ exit wave:
       -e exit_wave.h5
 
 
-Install as Singularity sandbox for developers
----------------------------------------------
+Install as Singularity sandbox
+------------------------------
 
 If you need to modify the singularity container for development purposes, it is
 possible to build a parakeet sandbox as follows:
@@ -241,115 +241,71 @@ the following:
   singularity build parakeet_image.sif parakeet_sandbox/
 
 
-.. Install on Baskerville
-.. ----------------------
+Install on Baskerville (native)
+-------------------------------
 
-.. As of 7th April 2022, Baskerville only has cuda 11.1 installed as a module.
-.. There seems to be an issue with the thrust libary with this version of cuda so
-.. we need to install at least cuda version 11.2 (this happens to be the latest
-.. version of cuda supported by the scarf cuda driver). In order to install
-.. parakeet on scarf, log into an interactive node as follows:
+In order to install parakeet on the baskerville tier 2 supercomputer with
+singularity, start an interactive job as follows (you will need to know your
+account number and qos to do this):
 
-.. .. code-block:: bash
+.. code-block:: bash
+  
+  salloc --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=1:0:0
+  srun --pty bash -i
 
-..   salloc --qos=${QOS} --time=1:0:0
+Now execute the following commands to install parakeet:
 
-.. You will need an account number and qos to do this. Now execute the following
-.. commands to install CUDA and FFTW:
-
-.. .. code-block:: bash
-
-..   # Load required modules
-..   module purge
-..   module load baskerville
-..   module load Python
+.. code-block:: bash
    
-..   # Download CUDA 11.2
-..   wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run
-
-..   # Install the CUDA toolkit locally. 
-..   # 1. First accept the EULA
-..   # 2. Select only the cuda toolkit for installation
-..   mkdir -p ~/tmp
-..   bash cuda_11.2.0_460.27.04_linux.run \
-..     --installpath=${HOME}/.local \
-..     --tmpdir=${HOME}/tmp
-
-..   # Download and unpack FFTW. This is necessary because the baskerville FFTW
-..   # module depends on the cuda module
-..   wget http://www.fftw.org/fftw-3.3.10.tar.gz
-..   tar -xvf fftw-3.3.10.tar.gz
+  # Load required modules
+  module purge
+  module load baskerville
+  module load bask-apps/test
+  module load CUDA/11.4
+  module load FFTW
+  module load Python/3
    
-..   # Go into the fftw directory and build all the libraries into ~/.local
-..   pushd fftw-3.3.10
+  # Create a virtual environment
+  python -m venv env
+  source env/bin/activate
+  python -m pip install pip --upgrade
 
-..     ./configure --enable-shared=yes --enable-threads --prefix=${HOME}/.local
-..     make
-..     make install
-..     make clean
+  # Install parakeet
+  python -m pip install python-parakeet
 
-..     ./configure --enable-shared=yes --enable-threads --enable-float --prefix=${HOME}/.local
-..     make
-..     make install
-..     make clean
+To run parakeet on a baskerville then write a script called run.sh with the
+following contents:
 
-..     ./configure --enable-shared=yes --enable-threads --enable-long-double --prefix=${HOME}/.local
-..     make
-..     make install
-..     make clean
-   
-..   popd
+.. code-block:: bash
 
-.. Now we can install parakeet with the following commands:
+  #!/bin/bash
+  #SBATCH --account=$ACCOUNT
+  #SBATCH --qos=$QOS
+  #SBATCH --gpus=1
 
-.. .. code-block:: bash
-   
-..   # Load required modules
-..   module purge
-..   module load baskerville
-..   module load Python
+  # Load required modules
+  module purge
+  module load baskerville
+  module load bask-apps/test
+  module load CUDA/11.4
+  module load FFTW
+  module load Python/3
 
-..   # Set the cuda compiler path and FFTW path
-..   export CUDACXX=${HOME}/.local/bin/nvcc
-..   export FFTWDIR=${HOME}/.local
-   
-..   # Create a virtual environment
-..   python -m venv env
-..   source env/bin/activate
-..   python -m pip install pip --upgrade
+  # Activate environment
+  source env/bin/activate
 
-..   # Install parakeet
-..   python -m pip install python-parakeet
+  # Parakeet commands
+  parakeet run -c config.yaml
 
-.. To run parakeet on a baskerville then write a script called run.sh with the
-.. following contents:
+Then run the simulations as follows:
 
-.. .. code-block:: bash
+.. code-block:: bash
 
-..   #!/bin/bash
-..   #SBATCH --account=$ACCOUNT
-..   #SBATCH --qos=$QOS
-..   #SBATCH --gpus=1
+  sbatch run.sh
 
-..   # Load required modules
-..   module purge
-..   module load baskerville
-..   module load Python
 
-..   # Activate environment
-..   source env/bin/activate
-
-..   # Parakeet commands
-..   ...
-
-.. Then run the simulations as follows:
-
-.. .. code-block:: bash
-
-..   sbatch run.sh
-
-Install on Baskerville
-----------------------
+Install on Baskerville (singularity)
+------------------------------------
 
 In order to install parakeet on the baskerville tier 2 supercomputer with
 singularity, start an interactive job as follows (you will need to know your
