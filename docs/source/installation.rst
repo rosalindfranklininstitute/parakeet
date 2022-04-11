@@ -89,6 +89,8 @@ environment variables described above.
   pip install .
 
 
+.. _Installation for developers:
+
 Installation for developers
 ---------------------------
 
@@ -199,6 +201,10 @@ exit wave:
       -s sample.h5 \
       -e exit_wave.h5
 
+
+Install as Singularity sandbox for developers
+---------------------------------------------
+
 If you need to modify the singularity container for development purposes, it is
 possible to build a parakeet sandbox as follows:
 
@@ -206,100 +212,157 @@ possible to build a parakeet sandbox as follows:
 
   singularity build --sandbox parakeet_sandbox/ parakeet.sif
 
-The source code for parakeet resides in the parakeet_sandbox/apps/src/parakeet
-directory. You can then modify the python code in place and execute parakeet
-through the singularity sandbox as follows:
+The source code for parakeet resides in the parakeet_sandbox/apps/ directory.
+You can then modify the python code in place and use `singularity shell` or
+`singularity run` to install the changes as follows:
 
 .. code-block:: bash
 
-  singularity run --nv parakeet_sandbox/ parakeet.sample.new -c config.yaml
+  singularity run --writable parakeet_sandbox/ pip install /app --prefix=/usr/local
+
+Likewise, new software packages can be install into the container as follows:
+
+.. code-block:: bash
+
+  singularity run --writable parakeet_sandbox/ pip install ${PACKAGE} --prefix=/usr/local
+
+To run parakeet from the sandbox, execute with the following command:
+
+.. code-block:: bash
+
+  singularity run --nv parakeet_sandbox/ parakeet.run -c config.yaml
+
 
 If you want to rebuild the singularity image from the sandbox you can then do
 the following:
 
 .. code-block:: bash
 
-  singularity build parakeet2.sif parakeet_sandbox/
+  singularity build parakeet_image.sif parakeet_sandbox/
 
+
+.. Install on Baskerville
+.. ----------------------
+
+.. As of 7th April 2022, Baskerville only has cuda 11.1 installed as a module.
+.. There seems to be an issue with the thrust libary with this version of cuda so
+.. we need to install at least cuda version 11.2 (this happens to be the latest
+.. version of cuda supported by the scarf cuda driver). In order to install
+.. parakeet on scarf, log into an interactive node as follows:
+
+.. .. code-block:: bash
+
+..   salloc --qos=${QOS} --time=1:0:0
+
+.. You will need an account number and qos to do this. Now execute the following
+.. commands to install CUDA and FFTW:
+
+.. .. code-block:: bash
+
+..   # Load required modules
+..   module purge
+..   module load baskerville
+..   module load Python
+   
+..   # Download CUDA 11.2
+..   wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run
+
+..   # Install the CUDA toolkit locally. 
+..   # 1. First accept the EULA
+..   # 2. Select only the cuda toolkit for installation
+..   mkdir -p ~/tmp
+..   bash cuda_11.2.0_460.27.04_linux.run \
+..     --installpath=${HOME}/.local \
+..     --tmpdir=${HOME}/tmp
+
+..   # Download and unpack FFTW. This is necessary because the baskerville FFTW
+..   # module depends on the cuda module
+..   wget http://www.fftw.org/fftw-3.3.10.tar.gz
+..   tar -xvf fftw-3.3.10.tar.gz
+   
+..   # Go into the fftw directory and build all the libraries into ~/.local
+..   pushd fftw-3.3.10
+
+..     ./configure --enable-shared=yes --enable-threads --prefix=${HOME}/.local
+..     make
+..     make install
+..     make clean
+
+..     ./configure --enable-shared=yes --enable-threads --enable-float --prefix=${HOME}/.local
+..     make
+..     make install
+..     make clean
+
+..     ./configure --enable-shared=yes --enable-threads --enable-long-double --prefix=${HOME}/.local
+..     make
+..     make install
+..     make clean
+   
+..   popd
+
+.. Now we can install parakeet with the following commands:
+
+.. .. code-block:: bash
+   
+..   # Load required modules
+..   module purge
+..   module load baskerville
+..   module load Python
+
+..   # Set the cuda compiler path and FFTW path
+..   export CUDACXX=${HOME}/.local/bin/nvcc
+..   export FFTWDIR=${HOME}/.local
+   
+..   # Create a virtual environment
+..   python -m venv env
+..   source env/bin/activate
+..   python -m pip install pip --upgrade
+
+..   # Install parakeet
+..   python -m pip install python-parakeet
+
+.. To run parakeet on a baskerville then write a script called run.sh with the
+.. following contents:
+
+.. .. code-block:: bash
+
+..   #!/bin/bash
+..   #SBATCH --account=$ACCOUNT
+..   #SBATCH --qos=$QOS
+..   #SBATCH --gpus=1
+
+..   # Load required modules
+..   module purge
+..   module load baskerville
+..   module load Python
+
+..   # Activate environment
+..   source env/bin/activate
+
+..   # Parakeet commands
+..   ...
+
+.. Then run the simulations as follows:
+
+.. .. code-block:: bash
+
+..   sbatch run.sh
 
 Install on Baskerville
 ----------------------
 
-In order to install parakeet on the baskerville tier 2 supercomputer, write a
-script called "install.sh" with the following contents.
-
-.. code-block:: bash
-
-  #!/bin/bash
-  #SBATCH --account=$ACCOUNT
-  #SBATCH --qos=$QOS
-  #SBATCH --gpus=1
-
-  # Load required modules
-  module purge
-  module load baskerville
-  module load CUDA
-  module load HDF5
-  module load FFTW
-
-  # Create environment
-  #python3 -m venv env
-
-  # Activate environment
-  source env/bin/activate
-  python -m pip install --upgrade pip
-
-  # Install package
-  python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
-
-You will need an account number and qos to do this. Then run the script using
-the following command:
-
-.. code-block:: bash
-
-  sbatch install.sh
-
-To run parakeet on a baskerville then write a script called run.sh with the
-following contents:
-
-.. code-block:: bash
-
-  #!/bin/bash
-  #SBATCH --account=$ACCOUNT
-  #SBATCH --qos=$QOS
-  #SBATCH --gpus=1
-
-  # Load required modules
-  module purge
-  module load baskerville
-  module load CUDA
-  module load HDF5
-  module load FFTW
-
-  # Activate environment
-  source env/bin/activate
-
-  # Parakeet commands
-  ...
-
-Then run the simulations as follows:
-
-.. code-block:: bash
-
-  sbatch run.sh
-
-Install on Baskerville with singularity
----------------------------------------
-
 In order to install parakeet on the baskerville tier 2 supercomputer with
-singularity, write a script called "install.sh" with the following contents.
+singularity, start an interactive job as follows (you will need to know your
+account number and qos to do this):
 
 .. code-block:: bash
+  
+  salloc --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=1:0:0
+  srun --pty bash -i
 
-  #!/bin/bash
-  #SBATCH --account=$ACCOUNT
-  #SBATCH --qos=$QOS
-  #SBATCH --gpus=1
+Now run the following commands:
+
+.. code-block:: bash
 
   # Load required modules
   module purge
@@ -309,15 +372,8 @@ singularity, write a script called "install.sh" with the following contents.
   # Install package
   singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
 
-You will need an account number and qos to do this. Then run the script using
-the following command:
-
-.. code-block:: bash
-
-  sbatch install.sh
-
-To run parakeet on a baskerville then write a script called run.sh with the
-following contents:
+Once you are happy, log out of the interactive node. To run parakeet on
+baskerville write a script called run.sh with the following contents:
 
 .. code-block:: bash
 
@@ -331,13 +387,66 @@ following contents:
   module load baskerville
   module load bask-singularity-conf/live
 
-  function run {
-    singularity run --nv ~/Software/parakeet.sif $@
+  function parakeet {
+    singularity run --nv parakeet.sif parakeet $@
   }
 
   # Parakeet commands
-  run parakeet.sample.new -c config.yaml
-  ...
+  parakeet run -c config.yaml
+
+Then run the simulations as follows:
+
+.. code-block:: bash
+
+  sbatch run.sh
+
+.. warning::
+  
+  On Baskerville, you may receive an error like this when using the parakeet sandbox:
+
+.. code-block:: bash
+
+  WARNING: By using --writable, Singularity can't create /bask destination automatically without overlay or underlay            
+  FATAL:   container creation failed: mount /var/singularity/mnt/session/bask->/bask error: while mounting /var/singularity/mnt/
+  session/bask: destination /bask doesn't exist in container
+
+You can fix this by creating the following directory within the sandbox directory:
+
+.. code-block:: bash
+
+  mkdir -p parakeet_sandbox/bask
+
+
+Install on STFC Scarf
+---------------------
+
+In order to install parakeet on the scarf with singularity, start and
+interactive job as follows:
+
+.. code-block:: bash
+  
+  salloc --time=1:0:0
+
+Now run the following commands:
+
+.. code-block:: bash
+
+  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
+
+Once you are happy, log out of the interactive node. To run parakeet on scarf
+write a script called run.sh with the following contents:
+
+.. code-block:: bash
+
+  #!/bin/bash
+  #SBATCH --gpus=1
+
+  function parakeet {
+    singularity run --nv parakeet.sif parakeet $@
+  }
+
+  # Parakeet commands
+  parakeet run -c config.yaml
 
 Then run the simulations as follows:
 
@@ -349,8 +458,8 @@ Then run the simulations as follows:
 Testing
 -------
 
-To run the tests, follow the installation instructions for developers and then
-do the following command from within the source distribution:
+To run the tests, follow the :ref:`Installation for developers` instructions
+and then do the following command from within the source distribution:
 
 .. code-block:: bash
   
