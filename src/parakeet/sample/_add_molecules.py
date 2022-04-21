@@ -291,7 +291,9 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
     molecules = temp
 
     # The total number of molecules
-    total_number_of_molecules = sum(map(len, molecules.values()))
+    total_number_of_molecules = sum(
+        map(lambda x: len(x["instances"]), molecules.values())
+    )
 
     # Put the molecule in the centre if only one
     if total_number_of_molecules == 0:
