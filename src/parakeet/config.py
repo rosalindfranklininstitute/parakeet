@@ -367,8 +367,54 @@ class Lens(BaseModel):
     """
 
     c_10: float = Field(-20000, description="The defocus (A). Negative is underfocus.")
+    c_12: float = Field(0, description="The 2-fold astigmatism (A)")
+    phi_12: float = Field(
+        0, description="The Azimuthal angle of 2-fold astigmatism (rad)"
+    )
 
-    c_30: float = Field(2.7, description="The spherical aberration (mm)")
+    c_21: float = Field(0, description="The Axial coma (A)")
+    phi_21: float = Field(0, description="The Azimuthal angle of axial coma (rad)")
+    c_23: float = Field(0, description="The 3-fold astigmatism (A)")
+    phi_23: float = Field(
+        0, description="The Azimuthal angle of 3-fold astigmatism (rad)"
+    )
+
+    c_30: float = Field(2.7, description="The 3rd order spherical aberration (mm)")
+    c_32: float = Field(0, description="The Axial star aberration (A)")
+    phi_32: float = Field(
+        0, description="The Azimuthal angle of axial star aberration (rad)"
+    )
+    c_34: float = Field(0, description="The 4-fold astigmatism (A)")
+    phi_34: float = Field(
+        0, description="The Azimuthal angle of 4-fold astigmatism (rad)"
+    )
+
+    c_41: float = Field(0, description="The 4th order axial coma (A)")
+    phi_41: float = Field(
+        0, description="The Azimuthal angle of 4th order axial coma (rad)"
+    )
+    c_43: float = Field(0, description="The 3-lobe aberration (A)")
+    phi_43: float = Field(
+        0, description="The Azimuthal angle of 3-lobe aberration (rad)"
+    )
+    c_45: float = Field(0, description="The 5-fold astigmatism (A)")
+    phi_45: float = Field(
+        0, description="The Azimuthal angle of 5-fold astigmatism (rad)"
+    )
+
+    c_50: float = Field(0, description="The 5th order spherical aberration (A)")
+    c_52: float = Field(0, description="The 5th order axial star aberration (A)")
+    phi_52: float = Field(
+        0, description="The Azimuthal angle of 5th order axial star aberration (rad)"
+    )
+    c_54: float = Field(0, description="The 5th order rosette aberration (A)")
+    phi_54: float = Field(
+        0, description="The Azimuthal angle of 5th order rosette aberration (rad)"
+    )
+    c_56: float = Field(0, description="The 6-fold astigmatism (A)")
+    phi_56: float = Field(
+        0, description="The Azimuthal angle of 6-fold astigmatism (rad)"
+    )
 
     c_c: float = Field(2.7, description="The chromatic aberration (mm)")
 
