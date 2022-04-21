@@ -385,7 +385,7 @@ class Detector(BaseModel):
 
     ny: int = Field(1000, description="The number of pixels in Y")
 
-    pixel_size: int = Field(1, description="The pixel size (A)")
+    pixel_size: float = Field(1, description="The pixel size (A)")
 
     dqe: bool = Field(False, description="Use the DQE model (True/False)")
 
