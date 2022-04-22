@@ -11,6 +11,7 @@
 
 import logging
 import parakeet.config
+import parakeet.metadata
 import parakeet.sample
 import parakeet.simulate
 from functools import singledispatch
@@ -107,3 +108,6 @@ def _run_Config(
 
     # Simulate the image
     parakeet.simulate.image(config, optics_file, image_file)
+
+    # Export the metadata
+    parakeet.metadata.export(config, sample)  # type: ignore
