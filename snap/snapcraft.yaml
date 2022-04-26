@@ -1,19 +1,25 @@
 name: parakeet
 base: core20
 
-architectures:
-  - build-on: [amd64]
-
+adopt-info: parakeet
 summary: A digital twin for cryo-ET
-description: A digital twin for cryo-ET.
+description: |
+  Parakeet is a digital twin for cryo electron tomography and stands for
+  Program for Analysis and Reconstruction of Artificial data for Kryo ElEctron
+  Tomography
+license: GPL-3.0
+
 contact: james.parkhurst@diamond.ac.uk
 issues: https://github.com/rosalindfranklininstitute/parakeet/issues
 source-code: https://github.com/rosalindfranklininstitute/parakeet
 website: https://github.com/rosalindfranklininstitute/parakeet
-version: git
+icon: docs/source/images/parakeet_small.png
 
 grade: devel
 confinement: classic
+
+architectures:
+  - build-on: [amd64]
 
 package-repositories:
   - type: apt
@@ -42,6 +48,9 @@ parts:
       - python3-venv
       - cuda-cudart-11-6
       - libcufft-11-6
+   override-pull: |
+     snapcraftctl pull
+     snapcraftctl set-version "$(git describe --tags)"
 
 apps:
   parakeet:
