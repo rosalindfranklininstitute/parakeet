@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Build python package  
-      uses: .github/workflows/python-build.yml
+      uses: ./.github/workflows/python-build.yml
       with:
         python-version: '3.x'
     - name: Install documentation dependencies
