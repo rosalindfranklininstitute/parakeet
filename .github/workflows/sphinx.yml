@@ -1,0 +1,42 @@
+name: Sphinx documentation
+
+on:
+  push:
+    branches: [ master ]
+  
+  workflow_dispatch:
+
+jobs:
+  
+  build:
+
+    runs-on: ubuntu-latest
+    
+    environment: deployment
+
+    steps:
+    - name: Build python package  
+      uses: .github/workflows/python-build.yml
+      with:
+        python-version: '3.x'
+    - name: Install documentation dependencies
+      run: |
+        pip install .[build_sphinx]
+    - name: Build documentation
+      run: |
+        python setup.py build_sphinx
+        cp -rv build/sphinx/html/* docs/
+    - name: Publish to Github pages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        USER_EMAIL: ${{ "t1000@skynet.ai" }}
+        USER_NAME: ${{ "github-actions" }}
+        BRANCH: ${{ "gh-pages" }}
+        REMOTE: "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+      run: |
+        git init
+        git config user.email "t-1000@skynet.ai"
+        git config user.name "Github Actions"
+        git add -A
+        git commit -m "Deploy documentation"
+        git push -f ${REMOTE} HEAD:${BRANCH}

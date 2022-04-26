@@ -1,0 +1,40 @@
+name: Python build
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+
+jobs:
+  
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install cuda
+      run: |
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+        sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
+        sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
+        sudo apt-get update
+        sudo apt-get -y install cuda
+    - name: Install fftw
+      run: sudo apt-get install libfftw3-dev    
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 black mypy types-PyYAML pytest pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        export CUDACXX=/usr/local/cuda-11/bin/nvcc        
+        python -m pip install -e .

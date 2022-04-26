@@ -48,9 +48,9 @@ parts:
       - python3-venv
       - cuda-cudart-11-6
       - libcufft-11-6
-   override-pull: |
-     snapcraftctl pull
-     snapcraftctl set-version "$(git describe --tags)"
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version "$(git describe --tags)"
 
 apps:
   parakeet:
