@@ -279,8 +279,8 @@ You can install the parakeet snap from the snapcraft repository as follows:
 
 .. code-block:: bash
 
-  # Install the snap
-  sudo snap install parakeet --classic
+  # Install the snap from the edge channel
+  sudo snap install parakeet --classic --edge
 
 You can also build the parakeet snap application from source as follows:
 

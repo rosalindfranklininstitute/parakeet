@@ -5,8 +5,12 @@ architectures:
   - build-on: [amd64]
 
 summary: A digital twin for cryo-ET
-version: git
 description: A digital twin for cryo-ET.
+contact: james.parkhurst@diamond.ac.uk
+issues: https://github.com/rosalindfranklininstitute/parakeet/issues
+source-code: https://github.com/rosalindfranklininstitute/parakeet
+website: https://github.com/rosalindfranklininstitute/parakeet
+version: git
 
 grade: devel
 confinement: classic
