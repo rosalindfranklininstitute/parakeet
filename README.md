@@ -61,6 +61,11 @@ Alternatively, there is a complementary high level Python API which can be seen
 
 Checkout the [documentation](https://rosalindfranklininstitute.github.io/amplus-digital-twin/) for more information!
 
+## Notifications
+
+You can receive notifications from the [Github discussions](https://github.com/rosalindfranklininstitute/amplus-digital-twin/discussions)
+by clicking "watch" on this repository.
+
 ## Issues
 
 Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet/issues) to submit bugs or request features.
