@@ -3,8 +3,6 @@
 name: Snapcraft
 
 on:
-  schedule:
-    - cron: '0 0 * * 1'
   release:
     types: [created]
 
@@ -12,22 +10,22 @@ on:
   workflow_dispatch:
 
 jobs:
-
   deploy:
+    
     runs-on: ubuntu-latest
+    
+    environment: deployment
 
     steps:
-
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      
-      # Builds the snap
-      - uses: snapcore/action-build@v1
-
-      # Upload the snap as an artefact
-      - uses: actions/upload-artifact@v2
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: build
+      - name: Publish snap
+        uses: snapcore/action-publish@v1
         with:
-          name: snap
-          path: ${{ steps.snapcraft.outputs.snap }}
+          store_login: ${{ secrets.SNAP_STORE_LOGIN }}
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge

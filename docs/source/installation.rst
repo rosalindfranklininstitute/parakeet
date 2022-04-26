@@ -272,6 +272,33 @@ Now we can build the singularity image from the docker image
   singularity build myapp.sif docker-deamon://me/myapp:latest
 
 
+Install as a snap
+-----------------
+
+You can install the parakeet snap from the snapcraft repository as follows:
+
+.. code-block:: bash
+
+  # Install the snap
+  sudo snap install parakeet --classic
+
+You can also build the parakeet snap application from source as follows:
+
+.. code-block:: bash
+
+  # Run this command in the repository directory on a VM with 4GB memory
+  SNAPCRAFT_BUILD_ENVIRONMENT_MEMORY=4G snapcraft
+
+  # Install the locally built snap
+  sudo snap install parakeet_${VERSION}.snap --classic --dangerous
+
+Note that the snap installation only exposes the top level parakeet command:
+
+.. code-block:: bash
+
+  parakeet -h
+
+
 Install on Baskerville (native)
 -------------------------------
 
