@@ -29,9 +29,9 @@ jobs:
     - name: Publish to Github pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        USER_EMAIL: ${{ "t1000@skynet.ai" }}
-        USER_NAME: ${{ "github-actions" }}
-        BRANCH: ${{ "gh-pages" }}
+        USER_EMAIL: "t1000@skynet.ai"
+        USER_NAME: "github-actions"
+        BRANCH: "gh-pages"
         REMOTE: "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
       run: |
         git init
