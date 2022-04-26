@@ -64,4 +64,4 @@ jobs:
         git config user.name "github-actions"
         git add -A
         git commit -m "Deploy documentation"
-        git -f push origin gh-pages
+        git push -f origin gh-pages
