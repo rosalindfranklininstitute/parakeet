@@ -58,12 +58,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         USER_EMAIL: "t1000@skynet.ai"
         USER_NAME: "github-actions"
-        BRANCH: "gh-pages"
-        REMOTE: "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
       run: |
-        git init
+        git checkout -b gh-pages-temp
         git config user.email "t-1000@skynet.ai"
-        git config user.name "Github Actions"
+        git config user.name "github-actions"
         git add -A
         git commit -m "Deploy documentation"
-        git push -f ${REMOTE} HEAD:${BRANCH}
+        git -f push origin gh-pages
