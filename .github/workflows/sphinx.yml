@@ -55,13 +55,12 @@ jobs:
     
     - name: Publish to Github pages
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         USER_EMAIL: "t1000@skynet.ai"
         USER_NAME: "github-actions"
       run: |
         git checkout -b gh-pages-temp
-        git config user.email "t-1000@skynet.ai"
-        git config user.name "github-actions"
+        git config user.name ${USER_NAME}
+        git config user.email ${USER_EMAIL}
         git add -A
         git commit -m "Deploy documentation"
-        git push -f origin gh-pages
+        git push -f origin HEAD:gh-pages
