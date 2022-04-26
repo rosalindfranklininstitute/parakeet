@@ -9,16 +9,16 @@ on:
 jobs:
   
   build:
+    uses: ./.github/workflows/python-build.yml
+    with:
+      python-version: '3.x'
 
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
-    
     environment: deployment
 
     steps:
-    - name: Build python package  
-      uses: ./.github/workflows/python-build.yml
-      with:
-        python-version: '3.x'
     - name: Install documentation dependencies
       run: |
         pip install .[build_sphinx]
