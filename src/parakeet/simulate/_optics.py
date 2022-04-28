@@ -193,6 +193,9 @@ class OpticsImageSimulator(object):
         # Get the beam drift
         driftx, drifty = self.exit_wave.drift[index, :]
 
+        # Get the timestamp
+        timestamp = self.exit_wave.timestamp[index]
+
         microscope = copy.deepcopy(self.microscope)
 
         # Get the defocus
@@ -445,7 +448,7 @@ class OpticsImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), defocus)
+        return (index, angle, position, image, (driftx, drifty), defocus, timestamp)
 
 
 def simulation_factory(

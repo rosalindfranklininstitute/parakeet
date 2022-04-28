@@ -91,6 +91,14 @@ class Writer(object):
         return self._defocus
 
     @property
+    def timestamp(self):
+        """
+        The time stamp property
+
+        """
+        return self._timestamp
+
+    @property
     def is_mrcfile_writer(self):
         """
         Return if is mrcfile
@@ -216,6 +224,18 @@ class MrcFileWriter(Writer):
         def __setitem__(self, item, data):
             self.handle.extended_header[item]["Defocus"] = data
 
+    class TimestampProxy(object):
+        """
+        Proxy interface to timestamp
+
+        """
+
+        def __init__(self, handle):
+            self.handle = handle
+
+        def __setitem__(self, item, data):
+            self.handle.extended_header[item]["Timestamp"] = data
+
     def __init__(self, filename, shape, pixel_size, dtype="uint8"):
         """
         Initialise the writer
@@ -274,6 +294,7 @@ class MrcFileWriter(Writer):
         self._position = MrcFileWriter.PositionProxy(self.handle)
         self._drift = MrcFileWriter.DriftProxy(self.handle)
         self._defocus = MrcFileWriter.DefocusProxy(self.handle)
+        self._timestamp = MrcFileWriter.TimestampProxy(self.handle)
 
     @property
     def pixel_size(self):
@@ -392,6 +413,7 @@ class NexusWriter(Writer):
         detector["image_key"] = np.zeros(shape=shape[0])
         detector["x_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
         detector["y_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
+        detector.create_dataset("timestamp", shape=(shape[0],), dtype=np.float64)
 
         # Create the sample
         sample = entry.create_group("sample")
@@ -416,6 +438,7 @@ class NexusWriter(Writer):
         data["y_drift"] = sample["y_drift"]
         data["defocus"] = sample["defocus"]
         data["image_key"] = detector["image_key"]
+        data["timestamp"] = detector["timestamp"]
 
         # Set the data ptr
         self._data = data["data"]
@@ -423,6 +446,7 @@ class NexusWriter(Writer):
         self._position = NexusWriter.PositionProxy(data)
         self._drift = NexusWriter.ShiftProxy(data)
         self._defocus = data["defocus"]
+        self._timestamp = data["timestamp"]
 
     @property
     def pixel_size(self):
@@ -509,6 +533,7 @@ class ImageWriter(Writer):
         self._drift = np.zeros(shape=(shape[0], 2), dtype=np.float32)
         self._defocus = np.zeros(shape=shape[0], dtype=np.float32)
         self._pixel_size = 0
+        self._timestamp = np.zeros(shape=shape[0], dtype=np.float64)
 
     @property
     def vmin(self):
@@ -550,7 +575,15 @@ class Reader(object):
     """
 
     def __init__(
-        self, handle, data, angle, position, pixel_size, drift=None, defocus=None
+        self,
+        handle,
+        data,
+        angle,
+        position,
+        pixel_size,
+        drift=None,
+        defocus=None,
+        timestamp=None,
     ):
         """
         Initialise the data
@@ -576,6 +609,7 @@ class Reader(object):
         self.pixel_size = pixel_size
         self.drift = drift
         self.defocus = defocus
+        self.timestamp = timestamp
         self.shape = data.shape
         self.dtype = data.dtype
 
@@ -647,6 +681,7 @@ class Reader(object):
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
             drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
             defocus = np.zeros(shape=(handle.data.shape[0]), dtype=np.float32)
+            timestamp = np.zeros(shape=(handle.data.shape[0]), dtype=np.float64)
             for i in range(handle.extended_header.shape[0]):
 
                 # Read the positions
@@ -660,11 +695,15 @@ class Reader(object):
 
                 # Read the defocus
                 defocus[i] = handle.extended_header[i]["Defocus"]
+
+                # Read the timestamp
+                timestamp[i] = handle.extended_header[i]["Timestamp"]
         else:
             angle = np.zeros(handle.data.shape[0], dtype=np.float32)
             position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
             drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
             defocus = np.zeros(handle.data.shape[0], dtype=np.float32)
+            timestamp = np.zeros(handle.data.shape[0], dtype=np.float64)
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
@@ -678,6 +717,7 @@ class Reader(object):
             pixel_size,
             drift=drift,
             defocus=defocus,
+            timestamp=timestamp,
         )
 
     @classmethod
@@ -714,7 +754,12 @@ class Reader(object):
         drift = np.array((data["x_drift"], data["y_drift"])).T
 
         # Get the defocus
-        defocus = data.get("defocus", None)
+        defocus = data.get("defocus", np.zeros(data["data"].shape[0], dtype=np.float32))
+
+        # Get the timestamp
+        timestamp = data.get(
+            "timestamp", np.zeros(data["data"].shape[0], dtype=np.float64)
+        )
 
         # Get the pixel size
         pixel_size = detector["x_pixel_size"][0]
@@ -728,6 +773,7 @@ class Reader(object):
             pixel_size,
             drift=drift,
             defocus=defocus,
+            timestamp=timestamp,
         )
 
     @classmethod
