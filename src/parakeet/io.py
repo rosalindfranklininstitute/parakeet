@@ -13,11 +13,25 @@ import numpy as np
 import mrcfile
 import os
 import PIL.Image
+from abc import ABC, abstractmethod
 
 try:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
 except Exception:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
+
+
+class Header(ABC):
+    @property
+    def timestamp(self) -> float:
+        self._handle["Timestamp"]
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self._handle["Timestamp"] = value
+
+
+handle[i].timestamp = 1
 
 
 class Writer(object):
@@ -260,26 +274,18 @@ class MrcFileWriter(Writer):
         elif dtype == "complex128":
             dtype = np.dtype(np.complex64)
 
+        # Setup the extended header
+        extended_header = np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
+
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
             filename,
             shape=(0, 0, 0),
             mrc_mode=mrcfile.utils.mode_from_dtype(dtype),
             overwrite=True,
+            extended_header=extended_header,
+            exttype="FEI1",
         )
-
-        # Setup the extended header
-        extended_header = np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
-
-        # Set the extended header
-        self.handle._check_writeable()
-        self.handle._close_data()
-        self.handle._extended_header = extended_header
-        self.handle.header.nsymbt = extended_header.nbytes
-        self.handle.header.exttyp = "FEI1"
-        self.handle._open_memmap(dtype, shape)
-        self.handle.update_header_from_data()
-        self.handle.flush()
 
         # Set the pixel size
         self.handle.voxel_size = pixel_size
