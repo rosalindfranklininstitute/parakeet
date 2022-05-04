@@ -306,8 +306,18 @@ class ExitWaveImageSimulator(object):
         # Get the timestamp
         timestamp = time.time_ns() / 1e9
 
+        # Set the metaadata
+        metadata = np.zeros(shape=1, dtype=parakeet.io.METADATA_DTYPE)
+        metadata["tilt_alpha"] = angle
+        metadata["shift_x"] = position[0]
+        metadata["shift_y"] = position[1]
+        metadata["stage_z"] = position[2]
+        metadata["shift_offset_x"] = driftx
+        metadata["shift_offset_y"] = drifty
+        metadata["timestamp"] = timestamp
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), None, timestamp)
+        return (index, image, metadata)
 
 
 def simulation_factory(

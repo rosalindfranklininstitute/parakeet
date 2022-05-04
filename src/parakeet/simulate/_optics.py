@@ -169,11 +169,9 @@ class OpticsImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
 
         # Check the angle and position
-        assert abs(angle - self.exit_wave.angle[index]) < 1e7
-        assert (np.abs(position - self.exit_wave.position[index]) < 1e7).all()
+        assert abs(angle - self.exit_wave.header[index]["tilt_alpha"]) < 1e7
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -189,12 +187,6 @@ class OpticsImageSimulator(object):
 
         # Set the input wave
         psi = self.exit_wave.data[index]
-
-        # Get the beam drift
-        driftx, drifty = self.exit_wave.drift[index, :]
-
-        # Get the timestamp
-        timestamp = self.exit_wave.timestamp[index]
 
         microscope = copy.deepcopy(self.microscope)
 
@@ -447,8 +439,12 @@ class OpticsImageSimulator(object):
             % (np.min(image), np.mean(image), np.max(image))
         )
 
+        # Set the metadata
+        metadata = np.asarray(self.exit_wave.header[index])
+        metadata["c_10"] = defocus
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), defocus, timestamp)
+        return (index, image, metadata)
 
 
 def simulation_factory(
@@ -555,8 +551,8 @@ def _optics_Config(
     exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
-    config.scan.angles = exit_wave.angle
-    config.scan.positions = exit_wave.position[:, 1]
+    config.scan.angles = exit_wave.header["tilt_alpha"][:]
+    config.scan.positions = exit_wave.header["shift_y"][:]
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
