@@ -18,89 +18,6 @@ import parakeet
 
 FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
 
-# metadata_dtype = np.dtype([
-#    #
-#    # General parameters
-#    #
-#    ("application", 'S16'),
-#    ("application_version", 'S16'),
-#    ("timestamp", 'f8'),
-#    #
-#    # Stage parameters
-#    #
-#    ('tilt_alpha', 'f8'),
-#    ('tilt_axis_angle', 'f8'),
-#    ('stage_x', 'f8'),
-#    ('stage_y', 'f8'),
-#    ('stage_z', 'f8'),
-#    #
-#    # Beam parameters
-#    #
-#    ('energy', 'f8'),
-#    ('dose', 'f8'),
-#    ('slit_inserted', '?'),
-#    ('slit_width', 'f8'),
-#    ('energy_shift', 'f8'),
-#    ('shift_x', 'f8'),
-#    ('shift_y', 'f8'),
-#    ('shift_offset_x', 'f8'),
-#    ('shift_offset_y', 'f8'),
-#    ('acceleration_voltage_spread', 'f8'),
-#    ('energy_spread', 'f8'),
-#    ('source_spread', 'f8'),
-#    ('exposure_time', 'f8'),
-#    ('theta', 'f8'),
-#    ('phi', 'f8'),
-#    #
-#    # Detector parameters
-#    #
-#    ('pixel_size_x', 'f8'),
-#    ('pixel_size_y', 'f8'),
-#    ('image_size_x', 'i4'),
-#    ('image_size_y', 'i4'),
-#    ('gain', 'f8'),
-#    ('offset', 'f8'),
-#    ('dqe', '?'),
-#    #
-#    # Lens parameters
-#    #
-#    ("c_10", 'f8'),
-#    ("c_12", 'f8'),
-#    ("c_21", 'f8'),
-#    ("c_23", 'f8'),
-#    ("c_30", 'f8'),
-#    ("c_32", 'f8'),
-#    ("c_34", 'f8'),
-#    ("c_41", 'f8'),
-#    ("c_43", 'f8'),
-#    ("c_45", 'f8'),
-#    ("c_50", 'f8'),
-#    ("c_52", 'f8'),
-#    ("c_54", 'f8'),
-#    ("c_56", 'f8'),
-#    ("c_c", 'f8'),
-#    ("phi_12", 'f8'),
-#    ("phi_21", 'f8'),
-#    ("phi_23", 'f8'),
-#    ("phi_32", 'f8'),
-#    ("phi_34", 'f8'),
-#    ("phi_41", 'f8'),
-#    ("phi_43", 'f8'),
-#    ("phi_45", 'f8'),
-#    ("phi_52", 'f8'),
-#    ("phi_54", 'f8'),
-#    ("phi_56", 'f8'),
-#    ("current_spread", 'f8'),
-#    ('phase_plate', '?'),
-#    #
-#    # Simulation parameters
-#    #
-#    ('slice_thickness', 'f8'),
-#    ('ice', '?'),
-#    ('inelastic_model', 'S16'),
-#    ('damage_model', '?'),
-#    ('sensitivity_coefficient', 'f8'),
-# ])
 
 METADATA_DTYPE = np.dtype(
     [
@@ -114,10 +31,24 @@ METADATA_DTYPE = np.dtype(
         # Stage parameters
         #
         ("tilt_alpha", "f8"),
+        ("tilt_axis_angle", "f8"),
+        ("stage_x", "f8"),
+        ("stage_y", "f8"),
         ("stage_z", "f8"),
         #
         # Beam parameters
         #
+        ("energy", "f8"),
+        ("dose", "f8"),
+        ("slit_inserted", "?"),
+        ("slit_width", "f8"),
+        ("energy_shift", "f8"),
+        ("acceleration_voltage_spread", "f8"),
+        ("energy_spread", "f8"),
+        ("source_spread", "f8"),
+        ("exposure_time", "f8"),
+        ("theta", "f8"),
+        ("phi", "f8"),
         ("shift_x", "f8"),
         ("shift_y", "f8"),
         ("shift_offset_x", "f8"),
@@ -127,10 +58,50 @@ METADATA_DTYPE = np.dtype(
         #
         ("pixel_size_x", "f8"),
         ("pixel_size_y", "f8"),
+        ("image_size_x", "i4"),
+        ("image_size_y", "i4"),
+        ("gain", "f8"),
+        ("offset", "f8"),
+        ("dqe", "?"),
         #
         # Lens parameters
         #
         ("c_10", "f8"),
+        ("c_12", "f8"),
+        ("c_21", "f8"),
+        ("c_23", "f8"),
+        ("c_30", "f8"),
+        ("c_32", "f8"),
+        ("c_34", "f8"),
+        ("c_41", "f8"),
+        ("c_43", "f8"),
+        ("c_45", "f8"),
+        ("c_50", "f8"),
+        ("c_52", "f8"),
+        ("c_54", "f8"),
+        ("c_56", "f8"),
+        ("c_c", "f8"),
+        ("phi_12", "f8"),
+        ("phi_21", "f8"),
+        ("phi_23", "f8"),
+        ("phi_32", "f8"),
+        ("phi_34", "f8"),
+        ("phi_41", "f8"),
+        ("phi_43", "f8"),
+        ("phi_45", "f8"),
+        ("phi_52", "f8"),
+        ("phi_54", "f8"),
+        ("phi_56", "f8"),
+        ("current_spread", "f8"),
+        ("phase_plate", "?"),
+        #
+        # Simulation parameters
+        #
+        ("slice_thickness", "f8"),
+        ("ice", "?"),
+        ("inelastic_model", "S16"),
+        ("damage_model", "?"),
+        ("sensitivity_coefficient", "f8"),
     ]
 )
 
@@ -461,26 +432,52 @@ class MrcfileHeader(Header):
     def __init__(self, handle):
         self._handle = handle
 
-    @classmethod
-    def mapping(Class, key: str):
+    def mapping(self, key: str):
         """
         Get the mapping between names
 
         """
+        assert key in self.dtype.fields
         return {
+            #
+            # General parameters
+            #
             "application": "Application",
             "application_version": "Application version",
             "timestamp": "Timestamp",
+            #
+            # Stage parameters
+            #
             "tilt_alpha": "Alpha tilt",
+            "tilt_axis_angle": "Tilt axis angle",
+            "stage_x": "X-Stage",
+            "stage_y": "Y-Stage",
             "stage_z": "Z-Stage",
+            #
+            # Beam parameters
+            #
+            "energy": "HT",
+            "dose": "Dose",
+            "slit_inserted": "Slit inserted",
+            "slit_width": "Slit width",
+            "energy_shift": "Energy shift",
             "shift_x": "Shift X",
             "shift_y": "Shift Y",
             "shift_offset_x": "Shift offset X",
             "shift_offset_y": "Shift offset Y",
+            #
+            # Detector parameters
+            #
             "pixel_size_x": "Pixel size X",
-            "pixel_size_y": "Pixel size X",
+            "pixel_size_y": "Pixel size Y",
+            "gain": "Gain",
+            "offset": "Offset",
+            #
+            # Lens parameters
+            #
             "c_10": "Defocus",
-        }[key]
+            "phase_plate": "Phase Plate",
+        }.get(key, None)
 
     def get(self, index, key: str):
         """
@@ -492,6 +489,10 @@ class MrcfileHeader(Header):
             "pixel_size_x": lambda x: x * 1e-10,
             "pixel_size_y": lambda x: x * 1e-10,
         }.get(key, lambda x: x)
+        if not mapping:
+            return np.zeros(shape=self._handle.size, dtype=self.dtype.fields[key][0])[
+                index
+            ]
         return getter(self._handle[index][mapping])
 
     def set(self, index, key: str, value):
@@ -504,7 +505,8 @@ class MrcfileHeader(Header):
             "pixel_size_x": lambda x: x * 1e10,
             "pixel_size_y": lambda x: x * 1e10,
         }.get(key, lambda x: x)
-        self._handle[index][mapping] = setter(value)
+        if mapping:
+            self._handle[index][mapping] = setter(value)
 
     @property
     def size(self) -> int:
@@ -593,26 +595,13 @@ class NexusHeader(Header):
     def __init__(self, handle):
         self._handle = handle
 
-    @classmethod
-    def mapping(Class, key):
+    def mapping(self, key):
         """
         Get the mapping between names
 
         """
-        return {
-            "application": "application",
-            "application_version": "application_version",
-            "timestamp": "timestamp",
-            "tilt_alpha": "rotation_angle",
-            "stage_z": "z_translation",
-            "shift_x": "x_translation",
-            "shift_y": "y_translation",
-            "shift_offset_x": "x_drift",
-            "shift_offset_y": "y_drift",
-            "pixel_size_x": "x_pixel_size",
-            "pixel_size_y": "y_pixel_size",
-            "c_10": "defocus",
-        }[key]
+        assert key in self.dtype.fields
+        return key
 
     def get(self, index, key):
         """
@@ -674,44 +663,25 @@ class NexusWriter(Writer):
         detector.attrs["NX_class"] = "NXdetector"
         detector.create_dataset("data", shape=shape, dtype=dtype)
         detector["image_key"] = np.zeros(shape=shape[0])
-        detector["x_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
-        detector["y_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
-        detector.create_dataset("timestamp", shape=(shape[0],), dtype=np.float64)
 
         # Create the sample
         sample = entry.create_group("sample")
         sample.attrs["NX_class"] = "NXsample"
         sample["name"] = "parakeet-simulation"
-        sample.create_dataset("application", shape=(shape[0],), dtype="S16")
-        sample.create_dataset("application_version", shape=(shape[0],), dtype="S16")
-        sample.create_dataset("rotation_angle", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("x_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("y_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("z_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("x_drift", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("y_drift", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("defocus", shape=(shape[0],), dtype=np.float32)
 
         # Create the data
         data = entry.create_group("data")
         data["data"] = detector["data"]
-        data["application"] = sample["application"]
-        data["application_version"] = sample["application_version"]
-        data["rotation_angle"] = sample["rotation_angle"]
-        data["x_translation"] = sample["x_translation"]
-        data["y_translation"] = sample["y_translation"]
-        data["z_translation"] = sample["z_translation"]
-        data["x_drift"] = sample["x_drift"]
-        data["y_drift"] = sample["y_drift"]
-        data["defocus"] = sample["defocus"]
-        data["image_key"] = detector["image_key"]
-        data["timestamp"] = detector["timestamp"]
-        data["x_pixel_size"] = detector["x_pixel_size"]
-        data["y_pixel_size"] = detector["y_pixel_size"]
 
         # Set the data ptr
         self._data = data["data"]
         self._header = NexusHeader(data)
+
+        # Create the datasets for the header
+        for key, (dtype, _) in self._header.dtype.fields.items():
+            data.create_dataset(key, shape=shape[0], dtype=dtype)
+
+        # Fill a few values
         self._header[:]["pixel_size_x"] = pixel_size
         self._header[:]["pixel_size_y"] = pixel_size
         self._header[:]["application"] = "Parakeet"
@@ -723,7 +693,7 @@ class NexusWriter(Writer):
         Return the pixel size
 
         """
-        return self.handle["instrument"]["detector"]["x_pixel_size"][0]
+        return self.handle["data"]["pixel_size_x"][0]
 
 
 class ImageWriter(Writer):
@@ -923,12 +893,14 @@ class Reader(object):
             assert handle.extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
             assert len(handle.extended_header.shape) == 1
             assert handle.extended_header.shape[0] == handle.data.shape[0]
-            header = MrcfileHeader(handle.extended_header)
+            extended_header = handle.extended_header
         else:
             extended_header = np.zeros(
                 shape=handle.data.shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE
             )
-            header = MrcfileHeader(handle.extended_header)
+
+        # Set the header
+        header = MrcfileHeader(extended_header)
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
@@ -964,13 +936,12 @@ class Reader(object):
 
         # Get the data and detector
         data = entry["data"]
-        detector = entry["instrument"]["detector"]
 
         # Get the header
         header = NexusHeader(data)
 
         # Get the pixel size
-        pixel_size = detector["x_pixel_size"][0]
+        pixel_size = data["pixel_size_x"][0]
 
         # Create the reader
         return Reader(
