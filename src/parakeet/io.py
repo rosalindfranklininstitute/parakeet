@@ -136,28 +136,74 @@ METADATA_DTYPE = np.dtype(
 
 
 class Row(object):
-    def __init__(self, header, index: int):
+    """
+    An object to represent a row
+
+    """
+
+    def __init__(self, header, index):
         self._header = header
         self._index = index
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        The size of the header
+
+        """
         return np.arange(self._header.size)[self._index].size
 
-    def indices(self, item):
+    def indices(self, item) -> np.array:
+        """
+        Args:
+            item: The index
+
+        Returns:
+            The row indices
+
+        """
         return np.arange(self.size)[item]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
+        """
+        Get an item from the row
+
+        Args:
+            key: The field name
+
+        Returns:
+            The row element
+
+        """
         return self._header.get(self._index, key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value):
+        """
+        Set an item in the row
+
+        Args:
+            key: The field name
+            value: The field value
+
+        """
         self._header.set(self._index, key, value)
 
     def assign(self, value):
+        """
+        Assign a row
+
+        Args:
+            value: The row of data
+
+        """
         for key in self._header.dtype.fields:
             self[key] = value[key]
 
     def __array__(self, dtype=METADATA_DTYPE):
+        """
+        Convert to a numpy array
+
+        """
         result = np.zeros(self.size, dtype=self._header.dtype)
         for key in self._header.dtype.fields:
             result[key] = self[key]
@@ -165,61 +211,141 @@ class Row(object):
 
 
 class Column(object):
+    """
+    An object to represent a column
+
+    """
+
     def __init__(self, header, key: str):
         self._header = header
         self._key = key
 
     @property
     def size(self):
+        """
+        The size of the header
+
+        """
         return 1
 
     def __getitem__(self, index):
+        """
+        Get an item from the column
+
+        Args:
+            index: The row index
+
+        Returns:
+            The element
+
+        """
         return self._header.get(index, self._key)
 
     def __setitem__(self, index, value):
+        """
+        Set an item in the column
+
+        Args:
+            index: The row index
+            value: The field value
+
+        """
         self._header.set(index, self._key, value)
 
     def __array__(self, dtype=None):
+        """
+        Convert to a numpy array
+
+        """
         return self[:]
 
 
 class Header(object):
+    """
+    An object to represent the header
+
+    """
+
     @functools.singledispatchmethod
     def __getitem__(self, item):
+        """
+        Get a row or column item
+
+        """
         return Row(self, item)
 
     @__getitem__.register
     def _(self, item: str):
+        """
+        Get a row or column item
+
+        """
         return Column(self, item)
 
     @functools.singledispatchmethod
     def __setitem__(self, item, value):
+        """
+        Set a row or column item
+
+        """
         row = Row(self, item)
         row.assign(value)
 
     @__setitem__.register
     def _(self, item: str, value):
+        """
+        Set a row or column item
+
+        """
         col = Column(self, item)
         col[:] = value
 
     def rows(self):
+        """
+        Get a row iterator
+
+        """
         for i in range(self.size):
             yield Row(self, i)
 
     def cols(self):
+        """
+        Get a column iterator
+
+        """
         for key in self.fields:
             yield Column(self, key)
 
     @property
     def fields(self):
+        """
+        Get the datatype fields
+
+        """
         return self.dtype.fields
 
     @property
     def dtype(self):
+        """
+        Get the metadata datatype
+
+        """
         return METADATA_DTYPE
 
     @property
-    def position(self):
+    def angle(self) -> np.array:
+        """
+        An alias to get the angle
+
+        """
+        return self["tilt_alpha"]
+
+    @property
+    def position(self) -> np.array:
+        """
+        An alias to get the position
+
+        """
         result = np.zeros(shape=(self.size, 3), dtype=np.float32)
         result[:, 0] = self["shift_x"][:]
         result[:, 1] = self["shift_y"][:]
@@ -227,7 +353,33 @@ class Header(object):
         return result
 
     def __array__(self, dtype=METADATA_DTYPE):
+        """
+        Convert to a numpy array
+
+        """
         return np.asarray(self[:])
+
+    def get(self, index, key: str):
+        """
+        Get the value of a property
+
+        """
+        pass
+
+    def set(self, index, key: str, value):
+        """
+        Set the value of a property
+
+        """
+        pass
+
+    @property
+    def size(self):
+        """
+        Get the size of the header
+
+        """
+        pass
 
 
 class Writer(object):
@@ -301,11 +453,20 @@ class Writer(object):
 
 
 class MrcfileHeader(Header):
+    """
+    A sub class for the MRC file header
+
+    """
+
     def __init__(self, handle):
         self._handle = handle
 
     @classmethod
-    def mapping(Class, key):
+    def mapping(Class, key: str):
+        """
+        Get the mapping between names
+
+        """
         return {
             "application": "Application",
             "application_version": "Application version",
@@ -321,7 +482,11 @@ class MrcfileHeader(Header):
             "c_10": "Defocus",
         }[key]
 
-    def get(self, index, key):
+    def get(self, index, key: str):
+        """
+        Get the value of a property
+
+        """
         mapping = self.mapping(key)
         getter = {
             "pixel_size_x": lambda x: x * 1e-10,
@@ -329,7 +494,11 @@ class MrcfileHeader(Header):
         }.get(key, lambda x: x)
         return getter(self._handle[index][mapping])
 
-    def set(self, index, key, value):
+    def set(self, index, key: str, value):
+        """
+        Set the value of a property
+
+        """
         mapping = self.mapping(key)
         setter = {
             "pixel_size_x": lambda x: x * 1e10,
@@ -338,7 +507,11 @@ class MrcfileHeader(Header):
         self._handle[index][mapping] = setter(value)
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Get the size of the header
+
+        """
         return self._handle.shape[0]
 
 
@@ -412,11 +585,20 @@ class MrcFileWriter(Writer):
 
 
 class NexusHeader(Header):
+    """
+    A sub class for the MRC file header
+
+    """
+
     def __init__(self, handle):
         self._handle = handle
 
     @classmethod
     def mapping(Class, key):
+        """
+        Get the mapping between names
+
+        """
         return {
             "application": "application",
             "application_version": "application_version",
@@ -433,15 +615,27 @@ class NexusHeader(Header):
         }[key]
 
     def get(self, index, key):
+        """
+        Get the mapping between names
+
+        """
         mapping = self.mapping(key)
         return self._handle[mapping][index]
 
     def set(self, index, key, value):
+        """
+        Set the value of a property
+
+        """
         mapping = self.mapping(key)
         self._handle[mapping][index] = value
 
     @property
     def size(self):
+        """
+        Get the size of the header
+
+        """
         return self._handle["data"].shape[0]
 
 
