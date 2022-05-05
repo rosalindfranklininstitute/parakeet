@@ -361,6 +361,7 @@ def export_impl(args):
         pixel_size = reader.pixel_size
         drift = reader.drift[i]
         defocus = reader.defocus[i]
+        timestamp = reader.timestamp[i]
 
         # Rotate if necessary
         if args.rot90:
@@ -398,6 +399,8 @@ def export_impl(args):
             writer.drift[j] = drift
         if defocus is not None:
             writer.defocus[j] = defocus
+        if timestamp is not None:
+            writer.timestamp[j] = timestamp
 
     # Update the writer
     writer.update()

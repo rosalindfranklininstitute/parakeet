@@ -154,6 +154,7 @@ def create_input_multislice(
         input_multislice.E_0, microscope.beam.source_spread
     )
     input_multislice.cond_lens_si_sigma = ssf_sigma
+    print(ssf_sigma)
 
     # Objective lens
     input_multislice.obj_lens_m = microscope.lens.m
@@ -198,6 +199,7 @@ def create_input_multislice(
             microscope.beam.acceleration_voltage_spread,
         )
     )
+    print(input_multislice.obj_lens_ti_sigma)
 
     # zero defocus reference
     if centre is not None:
@@ -279,7 +281,15 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                _, angle, position, image, drift, defocus = self.simulate_image(i)
+                (
+                    _,
+                    angle,
+                    position,
+                    image,
+                    drift,
+                    defocus,
+                    timestamp,
+                ) = self.simulate_image(i)
                 if writer is not None:
                     writer.data[i, :, :] = image
                     writer.angle[i] = angle
@@ -288,6 +298,8 @@ class Simulation(object):
                         writer.drift[i] = drift
                     if defocus is not None:
                         writer.defocus[i] = defocus
+                    if timestamp is not None:
+                        writer.timestamp[i] = timestamp
         else:
 
             # Set the maximum number of workers
@@ -315,7 +327,15 @@ class Simulation(object):
                 for j, future in enumerate(parakeet.futures.as_completed(futures)):
 
                     # Get the result
-                    i, angle, position, image, drift, defocus = future.result()
+                    (
+                        i,
+                        angle,
+                        position,
+                        image,
+                        drift,
+                        defocus,
+                        timestamp,
+                    ) = future.result()
 
                     # Set the output in the writer
                     if writer is not None:
@@ -326,6 +346,8 @@ class Simulation(object):
                             writer.drift[i] = drift
                         if defocus is not None:
                             writer.defocus[i] = defocus
+                        if timestamp is not None:
+                            writer.timestamp[i] = timestamp
 
                     # Write some info
                     vmin = np.min(image)

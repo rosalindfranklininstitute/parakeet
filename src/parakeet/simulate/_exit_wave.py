@@ -11,6 +11,7 @@
 
 import logging
 import numpy as np
+import time
 import warnings
 import parakeet.config
 import parakeet.dqe
@@ -302,8 +303,11 @@ class ExitWaveImageSimulator(object):
         psi_tot = np.abs(image) ** 2
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
+        # Get the timestamp
+        timestamp = time.time_ns() / 1e9
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), None)
+        return (index, angle, position, image, (driftx, drifty), None, timestamp)
 
 
 def simulation_factory(

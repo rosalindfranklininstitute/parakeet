@@ -29,9 +29,10 @@ On ubuntu 20.04, the dependencies can be install on a clean install as follows:
   # Install CUDA toolkit
   wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
   sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
-  sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
+  sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
   sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
-  sudo apt-get updatesudo apt-get -y install cuda
+  sudo apt-get update
+  sudo apt-get -y install cuda
 
 Enviornment variables
 ---------------------
@@ -270,6 +271,33 @@ Now we can build the singularity image from the docker image
 .. code-block:: bash
 
   singularity build myapp.sif docker-deamon://me/myapp:latest
+
+
+Install as a snap
+-----------------
+
+You can install the parakeet snap from the snapcraft repository as follows:
+
+.. code-block:: bash
+
+  # Install the snap from the edge channel
+  sudo snap install parakeet --classic --edge
+
+You can also build the parakeet snap application from source as follows:
+
+.. code-block:: bash
+
+  # Run this command in the repository directory on a VM with 4GB memory
+  SNAPCRAFT_BUILD_ENVIRONMENT_MEMORY=4G snapcraft
+
+  # Install the locally built snap
+  sudo snap install parakeet_${VERSION}.snap --classic --dangerous
+
+Note that the snap installation only exposes the top level parakeet command:
+
+.. code-block:: bash
+
+  parakeet -h
 
 
 Install on Baskerville (native)

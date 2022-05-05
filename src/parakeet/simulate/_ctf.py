@@ -95,7 +95,7 @@ class CTFSimulator(object):
         image = np.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise
-        return (index, 0, (0, 0, 0), image, None, None)
+        return (index, 0, (0, 0, 0), image, None, None, None)
 
 
 def simulation_factory(microscope: Microscope, simulation: dict) -> Simulation:

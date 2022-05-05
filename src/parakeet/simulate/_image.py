@@ -93,6 +93,7 @@ class ImageSimulator(object):
         # Get some other properties to propagate
         beam_drift = self.optics.drift[index]
         defocus = self.optics.defocus[index]
+        timestamp = self.optics.timestamp[index]
 
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
@@ -119,7 +120,15 @@ class ImageSimulator(object):
         )
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image.astype("float32"), beam_drift, defocus)
+        return (
+            index,
+            angle,
+            position,
+            image.astype("float32"),
+            beam_drift,
+            defocus,
+            timestamp,
+        )
 
 
 def simulation_factory(

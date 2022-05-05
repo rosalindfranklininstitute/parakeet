@@ -177,7 +177,7 @@ class ProjectedPotentialSimulator(object):
         multem.compute_projected_potential(system_conf, input_multislice, callback)
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, None, None, None)
+        return (index, angle, position, None, None, None, None)
 
 
 def simulation_factory(

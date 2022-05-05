@@ -7,18 +7,18 @@
 > **Parakeet** is a digital twin for cryo electron tomography and stands for **P**rogram for **A**nalysis and **R**econstruction of **A**rtificial data for **K**ryo **E**l**E**ctron **T**omography
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/amplus-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/amplus-digital-twin/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/amplus-digital-twin.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/amplus-digital-twin/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/alerts/)
 
 [![PyPI version shields.io](https://img.shields.io/pypi/v/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 [![PyPI download month](https://img.shields.io/pypi/dm/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 
-[![Building](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-package.yml)
-[![Publishing](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/python-publish.yml)
-[![Docker](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/docker-publish.yml)
-[![Conda](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/conda.yml)
-[![Snapcraft](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/amplus-digital-twin/actions/workflows/snapcraft.yml)
+[![Building](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml)
+[![Publishing](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml)
+[![Docker](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml)
+[![Conda](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml)
+[![Snapcraft](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml)
 
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
 
@@ -36,7 +36,7 @@ However, because the package needs to be built locally from source and has some
 external dependencies you may need to ensure your environment is ready before
 running this command. For full instructions please see the installation
 documentation
-[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/installation.html).
+[here](https://rosalindfranklininstitute.github.io/parakeet/installation.html).
 
 ## Usage
 
@@ -53,13 +53,18 @@ Parakeet can be used as a suite of command line tools as follows:
 
 For full command line usage instructions please see the command line
 documentation here
-[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/usage.html).
+[here](https://rosalindfranklininstitute.github.io/parakeet/usage.html).
 Alternatively, there is a complementary high level Python API which can be seen
-[here](https://rosalindfranklininstitute.github.io/amplus-digital-twin/api.html).
+[here](https://rosalindfranklininstitute.github.io/parakeet/api.html).
 
 ## Documentation
 
-Checkout the [documentation](https://rosalindfranklininstitute.github.io/amplus-digital-twin/) for more information!
+Checkout the [documentation](https://rosalindfranklininstitute.github.io/parakeet/) for more information!
+
+## Notifications
+
+You can receive notifications from the [Github discussions](https://github.com/rosalindfranklininstitute/parakeet/discussions)
+by clicking "watch" on this repository.
 
 ## Issues
 
