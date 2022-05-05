@@ -110,4 +110,4 @@ def _run_Config(
     parakeet.simulate.image(config, optics_file, image_file)
 
     # Export the metadata
-    parakeet.metadata.export(config, sample)  # type: ignore
+    # parakeet.metadata.export(config, sample)  # type: ignore
