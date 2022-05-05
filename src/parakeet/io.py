@@ -318,8 +318,8 @@ class Header(object):
 
         """
         result = np.zeros(shape=(self.size, 3), dtype=np.float32)
-        result[:, 0] = self["shift_x"][:]
-        result[:, 1] = self["shift_y"][:]
+        result[:, 0] = self["stage_x"][:] + self["shift_x"][:]
+        result[:, 1] = self["stage_y"][:] + self["shift_y"][:]
         result[:, 2] = self["stage_z"][:]
         return result
 
