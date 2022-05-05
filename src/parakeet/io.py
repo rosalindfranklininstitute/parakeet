@@ -80,7 +80,6 @@ METADATA_DTYPE = np.dtype(
         ("c_52", "f8"),
         ("c_54", "f8"),
         ("c_56", "f8"),
-        ("c_c", "f8"),
         ("phi_12", "f8"),
         ("phi_21", "f8"),
         ("phi_23", "f8"),
@@ -92,6 +91,7 @@ METADATA_DTYPE = np.dtype(
         ("phi_52", "f8"),
         ("phi_54", "f8"),
         ("phi_56", "f8"),
+        ("c_c", "f8"),
         ("current_spread", "f8"),
         ("phase_plate", "?"),
         #
