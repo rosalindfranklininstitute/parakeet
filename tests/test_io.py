@@ -33,8 +33,10 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
     writer = parakeet.io.new(filename, shape=data.shape)
     for i in range(data.shape[0]):
         writer.data[i, :, :] = data[i, :, :]
-        writer.angle[i] = angle[i]
-        writer.position[i] = position[i]
+        writer.header[i]["tilt_alpha"] = angle[i]
+        writer.header[i]["shift_x"] = position[i][0]
+        writer.header[i]["shift_y"] = position[i][1]
+        writer.header[i]["stage_z"] = position[i][2]
 
     assert writer.shape == data.shape
     assert writer.is_mrcfile_writer == True
@@ -42,21 +44,21 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
     assert writer.is_image_writer == False
 
     # Test different ways of writing position
-    writer.position[0, 0] = position[0][0]
-    writer.position[0, 1] = position[0][1]
-    writer.position[0, 2] = position[0][2]
-    writer.position[2, :] = position[2]
-    writer.position[3, 0:2] = position[3][0:2]
-    writer.position[3, 2] = position[3][2]
+    writer.header.position[0, 0] = position[0][0]
+    writer.header.position[0, 1] = position[0][1]
+    writer.header.position[0, 2] = position[0][2]
+    writer.header.position[2, :] = position[2]
+    writer.header.position[3, 0:2] = position[3][0:2]
+    writer.header.position[3, 2] = position[3][2]
 
     # Make sure stuff is written
     writer = None
 
     reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
-    assert reader.angle.shape == (10,)
-    assert np.all(np.equal(reader.angle, angle))
-    assert np.all(np.equal(reader.position, position))
+    assert reader.header.size == 10
+    assert np.all(np.equal(reader.header["tilt_alpha"], angle))
+    assert np.all(np.equal(reader.header.position, position))
 
 
 def test_write_nexus(tmp_path, io_test_data):
@@ -68,8 +70,10 @@ def test_write_nexus(tmp_path, io_test_data):
     writer = parakeet.io.new(filename, shape=data.shape)
     for i in range(data.shape[0]):
         writer.data[i, :, :] = data[i, :, :]
-        writer.angle[i] = angle[i]
-        writer.position[i] = position[i]
+        writer.header[i]["tilt_alpha"] = angle[i]
+        writer.header[i]["shift_x"] = position[i][0]
+        writer.header[i]["shift_y"] = position[i][1]
+        writer.header[i]["stage_z"] = position[i][2]
 
     assert writer.shape == data.shape
     assert writer.is_mrcfile_writer == False
@@ -77,21 +81,21 @@ def test_write_nexus(tmp_path, io_test_data):
     assert writer.is_image_writer == False
 
     # Test different ways of writing position
-    writer.position[0, 0] = position[0][0]
-    writer.position[0, 1] = position[0][1]
-    writer.position[0, 2] = position[0][2]
-    writer.position[2, :] = position[2]
-    writer.position[3, 0:2] = position[3][0:2]
-    writer.position[3, 2] = position[3][2]
+    writer.header.position[0, 0] = position[0][0]
+    writer.header.position[0, 1] = position[0][1]
+    writer.header.position[0, 2] = position[0][2]
+    writer.header.position[2, :] = position[2]
+    writer.header.position[3, 0:2] = position[3][0:2]
+    writer.header.position[3, 2] = position[3][2]
 
     # Make sure stuff is written
     writer = None
 
     reader = parakeet.io.open(filename)
     assert reader.data.shape == (10, 100, 100)
-    assert reader.angle.shape == (10,)
-    assert np.all(np.equal(reader.angle, angle))
-    assert np.all(np.equal(reader.position, position))
+    assert reader.header.size == 10
+    assert np.all(np.equal(reader.header["tilt_alpha"], angle))
+    assert np.all(np.equal(reader.header.position, position))
 
 
 def test_write_images(tmp_path, io_test_data):
@@ -104,8 +108,10 @@ def test_write_images(tmp_path, io_test_data):
         writer = parakeet.io.new(filename, shape=data.shape, vmin=vmin, vmax=vmax)
         for i in range(data.shape[0]):
             writer.data[i, :, :] = data[i, :, :]
-            writer.angle[i] = angle[i]
-            writer.position[i] = position[i]
+            writer.header[i]["tilt_alpha"] = angle[i]
+            writer.header[i]["shift_x"] = position[i][0]
+            writer.header[i]["shift_y"] = position[i][1]
+            writer.header[i]["stage_z"] = position[i][2]
 
         assert writer.shape == data.shape
         assert writer.is_mrcfile_writer == False

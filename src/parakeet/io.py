@@ -8,16 +8,349 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import functools
 import h5py
 import numpy as np
 import mrcfile
 import os
 import PIL.Image
+import parakeet
 
-try:
-    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
-except Exception:
-    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI_EXTENDED_HEADER_DTYPE
+FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
+
+
+METADATA_DTYPE = np.dtype(
+    [
+        #
+        # General parameters
+        #
+        ("application", "S16"),
+        ("application_version", "S16"),
+        ("timestamp", "f8"),
+        #
+        # Stage parameters
+        #
+        ("tilt_alpha", "f8"),
+        ("tilt_axis_angle", "f8"),
+        ("stage_x", "f8"),
+        ("stage_y", "f8"),
+        ("stage_z", "f8"),
+        #
+        # Beam parameters
+        #
+        ("energy", "f8"),
+        ("dose", "f8"),
+        ("slit_inserted", "?"),
+        ("slit_width", "f8"),
+        ("energy_shift", "f8"),
+        ("acceleration_voltage_spread", "f8"),
+        ("energy_spread", "f8"),
+        ("source_spread", "f8"),
+        ("exposure_time", "f8"),
+        ("theta", "f8"),
+        ("phi", "f8"),
+        ("shift_x", "f8"),
+        ("shift_y", "f8"),
+        ("shift_offset_x", "f8"),
+        ("shift_offset_y", "f8"),
+        #
+        # Detector parameters
+        #
+        ("pixel_size_x", "f8"),
+        ("pixel_size_y", "f8"),
+        ("image_size_x", "i4"),
+        ("image_size_y", "i4"),
+        ("gain", "f8"),
+        ("offset", "f8"),
+        ("dqe", "?"),
+        #
+        # Lens parameters
+        #
+        ("c_10", "f8"),
+        ("c_12", "f8"),
+        ("c_21", "f8"),
+        ("c_23", "f8"),
+        ("c_30", "f8"),
+        ("c_32", "f8"),
+        ("c_34", "f8"),
+        ("c_41", "f8"),
+        ("c_43", "f8"),
+        ("c_45", "f8"),
+        ("c_50", "f8"),
+        ("c_52", "f8"),
+        ("c_54", "f8"),
+        ("c_56", "f8"),
+        ("phi_12", "f8"),
+        ("phi_21", "f8"),
+        ("phi_23", "f8"),
+        ("phi_32", "f8"),
+        ("phi_34", "f8"),
+        ("phi_41", "f8"),
+        ("phi_43", "f8"),
+        ("phi_45", "f8"),
+        ("phi_52", "f8"),
+        ("phi_54", "f8"),
+        ("phi_56", "f8"),
+        ("c_c", "f8"),
+        ("current_spread", "f8"),
+        ("phase_plate", "?"),
+        #
+        # Simulation parameters
+        #
+        ("slice_thickness", "f8"),
+        ("ice", "?"),
+        ("inelastic_model", "S16"),
+        ("damage_model", "?"),
+        ("sensitivity_coefficient", "f8"),
+    ]
+)
+
+
+class Row(object):
+    """
+    An object to represent a row
+
+    """
+
+    def __init__(self, header, index):
+        self._header = header
+        self._index = index
+
+    @property
+    def size(self) -> int:
+        """
+        The size of the header
+
+        """
+        return np.arange(self._header.size)[self._index].size
+
+    def indices(self, item) -> np.array:
+        """
+        Args:
+            item: The index
+
+        Returns:
+            The row indices
+
+        """
+        return np.arange(self.size)[item]
+
+    def __getitem__(self, key: str):
+        """
+        Get an item from the row
+
+        Args:
+            key: The field name
+
+        Returns:
+            The row element
+
+        """
+        return self._header.get(self._index, key)
+
+    def __setitem__(self, key: str, value):
+        """
+        Set an item in the row
+
+        Args:
+            key: The field name
+            value: The field value
+
+        """
+        self._header.set(self._index, key, value)
+
+    def assign(self, value):
+        """
+        Assign a row
+
+        Args:
+            value: The row of data
+
+        """
+        for key in self._header.dtype.fields:
+            self[key] = value[key]
+
+    def __array__(self, dtype=METADATA_DTYPE):
+        """
+        Convert to a numpy array
+
+        """
+        result = np.zeros(self.size, dtype=self._header.dtype)
+        for key in self._header.dtype.fields:
+            result[key] = self[key]
+        return result.astype(dtype)
+
+
+class Column(object):
+    """
+    An object to represent a column
+
+    """
+
+    def __init__(self, header, key: str):
+        self._header = header
+        self._key = key
+
+    @property
+    def size(self):
+        """
+        The size of the header
+
+        """
+        return 1
+
+    def __getitem__(self, index):
+        """
+        Get an item from the column
+
+        Args:
+            index: The row index
+
+        Returns:
+            The element
+
+        """
+        return self._header.get(index, self._key)
+
+    def __setitem__(self, index, value):
+        """
+        Set an item in the column
+
+        Args:
+            index: The row index
+            value: The field value
+
+        """
+        self._header.set(index, self._key, value)
+
+    def __array__(self, dtype=None):
+        """
+        Convert to a numpy array
+
+        """
+        return self[:]
+
+
+class Header(object):
+    """
+    An object to represent the header
+
+    """
+
+    @functools.singledispatchmethod
+    def __getitem__(self, item):
+        """
+        Get a row or column item
+
+        """
+        return Row(self, item)
+
+    @__getitem__.register
+    def _(self, item: str):
+        """
+        Get a row or column item
+
+        """
+        return Column(self, item)
+
+    @functools.singledispatchmethod
+    def __setitem__(self, item, value):
+        """
+        Set a row or column item
+
+        """
+        row = Row(self, item)
+        row.assign(value)
+
+    @__setitem__.register
+    def _(self, item: str, value):
+        """
+        Set a row or column item
+
+        """
+        col = Column(self, item)
+        col[:] = value
+
+    def rows(self):
+        """
+        Get a row iterator
+
+        """
+        for i in range(self.size):
+            yield Row(self, i)
+
+    def cols(self):
+        """
+        Get a column iterator
+
+        """
+        for key in self.fields:
+            yield Column(self, key)
+
+    @property
+    def fields(self):
+        """
+        Get the datatype fields
+
+        """
+        return self.dtype.fields
+
+    @property
+    def dtype(self):
+        """
+        Get the metadata datatype
+
+        """
+        return METADATA_DTYPE
+
+    @property
+    def angle(self) -> np.array:
+        """
+        An alias to get the angle
+
+        """
+        return self["tilt_alpha"]
+
+    @property
+    def position(self) -> np.array:
+        """
+        An alias to get the position
+
+        """
+        result = np.zeros(shape=(self.size, 3), dtype=np.float32)
+        result[:, 0] = self["stage_x"][:] + self["shift_x"][:]
+        result[:, 1] = self["stage_y"][:] + self["shift_y"][:]
+        result[:, 2] = self["stage_z"][:]
+        return result
+
+    def __array__(self, dtype=METADATA_DTYPE):
+        """
+        Convert to a numpy array
+
+        """
+        return np.asarray(self[:])
+
+    def get(self, index, key: str):
+        """
+        Get the value of a property
+
+        """
+        pass
+
+    def set(self, index, key: str, value):
+        """
+        Set the value of a property
+
+        """
+        pass
+
+    @property
+    def size(self):
+        """
+        Get the size of the header
+
+        """
+        pass
 
 
 class Writer(object):
@@ -51,52 +384,12 @@ class Writer(object):
         return self._data
 
     @property
-    def angle(self):
+    def header(self):
         """
-        The angle property
+        The header metdata
 
         """
-        return self._angle
-
-    @property
-    def position(self):
-        """
-        The position property
-
-        """
-        return self._position
-
-    @property
-    def drift(self):
-        """
-        The drift property
-
-        """
-        return self._drift
-
-    @property
-    def pixel_size(self):
-        """
-        The pixel size property
-
-        """
-        return self._pixel_size
-
-    @property
-    def defocus(self):
-        """
-        The defocus property
-
-        """
-        return self._defocus
-
-    @property
-    def timestamp(self):
-        """
-        The time stamp property
-
-        """
-        return self._timestamp
+        return self._header
 
     @property
     def is_mrcfile_writer(self):
@@ -130,111 +423,105 @@ class Writer(object):
         pass
 
 
+class MrcfileHeader(Header):
+    """
+    A sub class for the MRC file header
+
+    """
+
+    def __init__(self, handle):
+        self._handle = handle
+
+    def mapping(self, key: str):
+        """
+        Get the mapping between names
+
+        """
+        assert key in self.dtype.fields
+        return {
+            #
+            # General parameters
+            #
+            "application": "Application",
+            "application_version": "Application version",
+            "timestamp": "Timestamp",
+            #
+            # Stage parameters
+            #
+            "tilt_alpha": "Alpha tilt",
+            "tilt_axis_angle": "Tilt axis angle",
+            "stage_x": "X-Stage",
+            "stage_y": "Y-Stage",
+            "stage_z": "Z-Stage",
+            #
+            # Beam parameters
+            #
+            "energy": "HT",
+            "dose": "Dose",
+            "slit_inserted": "Slit inserted",
+            "slit_width": "Slit width",
+            "energy_shift": "Energy shift",
+            "shift_x": "Shift X",
+            "shift_y": "Shift Y",
+            "shift_offset_x": "Shift offset X",
+            "shift_offset_y": "Shift offset Y",
+            #
+            # Detector parameters
+            #
+            "pixel_size_x": "Pixel size X",
+            "pixel_size_y": "Pixel size Y",
+            "gain": "Gain",
+            "offset": "Offset",
+            #
+            # Lens parameters
+            #
+            "c_10": "Defocus",
+            "phase_plate": "Phase Plate",
+        }.get(key, None)
+
+    def get(self, index, key: str):
+        """
+        Get the value of a property
+
+        """
+        mapping = self.mapping(key)
+        getter = {
+            "pixel_size_x": lambda x: x * 1e-10,
+            "pixel_size_y": lambda x: x * 1e-10,
+        }.get(key, lambda x: x)
+        if not mapping:
+            return np.zeros(shape=self._handle.size, dtype=self.dtype.fields[key][0])[
+                index
+            ]
+        return getter(self._handle[index][mapping])
+
+    def set(self, index, key: str, value):
+        """
+        Set the value of a property
+
+        """
+        mapping = self.mapping(key)
+        setter = {
+            "pixel_size_x": lambda x: x * 1e10,
+            "pixel_size_y": lambda x: x * 1e10,
+        }.get(key, lambda x: x)
+        if mapping:
+            self._handle[index][mapping] = setter(value)
+
+    @property
+    def size(self) -> int:
+        """
+        Get the size of the header
+
+        """
+        return self._handle.shape[0]
+
+
 class MrcFileWriter(Writer):
     """
     Write to an mrcfile
 
     """
-
-    class AngleProxy(object):
-        """
-        Proxy interface to angles
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-
-        def __setitem__(self, item, data):
-            self.handle.extended_header[item]["Alpha tilt"] = data
-
-    class PositionProxy(object):
-        """
-        Proxy interface to positions
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = len(self.handle.extended_header)
-            self.x, self.y = np.meshgrid(np.arange(0, 3), np.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle.extended_header[j]["Shift X"] = d
-                elif i == 1:
-                    self.handle.extended_header[j]["Shift Y"] = d
-                elif i == 2:
-                    self.handle.extended_header[j]["Z-Stage"] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, np.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
-    class DriftProxy(object):
-        """
-        Proxy interface to drifts
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = len(self.handle.extended_header)
-            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle.extended_header[j]["Shift offset X"] = d
-                elif i == 1:
-                    self.handle.extended_header[j]["Shift offset Y"] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, np.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
-    class DefocusProxy(object):
-        """
-        Proxy interface to angles
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-
-        def __setitem__(self, item, data):
-            self.handle.extended_header[item]["Defocus"] = data
-
-    class TimestampProxy(object):
-        """
-        Proxy interface to timestamp
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-
-        def __setitem__(self, item, data):
-            self.handle.extended_header[item]["Timestamp"] = data
 
     def __init__(self, filename, shape, pixel_size, dtype="uint8"):
         """
@@ -263,38 +550,25 @@ class MrcFileWriter(Writer):
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
             filename,
-            shape=(0, 0, 0),
+            shape=shape,
             mrc_mode=mrcfile.utils.mode_from_dtype(dtype),
             overwrite=True,
+            extended_header=np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE),
+            exttyp="FEI1",
         )
-
-        # Setup the extended header
-        extended_header = np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
-
-        # Set the extended header
-        self.handle._check_writeable()
-        self.handle._close_data()
-        self.handle._extended_header = extended_header
-        self.handle.header.nsymbt = extended_header.nbytes
-        self.handle.header.exttyp = "FEI1"
-        self.handle._open_memmap(dtype, shape)
-        self.handle.update_header_from_data()
-        self.handle.flush()
-
-        # Set the pixel size
-        self.handle.voxel_size = pixel_size
-        for i in range(self.handle.extended_header.shape[0]):
-            self.handle.extended_header[i]["Pixel size X"] = pixel_size * 1e-10
-            self.handle.extended_header[i]["Pixel size Y"] = pixel_size * 1e-10
-            self.handle.extended_header[i]["Application"] = "RFI Simulation"
 
         # Set the data array
         self._data = self.handle.data
-        self._angle = MrcFileWriter.AngleProxy(self.handle)
-        self._position = MrcFileWriter.PositionProxy(self.handle)
-        self._drift = MrcFileWriter.DriftProxy(self.handle)
-        self._defocus = MrcFileWriter.DefocusProxy(self.handle)
-        self._timestamp = MrcFileWriter.TimestampProxy(self.handle)
+
+        # Create the header info
+        self._header = MrcfileHeader(self.handle.extended_header)
+
+        # Set the pixel size
+        self.handle.voxel_size = pixel_size
+        self._header[:]["pixel_size_x"] = pixel_size
+        self._header[:]["pixel_size_y"] = pixel_size
+        self._header[:]["application"] = "Parakeet"
+        self._header[:]["application_version"] = parakeet.__version__
 
     @property
     def pixel_size(self):
@@ -312,75 +586,53 @@ class MrcFileWriter(Writer):
         self.handle.update_header_stats()
 
 
+class NexusHeader(Header):
+    """
+    A sub class for the MRC file header
+
+    """
+
+    def __init__(self, handle):
+        self._handle = handle
+
+    def mapping(self, key):
+        """
+        Get the mapping between names
+
+        """
+        assert key in self.dtype.fields
+        return key
+
+    def get(self, index, key):
+        """
+        Get the mapping between names
+
+        """
+        mapping = self.mapping(key)
+        return self._handle[mapping][index]
+
+    def set(self, index, key, value):
+        """
+        Set the value of a property
+
+        """
+        mapping = self.mapping(key)
+        self._handle[mapping][index] = value
+
+    @property
+    def size(self):
+        """
+        Get the size of the header
+
+        """
+        return self._handle["data"].shape[0]
+
+
 class NexusWriter(Writer):
     """
     Write to a nexus file
 
     """
-
-    class PositionProxy(object):
-        """
-        Proxy interface to positions
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = self.handle["x_translation"].shape[0]
-            self.x, self.y = np.meshgrid(np.arange(0, 3), np.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle["x_translation"][j] = d
-                elif i == 1:
-                    self.handle["y_translation"][j] = d
-                elif i == 2:
-                    self.handle["z_translation"][j] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, np.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
-
-    class ShiftProxy(object):
-        """
-        Proxy interface to shifts
-
-        """
-
-        def __init__(self, handle):
-            self.handle = handle
-            n = self.handle["x_drift"].shape[0]
-            self.x, self.y = np.meshgrid(np.arange(0, 2), np.arange(0, n))
-
-        def __setitem__(self, item, data):
-
-            # Set the items
-            def setitem_internal(j, i, d):
-                if i == 0:
-                    self.handle["x_drift"][j] = d
-                elif i == 1:
-                    self.handle["y_drift"][j] = d
-
-            # Get the indices from the item
-            x = self.x[item]
-            y = self.y[item]
-
-            # Set the item
-            if isinstance(x, np.ndarray):
-                for j, i, d in zip(y, x, data):
-                    setitem_internal(j, i, d)
-            else:
-                setitem_internal(y, x, data)
 
     def __init__(self, filename, shape, pixel_size, dtype="float32"):
         """
@@ -411,42 +663,29 @@ class NexusWriter(Writer):
         detector.attrs["NX_class"] = "NXdetector"
         detector.create_dataset("data", shape=shape, dtype=dtype)
         detector["image_key"] = np.zeros(shape=shape[0])
-        detector["x_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
-        detector["y_pixel_size"] = np.full(shape=shape[0], fill_value=pixel_size)
-        detector.create_dataset("timestamp", shape=(shape[0],), dtype=np.float64)
 
         # Create the sample
         sample = entry.create_group("sample")
         sample.attrs["NX_class"] = "NXsample"
         sample["name"] = "parakeet-simulation"
-        sample.create_dataset("rotation_angle", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("x_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("y_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("z_translation", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("x_drift", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("y_drift", shape=(shape[0],), dtype=np.float32)
-        sample.create_dataset("defocus", shape=(shape[0],), dtype=np.float32)
 
         # Create the data
         data = entry.create_group("data")
         data["data"] = detector["data"]
-        data["rotation_angle"] = sample["rotation_angle"]
-        data["x_translation"] = sample["x_translation"]
-        data["y_translation"] = sample["y_translation"]
-        data["z_translation"] = sample["z_translation"]
-        data["x_drift"] = sample["x_drift"]
-        data["y_drift"] = sample["y_drift"]
-        data["defocus"] = sample["defocus"]
-        data["image_key"] = detector["image_key"]
-        data["timestamp"] = detector["timestamp"]
 
         # Set the data ptr
         self._data = data["data"]
-        self._angle = data["rotation_angle"]
-        self._position = NexusWriter.PositionProxy(data)
-        self._drift = NexusWriter.ShiftProxy(data)
-        self._defocus = data["defocus"]
-        self._timestamp = data["timestamp"]
+        self._header = NexusHeader(data)
+
+        # Create the datasets for the header
+        for key, (dtype, _) in self._header.dtype.fields.items():
+            data.create_dataset(key, shape=shape[0], dtype=dtype)
+
+        # Fill a few values
+        self._header[:]["pixel_size_x"] = pixel_size
+        self._header[:]["pixel_size_y"] = pixel_size
+        self._header[:]["application"] = "Parakeet"
+        self._header[:]["application_version"] = parakeet.__version__
 
     @property
     def pixel_size(self):
@@ -454,7 +693,7 @@ class NexusWriter(Writer):
         Return the pixel size
 
         """
-        return self.handle["instrument"]["detector"]["x_pixel_size"][0]
+        return self.handle["data"]["pixel_size_x"][0]
 
 
 class ImageWriter(Writer):
@@ -528,12 +767,7 @@ class ImageWriter(Writer):
         self._data = ImageWriter.DataProxy(template, shape, vmin, vmax)
 
         # Create dummy arrays for angle and position
-        self._angle = np.zeros(shape=shape[0], dtype=np.float32)
-        self._position = np.zeros(shape=(shape[0], 3), dtype=np.float32)
-        self._drift = np.zeros(shape=(shape[0], 2), dtype=np.float32)
-        self._defocus = np.zeros(shape=shape[0], dtype=np.float32)
-        self._pixel_size = 0
-        self._timestamp = np.zeros(shape=shape[0], dtype=np.float64)
+        self._header = np.zeros(shape=shape[0], dtype=METADATA_DTYPE)
 
     @property
     def vmin(self):
@@ -578,38 +812,25 @@ class Reader(object):
         self,
         handle,
         data,
-        angle,
-        position,
+        header,
         pixel_size,
-        drift=None,
-        defocus=None,
-        timestamp=None,
     ):
         """
         Initialise the data
 
         Args:
             data (array): The data array
-            angle (array): The angle array
-            position (array): The position array
-            pixel_size (float): The pixel size array
-            drift (float): The drift array
-            defocus (float): The defocus array
+            header (array): The header data
 
         """
         # Check the size
-        assert len(angle) == data.shape[0], "Inconsistent dimensions"
-        assert len(position) == data.shape[0], "Inconsistent dimensions"
+        assert header.size == data.shape[0], "Inconsistent dimensions"
 
         # Set the array
         self.handle = handle
         self.data = data
-        self.angle = angle
-        self.position = position
+        self.header = header
         self.pixel_size = pixel_size
-        self.drift = drift
-        self.defocus = defocus
-        self.timestamp = timestamp
         self.shape = data.shape
         self.dtype = data.dtype
 
@@ -620,7 +841,7 @@ class Reader(object):
             float: the start angle
 
         """
-        return self.angle[0]
+        return self.header[-1]["tilt_alpha"]
 
     @property
     def stop_angle(self):
@@ -629,7 +850,7 @@ class Reader(object):
             float: The stop angle
 
         """
-        return self.angle[-1]
+        return self.header[-1]["tilt_alpha"]
 
     @property
     def step_angle(self):
@@ -639,10 +860,10 @@ class Reader(object):
 
         """
         # tol = 1e-7
-        if len(self.angle) == 1:
+        if len(self.header) == 1:
             step = 1
         else:
-            step = (self.angle[-1] - self.angle[0]) / (len(self.angle) - 1)
+            step = (self.stop_angle - self.start_angle) / (self.num_images - 1)
         return step
 
     @property
@@ -652,7 +873,7 @@ class Reader(object):
             int: The number of images
 
         """
-        return len(self.angle)
+        return len(self.header)
 
     @classmethod
     def from_mrcfile(Class, filename):
@@ -672,38 +893,14 @@ class Reader(object):
             assert handle.extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
             assert len(handle.extended_header.shape) == 1
             assert handle.extended_header.shape[0] == handle.data.shape[0]
-
-            # Read the angles
-            angle = np.zeros(handle.data.shape[0], dtype=np.float32)
-            for i in range(handle.extended_header.shape[0]):
-                angle[i] = handle.extended_header[i]["Alpha tilt"]
-
-            position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
-            drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
-            defocus = np.zeros(shape=(handle.data.shape[0]), dtype=np.float32)
-            timestamp = np.zeros(shape=(handle.data.shape[0]), dtype=np.float64)
-            for i in range(handle.extended_header.shape[0]):
-
-                # Read the positions
-                position[i, 0] = handle.extended_header[i]["Shift X"]
-                position[i, 1] = handle.extended_header[i]["Shift Y"]
-                position[i, 2] = handle.extended_header[i]["Z-Stage"]
-
-                # Read the drift
-                drift[i, 0] = handle.extended_header[i]["Shift offset X"]
-                drift[i, 1] = handle.extended_header[i]["Shift offset Y"]
-
-                # Read the defocus
-                defocus[i] = handle.extended_header[i]["Defocus"]
-
-                # Read the timestamp
-                timestamp[i] = handle.extended_header[i]["Timestamp"]
+            extended_header = handle.extended_header
         else:
-            angle = np.zeros(handle.data.shape[0], dtype=np.float32)
-            position = np.zeros(shape=(handle.data.shape[0], 3), dtype=np.float32)
-            drift = np.zeros(shape=(handle.data.shape[0], 2), dtype=np.float32)
-            defocus = np.zeros(handle.data.shape[0], dtype=np.float32)
-            timestamp = np.zeros(handle.data.shape[0], dtype=np.float64)
+            extended_header = np.zeros(
+                shape=handle.data.shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE
+            )
+
+        # Set the header
+        header = MrcfileHeader(extended_header)
 
         # Get the pixel size
         pixel_size = handle.voxel_size["x"]
@@ -712,12 +909,8 @@ class Reader(object):
         return Reader(
             handle,
             handle.data,
-            angle,
-            position,
+            header,
             pixel_size,
-            drift=drift,
-            defocus=defocus,
-            timestamp=timestamp,
         )
 
     @classmethod
@@ -743,37 +936,19 @@ class Reader(object):
 
         # Get the data and detector
         data = entry["data"]
-        detector = entry["instrument"]["detector"]
 
-        # Get the positions
-        position = np.array(
-            (data["x_translation"], data["y_translation"], data["z_translation"])
-        ).T
-
-        # Get the drifts
-        drift = np.array((data["x_drift"], data["y_drift"])).T
-
-        # Get the defocus
-        defocus = data.get("defocus", np.zeros(data["data"].shape[0], dtype=np.float32))
-
-        # Get the timestamp
-        timestamp = data.get(
-            "timestamp", np.zeros(data["data"].shape[0], dtype=np.float64)
-        )
+        # Get the header
+        header = NexusHeader(data)
 
         # Get the pixel size
-        pixel_size = detector["x_pixel_size"][0]
+        pixel_size = data["pixel_size_x"][0]
 
         # Create the reader
         return Reader(
             handle,
             data["data"],
-            data["rotation_angle"],
-            position,
+            header,
             pixel_size,
-            drift=drift,
-            defocus=defocus,
-            timestamp=timestamp,
         )
 
     @classmethod

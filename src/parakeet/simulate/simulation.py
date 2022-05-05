@@ -281,25 +281,11 @@ class Simulation(object):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
                 )
-                (
-                    _,
-                    angle,
-                    position,
-                    image,
-                    drift,
-                    defocus,
-                    timestamp,
-                ) = self.simulate_image(i)
+                _, image, metadata = self.simulate_image(i)
                 if writer is not None:
                     writer.data[i, :, :] = image
-                    writer.angle[i] = angle
-                    writer.position[i] = position
-                    if drift is not None:
-                        writer.drift[i] = drift
-                    if defocus is not None:
-                        writer.defocus[i] = defocus
-                    if timestamp is not None:
-                        writer.timestamp[i] = timestamp
+                    if metadata is not None:
+                        writer.header[i] = metadata
         else:
 
             # Set the maximum number of workers
@@ -327,27 +313,13 @@ class Simulation(object):
                 for j, future in enumerate(parakeet.futures.as_completed(futures)):
 
                     # Get the result
-                    (
-                        i,
-                        angle,
-                        position,
-                        image,
-                        drift,
-                        defocus,
-                        timestamp,
-                    ) = future.result()
+                    i, image, metadata = future.result()
 
                     # Set the output in the writer
                     if writer is not None:
                         writer.data[i, :, :] = image
-                        writer.angle[i] = angle
-                        writer.position[i] = position
-                        if drift is not None:
-                            writer.drift[i] = drift
-                        if defocus is not None:
-                            writer.defocus[i] = defocus
-                        if timestamp is not None:
-                            writer.timestamp[i] = timestamp
+                        if metadata is not None:
+                            writer.header[i] = metadata
 
                     # Write some info
                     vmin = np.min(image)

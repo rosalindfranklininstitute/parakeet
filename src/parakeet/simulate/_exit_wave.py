@@ -306,8 +306,26 @@ class ExitWaveImageSimulator(object):
         # Get the timestamp
         timestamp = time.time_ns() / 1e9
 
+        # Set the metaadata
+        metadata = np.zeros(shape=1, dtype=parakeet.io.METADATA_DTYPE)
+        metadata["timestamp"] = timestamp
+        metadata["tilt_alpha"] = angle
+        metadata["stage_z"] = position[2]
+        metadata["shift_x"] = position[0]
+        metadata["shift_y"] = position[1]
+        metadata["shift_offset_x"] = driftx
+        metadata["shift_offset_y"] = drifty
+        metadata["energy"] = self.microscope.beam.energy
+        metadata["theta"] = self.microscope.beam.theta
+        metadata["phi"] = self.microscope.beam.phi
+        metadata["image_size_x"] = nx
+        metadata["image_size_y"] = ny
+        metadata["ice"] = self.simulation["ice"]
+        metadata["damage_model"] = self.simulation["radiation_damage_model"]
+        metadata["sensitivity_coefficient"] = self.simulation["sensitivity_coefficient"]
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), None, timestamp)
+        return (index, image, metadata)
 
 
 def simulation_factory(

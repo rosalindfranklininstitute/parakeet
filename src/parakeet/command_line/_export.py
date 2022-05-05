@@ -356,17 +356,14 @@ def export_impl(args):
 
         # Get the image info
         image = reader.data[i, y0:y1, x0:x1]
-        angle = reader.angle[i]
-        position = reader.position[i]
-        pixel_size = reader.pixel_size
-        drift = reader.drift[i]
-        defocus = reader.defocus[i]
-        timestamp = reader.timestamp[i]
+        header = reader.header[i]
 
         # Rotate if necessary
         if args.rot90:
             image = np.rot90(image)
-            position = (position[1], position[0], position[2])
+            header["shift_x"] = header["shift_y"]
+            header["shift_y"] = header["shift_x"]
+            header["stage_z"] = header["stage_z"]
 
         # Transform if necessary
         image = {
@@ -393,14 +390,7 @@ def export_impl(args):
 
         # Write the image info
         writer.data[j, :, :] = image
-        writer.angle[j] = angle
-        writer.position[j] = position
-        if drift is not None:
-            writer.drift[j] = drift
-        if defocus is not None:
-            writer.defocus[j] = defocus
-        if timestamp is not None:
-            writer.timestamp[j] = timestamp
+        writer.header[j] = header
 
     # Update the writer
     writer.update()

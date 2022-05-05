@@ -128,7 +128,7 @@ class SimpleImageSimulator(object):
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, None, None, None)
+        return (index, image, None)
 
 
 def simulation_factory(

@@ -68,11 +68,9 @@ class ImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
 
         # Check the angle and position
-        assert abs(angle - self.optics.angle[index]) < 1e7
-        assert (np.abs(position - self.optics.position[index]) < 1e7).all()
+        assert abs(angle - self.optics.header[index]["tilt_alpha"]) < 1e7
 
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
@@ -89,11 +87,6 @@ class ImageSimulator(object):
 
         # Get the image
         image = self.optics.data[index]
-
-        # Get some other properties to propagate
-        beam_drift = self.optics.drift[index]
-        defocus = self.optics.defocus[index]
-        timestamp = self.optics.timestamp[index]
 
         # Apply the dqe in Fourier space
         if self.microscope.detector.dqe:
@@ -119,16 +112,15 @@ class ImageSimulator(object):
             % (np.min(image), np.max(image), np.mean(image))
         )
 
+        # Get the image metadata
+        metadata = np.asarray(self.optics.header[index])
+        metadata["dose"] = self.microscope.beam.electrons_per_angstrom
+        metadata["dqe"] = self.microscope.detector.dqe
+        metadata["gain"] = 1
+        metadata["offset"] = 0
+
         # Compute the image scaled with Poisson noise
-        return (
-            index,
-            angle,
-            position,
-            image.astype("float32"),
-            beam_drift,
-            defocus,
-            timestamp,
-        )
+        return (index, image.astype("float32"), metadata)
 
 
 def simulation_factory(
@@ -213,8 +205,8 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
     optics = parakeet.io.open(optics_file)
 
     # Create the scan
-    config.scan.angles = optics.angle
-    config.scan.positions = optics.position[:, 1]
+    config.scan.angles = optics.header["tilt_alpha"][:]
+    config.scan.positions = optics.header["shift_y"][:]
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
