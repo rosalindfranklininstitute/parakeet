@@ -307,7 +307,7 @@ class ExitWaveImageSimulator(object):
         timestamp = time.time_ns() / 1e9
 
         # Set the metaadata
-        metadata = np.zeros(shape=1, dtype=parakeet.io.METADATA_DTYPE)
+        metadata = self.metadata[index]
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
         metadata["stage_z"] = position[2]
@@ -460,4 +460,5 @@ def _exit_wave_Config(
     )
 
     # Run the simulation
+    simulation.simulate_image.metadata = writer.header
     simulation.run(writer)
