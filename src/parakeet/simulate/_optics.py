@@ -307,15 +307,19 @@ class OpticsImageSimulator(object):
                 raise RuntimeError("Unknown inelastic model")
 
             # Get the threshold to exclude bins that don't contribute much
-            threshold = min(0.01, max(bin_weight))
+            threshold = min(0.01 / len(bin_energy), max(bin_weight))
             print("Threshold weight: %f" % (threshold))
+
+            # Get the basic energy and defocus
+            energy0 = microscope.beam.energy
+            defocus0 = microscope.lens.c_10
 
             # Loop through all energies and sum images
             image = None
             for energy, energy_spread, weight in zip(
                 bin_energy, bin_spread, bin_weight
             ):
-                if weight > 0.001:
+                if weight > threshold:
 
                     # Add the energy loss
                     microscope.beam.energy = energy / 1000.0  # keV
@@ -323,18 +327,21 @@ class OpticsImageSimulator(object):
                     # Compute the energy spread
                     microscope.beam.energy_spread = energy_spread / energy  # dE / E
 
-                    defocus = microscope.lens.c_c * abs(microscope.beam.energy / 300)
+                    # Compute the defocus at this point
+                    c_c_A = microscope.lens.c_c * 1e7  # A
+                    dE_E = (energy0 - microscope.beam.energy) / energy0
+                    defocus = defocus0 - c_c_A * dE_E
 
                     # Print some details
-                    print("Weight: %f" % weight)
                     print(
-                        "Energy: %f eV; Energy spread: %f eV; Weight: %f"
+                        "Energy: %f eV; Energy spread: %f eV; Weight: %f; Defocus: %f"
                         % (
                             microscope.beam.energy * 1000,
                             microscope.beam.energy_spread
                             * microscope.beam.energy
                             * 1000,
                             weight,
+                            defocus,
                         )
                     )
 
