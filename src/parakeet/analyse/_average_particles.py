@@ -85,6 +85,7 @@ def _process_sub_tomo(args):
 
 def _iterate_particles(
     indices,
+    half_index,
     positions,
     orientations,
     centre,
@@ -94,34 +95,33 @@ def _iterate_particles(
     tomogram,
 ):
 
-    for j in range(2):
-        for i in indices[j]:
-            position = positions[i]
-            orientation = orientations[i]
+    for j, i in zip(half_index, indices):
+        position = positions[i]
+        orientation = orientations[i]
 
-            # Compute p within the volume
-            # start_position = np.array([0, scan["start_pos"], 0])
-            p = position - (centre - size / 2.0)  # - start_position
-            p[2] = size[2] - p[2]
-            print(
-                "Particle %d: position = %s, orientation = %s"
-                % (
-                    i,
-                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
-                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
-                )
+        # Compute p within the volume
+        # start_position = np.array([0, scan["start_pos"], 0])
+        p = position - (centre - size / 2.0)  # - start_position
+        p[2] = size[2] - p[2]
+        print(
+            "Particle %d: position = %s, orientation = %s"
+            % (
+                i,
+                "[ %.1f, %.1f, %.1f ]" % tuple(p),
+                "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
             )
+        )
 
-            # Set the region to extract
-            x0 = np.floor(p).astype("int32") - half_length
-            x1 = np.floor(p).astype("int32") + half_length
-            offset = p - np.floor(p).astype("int32")
+        # Set the region to extract
+        x0 = np.floor(p).astype("int32") - half_length
+        x1 = np.floor(p).astype("int32") + half_length
+        offset = p - np.floor(p).astype("int32")
 
-            # Get the sub tomogram
-            print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-            if sub_tomo.shape == half_shape[1:]:
-                yield (sub_tomo, offset, orientation, j)
+        # Get the sub tomogram
+        print("Getting sub tomogram")
+        sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
+        if sub_tomo.shape == half_shape[1:]:
+            yield (sub_tomo, offset, orientation, j)
 
 
 @singledispatch
@@ -231,6 +231,8 @@ def _average_particles_Config(
         assert len(positions) == len(orientations)
         if num_particles <= 0:
             num_particles = len(positions)
+        else:
+            num_particles = min(num_particles, len(positions))
         print(
             "Averaging %d %s particles with box size %d" % (num_particles, name, length)
         )
@@ -245,17 +247,27 @@ def _average_particles_Config(
         )
 
         # Get the random indices
-        indices = list(
-            np.random.choice(range(len(positions)), size=num_particles, replace=False)
+        indices = np.random.choice(
+            range(len(positions)), size=num_particles, replace=False
         )
-        indices = [indices[: num_particles // 2], indices[num_particles // 2 :]]
+        size1 = num_particles // 2
+        size2 = num_particles - size1
+        half_index = np.hstack(
+            [np.zeros(size1, dtype=np.int), np.ones(size2, dtype=np.int)]
+        )
+        zpos = list(zip(*positions))[1]
+        sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
+        indices = indices[sorted_indices]
+        half_index = half_index[sorted_indices]
 
         # Loop through all the particles
+        count = 0
         with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
             for half_index, data in executor.map(
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
+                    half_index,
                     positions,
                     orientations,
                     centre,
@@ -265,10 +277,11 @@ def _average_particles_Config(
                     tomogram,
                 ),
             ):
-
                 # Add the contribution to the average
                 half[half_index, :, :, :] += data
                 num[half_index] += 1
+                count += 1
+                print("Count: ", count)
 
         # Average the sub tomograms
         print("Averaging half 1 with %d particles" % num[0])
@@ -300,6 +313,7 @@ def average_all_particles(
     rec_file: str,
     average_file: str,
     particle_size: int,
+    num_particles: int,
 ):
     """
     Perform sub tomogram averaging
@@ -324,7 +338,7 @@ def average_all_particles(
 
     # Do the sub tomogram averaging
     _average_all_particles_Config(
-        config.scan, sample, rec_file, average_file, particle_size
+        config.scan, sample, rec_file, average_file, particle_size, num_particles
     )
 
 
@@ -335,51 +349,15 @@ def _average_all_particles_Config(
     rec_filename: str,
     average_filename: str,
     particle_size: int = 0,
+    num_particles: int = 0,
 ):
     """
     Average particles to compute averaged reconstruction
 
     """
 
-    def rotate_array(data, rotation, offset):
-
-        # Create the pixel indices
-        az = np.arange(data.shape[0])
-        ay = np.arange(data.shape[1])
-        ax = np.arange(data.shape[2])
-        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
-
-        # Create a stack of coordinates
-        xyz = np.vstack(
-            [
-                x.reshape(-1) - offset[0],
-                y.reshape(-1) - offset[1],
-                z.reshape(-1) - offset[2],
-            ]
-        ).T
-
-        # create transformation matrix
-        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
-
-        # apply transformation
-        transformed_xyz = r.apply(xyz)
-
-        # extract coordinates
-        x = transformed_xyz[:, 0] + offset[0]
-        y = transformed_xyz[:, 1] + offset[1]
-        z = transformed_xyz[:, 2] + offset[2]
-
-        # Reshape
-        x = x.reshape(data.shape)
-        y = y.reshape(data.shape)
-        z = z.reshape(data.shape)
-
-        # sample
-        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
-        return result
-
-    # Get the scan config
-    scan = config.dict()
+    # Get the scan dict
+    # scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
@@ -423,70 +401,55 @@ def _average_all_particles_Config(
             half_length = particle_size // 2
         length = 2 * half_length
         assert len(positions) == len(orientations)
-        num_particles = len(positions)
+        if num_particles <= 0:
+            num_particles = len(positions)
+        else:
+            num_particles = min(num_particles, len(positions))
         print(
             "Averaging %d %s particles with box size %d" % (num_particles, name, length)
         )
 
         # Create the average array
         average = np.zeros(shape=(length, length, length), dtype="float32")
-        num = 0
+        num = 0.0
 
         # Sort the positions and orientations by y
         positions, orientations = zip(
             *sorted(zip(positions, orientations), key=lambda x: x[0][1])
         )
 
+        # Get the random indices
+        indices = np.arange(len(positions), dtype=np.int)
+        zpos = list(zip(*positions))[1]
+        sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
+        indices = indices[sorted_indices]
+        half_index = np.zeros(indices.size, dtype=np.int)
+
         # Loop through all the particles
-        for i, (position, orientation) in enumerate(zip(positions, orientations)):
-
-            # Compute p within the volume
-            start_position = np.array([0, scan["start_pos"], 0])
-            p = position - (centre - size / 2.0)  # - start_position
-            p[2] = size[2] - p[2]
-            print(
-                "Particle %d: position = %s, orientation = %s"
-                % (
-                    i,
-                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
-                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
-                )
-            )
-
-            # Set the region to extract
-            x0 = np.floor(p).astype("int32") - half_length
-            x1 = np.floor(p).astype("int32") + half_length
-            offset = p - np.floor(p).astype("int32")
-
-            # Get the sub tomogram
-            print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-            if sub_tomo.shape == average.shape:
-
-                # Set the data to transform
-                data = sub_tomo
-
-                # Reorder input vectors
-                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -np.array(orientation)[[1, 2, 0]]
-                rotation[1] = -rotation[1]
-
-                # Rotate the data
-                print("Rotating volume")
-                data = rotate_array(data, rotation, offset)
-
+        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            for half_index, data in executor.map(
+                _process_sub_tomo,
+                _iterate_particles(
+                    indices,
+                    half_index,
+                    positions,
+                    orientations,
+                    centre,
+                    size,
+                    half_length,
+                    average.shape,
+                    tomogram,
+                ),
+            ):
                 # Add the contribution to the average
-
                 average += data
                 num += 1
+                print("Count: ", num)
 
         # Average the sub tomograms
         print("Averaging map with %d particles" % num)
-        average = average / num
-
-        # from matplotlib import pylab
-        # pylab.imshow(average[half_length, :, :])
-        # pylab.show()
+        if num > 0:
+            average = average / num
 
         # Save the averaged data
         print("Saving map to %s" % average_filename)
