@@ -106,6 +106,7 @@ def main():
                 "parakeet.analyse.extract=parakeet.command_line.analyse:extract",
                 "parakeet.analyse.refine=parakeet.command_line.analyse:refine",
                 "parakeet.analyse.correct=parakeet.command_line.analyse:correct",
+                "dev.parakeet.calibrate_ice_model=parakeet.util.calibrate_ice_model:main",
             ]
         },
         extras_require={
