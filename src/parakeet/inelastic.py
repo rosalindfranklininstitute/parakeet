@@ -17,13 +17,19 @@ def effective_thickness(shape, angle):
     Compute the effective thickness
 
     """
-    TINY = 1e-3
+    TINY = 1e-5
     if shape["type"] == "cube":
         D0 = shape["cube"]["length"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
+        cos_angle = cos(pi * angle / 180.0)
+        if abs(cos_angle) < TINY:
+            cos_angle = TINY
+        thickness = D0 / cos_angle
     elif shape["type"] == "cuboid":
         D0 = shape["cuboid"]["length_z"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
+        cos_angle = cos(pi * angle / 180.0)
+        if abs(cos_angle) < TINY:
+            cos_angle = TINY
+        thickness = D0 / cos_angle
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
     return abs(thickness)
