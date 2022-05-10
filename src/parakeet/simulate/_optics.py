@@ -356,8 +356,8 @@ class OpticsImageSimulator(object):
                     else:
                         image += image_n
 
-        # Compute the electron fraction
-        electron_fraction = np.sum(bin_weight[bin_weight > threshold])
+            # Compute the electron fraction
+            electron_fraction = np.sum(bin_weight[bin_weight > threshold])
 
         # Print the electron fraction
         print("Electron fraction = %.2f" % electron_fraction)
