@@ -127,7 +127,7 @@ class Row(object):
         """
         return np.arange(self._header.size)[self._index].size
 
-    def indices(self, item) -> np.array:
+    def indices(self, item) -> np.ndarray:
         """
         Args:
             item: The index
@@ -307,7 +307,7 @@ class Header(object):
         return METADATA_DTYPE
 
     @property
-    def angle(self) -> np.array:
+    def angle(self) -> np.ndarray:
         """
         An alias to get the angle
 
@@ -315,7 +315,7 @@ class Header(object):
         return self["tilt_alpha"]
 
     @property
-    def position(self) -> np.array:
+    def position(self) -> np.ndarray:
         """
         An alias to get the position
 
