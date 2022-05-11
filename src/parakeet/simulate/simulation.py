@@ -31,13 +31,18 @@ class Simulation(object):
     """
 
     def __init__(
-        self, image_size, pixel_size, scan=None, cluster=None, simulate_image=None
+        self,
+        image_size: tuple[int, int],
+        pixel_size: float,
+        scan=None,
+        cluster=None,
+        simulate_image=None,
     ):
         """
         Initialise the simulation
 
         Args:
-            image_size (tuple): The image size
+            image_size: The image size
             scan (object): The scan object
             cluster (object): The cluster spec
             simulate_image (func): The image simulation function
@@ -57,7 +62,7 @@ class Simulation(object):
     def shape(self) -> tuple[int, int, int]:
         """
         Return
-            tuple: The simulation data shape
+            The simulation data shape
 
         """
         nx = self.image_size[0]
