@@ -12,7 +12,6 @@
 import logging
 import numpy as np
 import time
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -22,6 +21,7 @@ import parakeet.io
 import parakeet.sample
 import parakeet.simulate
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
@@ -38,12 +38,6 @@ Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 class ExitWaveImageSimulator(object):
@@ -207,16 +201,12 @@ class ExitWaveImageSimulator(object):
         # padding_offset = padding * pixel_size
         offset = (padding + margin) * pixel_size
 
-        # Create the multem system configuration
-        system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device
-        )
-
         # The Z centre
         z_centre = self.sample.centre[2]
 
-        # Create the multem input multislice object
-        input_multislice = parakeet.simulate.simulation.create_input_multislice(
+        # Create the multem system configuration
+        simulate = SimulationEngine(
+            self.device,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"] + self.simulation["padding"],
@@ -225,13 +215,13 @@ class ExitWaveImageSimulator(object):
         )
 
         # Set the specimen size
-        input_multislice.spec_lx = x_fov + offset * 2
-        input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = self.sample.containing_box[1][2]
+        simulate.input.spec_lx = x_fov + offset * 2
+        simulate.input.spec_ly = y_fov + offset * 2
+        simulate.input.spec_lz = self.sample.containing_box[1][2]
 
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
-            input_multislice.static_B_factor = (
+            simulate.input.static_B_factor = (
                 8
                 * pi**2
                 * (
@@ -241,7 +231,7 @@ class ExitWaveImageSimulator(object):
                 )
             )
         else:
-            input_multislice.static_B_factor = 0
+            simulate.input.static_B_factor = 0
 
         # Set the atoms in the input after translating them for the offset
         atoms = self.sample.get_atoms()
@@ -258,7 +248,7 @@ class ExitWaveImageSimulator(object):
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
 
-        input_multislice.spec_atoms = atoms.translate(
+        simulate.input.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
         logger.info("   Got spec atoms")
@@ -280,23 +270,22 @@ class ExitWaveImageSimulator(object):
 
             # Get the masker
             masker = self.get_masker(
-                index, input_multislice, pixel_size, (driftx, drifty, 0), origin, offset
+                index, simulate.input, pixel_size, (driftx, drifty, 0), origin, offset
             )
 
             # Run the simulation
-            output_multislice = multem.simulate(system_conf, input_multislice, masker)
+            image = simulate.image(masker)
 
         else:
 
             # Run the simulation
             logger.info("Simulating")
-            output_multislice = multem.simulate(system_conf, input_multislice)
+            image = simulate.image()
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = np.array(output_multislice.data[0].psi_coh).T
         image = image[padding:-padding, padding:-padding]
 
         # Print some info

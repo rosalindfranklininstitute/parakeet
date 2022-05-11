@@ -12,7 +12,6 @@
 import copy
 import logging
 import numpy as np
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -20,11 +19,12 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
-from parakeet.microscope import Microscope
-from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
+from parakeet.microscope import Microscope
+from parakeet.scan import Scan
 
 
 Device = parakeet.config.Device
@@ -32,13 +32,6 @@ ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["optics"]
-
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 # Get the logger
@@ -123,27 +116,26 @@ class OpticsImageSimulator(object):
             psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
         ):
 
-            # Create the multem system configuration
-            system_conf = parakeet.simulate.simulation.create_system_configuration(
-                device
-            )
-
             # Set the defocus
             if defocus is not None:
                 microscope.lens.c_10 = defocus
 
-            # Create the multem input multislice object
-            input_multislice = parakeet.simulate.simulation.create_input_multislice(
-                microscope, simulation["slice_thickness"], simulation["margin"], "HRTEM"
+            # Create the simulation engine
+            simulate = SimulationEngine(
+                device,
+                microscope,
+                simulation["slice_thickness"],
+                simulation["margin"],
+                "HRTEM",
             )
 
             # Set the specimen size
-            input_multislice.spec_lx = x_fov + offset * 2
-            input_multislice.spec_ly = y_fov + offset * 2
-            input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+            simulate.input.spec_lx = x_fov + offset * 2
+            simulate.input.spec_ly = y_fov + offset * 2
+            simulate.input.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
             # Compute and apply the CTF
-            ctf = np.array(multem.compute_ctf(system_conf, input_multislice)).T
+            ctf = simulate.ctf()
 
             # Compute the B factor for radiation damage
             # if simulation["radiation_damage_model"]:

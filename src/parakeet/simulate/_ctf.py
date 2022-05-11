@@ -17,25 +17,16 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
-import warnings
 from parakeet.microscope import Microscope
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
-from parakeet.simulate.simulation import create_system_configuration
-from parakeet.simulate.simulation import create_input_multislice
+from parakeet.simulate.engine import SimulationEngine
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 __all__ = ["ctf"]
-
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 class CTFSimulator(object):
@@ -73,25 +64,23 @@ class CTFSimulator(object):
         y_fov = ny * pixel_size
 
         # Create the multem system configuration
-        system_conf = create_system_configuration("cpu")
-
-        # Create the multem input multislice object
-        input_multislice = create_input_multislice(
+        simulate = SimulationEngine(
+            "cpu",
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
             "HRTEM",
         )
-        input_multislice.nx = nx
-        input_multislice.ny = ny
+        simulate.input.nx = nx
+        simulate.input.ny = ny
 
         # Set the specimen size
-        input_multislice.spec_lx = x_fov
-        input_multislice.spec_ly = y_fov
-        input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+        simulate.input.spec_lx = x_fov
+        simulate.input.spec_ly = y_fov
+        simulate.input.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
         # Run the simulation
-        image = np.array(multem.compute_ctf(system_conf, input_multislice)).T
+        image = simulate.ctf()
         image = np.fft.fftshift(image)
 
         # Compute the image scaled with Poisson noise

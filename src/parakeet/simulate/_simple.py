@@ -18,10 +18,10 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
-import warnings
-from parakeet.microscope import Microscope
 from functools import singledispatch
+from parakeet.microscope import Microscope
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
 
 Device = parakeet.config.Device
 
@@ -31,13 +31,6 @@ __all__ = ["simple"]
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 class SimpleImageSimulator(object):
@@ -92,12 +85,8 @@ class SimpleImageSimulator(object):
         # x1 = (x_fov + offset, y_fov + offset)
 
         # Create the multem system configuration
-        system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device
-        )
-
-        # Create the multem input multislice object
-        input_multislice = parakeet.simulate.simulation.create_input_multislice(
+        simulate = SimulationEngine(
+            self.device,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
@@ -105,23 +94,17 @@ class SimpleImageSimulator(object):
         )
 
         # Set the specimen size
-        input_multislice.spec_lx = x_fov + offset * 2
-        input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = np.max(self.atoms.data["z"])
+        simulate.input.spec_lx = x_fov + offset * 2
+        simulate.input.spec_ly = y_fov + offset * 2
+        simulate.input.spec_lz = np.max(self.atoms.data["z"])
 
         # Set the atoms in the input after translating them for the offset
-        input_multislice.spec_atoms = self.atoms.translate(
+        simulate.input.spec_atoms = self.atoms.translate(
             (offset, offset, 0)
         ).to_multem()
 
-        # Run the simulation
-        output_multislice = multem.simulate(system_conf, input_multislice)
-
-        # Get the ideal image data
-        # Multem outputs data in column major format. In C++ and Python we
-        # generally deal with data in row major format so we must do a
-        # transpose here.
-        image = np.array(output_multislice.data[0].psi_coh).T
+        # Do the simulation
+        image = simulate.image()
 
         # Print some info
         psi_tot = np.abs(image) ** 2

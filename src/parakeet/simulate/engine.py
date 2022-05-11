@@ -12,14 +12,8 @@
 import logging
 import numpy as np
 import warnings
-import parakeet.config
-import parakeet.dqe
-import parakeet.freeze
-import parakeet.futures
-import parakeet.inelastic
-import parakeet.sample
-from parakeet.scan import UniformAngularScan
 from math import sqrt, pi
+
 
 # Try to input MULTEM
 try:
@@ -50,16 +44,16 @@ def defocus_spread(Cc, dEE, dII, dVV):
     return Cc * sqrt((dEE) ** 2 + (2 * dII) ** 2 + (dVV) ** 2)
 
 
-class Engine(object):
+class SimulationEngine(object):
     def __init__(
         self, device, microscope, slice_thickness, margin, simulation_type, centre=None
     ):
-        self.system_conf = self.create_system_configuration(device)
-        self.input_multislice = self.create_input_multislice(
+        self.system_conf = self._create_system_configuration(device)
+        self.input = self._create_input_multislice(
             microscope, slice_thickness, margin, simulation_type, centre
         )
 
-    def create_system_configuration(self, device):
+    def _create_system_configuration(self, device):
         """
         Create an appropriate system configuration
 
@@ -94,7 +88,7 @@ class Engine(object):
         # Return the system configuration
         return system_conf
 
-    def create_input_multislice(
+    def _create_input_multislice(
         self, microscope, slice_thickness, margin, simulation_type, centre=None
     ):
         """
@@ -220,3 +214,47 @@ class Engine(object):
 
         # Return the input multislice object
         return input_multislice
+
+    def ctf(self):
+        """
+        Simulate the CTF
+
+        """
+        return np.array(multem.compute_ctf(self.system_conf, self.input)).T
+
+    def potential(self, out):
+        """
+        Simulate the potential
+
+        """
+
+        def callback(z0, z1, V):
+            V = np.array(V)
+            zc = (z0 + z1) / 2.0
+            index = int(floor((zc - volume_z0) / slice_thickness))
+            print(
+                "Calculating potential for slice: %.2f -> %.2f (index: %d)"
+                % (z0, z1, index)
+            )
+            if index < out.data.shape[0]:
+                out.data[index, :, :] = V[margin:-margin, margin:-margin].T
+
+        # Run the simulation
+        multem.compute_projected_potential(self.system_conf, self.input, callback)
+
+    def image(self, masker=None):
+        """
+        Simulate the image
+
+        """
+        # Run the simulation
+        if masker is not None:
+            output_multislice = multem.simulate(self.system_conf, self.input, masker)
+        else:
+            output_multislice = multem.simulate(self.system_conf, self.input)
+
+        # Get the ideal image data
+        # Multem outputs data in column major format. In C++ and Python we
+        # generally deal with data in row major format so we must do a
+        # transpose here.
+        return np.array(output_multislice.data[0].psi_coh).T
