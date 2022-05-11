@@ -88,6 +88,14 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="particle_size",
         help="The size of the particles extracted (px)",
     )
+    parser.add_argument(
+        "-n",
+        "--num_particles",
+        type=int,
+        default=0,
+        dest="num_particles",
+        help="The number of particles to use",
+    )
 
     return parser
 
@@ -106,7 +114,12 @@ def average_all_particles_impl(args):
 
     # Do the work
     parakeet.analyse.average_all_particles(
-        args.config, args.sample, args.rec, args.average, args.particle_size
+        args.config,
+        args.sample,
+        args.rec,
+        args.average,
+        args.particle_size,
+        args.num_particles,
     )
 
     # Write some timing stats
