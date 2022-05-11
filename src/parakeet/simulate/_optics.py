@@ -310,61 +310,71 @@ class OpticsImageSimulator(object):
             threshold = min(0.01 / len(bin_energy), max(bin_weight))
             print("Threshold weight: %f" % (threshold))
 
+            # Select based on threshold
+            selection = bin_weight >= threshold
+            bin_energy = bin_energy[selection]
+            bin_spread = bin_spread[selection]
+            bin_weight = bin_weight[selection]
+
             # Get the basic energy and defocus
             energy0 = microscope.beam.energy
             defocus0 = microscope.lens.c_10
 
+            # Energy and energy spread
+            energy1 = bin_energy / 1000.0  # keV
+            energy_spread1 = bin_spread / bin_energy  # dE / E
+
+            # Compute the defocus at this point
+            c_c_A = microscope.lens.c_c * 1e7  # A
+            dE_E = (energy0 - energy1) / energy0
+            defocus1 = defocus0 + c_c_A * dE_E  # A
+
+            # Adjust defocus to mean
+            defocus_mean = np.average(defocus1, weights=bin_weight)
+            defocus1 = defocus1 + (defocus0 - defocus_mean)
+
             # Loop through all energies and sum images
             image = None
-            for energy, energy_spread, weight in zip(
-                bin_energy, bin_spread, bin_weight
+            for energy, energy_spread, defocus, weight in zip(
+                energy1, energy_spread1, defocus1, bin_weight
             ):
-                if weight > threshold:
+                # Add the energy loss
+                microscope.beam.energy = energy  # keV
 
-                    # Add the energy loss
-                    microscope.beam.energy = energy / 1000.0  # keV
+                # Compute the energy spread
+                microscope.beam.energy_spread = energy_spread  # dE / E
 
-                    # Compute the energy spread
-                    microscope.beam.energy_spread = energy_spread / energy  # dE / E
-
-                    # Compute the defocus at this point
-                    c_c_A = microscope.lens.c_c * 1e7  # A
-                    dE_E = (energy0 - microscope.beam.energy) / energy0
-                    defocus = defocus0 - c_c_A * dE_E
-
-                    # Print some details
-                    print(
-                        "Energy: %f eV; Energy spread: %f eV; Weight: %f; Defocus: %f"
-                        % (
-                            microscope.beam.energy * 1000,
-                            microscope.beam.energy_spread
-                            * microscope.beam.energy
-                            * 1000,
-                            weight,
-                            defocus,
-                        )
-                    )
-
-                    # Compute the MPL image
-                    image_n = weight * compute_image(
-                        psi,
-                        microscope,
-                        self.simulation,
-                        x_fov,
-                        y_fov,
-                        offset,
-                        self.device,
+                # Print some details
+                print(
+                    "Energy: %f eV; Energy spread: %f eV; Weight: %f; Defocus: %f"
+                    % (
+                        microscope.beam.energy * 1000,
+                        microscope.beam.energy_spread * microscope.beam.energy * 1000,
+                        weight,
                         defocus,
                     )
+                )
 
-                    # Add image component
-                    if image is None:
-                        image = image_n
-                    else:
-                        image += image_n
+                # Compute the MPL image
+                image_n = weight * compute_image(
+                    psi,
+                    microscope,
+                    self.simulation,
+                    x_fov,
+                    y_fov,
+                    offset,
+                    self.device,
+                    defocus,
+                )
+
+                # Add image component
+                if image is None:
+                    image = image_n
+                else:
+                    image += image_n
 
             # Compute the electron fraction
-            electron_fraction = np.sum(bin_weight[bin_weight > threshold])
+            electron_fraction = np.sum(bin_weight)
 
         # Print the electron fraction
         print("Electron fraction = %.2f" % electron_fraction)
