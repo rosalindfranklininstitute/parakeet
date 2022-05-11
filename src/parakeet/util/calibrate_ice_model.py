@@ -554,6 +554,8 @@ def compute_exit_wave(atom_data, pixel_size):
     x_max = atom_data.data["x"].max()
     y_min = atom_data.data["y"].min()
     y_max = atom_data.data["y"].max()
+    z_min = atom_data.data["z"].min()
+    z_max = atom_data.data["z"].max()
     x_size = x_max - x_min
     y_size = y_max - y_min
     z_size = z_max - z_min
@@ -661,7 +663,6 @@ def validate():
         random_middle_std_real = np.std(random_middle.flatten().real)
         random_middle_std_imag = np.std(random_middle.flatten().imag)
 
-        # print("Hola")
         width = 0.0393701 * 190
         height = width * 0.75
         fig, ax = pylab.subplots(
@@ -744,13 +745,16 @@ def validate():
         ax.legend()
         fig.savefig("power_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
 
-        x0 = np.floor(xmin / ps).astype("int32")
+        xsize = xmax - xmin
+        x0 = np.floor((xmin - 0.07 * xsize) / ps).astype("int32")
+        x1 = np.floor((xmin + 0.14 * xsize) / ps).astype("int32")
+        # x0 = np.floor(xmin / ps).astype("int32")
         # x1 = np.floor(xmax / ps).astype("int32")
-        x1 = 2 * x0  # + x0 // 2
-        x0[:] = 0  # x0 // 2
+        # x1 = 2 * x0  # + x0 // 2
+        # x0[:] = 0  # x0 // 2
         random_edge = random_data[x0[0] : x1[0], x0[1] : x1[1]]
         physical_edge = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-        # pylab.imshow(numpy.abs(physical_edge))
+        # pylab.imshow(np.abs(physical_edge))
         # pylab.show()
 
         width = 0.0393701 * 190
