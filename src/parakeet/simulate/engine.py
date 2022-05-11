@@ -45,10 +45,23 @@ def defocus_spread(Cc, dEE, dII, dVV):
 
 
 class SimulationEngine(object):
+    """
+    A class to encapsulate the multem stuff
+
+    """
+
     def __init__(
         self, device, microscope, slice_thickness, margin, simulation_type, centre=None
     ):
+        """
+        Initialise the simulation engine
+
+        """
+
+        # Setup the system configuration
         self.system_conf = self._create_system_configuration(device)
+
+        # Setup the input multislice
         self.input = self._create_input_multislice(
             microscope, slice_thickness, margin, simulation_type, centre
         )
