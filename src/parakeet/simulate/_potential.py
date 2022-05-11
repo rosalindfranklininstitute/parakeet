@@ -152,7 +152,7 @@ class ProjectedPotentialSimulator(object):
         potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         # Simulate the potential
-        simulate.potential(potential)
+        simulate.potential(potential, volume_z0)
 
         # Compute the image scaled with Poisson noise
         return (index, None, None)

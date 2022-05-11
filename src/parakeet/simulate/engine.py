@@ -12,7 +12,7 @@
 import logging
 import numpy as np
 import warnings
-from math import sqrt, pi
+from math import sqrt, pi, floor
 
 
 # Try to input MULTEM
@@ -57,6 +57,9 @@ class SimulationEngine(object):
         Initialise the simulation engine
 
         """
+
+        # Save the margin
+        self.margin = margin
 
         # Setup the system configuration
         self.system_conf = self._create_system_configuration(device)
@@ -235,11 +238,14 @@ class SimulationEngine(object):
         """
         return np.array(multem.compute_ctf(self.system_conf, self.input)).T
 
-    def potential(self, out):
+    def potential(self, out, volume_z0):
         """
         Simulate the potential
 
         """
+
+        margin = self.margin
+        slice_thickness = self.input.spec_dz
 
         def callback(z0, z1, V):
             V = np.array(V)
