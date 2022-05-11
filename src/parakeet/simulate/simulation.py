@@ -11,7 +11,6 @@
 
 import logging
 import numpy as np
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -19,13 +18,6 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
 from parakeet.scan import UniformAngularScan
-from math import sqrt, pi
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 # Get the logger
