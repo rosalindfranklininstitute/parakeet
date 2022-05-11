@@ -378,7 +378,7 @@ class OpticsImageSimulator(object):
         )
 
         # Set the metadata
-        metadata = np.asarray(self.exit_wave.header[index])
+        metadata = np.asarray(self.exit_wave.header)[index]
         metadata["c_10"] = defocus
         metadata["c_12"] = self.microscope.lens.c_12
         metadata["c_21"] = self.microscope.lens.c_21

@@ -113,7 +113,7 @@ class ImageSimulator(object):
         )
 
         # Get the image metadata
-        metadata = np.asarray(self.optics.header[index])
+        metadata = np.asarray(self.optics.header)[index]
         metadata["dose"] = self.microscope.beam.electrons_per_angstrom
         metadata["dqe"] = self.microscope.detector.dqe
         metadata["gain"] = 1

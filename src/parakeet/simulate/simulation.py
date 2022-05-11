@@ -46,14 +46,15 @@ class Simulation(object):
         self.pixel_size = pixel_size
         self.image_size = image_size
         self.scan = scan
-
-        if isinstance(scan, UniformAngularScan):  # single particle mode check
-            self.scan.poses.write_star_file(self.scan.metadata_file)
         self.cluster = cluster
         self.simulate_image = simulate_image
 
+        # Single particle mode check
+        if isinstance(scan, UniformAngularScan):
+            self.scan.poses.write_star_file(self.scan.metadata_file)
+
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, int, int]:
         """
         Return
             tuple: The simulation data shape
@@ -66,7 +67,12 @@ class Simulation(object):
             nz = len(self.scan)
         return (nz, ny, nx)
 
-    def angles(self):
+    def angles(self) -> list[float]:
+        """
+        Return:
+            The simulation angles
+
+        """
         if self.scan is None:
             return [0]
         return self.scan.angles
