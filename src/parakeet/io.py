@@ -16,7 +16,10 @@ import os
 import PIL.Image
 import parakeet
 
-FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
+try:
+    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
+except Exception:
+    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
 
 
 METADATA_DTYPE = np.dtype(
