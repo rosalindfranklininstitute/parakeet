@@ -169,11 +169,9 @@ class OpticsImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
 
         # Check the angle and position
-        assert abs(angle - self.exit_wave.angle[index]) < 1e7
-        assert (np.abs(position - self.exit_wave.position[index]) < 1e7).all()
+        assert abs(angle - self.exit_wave.header[index]["tilt_alpha"]) < 1e7
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -190,12 +188,6 @@ class OpticsImageSimulator(object):
         # Set the input wave
         psi = self.exit_wave.data[index]
 
-        # Get the beam drift
-        driftx, drifty = self.exit_wave.drift[index, :]
-
-        # Get the timestamp
-        timestamp = self.exit_wave.timestamp[index]
-
         microscope = copy.deepcopy(self.microscope)
 
         # Get the defocus
@@ -204,6 +196,7 @@ class OpticsImageSimulator(object):
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero
         shape = self.sample["shape"]
+        energy_shift = 0
         if self.simulation["inelastic_model"] is None:
 
             # If no inelastic model just calculate image as normal
@@ -317,6 +310,9 @@ class OpticsImageSimulator(object):
                 self.device,
                 defocus,
             )
+
+            # Save the energy shift
+            energy_shift = peak
 
             # Compute the zero loss and mpl image fraction
             electron_fraction = elastic_fraction + inelastic_fraction
@@ -447,8 +443,51 @@ class OpticsImageSimulator(object):
             % (np.min(image), np.mean(image), np.max(image))
         )
 
+        # Set the metadata
+        metadata = np.asarray(self.exit_wave.header[index])
+        metadata["c_10"] = defocus
+        metadata["c_12"] = self.microscope.lens.c_12
+        metadata["c_21"] = self.microscope.lens.c_21
+        metadata["c_23"] = self.microscope.lens.c_23
+        metadata["c_30"] = self.microscope.lens.c_30
+        metadata["c_32"] = self.microscope.lens.c_32
+        metadata["c_34"] = self.microscope.lens.c_34
+        metadata["c_41"] = self.microscope.lens.c_41
+        metadata["c_43"] = self.microscope.lens.c_43
+        metadata["c_45"] = self.microscope.lens.c_45
+        metadata["c_50"] = self.microscope.lens.c_50
+        metadata["c_52"] = self.microscope.lens.c_52
+        metadata["c_54"] = self.microscope.lens.c_54
+        metadata["c_56"] = self.microscope.lens.c_56
+        metadata["phi_12"] = self.microscope.lens.phi_12
+        metadata["phi_21"] = self.microscope.lens.phi_21
+        metadata["phi_23"] = self.microscope.lens.phi_23
+        metadata["phi_32"] = self.microscope.lens.phi_32
+        metadata["phi_34"] = self.microscope.lens.phi_34
+        metadata["phi_41"] = self.microscope.lens.phi_41
+        metadata["phi_43"] = self.microscope.lens.phi_43
+        metadata["phi_45"] = self.microscope.lens.phi_45
+        metadata["phi_52"] = self.microscope.lens.phi_52
+        metadata["phi_54"] = self.microscope.lens.phi_54
+        metadata["phi_56"] = self.microscope.lens.phi_56
+        metadata["c_c"] = self.microscope.lens.c_c
+        metadata["current_spread"] = self.microscope.lens.current_spread
+        metadata["source_spread"] = self.microscope.beam.source_spread
+        metadata[
+            "acceleration_voltage_spread"
+        ] = self.microscope.beam.acceleration_voltage_spread
+        metadata["energy_spread"] = self.microscope.beam.energy_spread
+        metadata["phase_plate"] = self.microscope.phase_plate
+        metadata["inelastic_model"] = self.simulation["inelastic_model"]
+        metadata["slit_inserted"] = self.simulation["inelastic_model"] in [
+            "zero_loss",
+            "mp_loss",
+        ]
+        metadata["slit_width"] = self.simulation["mp_loss_width"]
+        metadata["energy_shift"] = energy_shift
+
         # Compute the image scaled with Poisson noise
-        return (index, angle, position, image, (driftx, drifty), defocus, timestamp)
+        return (index, image, metadata)
 
 
 def simulation_factory(
@@ -555,8 +594,8 @@ def _optics_Config(
     exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
-    config.scan.angles = exit_wave.angle
-    config.scan.positions = exit_wave.position[:, 1]
+    config.scan.angles = exit_wave.header["tilt_alpha"][:]
+    config.scan.positions = exit_wave.header["shift_y"][:]
     scan = parakeet.scan.new(**config.scan.dict())
 
     # Create the simulation
