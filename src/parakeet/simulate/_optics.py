@@ -23,9 +23,10 @@ import parakeet.sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
-from math import sqrt, pi, sin
+from math import sqrt, radians, pi, sin, tan
 from parakeet.simulate.simulation import Simulation
-
+from scipy.interpolate import interp2d, RectBivariateSpline
+from scipy.constants import physical_constants
 
 Device = parakeet.config.Device
 ClusterMethod = parakeet.config.ClusterMethod
@@ -120,7 +121,7 @@ class OpticsImageSimulator(object):
             return defocus + drift
 
         def compute_image(
-            psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
+                psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None, angle=0
         ):
 
             # Create the multem system configuration
@@ -162,8 +163,42 @@ class OpticsImageSimulator(object):
             #    ctf = ctf * b_factor_blur
 
             # Compute and apply the CTF
-            psi = np.fft.ifft2(np.fft.fft2(psi) * ctf)
-            image = np.abs(psi) ** 2
+            if len(self.scan.angles) == 1 and angle == 0:
+                psi = np.fft.ifft2(np.fft.fft2(psi) * ctf)
+                image = np.abs(psi) ** 2
+            else:
+                lambda_e =  physical_constants["Compton wavelength"][0]
+                c_s = microscope.lens.c_30 * 1e-3
+                pixel_size = microscope.detector.pixel_size * 1e-10
+
+                defocus = defocus * 1e-10
+                angle = radians(angle)
+
+                Y, X = np.arange(ctf.shape[0]), np.arange(ctf.shape[1])
+                X = (X - ctf.shape[1] // 2) / (pixel_size * ctf.shape[1])
+                Y = (Y - ctf.shape[0] // 2) / (pixel_size * ctf.shape[0])
+                Xg, Yg = np.meshgrid(X, Y)
+                p = np.sqrt(Xg ** 2 + Yg ** 2)
+                p = np.fft.fftshift(p)
+
+                psi_hat = np.fft.fft2(psi)
+                psi_f_mod = RectBivariateSpline(Y, X, np.abs(psi_hat))
+                psi_f_arg = RectBivariateSpline(Y, X, np.angle(psi_hat))
+                psi_f = lambda x, y: psi_f_mod(x, y) * np.exp(psi_f_arg(x, y) * 1j)
+                image_hat = np.empty_like(psi_hat)
+
+                W_0 = lambda q: (np.pi / 2) * c_s * lambda_e**3 * q**4 + \
+                      np.pi * lambda_e * defocus * q**2 + 1j * np.arctanh(0.07 / np.sqrt(1 - 0.07**2))
+
+                for index, _ in np.ndenumerate(psi_hat):
+                    image_hat[index] = 1j * (np.exp(-1j * W_0(p[index])) * \
+                                             psi_f(Yg[index],
+                                                   Xg[index] - 0.5 * tan(angle) * p[index]**2 * lambda_e) - \
+                                             np.exp(1j * W_0(p[index])) * \
+                                             psi_f(Yg[index],
+                                                   Xg[index] + 0.5 * tan(angle) * p[index]**2 * lambda_e))
+
+                image = np.abs(np.fft.ifft2(image_hat))**2
 
             return image
 
@@ -209,6 +244,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
             electron_fraction = 1.0
 
@@ -224,6 +260,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Calculate the fraction of electrons in the zero loss peak
@@ -287,6 +324,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Add the energy loss
@@ -309,6 +347,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Save the energy shift
@@ -339,6 +378,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Add the energy loss
@@ -359,6 +399,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Compute the zero loss and mpl image fraction
@@ -393,6 +434,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Add the energy loss
@@ -413,6 +455,7 @@ class OpticsImageSimulator(object):
                 offset,
                 self.device,
                 defocus,
+                angle,
             )
 
             # Compute the zero loss and mpl image fraction
