@@ -277,7 +277,7 @@ class SimulationEngine(object):
         # generally deal with data in row major format so we must do a
         # transpose here.
         return np.array(output_multislice.data[0].psi_coh).T
-    
+
     def masker(self, index, pixel_size, drift, origin, offset):
         """
         Get the masker object for the ice specification
@@ -343,4 +343,3 @@ class SimulationEngine(object):
 
         # Get the masker
         return masker
-

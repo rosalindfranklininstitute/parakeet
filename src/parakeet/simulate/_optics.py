@@ -267,7 +267,9 @@ class OpticsImageSimulator(object):
 
                 # Compute the energy and spread of the plasmon peak
                 if self.simulation["mp_loss_position"] != "peak":
-                    peak = optimizer(microscope.beam.energy, thickness, filter_width=filter_width)
+                    peak = optimizer(
+                        microscope.beam.energy, thickness, filter_width=filter_width
+                    )
                 else:
                     peak, sigma = parakeet.inelastic.most_probable_loss(
                         microscope.beam.energy, shape, angle
