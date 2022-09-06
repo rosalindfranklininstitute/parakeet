@@ -16,6 +16,7 @@ import parakeet.command_line
 import parakeet.command_line.config as config
 import parakeet.command_line.sample as sample
 import parakeet.command_line.simulate as simulate
+import parakeet.command_line.metadata as metadata
 import parakeet.command_line.analyse as analyse
 from argparse import ArgumentParser
 
@@ -126,6 +127,26 @@ def add_simulate_command(parser: ArgumentParser):
     return parser
 
 
+def add_metadata_command(parser: ArgumentParser):
+    """
+    Add the metadata sub command
+
+    """
+
+    # Add some sub commands
+    subparsers = parser.add_subparsers(
+        dest="metadata_command", help="The parakeet metadata sub commands"
+    )
+
+    # Add the config commands
+    metadata._export.get_parser(
+        subparsers.add_parser("export", help=metadata._export.get_description())
+    )
+
+    # Return parser
+    return parser
+
+
 def add_analyse_command(parser: ArgumentParser):
     """
     Add the analyse sub command
@@ -196,6 +217,11 @@ def get_parser() -> ArgumentParser:
     # Add the "parakeet simulate" command
     add_simulate_command(
         subparsers.add_parser("simulate", help="Commands to simulate the TEM images")
+    )
+
+    # Add the "parakeet metadata" command
+    add_metadata_command(
+        subparsers.add_parser("metadata", help="Commands to manipulate metadata")
     )
 
     # Add the "parakeet analyse" command
@@ -274,6 +300,16 @@ def simulate_main(parser, args):
     }[args.simulate_command](args)
 
 
+def metadata_main(parser, args):
+    """
+    Perform the parakeet metadata action
+
+    """
+    {None: lambda x: parser.print_help(), "export": metadata._export.export_impl,}[
+        args.metadata_command
+    ](args)
+
+
 def analyse_main(parser, args):
     """
     Perform the parakeet analyse action
@@ -347,6 +383,7 @@ def main():
         "sample": sample_main,
         "simulate": simulate_main,
         "analyse": analyse_main,
+        "metadata": metadata_main,
         "export": export_main,
         "read_pdb": read_pdb_main,
         "run": run_main,
