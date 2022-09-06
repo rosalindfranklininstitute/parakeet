@@ -509,6 +509,8 @@ class MrcfileHeader(Header):
             "pixel_size_y": lambda x: x * 1e10,
         }.get(key, lambda x: x)
         if mapping:
+            if isinstance(value, np.ndarray) and len(value) == 1:
+                value = value[0]
             self._handle[index][mapping] = setter(value)
 
     @property
