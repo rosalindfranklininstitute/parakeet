@@ -99,72 +99,6 @@ class ExitWaveImageSimulator(object):
         # Return the beam drift
         return driftx, drifty
 
-    def get_masker(self, index, input_multislice, pixel_size, drift, origin, offset):
-        """
-        Get the masker object for the ice specification
-
-        """
-
-        # Create the masker
-        masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
-
-        # Get the sample centre
-        shape = self.sample.shape
-        centre = np.array(self.sample.centre)
-        drift = np.array(drift)
-        shift = self.scan.poses.shifts[index]
-        detector_origin = np.array([origin[0], origin[1], 0])
-        centre = centre + offset - drift - detector_origin - shift
-
-        # Set the shape
-        if shape["type"] == "cube":
-            length = shape["cube"]["length"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length / 2,
-                    centre[1] - length / 2,
-                    centre[2] - length / 2,
-                ),
-                (length, length, length),
-            )
-        elif shape["type"] == "cuboid":
-            length_x = shape["cuboid"]["length_x"]
-            length_y = shape["cuboid"]["length_y"]
-            length_z = shape["cuboid"]["length_z"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length_x / 2,
-                    centre[1] - length_y / 2,
-                    centre[2] - length_z / 2,
-                ),
-                (length_x, length_y, length_z),
-            )
-        elif shape["type"] == "cylinder":
-            radius = shape["cylinder"]["radius"]
-            if not isinstance(radius, Iterable):
-                radius = [radius]
-            length = shape["cylinder"]["length"]
-            offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
-            offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
-            axis = shape["cylinder"].get("axis", (0, 1, 0))
-            masker.set_cylinder(
-                (centre[0], centre[1] - length / 2, centre[2]),
-                axis,
-                length,
-                list(radius),
-                list(offset_x),
-                list(offset_z),
-            )
-
-        # Rotate unless we have a single particle type simulation
-        if self.scan.is_uniform_angular_scan:
-            masker.set_rotation(centre, (0, 0, 0))
-        else:
-            masker.set_rotation(centre, self.scan.poses.orientations[index].as_rotvec())
-
-        # Get the masker
-        return masker
-
     def __call__(self, index):
         """
         Simulate a single frame
@@ -269,8 +203,8 @@ class ExitWaveImageSimulator(object):
         if self.simulation["ice"] == True:
 
             # Get the masker
-            masker = self.get_masker(
-                index, simulate.input, pixel_size, (driftx, drifty, 0), origin, offset
+            masker = simulate.masker(
+                index, pixel_size, (driftx, drifty, 0), origin, offset
             )
 
             # Run the simulation
