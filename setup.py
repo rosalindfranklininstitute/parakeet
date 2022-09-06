@@ -100,6 +100,7 @@ def main():
                 "parakeet.simulate.image=parakeet.command_line.simulate:image",
                 "parakeet.simulate.simple=parakeet.command_line.simulate:simple",
                 "parakeet.simulate.ctf=parakeet.command_line.simulate:ctf",
+                "parakeet.metadata.export=parakeet.command_line.metadata:export",
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",
                 "parakeet.analyse.average_particles=parakeet.command_line.analyse:average_particles",
                 "parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles",
