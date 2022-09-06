@@ -13,6 +13,7 @@ import logging
 import numpy as np
 import warnings
 from math import sqrt, pi, floor
+from collections.abc import Iterable
 
 
 # Try to input MULTEM
