@@ -253,7 +253,7 @@ def _average_particles_Config(
         size1 = num_particles // 2
         size2 = num_particles - size1
         half_index = np.hstack(
-            [np.zeros(size1, dtype=np.int), np.ones(size2, dtype=np.int)]
+            [np.zeros(size1, dtype=np.int32), np.ones(size2, dtype=np.int32)]
         )
         zpos = list(zip(*positions))[1]
         sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
@@ -419,11 +419,11 @@ def _average_all_particles_Config(
         )
 
         # Get the random indices
-        indices = np.arange(len(positions), dtype=np.int)
+        indices = np.arange(len(positions), dtype=np.int32)
         zpos = list(zip(*positions))[1]
         sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
         indices = indices[sorted_indices]
-        half_index = np.zeros(indices.size, dtype=np.int)
+        half_index = np.zeros(indices.size, dtype=np.int32)
 
         # Loop through all the particles
         with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
