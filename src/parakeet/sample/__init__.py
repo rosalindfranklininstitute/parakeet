@@ -1341,6 +1341,7 @@ class Sample(object):
 
         # Add the molecule to it's own field
         if name is not None:
+            name = name.replace("/", "_").replace("\\", "_").replace(".", "_")
             self.__handle.sample.molecules[name].atoms = atoms.data
             self.__handle.sample.molecules[name].positions = positions
             self.__handle.sample.molecules[name].orientations = orientations

@@ -3,6 +3,7 @@ import os
 import pytest
 import parakeet.config
 import parakeet.sample
+import shutil
 from math import sqrt
 
 
@@ -487,3 +488,31 @@ def test_add_molecules(tmp_path):
 
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
+
+
+def test_sample_new_with_local(tmp_path):
+
+    filename = os.path.join(tmp_path, "my.pdb")
+    
+    src = parakeet.data.get_4v1w()
+    shutil.copyfile(src, filename)
+
+    config = {
+        "box": (50, 50, 50),
+        "centre": (25, 25, 25),
+        "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
+        "molecules" : {
+            "local" : [
+                {
+                    "filename" : filename,
+                    "instances" : 1,
+                }
+            ]
+        }
+    }
+
+    sample = parakeet.sample.new(
+        parakeet.config.Sample(**config),
+        os.path.join(tmp_path, "test_new2.h5"),
+    )
+
