@@ -493,7 +493,7 @@ def test_add_molecules(tmp_path):
 def test_sample_new_with_local(tmp_path):
 
     filename = os.path.join(tmp_path, "my.pdb")
-    
+
     src = parakeet.data.get_4v1w()
     shutil.copyfile(src, filename)
 
@@ -501,18 +501,17 @@ def test_sample_new_with_local(tmp_path):
         "box": (50, 50, 50),
         "centre": (25, 25, 25),
         "shape": {"type": "cylinder", "cylinder": {"length": 40, "radius": 20}},
-        "molecules" : {
-            "local" : [
+        "molecules": {
+            "local": [
                 {
-                    "filename" : filename,
-                    "instances" : 1,
+                    "filename": filename,
+                    "instances": 1,
                 }
             ]
-        }
+        },
     }
 
     sample = parakeet.sample.new(
         parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_new2.h5"),
     )
-
