@@ -11,7 +11,6 @@
 import logging
 import logging.config
 from parakeet.command_line._export import *  # noqa
-from parakeet.command_line._read_pdb import *  # noqa
 from parakeet.command_line._run import *  # noqa
 from parakeet.command_line._main import *  # noqa
 

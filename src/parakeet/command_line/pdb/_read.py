@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.read_pdb.py
+# parakeet.command_line.pdb._read.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -19,7 +19,7 @@ import parakeet.sample
 from argparse import ArgumentParser
 
 
-__all__ = ["read_pdb"]
+__all__ = ["read"]
 
 
 # Get the logger
@@ -36,7 +36,7 @@ def get_description():
 
 def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
-    Get the parser for parakeet.read_pdb
+    Get the parser for parakeet.pdb.read
 
     """
 
@@ -55,7 +55,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     return parser
 
 
-def read_pdb_impl(args):
+def read_impl(args):
     """
     Read the given PDB file and show the atom positions
 
@@ -96,9 +96,9 @@ def read_pdb_impl(args):
                     )
 
 
-def read_pdb(args: list[str] = None):
+def read(args: list[str] = None):
     """
     Read the given PDB file and show the atom positions
 
     """
-    return read_pdb_impl(get_parser().parse_args(args=args))
+    return read_impl(get_parser().parse_args(args=args))
