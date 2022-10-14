@@ -8,6 +8,3 @@ dependencies:
   - conda-verify
   - anaconda-client
   - cudatoolkit-dev
-  - pip
-  - pip:
-    - profet
