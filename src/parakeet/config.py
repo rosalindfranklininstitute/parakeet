@@ -48,7 +48,7 @@ class BaseModel(PydanticBaseModel):
         extra = "forbid"
 
 
-class Auto(Enum):
+class Auto(str, Enum):
     """
     An enumeration just containing auto
 
@@ -57,7 +57,7 @@ class Auto(Enum):
     auto = "auto"
 
 
-class ShapeType(Enum):
+class ShapeType(str, Enum):
     """
     An enumeration of sample shape types
 
@@ -296,7 +296,7 @@ class Sample(BaseModel):
     )
 
 
-class DriftType(Enum):
+class DriftType(str, Enum):
     """
     An enumeration to describe the beam and defocus drift type
 
@@ -440,7 +440,7 @@ class Detector(BaseModel):
     )
 
 
-class MicroscopeModel(Enum):
+class MicroscopeModel(str, Enum):
     """
     An enumeration to describe the microscope model
 
@@ -469,7 +469,7 @@ class Microscope(BaseModel):
     detector: Detector = Field(Detector(), description="The detector model parameters")
 
 
-class ScanMode(Enum):
+class ScanMode(str, Enum):
     """
     An enumeration to describe the scan mode
 
@@ -480,6 +480,7 @@ class ScanMode(Enum):
     dose_symmetric = "dose_symmetric"
     single_particle = "single_particle"
     helical_scan = "helical_scan"
+    beam_tilt = "beam_tilt"
 
 
 class Scan(BaseModel):
@@ -527,7 +528,7 @@ class Scan(BaseModel):
     )
 
 
-class InelasticModel(Enum):
+class InelasticModel(str, Enum):
     """
     A model to describe the inelastic scattering mode
 
@@ -539,7 +540,7 @@ class InelasticModel(Enum):
     cc_corrected = "cc_corrected"
 
 
-class MPLPosition(Enum):
+class MPLPosition(str, Enum):
     """
     A model to describe the MPL position mode
 
@@ -586,7 +587,7 @@ class Simulation(BaseModel):
     )
 
 
-class ClusterMethod(Enum):
+class ClusterMethod(str, Enum):
     """
     An enumeration to describe the cluster method
 
@@ -606,7 +607,7 @@ class Cluster(BaseModel):
     max_workers: int = Field(1, description="The maximum number of worker processes")
 
 
-class Device(Enum):
+class Device(str, Enum):
     """
     An enumeration to set whether to run on the GPU or CPU
 
