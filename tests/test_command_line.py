@@ -287,11 +287,11 @@ def test_export(config_path):
     assert os.path.exists(image3)
 
 
-def test_read_pdb(config_path):
+def test_pdb_read(config_path):
 
     pdb = parakeet.data.get_pdb("4v1w")
     assert os.path.exists(pdb)
-    parakeet.command_line.read_pdb([pdb])
+    parakeet.command_line.pdb.read([pdb])
 
 
 def test_run(config_path):
