@@ -13,6 +13,7 @@ from __future__ import annotations
 import gemmi
 import logging
 import logging.config
+import os
 import profet
 from pypdb.clients.pdb.pdb_client import PDBFileType
 from argparse import ArgumentParser
