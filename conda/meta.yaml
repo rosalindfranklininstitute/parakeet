@@ -53,7 +53,6 @@ requirements:
     - pandas
     - pillow
     - pip
-    - profet
     - pydantic
     - python
     - python-multem
@@ -73,7 +72,6 @@ requirements:
     - numpy
     - pandas
     - pillow
-    - profet
     - pydantic
     - python
     - python-multem
