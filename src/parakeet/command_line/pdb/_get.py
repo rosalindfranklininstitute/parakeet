@@ -42,7 +42,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     # Initialise the parser
     if parser is None:
         parser = ArgumentParser(description=get_description())
-    
+
     # Add an argument for the PDB ID
     parser.add_argument(
         type=str,
@@ -50,7 +50,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="id",
         help="The PDB ID",
     )
-    
+
     # Add argument for directory output
     parser.add_argument(
         "-d",
@@ -76,7 +76,7 @@ def get_pdb(pdb):
     # Download the data
     filedata = None
     filename = None
-    for filetype in [ "pdb", "cif" ]:
+    for filetype in ["pdb", "cif"]:
         filename, filedata = fetcher.get_file(pdb, filetype=filetype)
         if filedata is not None:
             break
@@ -92,10 +92,10 @@ def get_impl(args):
     Get the PDB file
 
     """
-    
+
     # Get the filename and filedata
     filename, filedata = get_pdb(args.id)
-   
+
     # Construct the path
     filepath = os.path.join(args.directory, filename)
 
@@ -111,4 +111,3 @@ def get(args: list[str] = None):
 
     """
     return get_impl(get_parser().parse_args(args=args))
-

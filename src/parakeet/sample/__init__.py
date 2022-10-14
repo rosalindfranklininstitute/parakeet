@@ -1906,9 +1906,7 @@ class AtomDeleter(object):
         # pylab.imshow(self.grid[:,:,grid_shape[2]//2])
         # pylab.show()
 
-        self.grid = (
-            scipy.ndimage.distance_transform_edt(self.grid) < min_distance
-        )
+        self.grid = scipy.ndimage.distance_transform_edt(self.grid) < min_distance
         return
         # self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         # self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
