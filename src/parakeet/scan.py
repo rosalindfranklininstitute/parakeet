@@ -187,6 +187,7 @@ class ScanFactory(object):
 
         # Optionally smooth the noise
         if kernel_size > 0:
+            kernel_size = min(kernel_size, num_images)
             kernel = np.ones(kernel_size) / kernel_size
             drift = np.apply_along_axis(
                 lambda m: np.convolve(m, kernel, mode="same"), axis=0, arr=drift

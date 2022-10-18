@@ -176,6 +176,24 @@ class RelionMetadataExporter(object):
             # Write the file
             starfile.write(data, self.manual_pick_filename % i, overwrite=True)
 
+    def write_single_particle_scan_files(self):
+        """
+        Write out a star file with single particle simulation metadata
+
+        """
+        relion_eulers = self.orientations.inv().as_euler("ZYZ", degrees=True)
+        relion_shifts = -self.shifts
+        data = {
+            "rlnAngleRot": relion_eulers[:, 0],
+            "rlnAngleTilt": relion_eulers[:, 1],
+            "rlnAnglePsi": relion_eulers[:, 2],
+            "rlnOriginX": relion_shifts[:, 0],
+            "rlnOriginY": relion_shifts[:, 1],
+            "rlnOriginZ": relion_shifts[:, 2],
+        }
+        df = pd.DataFrame.from_dict(data)
+        starfile.write(df, output_file, overwrite=True)
+
 
 def export_relion(config: parakeet.config.Config, sample: Sample, directory: str):
     """
@@ -193,6 +211,7 @@ def export_relion(config: parakeet.config.Config, sample: Sample, directory: str
     exporter.write_input_file()
     exporter.write_mtf_file()
     exporter.write_corrected_micrographs_file()
+    exporter.write_single_particle_scan_files()
 
 
 @singledispatch
