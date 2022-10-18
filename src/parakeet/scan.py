@@ -438,7 +438,7 @@ class ScanFactory(object):
         shift_delta = None
         if drift is not None:
             shift_delta = Class._generate_drift(
-                len(angles), drift["magnitude"], drift["kernel_size"]
+                num_images, drift["magnitude"], drift["kernel_size"]
             )
 
         # Create the scan

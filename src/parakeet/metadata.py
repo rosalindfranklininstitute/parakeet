@@ -59,6 +59,9 @@ class RelionMetadataExporter(object):
         self.corrected_micrographs_filename = os.path.join(
             self.directory, "corrected_micrographs.star"
         )
+        self.single_particle_scan_filename = os.path.join(
+            self.directory, "particle.star"
+        )
 
     def write_input_file(self):
         """
@@ -192,7 +195,7 @@ class RelionMetadataExporter(object):
             "rlnOriginZ": relion_shifts[:, 2],
         }
         df = pd.DataFrame.from_dict(data)
-        starfile.write(df, output_file, overwrite=True)
+        starfile.write(df, self.single_particle_scan_filename, overwrite=True)
 
 
 def export_relion(config: parakeet.config.Config, sample: Sample, directory: str):
