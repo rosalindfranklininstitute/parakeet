@@ -10,7 +10,6 @@ def test_beam():
             acceleration_voltage_spread=2,
             source_spread=0.1,
             electrons_per_angstrom=30,
-            drift=None,
         )
     )
 

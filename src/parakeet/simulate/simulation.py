@@ -18,7 +18,6 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
-from parakeet.scan import UniformAngularScan
 from math import sqrt, pi
 
 # Try to input MULTEM
@@ -237,9 +236,6 @@ class Simulation(object):
         self.pixel_size = pixel_size
         self.image_size = image_size
         self.scan = scan
-
-        if isinstance(scan, UniformAngularScan):  # single particle mode check
-            self.scan.poses.write_star_file(self.scan.metadata_file)
         self.cluster = cluster
         self.simulate_image = simulate_image
 

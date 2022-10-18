@@ -178,6 +178,7 @@ class LocalMolecule(BaseModel):
     )
 
     instances: Union[int, List[MoleculePose]] = Field(
+        1,
         description=(
             "The instances of the molecule to put into the sample model. This "
             "field can be set as either an integer or a list of MoleculePose "
@@ -207,6 +208,7 @@ class PDBMolecule(BaseModel):
     )
 
     instances: Union[int, List[MoleculePose]] = Field(
+        1,
         description=(
             "The instances of the molecule to put into the sample model. This "
             "field can be set as either an integer or a list of MoleculePose "
@@ -296,39 +298,6 @@ class Sample(BaseModel):
     )
 
 
-class DriftType(str, Enum):
-    """
-    An enumeration to describe the beam and defocus drift type
-
-    """
-
-    random = "random"
-    random_smoothed = "random_smoothed"
-    sinusoidal = "sinusoidal"
-
-
-class BeamDrift(BaseModel):
-    """
-    A model to describe the beam drift
-
-    """
-
-    type: DriftType = Field(None, description="The beam drift type")
-
-    magnitude: float = Field(0, description="The magnitude of the beam drift (A)")
-
-
-class DefocusDrift(BaseModel):
-    """
-    A model to describe the defocus drift
-
-    """
-
-    type: DriftType = Field(None, description="The defocus drift type")
-
-    magnitude: float = Field(0, description="The magnitude of the defocus drift (A)")
-
-
 class Beam(BaseModel):
     """
     A model to describe the beam
@@ -352,12 +321,6 @@ class Beam(BaseModel):
     theta: float = Field(0, description="The beam tilt theta angle (deg)")
 
     phi: float = Field(0, description="The beam tilt phi angle (deg)")
-
-    drift: Optional[BeamDrift] = Field(description="The beam drift model parameters")
-
-    defocus_drift: Optional[DefocusDrift] = Field(
-        description="The defocus drift model parameters"
-    )
 
 
 class Lens(BaseModel):
@@ -480,7 +443,19 @@ class ScanMode(str, Enum):
     dose_symmetric = "dose_symmetric"
     single_particle = "single_particle"
     helical_scan = "helical_scan"
+    nhelix = "nhelix"
     beam_tilt = "beam_tilt"
+
+
+class Drift(BaseModel):
+    """
+    A model to describe the beam drift
+
+    """
+
+    magnitude: float = Field(0, description="The magnitude of the drift (A)")
+
+    kernel_size: int = Field(0, description="How much to smooth the drift")
 
 
 class Scan(BaseModel):
@@ -509,6 +484,8 @@ class Scan(BaseModel):
 
     num_images: int = Field(1, description="The number of images to simulate")
 
+    num_nhelix: int = Field(1, description="The number of scans in an n-helix")
+
     exposure_time: float = Field(1, description="The exposure time per image (s)")
 
     angles: Optional[List[float]] = Field(
@@ -526,6 +503,24 @@ class Scan(BaseModel):
             "num_images, start_pos and step_pos fields are overridden"
         ),
     )
+
+    theta: Optional[Union[float, List[float]]] = Field(
+        None,
+        description=(
+            "The list of theta angles to use (mrad) for the beam tilt."
+            "This must either be the same length as phi or a scalar"
+        ),
+    )
+
+    phi: Optional[Union[float, List[float]]] = Field(
+        None,
+        description=(
+            "The list of phi angles to use (mrad) for the beam tilt."
+            "This must either be the same length as theta or a scalar"
+        ),
+    )
+
+    drift: Optional[Drift] = Field(description="The drift model parameters")
 
 
 class InelasticModel(str, Enum):

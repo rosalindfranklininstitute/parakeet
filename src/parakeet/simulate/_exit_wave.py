@@ -27,6 +27,7 @@ from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi, sin
 from collections.abc import Iterable
+from scipy.spatial.transform import Rotation as R
 
 
 __all__ = ["exit_wave"]
@@ -65,47 +66,17 @@ class ExitWaveImageSimulator(object):
         self.simulation = simulation
         self.device = device
 
-    def get_beam_drift(self, index, angle):
-        """
-        Get the beam drift
-
-        Returns:
-            tuple: shiftx, shifty - the beam drift
-        """
-
-        beam_drift = self.microscope.beam.drift
-        driftx = 0
-        drifty = 0
-        if beam_drift and not beam_drift["type"] is None:
-            if beam_drift["type"] == "random":
-                driftx, drifty = np.random.normal(0, beam_drift["magnitude"], size=2)
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            elif beam_drift["type"] == "random_smoothed":
-                if index == 0:
-
-                    def generate_smoothed_random(magnitude, num_images):
-                        drift = np.random.normal(0, magnitude, size=(num_images, 2))
-                        driftx = np.convolve(drift[:, 0], np.ones(5) / 5, mode="same")
-                        drifty = np.convolve(drift[:, 1], np.ones(5) / 5, mode="same")
-                        return driftx, drifty
-
-                    self._beam_drift = generate_smoothed_random(
-                        beam_drift["magnitude"], len(self.scan)
-                    )
-                driftx = self._beam_drift[0][index]
-                drifty = self._beam_drift[1][index]
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            elif beam_drift["type"] == "sinusoidal":
-                driftx = sin(angle * pi / 180) * beam_drift["magnitude"]
-                drifty = driftx
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            else:
-                raise RuntimeError("Unknown drift type")
-
-        # Return the beam drift
-        return driftx, drifty
-
-    def get_masker(self, index, input_multislice, pixel_size, drift, origin, offset):
+    def get_masker(
+        self,
+        index,
+        input_multislice,
+        pixel_size,
+        drift,
+        origin,
+        offset,
+        orientation,
+        shift,
+    ):
         """
         Get the masker object for the ice specification
 
@@ -118,9 +89,8 @@ class ExitWaveImageSimulator(object):
         shape = self.sample.shape
         centre = np.array(self.sample.centre)
         drift = np.array(drift)
-        shift = self.scan.poses.shifts[index]
         detector_origin = np.array([origin[0], origin[1], 0])
-        centre = centre + offset - drift - detector_origin - shift
+        centre = centre + offset - detector_origin - shift
 
         # Set the shape
         if shape["type"] == "cube":
@@ -166,7 +136,7 @@ class ExitWaveImageSimulator(object):
         if self.scan.is_uniform_angular_scan:
             masker.set_rotation(centre, (0, 0, 0))
         else:
-            masker.set_rotation(centre, self.scan.poses.orientations[index].as_rotvec())
+            masker.set_rotation(centre, orientation.as_rotvec())
 
         # Get the masker
         return masker
@@ -189,10 +159,12 @@ class ExitWaveImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
-
-        # Add the beam drift
-        driftx, drifty = self.get_beam_drift(index, angle)
+        position = self.scan.position[index]
+        orientation = self.scan.orientation[index]
+        shift = self.scan.shift[index]
+        drift = self.scan.shift_delta[index]
+        beam_tilt_theta = self.scan.beam_tilt_theta[index]
+        beam_tilt_phi = self.scan.beam_tilt_phi[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -229,6 +201,10 @@ class ExitWaveImageSimulator(object):
         input_multislice.spec_ly = y_fov + offset * 2
         input_multislice.spec_lz = self.sample.containing_box[1][2]
 
+        # Set the beam tilt
+        input_multislice.theta += beam_tilt_theta
+        input_multislice.phi += beam_tilt_phi
+
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
             input_multislice.static_B_factor = (
@@ -249,10 +225,9 @@ class ExitWaveImageSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                self.scan.poses.orientations[index].apply(coords - self.sample.centre)
+                R.from_rotvec(orientation).apply(coords - self.sample.centre)
                 + self.sample.centre
-                - self.scan.poses.shifts[index]
-                + np.array([driftx, drifty, 0])
+                - position
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
@@ -280,7 +255,13 @@ class ExitWaveImageSimulator(object):
 
             # Get the masker
             masker = self.get_masker(
-                index, input_multislice, pixel_size, (driftx, drifty, 0), origin, offset
+                index,
+                input_multislice,
+                pixel_size,
+                origin,
+                offset,
+                orientation,
+                position,
             )
 
             # Run the simulation
@@ -310,11 +291,12 @@ class ExitWaveImageSimulator(object):
         metadata = self.metadata[index]
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
-        metadata["stage_z"] = position[2]
-        metadata["shift_x"] = position[0]
-        metadata["shift_y"] = position[1]
-        metadata["shift_offset_x"] = driftx
-        metadata["shift_offset_y"] = drifty
+        metadata["stage_z"] = shift[2]
+        metadata["shift_x"] = shift[0]
+        metadata["shift_y"] = shift[1]
+        metadata["shift_offset_x"] = drift[0]
+        metadata["shift_offset_y"] = drift[1]
+        metadata["stage_offset_z"] = drift[2]
         metadata["energy"] = self.microscope.beam.energy
         metadata["theta"] = self.microscope.beam.theta
         metadata["phi"] = self.microscope.beam.phi
