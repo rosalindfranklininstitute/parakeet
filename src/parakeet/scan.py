@@ -430,7 +430,7 @@ class ScanFactory(object):
         """
 
         # Get a random list of uniform orientations
-        orientation = R.from_matrix(special_ortho_group.rvs(dim=3, size=num_images))
+        orientation = R.from_matrix(special_ortho_group.rvs(dim=3, size=num_images)).as_rotvec()
 
         # Create the shift delta
         shift_delta = None
