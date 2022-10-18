@@ -134,7 +134,7 @@ class Scan(object):
         n = np.linalg.norm(self.orientation, axis=1)
         d = np.dot(self.orientation, np.array([0, 1, 0]))
         return n * np.sign(d) * 180.0 / pi
-    
+
     @property
     def axes(self) -> np.ndarray:
         """
@@ -144,7 +144,7 @@ class Scan(object):
         n = np.linalg.norm(self.orientation, axis=1)
         d = np.dot(self.orientation, np.array([0, 1, 0]))
         s = n > 0
-        n[s] = (1.0 / n[s])
+        n[s] = 1.0 / n[s]
         n = n * np.sign(d)
         return self.orientation * n[:, np.newaxis]
 
@@ -430,7 +430,9 @@ class ScanFactory(object):
         """
 
         # Get a random list of uniform orientations
-        orientation = R.from_matrix(special_ortho_group.rvs(dim=3, size=num_images)).as_rotvec()
+        orientation = R.from_matrix(
+            special_ortho_group.rvs(dim=3, size=num_images)
+        ).as_rotvec()
 
         # Create the shift delta
         shift_delta = None
@@ -455,7 +457,7 @@ class ScanFactory(object):
         positions: list = None,
         theta: list = None,
         phi: list = None,
-        exposure_time: float=1,
+        exposure_time: float = 1,
         drift: dict = None,
         **kwargs
     ) -> Scan:
@@ -600,7 +602,7 @@ def new(
         "start_pos": start_pos,
         "step_pos": step_pos,
         "num_images": num_images,
-        "num_nhelix" : num_nhelix,
+        "num_nhelix": num_nhelix,
         "exposure_time": exposure_time,
         "theta": theta,
         "phi": phi,
