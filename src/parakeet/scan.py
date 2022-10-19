@@ -530,6 +530,8 @@ class ScanFactory(object):
         positions = np.stack([positions] * num_beam_tilt).T.flatten()
         beam_tilt_theta = np.stack([theta] * num_stage_tilt).flatten()
         beam_tilt_phi = np.stack([phi] * num_stage_tilt).flatten()
+        assert angles is not None
+        assert positions is not None
 
         # Create the orientation and shift
         orientation = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
