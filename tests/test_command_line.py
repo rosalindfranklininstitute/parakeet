@@ -1,6 +1,6 @@
 import glob
 import pytest
-import os.path
+import os
 import yaml
 import parakeet.config
 import parakeet.command_line.sample
@@ -294,11 +294,18 @@ def test_pdb_read(config_path):
     parakeet.command_line.pdb.read([pdb])
 
 
-def test_pdb_get(config_path):
+def test_pdb_get1(config_path):
 
     directory = os.path.abspath(config_path)
     parakeet.command_line.pdb.get(["4v1w", "-d", directory])
     assert os.path.exists(os.path.join(directory, "4v1w.cif"))
+
+
+def test_pdb_get2(config_path):
+    if os.getenv("CI"):
+        pytest.skip("Doesn't work on github workflow")
+        return
+    directory = os.path.abspath(config_path)
     parakeet.command_line.pdb.get(["1uad", "-d", directory])
     assert os.path.exists(os.path.join(directory, "1uad.cif"))
 
