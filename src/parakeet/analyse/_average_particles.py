@@ -482,7 +482,8 @@ def _average_all_particles_Config(
 
         # Average the sub tomograms
         print("Averaging map with %d particles" % num)
-        average = average / num
+        if num > 0:
+            average = average / num
 
         # from matplotlib import pylab
         # pylab.imshow(average[half_length, :, :])

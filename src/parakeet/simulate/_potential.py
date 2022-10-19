@@ -24,6 +24,7 @@ from parakeet.scan import Scan
 from parakeet.simulate.simulation import Simulation
 from functools import singledispatch
 from math import pi, floor
+from scipy.spatial.transform import Rotation as R
 
 Sample = parakeet.sample.Sample
 Device = parakeet.config.Device
@@ -85,7 +86,12 @@ class ProjectedPotentialSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
+        position = self.scan.position[index]
+        orientation = self.scan.orientation[index]
+        shift = self.scan.shift[index]
+        drift = self.scan.shift_delta[index]
+        beam_tilt_theta = self.scan.beam_tilt_theta[index]
+        beam_tilt_phi = self.scan.beam_tilt_phi[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -135,9 +141,9 @@ class ProjectedPotentialSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                self.scan.poses.orientations[index].apply(coords - self.sample.centre)
+                R.from_rotvec(orientation).apply(coords - self.sample.centre)
                 + self.sample.centre
-                - self.scan.poses.shifts[index]
+                - position
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]

@@ -68,6 +68,7 @@ class ImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
+        exposure_time = self.scan.exposure_time
 
         # Check the angle and position
         assert abs(angle - self.optics.header[index]["tilt_alpha"]) < 1e7
@@ -82,7 +83,7 @@ class ImageSimulator(object):
         )
 
         # Compute the electrons per pixel second
-        electrons_per_second = electrons_per_pixel / self.scan.exposure_time
+        electrons_per_second = electrons_per_pixel / exposure_time
         energy = self.microscope.beam.energy
 
         # Get the image

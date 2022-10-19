@@ -27,8 +27,6 @@ class Beam(object):
         electrons_per_angstrom: float = 30,
         theta: float = 0,
         phi: float = 0,
-        drift: dict = None,
-        defocus_drift: dict = None,
     ):
         """
         Initialise the beam
@@ -41,8 +39,6 @@ class Beam(object):
             electrons_per_angstrom: The number of electrons per angstrom
             theta: The beam tilt theta
             phi: The beam tilt phi
-            drift: The beam drift
-            defocus_drift: The defocus drift
 
         """
         self._energy = energy
@@ -52,8 +48,6 @@ class Beam(object):
         self._electrons_per_angstrom = electrons_per_angstrom
         self._theta = theta
         self._phi = phi
-        self._drift = drift
-        self._defocus_drift = defocus_drift
 
     @property
     def energy(self) -> float:
@@ -139,30 +133,6 @@ class Beam(object):
     def phi(self, phi: float):
         self._phi = phi
 
-    @property
-    def drift(self) -> Optional[dict]:
-        """
-        The beam drift
-
-        """
-        return self._drift
-
-    @drift.setter
-    def drift(self, drift: dict):
-        self._drift = drift
-
-    @property
-    def defocus_drift(self) -> Optional[dict]:
-        """
-        The defocus drift
-
-        """
-        return self._defocus_drift
-
-    @defocus_drift.setter
-    def defocus_drift(self, defocus_drift: dict):
-        self._defocus_drift = defocus_drift
-
 
 def new(config: parakeet.config.Beam) -> Beam:
     """
@@ -183,8 +153,4 @@ def new(config: parakeet.config.Beam) -> Beam:
         electrons_per_angstrom=config.electrons_per_angstrom,
         theta=config.theta,
         phi=config.phi,
-        drift={} if config.drift is None else config.drift.dict(),
-        defocus_drift={}
-        if config.defocus_drift is None
-        else config.defocus_drift.dict(),
     )

@@ -84,41 +84,6 @@ class OpticsImageSimulator(object):
 
         """
 
-        def get_defocus(index, angle):
-            """
-            Get the defocus
-
-            Returns:
-                float: defocus
-            """
-
-            defocus = self.microscope.lens.c_10
-            drift = 0
-            defocus_drift = self.microscope.beam.defocus_drift
-            if defocus_drift and not defocus_drift["type"] is None:
-                if defocus_drift["type"] == "random":
-                    drift = np.random.normal(0, defocus_drift["magnitude"])
-                elif defocus_drift["type"] == "random_smoothed":
-                    if index == 0:
-
-                        def generate_smoothed_random(magnitude, num_images):
-                            drift = np.random.normal(0, magnitude, size=(num_images))
-                            drift = np.convolve(drift, np.ones(5) / 5, mode="same")
-                            return drift
-
-                        self._defocus_drift = generate_smoothed_random(
-                            defocus_drift["magnitude"], len(self.scan)
-                        )
-                    drift = self._defocus_drift[index]
-                elif defocus_drift["type"] == "sinusoidal":
-                    drift = sin(angle * pi / 180) * defocus_drift["magnitude"]
-                else:
-                    raise RuntimeError("Unknown drift type")
-                logger.info("Adding defocus drift of %f" % (drift))
-
-            # Return the defocus
-            return defocus + drift
-
         def compute_image(
             psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
         ):
@@ -191,7 +156,7 @@ class OpticsImageSimulator(object):
         microscope = copy.deepcopy(self.microscope)
 
         # Get the defocus
-        defocus = get_defocus(index, angle)
+        defocus = microscope.lens.c_10
 
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero

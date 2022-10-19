@@ -38,6 +38,9 @@ METADATA_DTYPE = np.dtype(
         ("stage_x", "f8"),
         ("stage_y", "f8"),
         ("stage_z", "f8"),
+        ("stage_offset_x", "f8"),
+        ("stage_offset_y", "f8"),
+        ("stage_offset_z", "f8"),
         #
         # Beam parameters
         #
