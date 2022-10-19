@@ -294,6 +294,15 @@ def test_pdb_read(config_path):
     parakeet.command_line.pdb.read([pdb])
 
 
+def test_pdb_get(config_path):
+
+    directory = os.path.abspath(config_path)
+    parakeet.command_line.pdb.get(["4v1w", "-d", directory])
+    assert os.path.exists(os.path.join(directory, "4v1w.cif"))
+    parakeet.command_line.pdb.get(["1uad", "-d", directory])
+    assert os.path.exists(os.path.join(directory, "1uad.cif"))
+
+
 def test_run(config_path):
 
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
