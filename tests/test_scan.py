@@ -97,7 +97,7 @@ def test_beam_tilt():
         axis=(0, 1, 0),
         angles=[1, 2, 3, 4],
         positions=[10, 20, 30, 40],
-        theta=0,
+        theta=[0, 0, 0, 0, 0, 0],
         phi=[0, 0.1, 0.2, 0.3, 0.4, 0.5],
     )
     angles = np.array([[1, 2, 3, 4]] * 6).T.flatten()

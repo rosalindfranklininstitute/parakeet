@@ -9,9 +9,9 @@
 # which is included in the root directory of this package.
 #
 import numpy as np
-import numbers
 import pandas as pd
 from math import pi
+from typing import Union
 from scipy.stats import special_ortho_group
 from scipy.spatial.transform import Rotation as R
 
@@ -30,7 +30,7 @@ class Scan(object):
         beam_tilt_theta: np.ndarray = None,
         beam_tilt_phi: np.ndarray = None,
         defocus_delta: np.ndarray = None,
-        exposure_time: float = None,
+        exposure_time: float = 1,
         is_uniform_angular_scan: bool = False,
     ):
         """
@@ -38,6 +38,9 @@ class Scan(object):
 
         """
         self.is_uniform_angular_scan = is_uniform_angular_scan
+
+        if orientation is None:
+            orientation = np.array([[0, 0, 0]])
 
         if shift is None:
             shift = np.zeros((len(orientation), 3))
@@ -197,11 +200,33 @@ class ScanFactory(object):
         return drift
 
     @classmethod
+    def _rotvec_from_axis_and_angles(
+        Class, axis: np.ndarray, angles: np.ndarray
+    ) -> np.ndarray:
+        """
+        Generate the rotvec
+
+        """
+        axis = axis / np.linalg.norm(axis)
+        angles = angles * pi / 180.0
+        return np.array([axis * a for a in angles])
+
+    @classmethod
+    def _shift_from_axis_and_positions(
+        Class, axis: np.ndarray, positions: np.ndarray
+    ) -> np.ndarray:
+        """
+        Generate the shifts
+
+        """
+        return np.array([axis * p for p in positions])
+
+    @classmethod
     def single_axis(
         Class,
-        axis: tuple = (0, 1, 0),
-        angles: list = None,
-        positions: list = None,
+        axis: Union[np.ndarray, tuple] = (0, 1, 0),
+        angles: np.ndarray = None,
+        positions: np.ndarray = None,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -211,18 +236,24 @@ class ScanFactory(object):
 
         """
 
+        # Check input
+        if angles is None:
+            angles = np.array([])
+        if positions is None:
+            positions = np.array([])
+        assert angles is not None
+        assert positions is not None
+        num_images = len(angles)
+
         # Create the orientation and shift
-        axis = np.array(axis)
-        axis = axis / np.linalg.norm(axis)
-        angles = np.array(angles) * pi / 180.0
-        orientation = np.array([axis * a for a in angles])
-        shift = np.array([axis * p for p in positions])
+        orientation = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
+        shift = Class._shift_from_axis_and_positions(np.array(axis), positions)
 
         # Create the shift delta
         shift_delta = None
         if drift is not None:
             shift_delta = Class._generate_drift(
-                len(angles), drift["magnitude"], drift["kernel_size"]
+                num_images, drift["magnitude"], drift["kernel_size"]
             )
 
         # Create the scan object
@@ -237,8 +268,8 @@ class ScanFactory(object):
     def manual(
         Class,
         axis: tuple = (0, 1, 0),
-        angles: list = None,
-        positions: list = None,
+        angles: np.ndarray = None,
+        positions: np.ndarray = None,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -251,10 +282,12 @@ class ScanFactory(object):
         if angles is None and positions is None:
             angles = np.array([0])
             positions = np.array([0])
-        elif angles is None:
+        elif angles is None and positions is not None:
             angles = np.zeros(len(positions))
-        elif positions is None:
+        elif positions is None and angles is not None:
             positions = np.zeros(len(angles))
+        assert angles is not None
+        assert positions is not None
         assert len(angles) == len(positions)
 
         # Create the single axis scan
@@ -280,8 +313,8 @@ class ScanFactory(object):
         Create a still image scan
 
         """
-        angles = [start_angle]
-        positions = [start_pos]
+        angles = np.array([start_angle])
+        positions = np.array([start_pos])
         return Class.single_axis(
             axis=axis,
             angles=angles,
@@ -452,11 +485,11 @@ class ScanFactory(object):
     @classmethod
     def beam_tilt(
         Class,
-        axis: tuple = (0, 1, 0),
-        angles: list = None,
-        positions: list = None,
-        theta: list = None,
-        phi: list = None,
+        axis: Union[np.ndarray, tuple] = (0, 1, 0),
+        angles: np.ndarray = None,
+        positions: np.ndarray = None,
+        theta: np.ndarray = None,
+        phi: np.ndarray = None,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -470,34 +503,24 @@ class ScanFactory(object):
         if angles is None and positions is None:
             angles = np.array([0])
             positions = np.array([0])
-        elif angles is None:
+        elif angles is None and positions is not None:
             angles = np.zeros(len(positions))
-        elif positions is None:
+        elif positions is None and angles is not None:
             positions = np.zeros(len(angles))
-        if isinstance(angles, numbers.Number) and isinstance(positions, numbers.Number):
-            angles = np.array([angles])
-            positions = np.array([positions])
-        elif isinstance(angles, numbers.Number):
-            angles = np.full(len(positions), angles)
-        elif isinstance(positions, numbers.Number):
-            positions = np.full(len(angles), positions)
+        assert positions is not None
+        assert angles is not None
         assert len(angles) == len(positions)
 
         # Check the beam tilt parameters
         if theta is None and phi is None:
             theta = np.array([0])
             phi = np.array([0])
-        elif theta is None:
+        elif theta is None and phi is not None:
             theta = np.zeros(len(phi))
-        elif phi is None:
+        elif phi is None and theta is not None:
             phi = np.zeros(len(theta))
-        if isinstance(theta, numbers.Number) and isinstance(phi, numbers.Number):
-            theta = np.array([theta])
-            phi = np.array([phi])
-        elif isinstance(theta, numbers.Number):
-            theta = np.full(len(phi), theta)
-        elif isinstance(phi, numbers.Number):
-            phi = np.full(len(theta), phi)
+        assert phi is not None
+        assert theta is not None
         assert len(theta) == len(phi)
 
         # Make the beam_tilt * stage_tilt scan
@@ -509,11 +532,8 @@ class ScanFactory(object):
         beam_tilt_phi = np.stack([phi] * num_stage_tilt).flatten()
 
         # Create the orientation and shift
-        axis = np.array(axis)
-        axis = axis / np.linalg.norm(axis)
-        angles = np.array(angles) * pi / 180.0
-        orientation = np.array([axis * a for a in angles])
-        shift = np.array([axis * p for p in positions])
+        orientation = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
+        shift = Class._shift_from_axis_and_positions(np.array(axis), positions)
 
         # Create the shift delta
         shift_delta = None
@@ -547,8 +567,8 @@ class ScanFactory(object):
             "nhelix": Class.nhelix,
             "single_particle": Class.single_particle,
             "beam_tilt": Class.beam_tilt,
-        }
-        return function[mode](**kwargs)
+        }[mode]
+        return function(**kwargs)  # type: ignore
 
 
 def new(
@@ -563,8 +583,8 @@ def new(
     num_images: int = 1,
     num_nhelix: int = 1,
     exposure_time: float = 1,
-    theta: list = 0,
-    phi: list = 0,
+    theta: list = None,
+    phi: list = None,
     drift: dict = None,
 ) -> Scan:
     """
