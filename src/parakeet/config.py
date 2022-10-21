@@ -95,7 +95,22 @@ class Cylinder(BaseModel):
     """
 
     length: float = Field(0, description="The cylinder length (A)", gt=0)
-    radius: float = Field(0, description="The cylinder radius (A)", gt=0)
+
+    radius: Union[float, List[float]] = Field(
+        0, description="The cylinder radius (A)", gt=0
+    )
+
+    axis: Tuple[float, float, float] = Field(
+        (0, 1, 0), description="The axis of the cylinder"
+    )
+
+    offset_x: List[float] = Field(
+        None, description="The x offset as a function of cylinder y position"
+    )
+
+    offset_z: List[float] = Field(
+        None, description="The z offset as a function of cylinder y position"
+    )
 
 
 class Shape(BaseModel):

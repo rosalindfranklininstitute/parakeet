@@ -25,7 +25,7 @@ from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
-from math import pi, sin
+from math import pi
 from collections.abc import Iterable
 from scipy.spatial.transform import Rotation as R
 
@@ -120,9 +120,13 @@ class ExitWaveImageSimulator(object):
             if not isinstance(radius, Iterable):
                 radius = [radius]
             length = shape["cylinder"]["length"]
-            offset_x = shape["cylinder"].get("offset_x", [0] * len(radius))
-            offset_z = shape["cylinder"].get("offset_z", [0] * len(radius))
+            offset_x = shape["cylinder"].get("offset_x", None)
+            offset_z = shape["cylinder"].get("offset_z", None)
             axis = shape["cylinder"].get("axis", (0, 1, 0))
+            if offset_x is None:
+                offset_x = [0] * len(radius)
+            if offset_z is None:
+                offset_z = [0] * len(radius)
             masker.set_cylinder(
                 (centre[0], centre[1] - length / 2, centre[2]),
                 axis,
@@ -136,7 +140,7 @@ class ExitWaveImageSimulator(object):
         if self.scan.is_uniform_angular_scan:
             masker.set_rotation(centre, (0, 0, 0))
         else:
-            masker.set_rotation(centre, orientation.as_rotvec())
+            masker.set_rotation(centre, orientation)
 
         # Get the masker
         return masker
@@ -233,6 +237,20 @@ class ExitWaveImageSimulator(object):
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
 
+        # Select atoms in FOV
+        fov_xmin = origin[0] - offset
+        fov_xmax = fov_xmin + x_fov + 2 * offset
+        fov_ymin = origin[1] - offset
+        fov_ymax = fov_ymin + y_fov + 2 * offset
+        select = (
+            (atoms.data["x"] >= fov_xmin)
+            & (atoms.data["x"] <= fov_xmax)
+            & (atoms.data["y"] >= fov_ymin)
+            & (atoms.data["y"] <= fov_ymax)
+        )
+        atoms.data = atoms.data[select]
+
+        # Translate for the detector
         input_multislice.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
@@ -258,6 +276,7 @@ class ExitWaveImageSimulator(object):
                 index,
                 input_multislice,
                 pixel_size,
+                drift,
                 origin,
                 offset,
                 orientation,

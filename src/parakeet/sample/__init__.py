@@ -522,7 +522,7 @@ class AtomData(object):
                 self.data["y"].astype("float32"),
                 self.data["z"].astype("float32"),
                 self.data["sigma"].astype("float32"),
-                [float(1) for i in range(self.data.shape[0])],
+                self.data["occupancy"].astype("float32"),
                 [int(0) for i in range(self.data.shape[0])],
                 self.data["charge"].astype("uint8"),
             )
@@ -575,7 +575,7 @@ class AtomData(object):
                                 atom.pos.y,
                                 atom.pos.z,
                                 get_atom_sigma(atom),
-                                atom.occ,
+                                1,  # atom.occ,
                                 atom.charge,
                             )
 
@@ -1095,7 +1095,8 @@ class SampleHDF5Adapter(object):
 
             # Set the shape attributes
             for key, value in shape[shape["type"]].items():
-                self.__handle["shape"].attrs[key] = value
+                if value is not None:
+                    self.__handle["shape"].attrs[key] = value
 
             # Set the margin
             self.__handle["shape"].attrs["margin"] = shape.get("margin", (0, 0, 0))
