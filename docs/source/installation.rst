@@ -82,8 +82,13 @@ environment variables described above.
 
 .. code-block:: bash
 
-  # Close the repository and submodules
-  git clone https://github.com/rosalindfranklininstitute/amplus-digital-twin.git
+  # Clone the repository
+  git clone https://github.com/rosalindfranklininstitute/parakeet.git
+
+  # Enter the parakeet directory
+  cd parakeet
+
+  # Checkout the submodules
   git submodule update --init --recursive
 
   # Install the package locally
@@ -100,8 +105,13 @@ environment variables described above:
 
 .. code-block:: bash
 
-  # Close the repository and submodules
-  git clone https://github.com/rosalindfranklininstitute/amplus-digital-twin.git
+  # Clone the repository
+  git clone https://github.com/rosalindfranklininstitute/parakeet.git
+
+  # Enter the parakeet directory
+  cd parakeet
+
+  # Checkout the submodules
   git submodule update --init --recursive
 
   # Install the package locally
@@ -125,7 +135,7 @@ any other branch) directly using pip by using the following command:
 
 .. code-block:: bash
 
-  python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
+  python -m pip install git+https://github.com/rosalindfranklininstitute/parakeet.git@master
 
 Install using conda
 -------------------
@@ -163,17 +173,12 @@ in the container (in the folder /mnt in the example below). For this reason it
 is advised that all the relevent files (e.g. config.yaml, sample.h5, etc.)
 should be present in the host workspace directory.
 
-Below is an example on how to use parakeet with docker to simulate the exit
-wave:
+Below is an example on how to use parakeet with docker to run parakeet commands:
 
 .. code-block:: bash
 
   docker run --gpus all -v $(pwd):/mnt --workdir=/mnt parakeet:master \
-    parakeet.simulate.exit_wave \
-      -c config.yaml \
-      -d gpu \
-      -s sample.h5 \
-      -e exit_wave.h5
+    parakeet.config.new 
 
 
 Install as a Singularity image
@@ -190,17 +195,12 @@ parakeet's singularity container you can do the following:
 Again similar to docker, to use parakeet with singularity and GPU support, the
 host machine should have the approprate Nvidia drivers installed.
 
-Below is an example on how to use parakeet with singularity to simulate the
-exit wave:
+Below is an example on how to use parakeet with singularity to run parakeet commands:
 
 .. code-block:: bash
 
   singularity run --nv parakeet.sif \
-    parakeet.simulate.exit_wave \
-      -c config_new.yaml \
-      -d gpu \
-      -s sample.h5 \
-      -e exit_wave.h5
+    parakeet.config.new
 
 
 Install as Singularity sandbox
