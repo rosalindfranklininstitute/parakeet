@@ -10,13 +10,12 @@
 #
 from __future__ import annotations
 
-import gemmi
 import logging
 import logging.config
 import os
-import profet
-from pypdb.clients.pdb.pdb_client import PDBFileType
+import shutil
 from argparse import ArgumentParser
+import parakeet.data
 
 
 __all__ = ["get"]
@@ -57,35 +56,12 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         "-d",
         "--directory",
         type=str,
-        default=None,
+        default=".",
         dest="directory",
         help="The directory to save to",
     )
 
     return parser
-
-
-def get_pdb(pdb):
-    """
-    Get the pdb
-
-    """
-
-    # Get the fetcher
-    fetcher = profet.Fetcher("pdb")
-
-    # Download the data
-    filedata = None
-    filename = None
-    for filetype in ["pdb", "cif"]:
-        filename, filedata = fetcher.get_file(pdb, filetype=filetype)
-        if filedata is not None:
-            break
-    else:
-        raise RuntimeError("No PDB or CIF file found")
-
-    # Return filedata
-    return filename, filedata
 
 
 def get_impl(args):
@@ -94,16 +70,11 @@ def get_impl(args):
 
     """
 
-    # Get the filename and filedata
-    filename, filedata = get_pdb(args.id)
+    # Get the filename
+    filename = parakeet.data.get_pdb(args.id)
 
-    # Construct the path
-    filepath = os.path.join(args.directory, filename)
-
-    # Save the file
-    if filepath is not None and filedata is not None:
-        with open(filepath, "w") as outfile:
-            outfile.write(filedata)
+    # Copy the file to the directory
+    shutil.copyfile(filename, os.path.join(args.directory, os.path.basename(filename)))
 
 
 def get(args: list[str] = None):
