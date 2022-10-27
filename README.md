@@ -32,10 +32,11 @@ Parakeet can be installed using pip with the following command:
   pip install python-parakeet
 ```
 
-However, because the package needs to be built locally from source and has some
-external dependencies you may need to ensure your environment is ready before
-running this command. For full instructions please see the installation
-documentation
+> **_NOTE:_** Because the package needs to be built locally from source and has
+some external dependencies you may need to ensure your environment is ready before
+running this command. You need to set the location of the CUDA compiler and
+possibly G++ and FFTW libraries. For full instructions please see the
+installation documentation
 [here](https://rosalindfranklininstitute.github.io/parakeet/installation.html).
 
 ## Usage
