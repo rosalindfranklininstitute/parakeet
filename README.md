@@ -16,7 +16,9 @@
 
 [![Building](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml)
 [![Publishing](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml)
+
 [![Docker](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml)
+[![Quay IO](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml)
 [![Conda](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml)
 [![Snapcraft](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml)
 
