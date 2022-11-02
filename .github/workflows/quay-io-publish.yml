@@ -24,7 +24,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: parakeet
-          tags: latest ${{ github.sha }}
+          tags: latest ${{ github.ref_name }}
           containerfiles: |
             ./Dockerfile
 
