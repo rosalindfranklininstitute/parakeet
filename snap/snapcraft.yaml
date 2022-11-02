@@ -50,7 +50,7 @@ parts:
       - libcufft-11-6
     override-pull: |
       snapcraftctl pull
-      snapcraftctl set-version "$(git describe --tags)"
+      snapcraftctl set-version "$(git describe --tags --always)"
 
 apps:
   parakeet:
