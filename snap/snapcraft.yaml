@@ -25,6 +25,7 @@ package-repositories:
   - type: apt
     formats: [deb]
     key-id: 3bf863cc
+    key-server: hkp://keyserver.ubuntu.com:80
     url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64
 
 build-packages:
