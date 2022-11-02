@@ -150,7 +150,7 @@ You can install parakeet using conda as follows:
   conda create -n parakeet python=3.9
 
   # Install parakeet
-  conda install -c james.parkhurst python-parakeet
+  conda install -c conda-forge -c james.parkhurst python-parakeet
 
 
 Install as a Docker container
