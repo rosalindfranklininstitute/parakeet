@@ -24,7 +24,7 @@ architectures:
 package-repositories:
   - type: apt
     formats: [deb]
-    key-id: 3bf863cc
+    key-id: EB693B3035CD5710E231E123A4B469963BF863CC
     key-server: hkp://keyserver.ubuntu.com:80
     url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64
 
