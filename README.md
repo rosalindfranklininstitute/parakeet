@@ -22,6 +22,7 @@
 [![Conda](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml)
 [![Snapcraft](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml)
 
+[![Documentation](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml)
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
 
 </div>
