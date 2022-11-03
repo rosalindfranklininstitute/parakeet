@@ -23,7 +23,7 @@ import parakeet.sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
-from math import sqrt, pi, sin
+from math import sqrt
 from parakeet.simulate.simulation import Simulation
 
 
@@ -559,9 +559,7 @@ def _optics_Config(
     exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
-    config.scan.angles = exit_wave.header["tilt_alpha"][:]
-    config.scan.positions = exit_wave.header["shift_y"][:]
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = exit_wave.header.scan
 
     # Create the simulation
     simulation = simulation_factory(

@@ -163,6 +163,7 @@ class ExitWaveImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
+        axis = self.scan.axes[index]
         position = self.scan.position[index]
         orientation = self.scan.orientation[index]
         shift = self.scan.shift[index]
@@ -310,9 +311,12 @@ class ExitWaveImageSimulator(object):
         metadata = self.metadata[index]
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
-        metadata["stage_z"] = shift[2]
+        metadata["tilt_axis_x"] = axis[0]
+        metadata["tilt_axis_y"] = axis[1]
+        metadata["tilt_axis_z"] = axis[2]
         metadata["shift_x"] = shift[0]
         metadata["shift_y"] = shift[1]
+        metadata["stage_z"] = shift[2]
         metadata["shift_offset_x"] = drift[0]
         metadata["shift_offset_y"] = drift[1]
         metadata["stage_offset_z"] = drift[2]
