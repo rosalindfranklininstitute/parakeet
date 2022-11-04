@@ -9,6 +9,7 @@
 import parakeet.sample
 import argparse
 import multem
+import mrcfile
 import numpy as np
 import os.path
 import pandas
@@ -90,7 +91,7 @@ def create_input_multislice():
 
     # Electron-Specimen interaction model
     input_multislice.interaction_model = "Multislice"
-    # input_multislice.potential_type = "Lobato_0_12"
+    #input_multislice.potential_type = "Lobato_0_12"
     input_multislice.potential_type = "Peng_0_12"
 
     # Potential slicing
@@ -108,6 +109,7 @@ def create_input_multislice():
 
     # Set the energy
     input_multislice.E_0 = 300
+    input_multislice.bwl = False
 
     return input_multislice
 
@@ -152,7 +154,7 @@ def compute_potential():
         # Create the system configuration
         system_conf = multem.SystemConfiguration()
         system_conf.precision = "float"
-        system_conf.device = "device"
+        system_conf.device = "host"
 
         # Create the input multislice configuration
         input_multislice = create_input_multislice()
@@ -298,7 +300,7 @@ def compute_expected_mean(size):
 
 def compute_mean_correction(ax=None):
     """
-    Compute the variance correction table
+    Compute the mean correction table
 
     """
 
@@ -359,6 +361,7 @@ def compute_variance_correction(ax=None):
         area = (nx * pixel_size) * (ny * pixel_size)
         var = np.var(potential)
         density = num_molecules / (area)
+        print(pixel_size, density)
 
         # Append the pixel area and variance / density
         X.append(pixel_size**2)
@@ -367,7 +370,7 @@ def compute_variance_correction(ax=None):
     X = np.array(X)
     Y = np.array(Y)
 
-    # Extrapolate to zero and nornalize
+    # Extrapolate to zero and normalize
     Y0 = Y[0] - X[0] * (Y[1] - Y[0]) / (X[1] - X[0])
     Y = Y / Y0
 
@@ -568,10 +571,9 @@ def compute_exit_wave(atom_data, pixel_size):
     input_multislice = create_input_multislice()
 
     # Compute the number of pixels
-    nx = next_power_2(int(x_box_size / pixel_size))
-    ny = next_power_2(int(y_box_size / pixel_size))
-    assert nx <= 4096
-    assert ny <= 4096
+    nx = int(ceil(x_box_size / pixel_size) * 2)
+    ny = int(ceil(y_box_size / pixel_size) * 2)
+
     x_box_size = nx * pixel_size
     y_box_size = ny * pixel_size
     x_trans = (x_box_size - x_size) / 2.0 - x_min
@@ -585,7 +587,7 @@ def compute_exit_wave(atom_data, pixel_size):
     input_multislice.spec_lx = x_box_size
     input_multislice.spec_ly = y_box_size
     input_multislice.spec_lz = z_box_size
-    input_multislice.spec_dz = 5
+    input_multislice.spec_dz = 10
 
     # Set the specimen atoms
     input_multislice.spec_atoms = atom_data.to_multem()
@@ -621,6 +623,211 @@ def compute_exit_wave(atom_data, pixel_size):
     x1 = np.array((x_box_size / 2 + x_size / 2, y_box_size / 2 + y_size / 2))
     return physical_image, random_image, x0, x1
 
+def load_exit_wave(atom_data, ps):
+
+    physical_filename = "exit_wave_physical_%.1f.mrc" % ps
+    random_filename = "exit_wave_random_%.1f.mrc" % ps
+    metadata_filename = "metadata_%.1f.dat" % ps
+
+    if not os.path.exists(physical_filename) or not os.path.exists(random_filename) or not os.path.exists(metadata_filename):
+        print("Simulating for pixel size: %.1f A" % ps)
+        physical_image, random_image, x0, x1 = compute_exit_wave(atom_data, ps)
+        physical_image_file = mrcfile.new(physical_filename, overwrite=True)
+        random_image_file = mrcfile.new(random_filename, overwrite=True)
+        physical_image_file.set_data(physical_image.astype("complex64"))
+        random_image_file.set_data(random_image.astype("complex64"))
+        with open(metadata_filename, "w") as outfile:
+            outfile.write("%f,%f,%f,%f" % (x0[0], x0[1], x1[0], x1[1]))
+    else:
+        print("Reading for pixel size: %.1f A" % ps)
+        physical_image = mrcfile.open(physical_filename).data
+        random_image = mrcfile.open(random_filename).data
+        with open(metadata_filename) as infile:
+            x00, x01, x10, x11 = map(float, infile.read().split(","))
+            x0 = (x00, x01)
+            x1 = (x10, x11)
+
+    print("RANDOM: ", random_image[random_image.shape[0]//2,random_image.shape[1]//2])
+    return physical_image, random_image, x0, x1
+
+
+def plot_mean_and_var(physical_data, random_data, xmin, xmax, ps):
+
+    x0 = np.floor(xmin / ps).astype("int32")
+    x1 = np.floor(xmax / ps).astype("int32")
+    xr = x1 - x0
+    x0 = x0 + xr // 3
+    x1 = x1 - xr // 3
+
+    random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
+    physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
+    physical_middle_mean_real = np.mean(physical_middle.flatten().real)
+    physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
+    random_middle_mean_real = np.mean(random_middle.flatten().real)
+    random_middle_mean_imag = np.mean(random_middle.flatten().imag)
+
+    physical_middle_std_real = np.std(physical_middle.flatten().real)
+    physical_middle_std_imag = np.std(physical_middle.flatten().imag)
+    random_middle_std_real = np.std(random_middle.flatten().real)
+    random_middle_std_imag = np.std(random_middle.flatten().imag)
+
+    # print("Hola")
+    width = 0.0393701 * 190
+    height = width * 0.75
+    fig, ax = pylab.subplots(
+        figsize=(width, height),
+        nrows=2,
+        ncols=2,
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
+    )
+    ax[0][0].hist(physical_middle.flatten().real, bins=20, density=True)
+    ax[0][1].hist(physical_middle.flatten().imag, bins=20, density=True)
+    ax[1][0].hist(random_middle.flatten().real, bins=20, density=True)
+    ax[1][1].hist(random_middle.flatten().imag, bins=20, density=True)
+    ax[0][0].set_title("Real component", fontweight="bold")
+    ax[0][1].set_title("Imaginary component", fontweight="bold")
+    ax[0][0].set_ylabel("Physical model", fontweight="bold")
+    ax[1][0].set_ylabel("Random model", fontweight="bold")
+    ax[0][0].set_xlabel("(a)")
+    ax[0][1].set_xlabel("(b)")
+    ax[1][0].set_xlabel("(c)")
+    ax[1][1].set_xlabel("(d)")
+    ax[0][0].axvline(physical_middle_mean_real, color="black")
+    ax[0][1].axvline(physical_middle_mean_imag, color="black")
+    ax[1][0].axvline(random_middle_mean_real, color="black")
+    ax[1][1].axvline(random_middle_mean_imag, color="black")
+    # ymax = ax[0][0].get_ylim()[1]
+    if ps == 1.0:
+        xr = 0.8
+        xi = 0.4
+    else:
+        xr = 0.5
+        xi = -1.0
+    ax[0][0].text(
+        xr,
+        0.5 * ax[0][0].get_ylim()[1],
+        "mean: %.2f\n sdev: %.2f"
+        % (physical_middle_mean_real, physical_middle_std_real),
+    )
+    ax[0][1].text(
+        xi,
+        0.5 * ax[0][1].get_ylim()[1],
+        "mean: %.2f\n sdev: %.2f"
+        % (physical_middle_mean_imag, physical_middle_std_imag),
+    )
+    ax[1][0].text(
+        xr,
+        0.5 * ax[1][0].get_ylim()[1],
+        "mean: %.2f\n sdev: %.2f"
+        % (random_middle_mean_real, random_middle_std_real),
+    )
+    ax[1][1].text(
+        xi,
+        0.5 * ax[1][1].get_ylim()[1],
+        "mean: %.2f\n sdev: %.2f"
+        % (random_middle_mean_imag, random_middle_std_imag),
+    )
+    fig.savefig("histograms_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
+    pylab.close("all")
+
+    return (
+            physical_middle_mean_real,
+            physical_middle_mean_imag,
+            physical_middle_std_real,
+            physical_middle_std_imag,
+            random_middle_mean_real,
+            random_middle_mean_imag,
+            random_middle_std_real,
+            random_middle_std_imag,
+            )
+
+
+def plot_power(physical_data, random_data, xmin, xmax, ps):
+
+    x0 = np.floor(xmin / ps).astype("int32")
+    x1 = np.floor(xmax / ps).astype("int32")
+    xr = x1 - x0
+    x0 = x0 + xr // 3
+    x1 = x1 - xr // 3
+
+    random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
+    physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
+    physical_middle_mean_real = np.mean(physical_middle.flatten().real)
+    physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
+    random_middle_mean_real = np.mean(random_middle.flatten().real)
+    random_middle_mean_imag = np.mean(random_middle.flatten().imag)
+
+    # pylab.imshow(np.abs(random_data))
+    # pylab.show()
+    # pylab.imshow(np.abs(physical_data))
+    # pylab.show()
+
+
+    def compute_power(data, pixel_size):
+        f = np.fft.fft2(data)
+        p = np.abs(f) ** 2
+        p = np.fft.fftshift(p)
+
+        r = radial_average(p)[0 : data.shape[0] // 2]
+        d = np.arange(r.size) / (pixel_size * data.shape[0])
+
+        N = np.mean(r[d < 0.5][1:])
+            
+        return d[1:], r[1:] / N
+
+    random_d, random_power = compute_power(random_middle, ps)
+    physical_d, physical_power = compute_power(physical_middle, ps)
+
+    width = 0.0393701 * 190
+    height = width * 0.74
+    fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
+    ax.plot(physical_d, physical_power, label="Physical model")
+    ax.plot(random_d, random_power, label="Random model")
+    ax.set_xlabel("Spatial frequency (1/Å)")
+    ax.set_ylabel("Power spectrum")
+    # ax.set_xlim(0, 1.0)
+    ax.legend()
+    fig.savefig("power_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
+    pylab.close("all")
+
+    return physical_d, physical_power, random_d, random_power
+
+
+def plot_edge(physical_data, random_data, xmin, xmax, ps):
+
+    x0 = np.floor(xmin / ps).astype("int32")
+    x1 = np.floor(xmax / ps).astype("int32")
+    xd = x1 - x0
+    x0 = x0 - xd // 10
+    x1 = x0 + 3* xd // 10
+
+    # x1 = 2 * x0  # + x0 // 2
+    # x0[:] = 0  # x0 // 2
+    random_edge = random_data[x0[0] : x1[0], x0[1] : x1[1]]
+    physical_edge = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
+    width = 0.0393701 * 190
+    height = width
+    fig, ax = pylab.subplots(
+        figsize=(width, height), ncols=2, constrained_layout=True
+    )
+    vmin = min(np.min(np.abs(random_edge)), np.min(np.abs(physical_edge)))
+    vmax = max(np.max(np.abs(random_edge)), np.max(np.abs(physical_edge)))
+    ax[0].imshow(np.abs(physical_edge), vmin=vmin, vmax=vmax, cmap="gray_r")
+    ax[1].imshow(np.abs(random_edge), vmin=vmin, vmax=vmax, cmap="gray_r")
+    ax[0].set_title("Physical model", fontweight="bold")
+    ax[1].set_title("Random model", fontweight="bold")
+    ax[0].set_xticks([])
+    ax[1].set_xticks([])
+    ax[0].set_yticks([])
+    ax[1].set_yticks([])
+    ax[0].set_xlabel("(a)")
+    ax[1].set_xlabel("(b)")
+    fig.savefig("edge_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
+    pylab.close("all")
+    # pylab.show()
+
 
 def validate():
     """
@@ -631,145 +838,72 @@ def validate():
     # Load the water model
     atom_data = load_water_atomic_model()
 
-    pixel_size = [1.0, 0.1]
+    # Set the pixel sizes
+    pixel_size = np.arange(0.1, 1.1, 0.1)#[0.1]#, 1.0]
+
+    stats_list = []
+    power_list = []
 
     for ps in pixel_size:
 
         # Get the simulated exit wave
-        physical_data, random_data, xmin, xmax = compute_exit_wave(atom_data, ps)
+        physical_data, random_data, xmin, xmax = load_exit_wave(atom_data, ps)
 
-        x0 = np.floor(xmin / ps).astype("int32")
-        x1 = np.floor(xmax / ps).astype("int32")
-        xr = x1 - x0
-        x0 = x0 + xr // 4
-        x1 = x1 - xr // 4
+        # Make the plots
+        stats = plot_mean_and_var(physical_data, random_data, xmin, xmax, ps)
+        power = plot_power(physical_data, random_data, xmin, xmax, ps)
+        plot_edge(physical_data, random_data, xmin, xmax, ps)
 
-        random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
-        physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-        physical_middle_mean_real = np.mean(physical_middle.flatten().real)
-        physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
-        random_middle_mean_real = np.mean(random_middle.flatten().real)
-        random_middle_mean_imag = np.mean(random_middle.flatten().imag)
+        stats_list.append(stats)
+        power_list.append(power)
 
-        # pylab.imshow(np.abs(random_middle))
-        # pylab.show()
-        # pylab.imshow(np.abs(physical_middle))
-        # pylab.show()
-        # continue
+    # Extract the stats
+    (
+            p_real,
+            p_imag,
+            p_real_std,
+            p_imag_std,
+            r_real,
+            r_imag,
+            r_real_std,
+            r_imag_std,
+    ) = map(np.array, zip(*stats_list))
 
-        physical_middle_std_real = np.std(physical_middle.flatten().real)
-        physical_middle_std_imag = np.std(physical_middle.flatten().imag)
-        random_middle_std_real = np.std(random_middle.flatten().real)
-        random_middle_std_imag = np.std(random_middle.flatten().imag)
+    width = 0.0393701 * 190
+    height = width
+    fig, ax = pylab.subplots(
+        figsize=(width, height), constrained_layout=True
+    )
+    l1 = ax.plot(pixel_size, p_real, label="Physical (real)")
+    l2 = ax.plot(pixel_size, p_imag, label="Physical (imag)")
+    l3 = ax.plot(pixel_size, r_real, label="Random (real)")
+    l4 = ax.plot(pixel_size, r_imag, label="Random (imag)")
+    ax.fill_between(pixel_size, p_real-p_real_std, p_real+p_real_std, color=l1[0].get_color(), alpha=0.3)
+    ax.fill_between(pixel_size, p_imag-p_imag_std, p_imag+p_imag_std, color=l2[0].get_color(), alpha=0.3)
+    ax.fill_between(pixel_size, r_real-r_real_std, r_real+r_real_std, color=l3[0].get_color(), alpha=0.3)
+    ax.fill_between(pixel_size, r_imag-r_imag_std, r_imag+r_imag_std, color=l4[0].get_color(), alpha=0.3)
+    ax.legend()
+    ax.set_xlabel("Pixel size (A)")
+    ax.set_ylabel("Exit wave mean and standard deviation")
+    # pylab.show()
+    fig.savefig("mean_and_std.png", dpi=300, bbox_inches="tight")
+    pylab.close("all")
 
-        # print("Hola")
-        width = 0.0393701 * 190
-        height = width * 0.75
-        fig, ax = pylab.subplots(
-            figsize=(width, height),
-            nrows=2,
-            ncols=2,
-            sharex=True,
-            sharey=True,
-            constrained_layout=True,
-        )
-        ax[0][0].hist(physical_middle.flatten().real, bins=20, density=True)
-        ax[0][1].hist(physical_middle.flatten().imag, bins=20, density=True)
-        ax[1][0].hist(random_middle.flatten().real, bins=20, density=True)
-        ax[1][1].hist(random_middle.flatten().imag, bins=20, density=True)
-        ax[0][0].set_title("Real component", fontweight="bold")
-        ax[0][1].set_title("Imaginary component", fontweight="bold")
-        ax[0][0].set_ylabel("Physical model", fontweight="bold")
-        ax[1][0].set_ylabel("Random model", fontweight="bold")
-        ax[0][0].set_xlabel("(a)")
-        ax[0][1].set_xlabel("(b)")
-        ax[1][0].set_xlabel("(c)")
-        ax[1][1].set_xlabel("(d)")
-        ax[0][0].axvline(physical_middle_mean_real, color="black")
-        ax[0][1].axvline(physical_middle_mean_imag, color="black")
-        ax[1][0].axvline(random_middle_mean_real, color="black")
-        ax[1][1].axvline(random_middle_mean_imag, color="black")
-        # ymax = ax[0][0].get_ylim()[1]
-        if ps == 1.0:
-            xr = 0.8
-            xi = 0.4
-        else:
-            xr = 0.5
-            xi = -1.0
-        ax[0][0].text(
-            xr,
-            0.5 * ax[0][0].get_ylim()[1],
-            "mean: %.2f\n sdev: %.2f"
-            % (physical_middle_mean_real, physical_middle_std_real),
-        )
-        ax[0][1].text(
-            xi,
-            0.5 * ax[0][1].get_ylim()[1],
-            "mean: %.2f\n sdev: %.2f"
-            % (physical_middle_mean_imag, physical_middle_std_imag),
-        )
-        ax[1][0].text(
-            xr,
-            0.5 * ax[1][0].get_ylim()[1],
-            "mean: %.2f\n sdev: %.2f"
-            % (random_middle_mean_real, random_middle_std_real),
-        )
-        ax[1][1].text(
-            xi,
-            0.5 * ax[1][1].get_ylim()[1],
-            "mean: %.2f\n sdev: %.2f"
-            % (random_middle_mean_imag, random_middle_std_imag),
-        )
-        fig.savefig("histograms_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
-
-        def compute_power(data, pixel_size):
-            f = np.fft.fft2(data)
-            p = np.abs(f) ** 2
-            p = np.fft.fftshift(p)
-
-            r = radial_average(p)[0 : data.shape[0] // 2]
-            d = np.arange(r.size) / (pixel_size * data.shape[0])
-            return d[1:], r[1:]
-
-        random_d, random_power = compute_power(random_middle, ps)
-        physical_d, physical_power = compute_power(physical_middle, ps)
-
-        width = 0.0393701 * 190
-        height = width * 0.74
-        fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
-        ax.plot(physical_d, physical_power, label="Physical model")
-        ax.plot(random_d, random_power, label="Random model")
-        ax.set_xlabel("Spatial frequency (1/Å)")
-        ax.set_ylabel("Power spectrum")
-        ax.set_xlim(0, 0.5)
-        ax.legend()
-        fig.savefig("power_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
-
-        x0 = np.floor(xmin / ps).astype("int32")
-        # x1 = np.floor(xmax / ps).astype("int32")
-        x1 = 2 * x0  # + x0 // 2
-        x0[:] = 0  # x0 // 2
-        random_edge = random_data[x0[0] : x1[0], x0[1] : x1[1]]
-        physical_edge = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-        width = 0.0393701 * 190
-        height = width
-        fig, ax = pylab.subplots(
-            figsize=(width, height), ncols=2, constrained_layout=True
-        )
-        vmin = min(np.min(np.abs(random_edge)), np.min(np.abs(physical_edge)))
-        vmax = max(np.max(np.abs(random_edge)), np.max(np.abs(physical_edge)))
-        ax[0].imshow(np.abs(physical_edge), vmin=vmin, vmax=vmax)
-        ax[1].imshow(np.abs(random_edge), vmin=vmin, vmax=vmax)
-        ax[0].set_title("Physical model", fontweight="bold")
-        ax[1].set_title("Random model", fontweight="bold")
-        ax[0].set_xticks([])
-        ax[1].set_xticks([])
-        ax[0].set_yticks([])
-        ax[1].set_yticks([])
-        ax[0].set_xlabel("(a)")
-        ax[1].set_xlabel("(b)")
-        fig.savefig("edge_%.1fA.png" % ps, dpi=300, bbox_inches="tight")
-        # pylab.show()
+    width = 0.0393701 * 190
+    height = width
+    fig, ax = pylab.subplots(
+        figsize=(width, height), constrained_layout=True
+    )
+    for ps, power in zip(pixel_size, power_list):
+        p1 = ax.plot(power[0], power[1], color=l1[0].get_color(), alpha=0.5)
+        p2 = ax.plot(power[2], power[3], color=l2[0].get_color(), alpha=0.5)
+    ax.set_xlabel("Spatial frequency (1/Å)")
+    ax.set_ylabel("Power spectrum")
+    ax.legend(handles=[p1[0], p2[0]], labels=["Physical", "Random"])
+    # pylab.show()
+    fig.savefig("power.png", dpi=300, bbox_inches="tight")
+    pylab.close("all")
+    
 
 
 if __name__ == "__main__":
