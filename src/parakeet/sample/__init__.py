@@ -484,9 +484,10 @@ class AtomData(object):
         if len(self.data) > 0:
             coords = self.data[["x", "y", "z"]].to_numpy()
             coords = Rotation.from_rotvec(vector).apply(coords).astype(coords.dtype)
-            self.data["x"] = coords[:, 0]
-            self.data["y"] = coords[:, 1]
-            self.data["z"] = coords[:, 2]
+            self.data = self.data.assign(
+                    x=coords[:,0],
+                    y=coords[:,1],
+                    z=coords[:,2])
         return self
 
     def translate(self, translation):
@@ -500,9 +501,10 @@ class AtomData(object):
         if len(self.data) > 0:
             coords = self.data[["x", "y", "z"]].to_numpy()
             coords += np.array(translation, dtype=coords.dtype)
-            self.data["x"] = coords[:, 0]
-            self.data["y"] = coords[:, 1]
-            self.data["z"] = coords[:, 2]
+            self.data = self.data.assign(
+                    x=coords[:,0],
+                    y=coords[:,1],
+                    z=coords[:,2])
         return self
 
     def to_multem(self):

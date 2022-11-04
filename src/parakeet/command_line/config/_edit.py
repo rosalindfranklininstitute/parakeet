@@ -82,23 +82,12 @@ def edit_impl(args):
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
-
-    # Parse the arguments
-    config = parakeet.config.load(args.input)
-
-    # Merge the dictionaries
-    d1 = config.dict(exclude_unset=True)
-    d2 = yaml.safe_load(args.config)
-    d = parakeet.config.deepmerge(d1, d2)
-
-    # Load the new configuration
-    config = parakeet.config.load(d)
+    
+    # Call internally
+    config = parakeet.config.edit(args.input, args.output, args.config)
 
     # Print the config
     parakeet.config.show(config, full=True)
-
-    # Save the config
-    parakeet.config.save(config, args.output, exclude_unset=True)
 
 
 def edit(args: list[str] = None):
