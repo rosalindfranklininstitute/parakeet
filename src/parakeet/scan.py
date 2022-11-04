@@ -29,7 +29,6 @@ class Scan(object):
         shift_delta: np.ndarray = None,
         beam_tilt_theta: np.ndarray = None,
         beam_tilt_phi: np.ndarray = None,
-        defocus_delta: np.ndarray = None,
         exposure_time: float = 1,
         is_uniform_angular_scan: bool = False,
     ):
@@ -67,7 +66,6 @@ class Scan(object):
                 "shift_delta_z": shift_delta[:, 2],
                 "beam_tilt_theta": beam_tilt_theta,
                 "beam_tilt_phi": beam_tilt_phi,
-                "defocus_delta": defocus_delta,
                 "exposure_time": np.ones(len(orientation)) * exposure_time,
             }
         )

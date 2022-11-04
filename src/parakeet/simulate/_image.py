@@ -206,9 +206,7 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
     optics = parakeet.io.open(optics_file)
 
     # Create the scan
-    config.scan.angles = optics.header["tilt_alpha"][:]
-    config.scan.positions = optics.header["shift_y"][:]
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = optics.header.scan
 
     # Create the simulation
     simulation = simulation_factory(

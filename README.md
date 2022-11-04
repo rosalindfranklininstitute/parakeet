@@ -16,10 +16,13 @@
 
 [![Building](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml)
 [![Publishing](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml)
+
 [![Docker](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml)
+[![Quay IO](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml)
 [![Conda](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml)
 [![Snapcraft](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml)
 
+[![Documentation](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml)
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
 
 </div>
@@ -32,10 +35,11 @@ Parakeet can be installed using pip with the following command:
   pip install python-parakeet
 ```
 
-However, because the package needs to be built locally from source and has some
-external dependencies you may need to ensure your environment is ready before
-running this command. For full instructions please see the installation
-documentation
+> **_NOTE:_** Because the package needs to be built locally from source and has
+some external dependencies you may need to ensure your environment is ready before
+running this command. You need to set the location of the CUDA compiler and
+possibly G++ and FFTW libraries. For full instructions please see the
+installation documentation
 [here](https://rosalindfranklininstitute.github.io/parakeet/installation.html).
 
 ## Usage

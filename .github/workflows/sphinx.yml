@@ -1,4 +1,4 @@
-name: Sphinx documentation
+name: Sphinx
 
 on:
   push:

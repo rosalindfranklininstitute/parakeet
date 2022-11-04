@@ -11,7 +11,9 @@ In order to build this package, the following dependencies are required:
 - Python development libraries
 - The CUDA toolkit
 
-On ubuntu 20.04, the dependencies can be install on a clean install as follows:
+On ubuntu 20.04, the dependencies can be install on a clean install as follows
+(you may need to contact your system administrator if you do not have admin
+priviliges):
 
 
 .. code-block:: bash
@@ -148,7 +150,7 @@ You can install parakeet using conda as follows:
   conda create -n parakeet python=3.9
 
   # Install parakeet
-  conda install -c james.parkhurst python-parakeet
+  conda install -c conda-forge -c james.parkhurst python-parakeet
 
 
 Install as a Docker container

@@ -15,6 +15,7 @@ import mrcfile
 import os
 import PIL.Image
 import parakeet
+from math import pi
 
 try:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
@@ -34,7 +35,9 @@ METADATA_DTYPE = np.dtype(
         # Stage parameters
         #
         ("tilt_alpha", "f8"),
-        ("tilt_axis_angle", "f8"),
+        ("tilt_axis_x", "f8"),
+        ("tilt_axis_y", "f8"),
+        ("tilt_axis_z", "f8"),
         ("stage_x", "f8"),
         ("stage_y", "f8"),
         ("stage_z", "f8"),
@@ -59,6 +62,7 @@ METADATA_DTYPE = np.dtype(
         ("shift_y", "f8"),
         ("shift_offset_x", "f8"),
         ("shift_offset_y", "f8"),
+        ("shift_offset_z", "f8"),
         #
         # Detector parameters
         #
@@ -357,6 +361,49 @@ class Header(object):
 
         """
         pass
+
+    @property
+    def scan(self):
+        """
+        Get the scan
+
+        """
+
+        # Get the metadata
+        metadata = np.array(self)
+
+        # Construct the orientation
+        orientation = np.stack(
+            [
+                metadata["tilt_axis_x"] * metadata["tilt_alpha"] * pi / 180.0,
+                metadata["tilt_axis_y"] * metadata["tilt_alpha"] * pi / 180.0,
+                metadata["tilt_axis_z"] * metadata["tilt_alpha"] * pi / 180.0,
+            ]
+        ).T
+
+        # Construct the shift
+        shift = np.stack(
+            [metadata["shift_x"], metadata["shift_y"], metadata["stage_z"]]
+        ).T
+
+        # Construct the shift delta
+        shift_delta = np.stack(
+            [
+                metadata["shift_offset_x"],
+                metadata["shift_offset_y"],
+                metadata["stage_offset_z"],
+            ]
+        ).T
+
+        # Return a scan object
+        return parakeet.scan.Scan(
+            orientation=orientation,
+            shift=shift,
+            shift_delta=shift_delta,
+            beam_tilt_theta=metadata["theta"],
+            beam_tilt_phi=metadata["phi"],
+            exposure_time=metadata["exposure_time"],
+        )
 
 
 class Writer(object):
