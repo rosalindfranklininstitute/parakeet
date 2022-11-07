@@ -999,7 +999,7 @@ def plot_all_mean_and_power(pixel_size, stats_list, power_list):
     ) = map(np.array, zip(*stats_list))
 
     width = 0.0393701 * 190
-    height = (4/8) * width
+    height = (4 / 8) * width
     fig, ax = pylab.subplots(figsize=(width, height), ncols=2, constrained_layout=True)
     l1 = ax[0].plot(pixel_size, p_real, label="Physical (real)")
     l2 = ax[0].plot(pixel_size, p_imag, label="Physical (imag)")
@@ -1048,6 +1048,7 @@ def plot_all_mean_and_power(pixel_size, stats_list, power_list):
     # pylab.show()
     fig.savefig("mean_and_power.png", dpi=300, bbox_inches="tight")
     pylab.close("all")
+
 
 def plot_all_edge(pixel_size, edge_list):
 
