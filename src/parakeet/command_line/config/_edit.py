@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import logging
-import yaml
 import parakeet.config
 import parakeet.command_line
 from argparse import ArgumentParser
@@ -82,7 +81,7 @@ def edit_impl(args):
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
-    
+
     # Call internally
     config = parakeet.config.edit(args.input, args.output, args.config)
 

@@ -154,7 +154,7 @@ def compute_potential():
         # Create the system configuration
         system_conf = multem.SystemConfiguration()
         system_conf.precision = "float"
-        system_conf.device = "host"
+        system_conf.device = "device"
 
         # Create the input multislice configuration
         input_multislice = create_input_multislice()
@@ -582,7 +582,7 @@ def calibrate():
     fig, ax = pylab.subplots(ncols=3, figsize=(width, height), constrained_layout=True)
     compute_power(ax[0])
     compute_mean_correction(ax[1])
-    compute_mean_correction2(ax[1])
+    # compute_mean_correction2(ax[1])
     compute_variance_correction(ax[2])
     fig.savefig("model.png", dpi=300, bbox_inches="tight")
 
@@ -625,7 +625,7 @@ def compute_exit_wave(atom_data, pixel_size):
     # Create the system configuration
     system_conf = multem.SystemConfiguration()
     system_conf.precision = "float"
-    system_conf.device = "host"
+    system_conf.device = "device"
 
     # Create the input multislice configuration
     input_multislice = create_input_multislice()

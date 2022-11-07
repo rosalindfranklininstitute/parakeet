@@ -415,7 +415,7 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     # Add some ice
     if ice is not None and ice.generate:
         add_ice(sample, centre, shape, ice.density)
-    
+
     # Add atoms from coordinates file
     if coords is not None and coords.filename is not None:
         atoms = AtomData.from_gemmi_file(coords.filename)
@@ -429,7 +429,6 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
         sample.add_molecule(
             atoms, positions=[position], orientations=[(0, 0, 0)], name=None
         )
-
 
     # Print some info
     logger.info(sample.info())

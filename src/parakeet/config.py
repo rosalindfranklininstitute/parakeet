@@ -188,14 +188,12 @@ class CoordinateFile(BaseModel):
 
     """
 
-    filename: str = Field(None,
-        description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
+    filename: str = Field(
+        None, description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
     )
 
-    recentre: bool = Field(
-        True,
-        description="Recentre the coordinates"
-    )
+    recentre: bool = Field(True, description="Recentre the coordinates")
+
 
 class LocalMolecule(BaseModel):
     """
@@ -779,7 +777,9 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     return config
 
 
-def edit(in_filename: str = "config.yaml", out_filename: str = None, config_obj: str = ""):
+def edit(
+    in_filename: str = "config.yaml", out_filename: str = None, config_obj: str = ""
+):
     """
     Edit the configuration
 
