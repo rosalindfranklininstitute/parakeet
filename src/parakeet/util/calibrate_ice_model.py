@@ -980,6 +980,75 @@ def plot_all_power(pixel_size, power_list):
     pylab.close("all")
 
 
+def plot_all_mean_and_power(pixel_size, stats_list, power_list):
+    """
+    Make a plot of mean and std and power vs pixel size
+
+    """
+
+    # Extract the stats
+    (
+        p_real,
+        p_imag,
+        p_real_std,
+        p_imag_std,
+        r_real,
+        r_imag,
+        r_real_std,
+        r_imag_std,
+    ) = map(np.array, zip(*stats_list))
+
+    width = 0.0393701 * 190
+    height = (4/8) * width
+    fig, ax = pylab.subplots(figsize=(width, height), ncols=2, constrained_layout=True)
+    l1 = ax[0].plot(pixel_size, p_real, label="Physical (real)")
+    l2 = ax[0].plot(pixel_size, p_imag, label="Physical (imag)")
+    l3 = ax[0].plot(pixel_size, r_real, label="Random (real)")
+    l4 = ax[0].plot(pixel_size, r_imag, label="Random (imag)")
+    ax[0].fill_between(
+        pixel_size,
+        p_real - p_real_std,
+        p_real + p_real_std,
+        color=l1[0].get_color(),
+        alpha=0.3,
+    )
+    ax[0].fill_between(
+        pixel_size,
+        p_imag - p_imag_std,
+        p_imag + p_imag_std,
+        color=l2[0].get_color(),
+        alpha=0.3,
+    )
+    ax[0].fill_between(
+        pixel_size,
+        r_real - r_real_std,
+        r_real + r_real_std,
+        color=l3[0].get_color(),
+        alpha=0.3,
+    )
+    ax[0].fill_between(
+        pixel_size,
+        r_imag - r_imag_std,
+        r_imag + r_imag_std,
+        color=l4[0].get_color(),
+        alpha=0.3,
+    )
+    ax[0].legend(loc="lower right")
+    ax[0].set_xlabel("Pixel size (A)\n(a)")
+    ax[0].set_ylabel("Exit wave mean and standard deviation")
+
+    cycle = pylab.rcParams["axes.prop_cycle"].by_key()["color"]
+    for ps, power in zip(pixel_size, power_list):
+        p1 = ax[1].plot(power[0], power[1], color=cycle[0], alpha=0.5)
+        p2 = ax[1].plot(power[2], power[3], color=cycle[1], alpha=0.5)
+    ax[1].set_xlabel("Spatial frequency (1/Å)\n(b)")
+    ax[1].set_ylabel("Power spectrum")
+    ax[1].legend(handles=[p1[0], p2[0]], labels=["Physical", "Random"])
+    ax[1].set_xlim(0, 1.0)
+    # pylab.show()
+    fig.savefig("mean_and_power.png", dpi=300, bbox_inches="tight")
+    pylab.close("all")
+
 def plot_all_edge(pixel_size, edge_list):
 
     width = 0.0393701 * 190
@@ -1046,8 +1115,9 @@ def validate():
         power_list.append(power)
         edge_list.append(edge)
 
-    plot_all_mean_and_std(pixel_size, stats_list)
-    plot_all_power(pixel_size, power_list)
+    # plot_all_mean_and_std(pixel_size, stats_list)
+    # plot_all_power(pixel_size, power_list)
+    plot_all_mean_and_power(pixel_size, stats_list, power_list)
     plot_all_edge(pixel_size, edge_list)
 
 
