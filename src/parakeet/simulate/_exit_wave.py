@@ -243,13 +243,14 @@ class ExitWaveImageSimulator(object):
         fov_xmax = fov_xmin + x_fov + 2 * offset
         fov_ymin = origin[1] - offset
         fov_ymax = fov_ymin + y_fov + 2 * offset
-        select = (
-            (atoms.data["x"] >= fov_xmin)
-            & (atoms.data["x"] <= fov_xmax)
-            & (atoms.data["y"] >= fov_ymin)
-            & (atoms.data["y"] <= fov_ymax)
-        )
-        atoms.data = atoms.data[select]
+        if len(atoms.data) > 0:
+            select = (
+                (atoms.data["x"] >= fov_xmin)
+                & (atoms.data["x"] <= fov_xmax)
+                & (atoms.data["y"] >= fov_ymin)
+                & (atoms.data["y"] <= fov_ymax)
+            )
+            atoms.data = atoms.data[select]
 
         # Translate for the detector
         input_multislice.spec_atoms = atoms.translate(
@@ -257,18 +258,19 @@ class ExitWaveImageSimulator(object):
         ).to_multem()
         logger.info("   Got spec atoms")
 
-        print(
-            "Atoms X min/max: %.1f, %.1f"
-            % (atoms.data["x"].min(), atoms.data["x"].max())
-        )
-        print(
-            "Atoms Y min/max: %.1f, %.1f"
-            % (atoms.data["y"].min(), atoms.data["y"].max())
-        )
-        print(
-            "Atoms Z min/max: %.1f, %.1f"
-            % (atoms.data["z"].min(), atoms.data["z"].max())
-        )
+        if len(atoms.data) > 0:
+            print(
+                "Atoms X min/max: %.1f, %.1f"
+                % (atoms.data["x"].min(), atoms.data["x"].max())
+            )
+            print(
+                "Atoms Y min/max: %.1f, %.1f"
+                % (atoms.data["y"].min(), atoms.data["y"].max())
+            )
+            print(
+                "Atoms Z min/max: %.1f, %.1f"
+                % (atoms.data["z"].min(), atoms.data["z"].max())
+            )
 
         if self.simulation["ice"] == True:
 

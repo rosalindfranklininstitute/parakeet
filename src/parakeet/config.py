@@ -182,6 +182,21 @@ class MoleculePose(BaseModel):
     )
 
 
+class CoordinateFile(BaseModel):
+    """
+    A model to describe a local coordinate file
+
+    """
+
+    filename: str = Field(None,
+        description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
+    )
+
+    recentre: bool = Field(
+        True,
+        description="Recentre the coordinates"
+    )
+
 class LocalMolecule(BaseModel):
     """
     A model to describe a local molecule and its instances
@@ -300,6 +315,10 @@ class Sample(BaseModel):
 
     centre: Tuple[float, float, float] = Field(
         (500, 500, 500), description="The centre of rotation (A, A, A)"
+    )
+
+    coords: Optional[CoordinateFile] = Field(
+        description="Coordinates to initialise the sample"
     )
 
     molecules: Optional[Molecules] = Field(
@@ -760,6 +779,39 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     return config
 
 
+def edit(in_filename: str = "config.yaml", out_filename: str = None, config_obj: str = ""):
+    """
+    Edit the configuration
+
+    """
+
+    def get_config_obj(config_obj):
+        if isinstance(config_obj, str):
+            return yaml.safe_load(config_obj)
+        return config_obj
+
+    # Check the output filename
+    if out_filename is None:
+        out_filename = in_filename
+
+    # Parse the arguments
+    config = load(in_filename)
+
+    # Merge the dictionaries
+    d1 = config.dict(exclude_unset=True)
+    d2 = get_config_obj(config_obj)
+    d = deepmerge(d1, d2)
+
+    # # Load the new configuration
+    config = load(d)
+
+    # Save the config
+    save(config, out_filename, exclude_unset=True)
+
+    # Return config
+    return config
+
+
 def show(config: Config, full: bool = False):
     """
     Print the command line arguments
@@ -797,6 +849,8 @@ def deepmerge(a: dict, b: dict) -> dict:
         for key, value in other.items():
             if key in self:
                 if isinstance(value, dict):
+                    if self[key] is None:
+                        self[key] = {}
                     deepmerge_internal(self[key], value)
                 else:
                     self[key] = copy.deepcopy(value)

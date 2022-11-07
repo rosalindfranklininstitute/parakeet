@@ -19,6 +19,7 @@ import parakeet.freeze
 from math import pi, floor
 from scipy.spatial.transform import Rotation
 from functools import singledispatch
+from parakeet.sample import recentre
 from parakeet.sample import Sample
 from parakeet.sample import AtomData
 from parakeet.sample import random_uniform_rotation
@@ -398,6 +399,7 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     centre = config.centre
     shape = config.shape.dict()
     ice = config.ice
+    coords = config.coords
 
     # Check the dimensions are valid
     assert parakeet.sample.is_shape_inside_box(box, centre, shape)
@@ -413,6 +415,21 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     # Add some ice
     if ice is not None and ice.generate:
         add_ice(sample, centre, shape, ice.density)
+    
+    # Add atoms from coordinates file
+    if coords is not None and coords.filename is not None:
+        atoms = AtomData.from_gemmi_file(coords.filename)
+        if coords.recentre:
+            atoms.data = recentre(atoms.data)
+            position = sample.centre
+        else:
+            position = (0, 0, 0)
+
+        # Add the molecule
+        sample.add_molecule(
+            atoms, positions=[position], orientations=[(0, 0, 0)], name=None
+        )
+
 
     # Print some info
     logger.info(sample.info())

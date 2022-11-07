@@ -420,6 +420,7 @@ def compute_variance_correction(ax=None):
         area = (nx * pixel_size) * (ny * pixel_size)
         var = np.var(potential)
         density = num_molecules / (area)
+        print(pixel_size, density)
 
         # Append the pixel area and variance / density
         X.append(pixel_size**2)
