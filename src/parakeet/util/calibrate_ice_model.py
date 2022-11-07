@@ -420,7 +420,6 @@ def compute_variance_correction(ax=None):
         area = (nx * pixel_size) * (ny * pixel_size)
         var = np.var(potential)
         density = num_molecules / (area)
-        print(pixel_size, density)
 
         # Append the pixel area and variance / density
         X.append(pixel_size**2)
@@ -712,9 +711,6 @@ def load_exit_wave(atom_data, ps):
             x0 = (x00, x01)
             x1 = (x10, x11)
 
-    print(
-        "RANDOM: ", random_image[random_image.shape[0] // 2, random_image.shape[1] // 2]
-    )
     return physical_image, random_image, x0, x1
 
 
@@ -728,17 +724,27 @@ def plot_mean_and_var(physical_data, random_data, xmin, xmax, ps):
 
     random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
     physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-    physical_middle_mean_real = np.mean(physical_middle.flatten().real)
-    physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
-    random_middle_mean_real = np.mean(random_middle.flatten().real)
-    random_middle_mean_imag = np.mean(random_middle.flatten().imag)
 
-    physical_middle_std_real = np.std(physical_middle.flatten().real)
-    physical_middle_std_imag = np.std(physical_middle.flatten().imag)
-    random_middle_std_real = np.std(random_middle.flatten().real)
-    random_middle_std_imag = np.std(random_middle.flatten().imag)
+    physical_middle_real = physical_middle.flatten().real
+    physical_middle_imag = physical_middle.flatten().imag
+    random_middle_real = random_middle.flatten().real
+    random_middle_imag = random_middle.flatten().imag
 
-    # print("Hola")
+    # physical_middle_real = np.angle(physical_middle.flatten())
+    # physical_middle_imag = np.angle(physical_middle.flatten())
+    # random_middle_real = np.abs(random_middle.flatten())
+    # random_middle_imag = np.abs(random_middle.flatten())
+
+    physical_middle_mean_real = np.mean(physical_middle_real)
+    physical_middle_mean_imag = np.mean(physical_middle_imag)
+    random_middle_mean_real = np.mean(random_middle_real)
+    random_middle_mean_imag = np.mean(random_middle_imag)
+
+    physical_middle_std_real = np.std(physical_middle_real)
+    physical_middle_std_imag = np.std(physical_middle_imag)
+    random_middle_std_real = np.std(random_middle_real)
+    random_middle_std_imag = np.std(random_middle_imag)
+
     width = 0.0393701 * 190
     height = width * 0.75
     fig, ax = pylab.subplots(
@@ -890,34 +896,14 @@ def plot_edge(physical_data, random_data, xmin, xmax, ps):
     pylab.close("all")
     # pylab.show()
 
+    return np.angle(random_edge), np.angle(physical_edge)
 
-def validate():
+
+def plot_all_mean_and_std(pixel_size, stats_list):
     """
-    Validate the ice model
+    Make a plot of mean and std vs pixel size
 
     """
-
-    # Load the water model
-    atom_data = load_water_atomic_model()
-
-    # Set the pixel sizes
-    pixel_size = np.arange(0.1, 1.1, 0.1)  # [0.1]#, 1.0]
-
-    stats_list = []
-    power_list = []
-
-    for ps in pixel_size:
-
-        # Get the simulated exit wave
-        physical_data, random_data, xmin, xmax = load_exit_wave(atom_data, ps)
-
-        # Make the plots
-        stats = plot_mean_and_var(physical_data, random_data, xmin, xmax, ps)
-        power = plot_power(physical_data, random_data, xmin, xmax, ps)
-        plot_edge(physical_data, random_data, xmin, xmax, ps)
-
-        stats_list.append(stats)
-        power_list.append(power)
 
     # Extract the stats
     (
@@ -966,25 +952,103 @@ def validate():
         color=l4[0].get_color(),
         alpha=0.3,
     )
-    ax.legend()
+    ax.legend(loc="lower right")
     ax.set_xlabel("Pixel size (A)")
     ax.set_ylabel("Exit wave mean and standard deviation")
-    # pylab.show()
     fig.savefig("mean_and_std.png", dpi=300, bbox_inches="tight")
     pylab.close("all")
 
+
+def plot_all_power(pixel_size, power_list):
+    """
+    Plot all the power spectra
+
+    """
+    cycle = pylab.rcParams["axes.prop_cycle"].by_key()["color"]
     width = 0.0393701 * 190
     height = width
     fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
     for ps, power in zip(pixel_size, power_list):
-        p1 = ax.plot(power[0], power[1], color=l1[0].get_color(), alpha=0.5)
-        p2 = ax.plot(power[2], power[3], color=l2[0].get_color(), alpha=0.5)
+        p1 = ax.plot(power[0], power[1], color=cycle[0], alpha=0.5)
+        p2 = ax.plot(power[2], power[3], color=cycle[1], alpha=0.5)
     ax.set_xlabel("Spatial frequency (1/Å)")
     ax.set_ylabel("Power spectrum")
     ax.legend(handles=[p1[0], p2[0]], labels=["Physical", "Random"])
+    ax.set_xlim(0, 1.0)
     # pylab.show()
     fig.savefig("power.png", dpi=300, bbox_inches="tight")
     pylab.close("all")
+
+
+def plot_all_edge(pixel_size, edge_list):
+
+    width = 0.0393701 * 190
+    height = 0.5 * width
+    fig, ax = pylab.subplots(
+        figsize=(width, height), ncols=4, nrows=2, constrained_layout=True
+    )
+
+    pixel_size = [pixel_size[i] for i in [0, 3, 6, 9]]
+    edge_list = [edge_list[i] for i in [0, 3, 6, 9]]
+
+    for i, (ps, edge) in enumerate(zip(pixel_size, edge_list)):
+
+        vmin = min(np.min(edge[0]), np.min(edge[0]))
+        vmax = max(np.max(edge[1]), np.max(edge[1]))
+
+        ax[0][i].imshow(edge[0], vmin=vmin, vmax=vmax, cmap="gray_r")
+        ax[1][i].imshow(edge[1], vmin=vmin, vmax=vmax, cmap="gray_r")
+        # ax[0][i].set_title("Physical model", fontweight="bold")
+        # ax[1][i].set_title("Random model", fontweight="bold")
+        ax[0][i].set_xticks([])
+        ax[1][i].set_xticks([])
+        ax[0][i].set_yticks([])
+        ax[1][i].set_yticks([])
+        ax[0][i].set_xlabel("(%s)" % "abcd"[i])
+        ax[1][i].set_xlabel("(%s)" % "efgh"[i])
+        ax[0][i].set_title("%.1f Å" % ps)
+
+    ax[0][0].set_ylabel("Physical model")
+    ax[1][0].set_ylabel("Random model")
+
+    fig.savefig("edge.png" % ps, dpi=300, bbox_inches="tight")
+    pylab.close("all")
+    # pylab.show()
+
+
+def validate():
+    """
+    Validate the ice model
+
+    """
+
+    # Load the water model
+    atom_data = load_water_atomic_model()
+
+    # Set the pixel sizes
+    pixel_size = np.arange(0.1, 1.1, 0.1)  # [0.1]#, 1.0]
+
+    stats_list = []
+    power_list = []
+    edge_list = []
+
+    for ps in pixel_size:
+
+        # Get the simulated exit wave
+        physical_data, random_data, xmin, xmax = load_exit_wave(atom_data, ps)
+
+        # Make the plots
+        stats = plot_mean_and_var(physical_data, random_data, xmin, xmax, ps)
+        power = plot_power(physical_data, random_data, xmin, xmax, ps)
+        edge = plot_edge(physical_data, random_data, xmin, xmax, ps)
+
+        stats_list.append(stats)
+        power_list.append(power)
+        edge_list.append(edge)
+
+    plot_all_mean_and_std(pixel_size, stats_list)
+    plot_all_power(pixel_size, power_list)
+    plot_all_edge(pixel_size, edge_list)
 
 
 if __name__ == "__main__":
