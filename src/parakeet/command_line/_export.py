@@ -52,6 +52,7 @@ def rebin(data, shape):
     f = f[y0:y1, x0:x1]
     f = np.fft.ifftshift(f)
     d = np.fft.ifft2(f)
+    print(np.sum(data.real), np.sum(d.real))
     return d.real
 
 

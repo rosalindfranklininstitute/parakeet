@@ -68,7 +68,9 @@ class ImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        exposure_time = self.scan.exposure_time
+        exposure_time = self.scan.exposure_time[index]
+        if exposure_time <= 0:
+            exposure_time = 1.0
 
         # Check the angle and position
         assert abs(angle - self.optics.header[index]["tilt_alpha"]) < 1e7

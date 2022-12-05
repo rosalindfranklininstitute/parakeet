@@ -330,6 +330,7 @@ class ExitWaveImageSimulator(object):
         metadata["ice"] = self.simulation["ice"]
         metadata["damage_model"] = self.simulation["radiation_damage_model"]
         metadata["sensitivity_coefficient"] = self.simulation["sensitivity_coefficient"]
+        metadata["exposure_time"] = exposure_time
 
         # Compute the image scaled with Poisson noise
         return (index, image, metadata)
