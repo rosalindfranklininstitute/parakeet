@@ -22,7 +22,7 @@ jobs:
         sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
         sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
         sudo apt-get update
-        sudo apt-get -y install cuda
+        sudo apt-get -y install cuda-11.8
 
     - name: Install fftw
       run: sudo apt-get install libfftw3-dev    
@@ -41,7 +41,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 black mypy types-PyYAML pytest pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        export CUDACXX=/usr/local/cuda-12/bin/nvcc        
+        export CUDACXX=/usr/local/cuda-11/bin/nvcc        
         python -m pip install -e .
 
     - name: Install documentation dependencies
