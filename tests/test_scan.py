@@ -3,11 +3,20 @@ import pytest
 import parakeet.scan
 
 
-def test_manual():
+def test_none():
     scan = parakeet.scan.new(mode=None)
     assert np.all(np.equal(scan.axes, np.array([[0, 0, 0]])))
     assert np.all(np.equal(scan.angles, np.array([0])))
     assert np.all(np.equal(scan.position, np.array([(0, 0, 0)])))
+
+
+def test_manual():
+    scan = parakeet.scan.new(
+        mode="manual", axis=(0, 1, 0), angles=[1, 2, 3], positions=[4, 5, 6]
+    )
+    assert np.all(np.equal(scan.axes, np.array([[0, 1, 0]])))
+    assert np.allclose(scan.angles, np.array([1, 2, 3]))
+    assert np.allclose(scan.position, np.array([(0, i, 0) for i in [4, 5, 6]]))
 
 
 def test_still():
