@@ -170,6 +170,7 @@ class ExitWaveImageSimulator(object):
         drift = self.scan.shift_delta[index]
         beam_tilt_theta = self.scan.beam_tilt_theta[index]
         beam_tilt_phi = self.scan.beam_tilt_phi[index]
+        exposure_time = self.scan.exposure_time[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -330,6 +331,7 @@ class ExitWaveImageSimulator(object):
         metadata["ice"] = self.simulation["ice"]
         metadata["damage_model"] = self.simulation["radiation_damage_model"]
         metadata["sensitivity_coefficient"] = self.simulation["sensitivity_coefficient"]
+        metadata["exposure_time"] = exposure_time
 
         # Compute the image scaled with Poisson noise
         return (index, image, metadata)

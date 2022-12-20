@@ -470,6 +470,7 @@ class ScanMode(str, Enum):
 
     """
 
+    manual = "manual"
     still = "still"
     tilt_series = "tilt_series"
     dose_symmetric = "dose_symmetric"
@@ -523,16 +524,16 @@ class Scan(BaseModel):
     angles: Optional[List[float]] = Field(
         None,
         description=(
-            "The list of angles to use (deg). If this is set, then the "
-            "num_images, start_angle and step_angle fields are overridden"
+            "The list of angles to use (deg). This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
         ),
     )
 
     positions: Optional[List[float]] = Field(
         None,
         description=(
-            "The list of positions to use (A). If this is set, then the "
-            "num_images, start_pos and step_pos fields are overridden"
+            "The list of positions to use (A). This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
         ),
     )
 

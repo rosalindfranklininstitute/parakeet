@@ -287,6 +287,8 @@ class ScanFactory(object):
         assert angles is not None
         assert positions is not None
         assert len(angles) == len(positions)
+        angles = np.array(angles)
+        positions = np.array(positions)
 
         # Create the single axis scan
         return Class.single_axis(
@@ -558,8 +560,11 @@ class ScanFactory(object):
         Make a scan from the input arguments
 
         """
+
+        # Select the factory function
         function = {
             None: Class.manual,
+            "manual": Class.manual,
             "still": Class.still,
             "tilt_series": Class.tilt_series,
             "dose_symmetric": Class.dose_symmetric,
@@ -568,14 +573,16 @@ class ScanFactory(object):
             "single_particle": Class.single_particle,
             "beam_tilt": Class.beam_tilt,
         }[mode]
+
+        # Create the scan
         return function(**kwargs)  # type: ignore
 
 
 def new(
     mode: str = "still",
     axis: tuple = (0, 1, 0),
-    angles: list = None,
-    positions: list = None,
+    angles: np.ndarray = None,
+    positions: np.ndarray = None,
     start_angle: float = 0,
     step_angle: float = 0,
     start_pos: float = 0,
@@ -583,8 +590,8 @@ def new(
     num_images: int = 1,
     num_nhelix: int = 1,
     exposure_time: float = 1,
-    theta: list = None,
-    phi: list = None,
+    theta: np.ndarray = None,
+    phi: np.ndarray = None,
     drift: dict = None,
 ) -> Scan:
     """
