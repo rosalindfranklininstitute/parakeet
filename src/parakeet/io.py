@@ -996,7 +996,7 @@ class Reader(object):
         header = NexusHeader(data)
 
         # Get the pixel size
-        pixel_size = data["pixel_size_x"][0]
+        pixel_size = data.get("pixel_size_x", [1.0])[0]
 
         # Create the reader
         return Reader(
