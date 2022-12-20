@@ -896,7 +896,7 @@ def plot_edge(physical_data, random_data, xmin, xmax, ps):
     pylab.close("all")
     # pylab.show()
 
-    return np.angle(random_edge), np.angle(physical_edge)
+    return np.abs(random_edge), np.abs(physical_edge)
 
 
 def plot_all_mean_and_std(pixel_size, stats_list):
