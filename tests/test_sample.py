@@ -66,13 +66,13 @@ def test_random_uniform_rotation():
     assert rotations.shape == (10, 3)
 
 
-def test_distribute_boxes_uniformly():
+# def test_distribute_boxes_uniformly():
 
-    positions = parakeet.sample.distribute_boxes_uniformly(
-        ((0, 0, 0), (1000, 1000, 1000)), [(100, 100, 100), (200, 200, 200)]
-    )
+#     positions = parakeet.sample.distribute_boxes_uniformly(
+#         ((0, 0, 0), (1000, 1000, 1000)), [(100, 100, 100), (200, 200, 200)]
+#     )
 
-    assert len(positions) == 2
+#     assert len(positions) == 2
 
 
 def test_shape_bounding_box():
