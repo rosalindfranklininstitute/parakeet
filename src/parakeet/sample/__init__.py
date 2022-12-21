@@ -140,71 +140,71 @@ def random_uniform_rotation(size=1):
     return vector
 
 
-def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
-    """
-    Find n random non overlapping positions for cuboids within a volume
+# def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
+#     """
+#     Find n random non overlapping positions for cuboids within a volume
 
-    Args:
-        volume_box (array): The size of the volume
-        boxes (array): The list of boxes
-        max_tries (int): The maximum tries per cube
+#     Args:
+#         volume_box (array): The size of the volume
+#         boxes (array): The list of boxes
+#         max_tries (int): The maximum tries per cube
 
-    Returns:
-        list: A list of centre positions
+#     Returns:
+#         list: A list of centre positions
 
-    """
+#     """
 
-    # Cast to numpy array
-    volume_lower, volume_upper = np.array(volume_box)
-    boxes = np.array(boxes)
+#     # Cast to numpy array
+#     volume_lower, volume_upper = np.array(volume_box)
+#     boxes = np.array(boxes)
 
-    # Check if the cube overlaps with any other
-    def overlapping(positions, box_sizes, q, q_size):
-        for p, p_size in zip(positions, box_sizes):
-            p0 = p - p_size / 2
-            p1 = p + p_size / 2
-            q0 = q - q_size / 2
-            q1 = q + q_size / 2
-            if not (
-                q0[0] > p1[0]
-                or q1[0] < p0[0]
-                or q0[1] > p1[1]
-                or q1[1] < p0[1]
-                or q0[2] > p1[2]
-                or q1[2] < p0[2]
-            ):
-                return True
-        return False
+#     # Check if the cube overlaps with any other
+#     def overlapping(positions, box_sizes, q, q_size):
+#         for p, p_size in zip(positions, box_sizes):
+#             p0 = p - p_size / 2
+#             p1 = p + p_size / 2
+#             q0 = q - q_size / 2
+#             q1 = q + q_size / 2
+#             if not (
+#                 q0[0] > p1[0]
+#                 or q1[0] < p0[0]
+#                 or q0[1] > p1[1]
+#                 or q1[1] < p0[1]
+#                 or q0[2] > p1[2]
+#                 or q1[2] < p0[2]
+#             ):
+#                 return True
+#         return False
 
-    # Loop until we have added the boxes
-    positions = []
-    box_sizes = []
-    for box_size in boxes:
+#     # Loop until we have added the boxes
+#     positions = []
+#     box_sizes = []
+#     for box_size in boxes:
 
-        # The bounds to search in
-        lower = volume_lower + box_size / 2
-        upper = volume_upper - box_size / 2
-        assert lower[0] < upper[0]
-        assert lower[1] < upper[1]
-        assert lower[2] < upper[2]
+#         # The bounds to search in
+#         lower = volume_lower + box_size / 2
+#         upper = volume_upper - box_size / 2
+#         assert lower[0] < upper[0]
+#         assert lower[1] < upper[1]
+#         assert lower[2] < upper[2]
 
-        # Try to add the box
-        num_tries = 0
-        while True:
-            q = np.random.uniform(lower, upper)
-            if len(positions) == 0 or not overlapping(
-                positions, box_sizes, q, box_size
-            ):
-                positions.append(q)
-                box_sizes.append(box_size)
-                break
-            num_tries += 1
-            if num_tries > max_tries:
-                print("Number of particles placed = %d" % (len(box_sizes)))
-                raise RuntimeError(f"Unable to place cube of size {box_size}")
+#         # Try to add the box
+#         num_tries = 0
+#         while True:
+#             q = np.random.uniform(lower, upper)
+#             if len(positions) == 0 or not overlapping(
+#                 positions, box_sizes, q, box_size
+#             ):
+#                 positions.append(q)
+#                 box_sizes.append(box_size)
+#                 break
+#             num_tries += 1
+#             if num_tries > max_tries:
+#                 print("Number of particles placed = %d" % (len(box_sizes)))
+#                 raise RuntimeError(f"Unable to place cube of size {box_size}")
 
-    # Return the cube positions
-    return positions
+#     # Return the cube positions
+#     return positions
 
 
 def shape_bounding_box(centre, shape):
