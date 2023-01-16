@@ -158,7 +158,7 @@ class Scan(object):
         This matches the convention used by XMIPP/RELION.
 
         """
-        return R.from_rotvec(self.orientation).as_euler(seq="ZYZ", degrees=True)
+        return R.from_rotvec(self.orientation).inv().as_euler(seq="ZYZ", degrees=True)
 
     def __len__(self) -> int:
         """
