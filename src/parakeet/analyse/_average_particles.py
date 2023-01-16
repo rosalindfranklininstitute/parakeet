@@ -91,10 +91,11 @@ def _iterate_particles(
     size,
     half_length,
     half_shape,
+    voxel_size,
     tomogram,
 ):
 
-    for j in range(2):
+    for j in range(len(indices)):
         for i in indices[j]:
             position = positions[i]
             orientation = orientations[i]
@@ -113,15 +114,39 @@ def _iterate_particles(
             )
 
             # Set the region to extract
-            x0 = np.floor(p).astype("int32") - half_length
-            x1 = np.floor(p).astype("int32") + half_length
+            x0 = np.floor(p / voxel_size).astype("int32") - half_length
+            x1 = np.floor(p / voxel_size).astype("int32") + half_length
             offset = p - np.floor(p).astype("int32")
 
             # Get the sub tomogram
             print("Getting sub tomogram")
             sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-            if sub_tomo.shape == half_shape[1:]:
+            if sub_tomo.shape == half_shape[-3:]:
+                print("YIELD")
                 yield (sub_tomo, offset, orientation, j)
+
+
+def lazy_map(executor, func, iterable):
+    """
+    A lazy map function for concurrent processes
+
+    """
+    max_workers = executor._max_workers
+
+    futures = []
+    for it in iterable:
+        futures.append(executor.submit(func, it))
+        while len(futures) >= max_workers:
+            temp = []
+            for f in futures:
+                if f.done():
+                    yield f.result()
+                else:
+                    temp.append(f)
+            futures = temp
+
+    for future in concurrent.futures.as_completed(futures):
+        yield future.result()
 
 
 @singledispatch
@@ -202,6 +227,8 @@ def _average_particles_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] == voxel_size[1]
+    assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
@@ -222,7 +249,15 @@ def _average_particles_Config(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                int(
+                    ceil(
+                        sqrt(
+                            ((xmin - xc) / voxel_size[0]) ** 2
+                            + ((ymin - yc) / voxel_size[1]) ** 2
+                            + ((zmin - zc) / voxel_size[2]) ** 2
+                        )
+                    )
+                )
                 + 1
             )
         else:
@@ -251,8 +286,9 @@ def _average_particles_Config(
         indices = [indices[: num_particles // 2], indices[num_particles // 2 :]]
 
         # Loop through all the particles
-        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-            for half_index, data in executor.map(
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            for half_index, data in lazy_map(
+                executor,
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
@@ -262,6 +298,7 @@ def _average_particles_Config(
                     size,
                     half_length,
                     half.shape,
+                    voxel_size,
                     tomogram,
                 ),
             ):
@@ -396,6 +433,8 @@ def _average_all_particles_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] == voxel_size[1]
+    assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
@@ -416,7 +455,15 @@ def _average_all_particles_Config(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                int(
+                    ceil(
+                        sqrt(
+                            ((xmin - xc) / voxel_size[0]) ** 2
+                            + ((ymin - yc) / voxel_size[1]) ** 2
+                            + ((zmin - zc) / voxel_size[2]) ** 2
+                        )
+                    )
+                )
                 + 1
             )
         else:
@@ -437,46 +484,28 @@ def _average_all_particles_Config(
             *sorted(zip(positions, orientations), key=lambda x: x[0][1])
         )
 
+        # Get the random indices
+        indices = [list(range(len(positions)))]
+
         # Loop through all the particles
-        for i, (position, orientation) in enumerate(zip(positions, orientations)):
-
-            # Compute p within the volume
-            start_position = np.array([0, scan["start_pos"], 0])
-            p = position - (centre - size / 2.0)  # - start_position
-            p[2] = size[2] - p[2]
-            print(
-                "Particle %d: position = %s, orientation = %s"
-                % (
-                    i,
-                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
-                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
-                )
-            )
-
-            # Set the region to extract
-            x0 = np.floor(p).astype("int32") - half_length
-            x1 = np.floor(p).astype("int32") + half_length
-            offset = p - np.floor(p).astype("int32")
-
-            # Get the sub tomogram
-            print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-            if sub_tomo.shape == average.shape:
-
-                # Set the data to transform
-                data = sub_tomo
-
-                # Reorder input vectors
-                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -np.array(orientation)[[1, 2, 0]]
-                rotation[1] = -rotation[1]
-
-                # Rotate the data
-                print("Rotating volume")
-                data = rotate_array(data, rotation, offset)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            for half_index, data in lazy_map(
+                executor,
+                _process_sub_tomo,
+                _iterate_particles(
+                    indices,
+                    positions,
+                    orientations,
+                    centre,
+                    size,
+                    half_length,
+                    average.shape,
+                    voxel_size,
+                    tomogram,
+                ),
+            ):
 
                 # Add the contribution to the average
-
                 average += data
                 num += 1
 
