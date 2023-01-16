@@ -822,16 +822,7 @@ def show(config: Config, full: bool = False):
         full: Show the full configuration (True or False)
 
     """
-    logger.info(
-        "\n".join(
-            [
-                f"{line}"
-                for line in yaml.safe_dump(
-                    config.dict(exclude_unset=not full), indent=4
-                ).split("\n")
-            ]
-        )
-    )
+    return yaml.safe_dump(config.dict(exclude_unset=not full), indent=4)
 
 
 def deepmerge(a: dict, b: dict) -> dict:

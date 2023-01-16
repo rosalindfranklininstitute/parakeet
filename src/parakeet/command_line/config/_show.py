@@ -64,7 +64,7 @@ def show_impl(args):
     config = parakeet.config.load(args.config)
 
     # Print some options
-    parakeet.config.show(config, full=True)
+    print(parakeet.config.show(config, full=True))
 
 
 def show(args: list[str] = None):
