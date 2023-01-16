@@ -251,7 +251,7 @@ def shape_volume_object(centre: tuple, shape: dict):
         offset_x = cylinder.get("offset_x", None)
         offset_z = cylinder.get("offset_z", None)
         axis = cylinder.get("axis", (0, 1, 0))
-        assert axis == (0, 1, 0)
+        assert np.all(np.equal(axis, (0, 1, 0)))
 
         # Make into a list for radius and offset
         if not isinstance(radius, Iterable):
