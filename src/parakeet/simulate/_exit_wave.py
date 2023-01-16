@@ -308,7 +308,7 @@ class ExitWaveImageSimulator(object):
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Get the timestamp
-        timestamp = time.time_ns() / 1e9
+        timestamp = time.time()
 
         # Set the metaadata
         metadata = self.metadata[index]
