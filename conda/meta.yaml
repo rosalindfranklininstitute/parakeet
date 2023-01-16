@@ -60,6 +60,7 @@ requirements:
     - pyyaml
     - scipy
     - starfile
+    - importlib_resources
   run:
     - cmake
     - fftw
@@ -80,6 +81,7 @@ requirements:
     - pyyaml
     - scipy
     - starfile
+    - importlib_resources
 
 test:
   imports:
