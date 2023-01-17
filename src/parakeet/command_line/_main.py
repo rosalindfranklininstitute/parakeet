@@ -8,17 +8,18 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.config
-import parakeet.command_line
-import parakeet.command_line.config as config
-import parakeet.command_line.sample as sample
-import parakeet.command_line.simulate as simulate
-import parakeet.command_line.metadata as metadata
-import parakeet.command_line.analyse as analyse
-import parakeet.command_line.pdb as pdb
+
+# import parakeet.command_line
+from . import config as config
+from . import sample as sample
+from . import simulate as simulate
+from . import metadata as metadata
+from . import analyse as analyse
+from . import pdb as pdb
 from argparse import ArgumentParser
 
 

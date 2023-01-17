@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import time
@@ -19,6 +19,7 @@ import parakeet.config
 import parakeet.microscope
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["correct"]
@@ -113,7 +114,7 @@ def correct_impl(args):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def correct(args: list[str] = None):
+def correct(args: List[str] = None):
     """
     Correct the images using 3D CTF correction
 

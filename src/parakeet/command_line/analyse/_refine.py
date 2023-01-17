@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import time
@@ -19,6 +19,7 @@ import parakeet.config
 import parakeet.microscope
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["refine"]
@@ -101,7 +102,7 @@ def refine_impl(args):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def refine(args: list[str] = None):
+def refine(args: List[str] = None):
     """
     Refine against the model
 

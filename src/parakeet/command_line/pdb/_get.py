@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import logging.config
@@ -16,6 +16,7 @@ import os
 import shutil
 from argparse import ArgumentParser
 import parakeet.data
+from typing import List
 
 
 __all__ = ["get"]
@@ -77,7 +78,7 @@ def get_impl(args):
     shutil.copyfile(filename, os.path.join(args.directory, os.path.basename(filename)))
 
 
-def get(args: list[str] = None):
+def get(args: List[str] = None):
     """
     Read the given PDB file and show the atom positions
 

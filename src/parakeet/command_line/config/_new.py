@@ -8,12 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.config
 import parakeet.command_line
 from argparse import ArgumentParser
+from typing import List
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ def new_impl(args):
     parakeet.config.new(filename=args.config, full=args.full)
 
 
-def new(args: list[str] = None):
+def new(args: List[str] = None):
     """
     Create a new configuration
 

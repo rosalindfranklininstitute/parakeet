@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import gemmi
 import logging
@@ -17,6 +17,7 @@ import parakeet.io
 import parakeet.config
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["read"]
@@ -96,7 +97,7 @@ def read_impl(args):
                     )
 
 
-def read(args: list[str] = None):
+def read(args: List[str] = None):
     """
     Read the given PDB file and show the atom positions
 

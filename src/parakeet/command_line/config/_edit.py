@@ -8,12 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.config
 import parakeet.command_line
 from argparse import ArgumentParser
+from typing import List
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ def edit_impl(args):
     parakeet.config.show(config, full=True)
 
 
-def edit(args: list[str] = None):
+def edit(args: List[str] = None):
     """
     Edit the configuration
 
