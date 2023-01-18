@@ -325,3 +325,20 @@ def test_run(config_path):
     assert os.path.exists(exit_wave)
     assert os.path.exists(optics)
     assert os.path.exists(image)
+
+
+def test_main(config_path):
+
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample-main.h5"))
+    exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave-main.h5"))
+    optics = os.path.abspath(os.path.join(config_path, "optics-main.h5"))
+    image = os.path.abspath(os.path.join(config_path, "image-main.mrc"))
+    assert os.path.exists(config)
+    parakeet.command_line.main(
+        ["run", "-c", config, "-s", sample, "-e", exit_wave, "-o", optics, "-i", image]
+    )
+    assert os.path.exists(sample)
+    assert os.path.exists(exit_wave)
+    assert os.path.exists(optics)
+    assert os.path.exists(image)
