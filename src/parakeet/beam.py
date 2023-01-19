@@ -9,7 +9,6 @@
 # which is included in the root directory of this package.
 #
 import parakeet.config
-from typing import Optional
 
 
 class Beam(object):
@@ -23,7 +22,7 @@ class Beam(object):
         energy: float = 300,
         energy_spread: float = 0,
         acceleration_voltage_spread: float = 0,
-        source_spread: float = 0.1,
+        illumination_semiangle: float = 0.1,
         electrons_per_angstrom: float = 30,
         theta: float = 0,
         phi: float = 0,
@@ -35,7 +34,7 @@ class Beam(object):
             energy: The beam energy (keV)
             energy_spread: dE / E where dE is the 1/e half width
             acceleration_voltage_spread: dV / V where dV is the 1 / e half width
-            source_spread: The source spread (mrad)
+            illumination_semiangle: The illumination semiangle spread (mrad)
             electrons_per_angstrom: The number of electrons per angstrom
             theta: The beam tilt theta
             phi: The beam tilt phi
@@ -44,7 +43,7 @@ class Beam(object):
         self._energy = energy
         self._energy_spread = energy_spread
         self._acceleration_voltage_spread = acceleration_voltage_spread
-        self._source_spread = source_spread
+        self._illumination_semiangle = illumination_semiangle
         self._electrons_per_angstrom = electrons_per_angstrom
         self._theta = theta
         self._phi = phi
@@ -86,16 +85,16 @@ class Beam(object):
         self._acceleration_voltage_spread = acceleration_voltage_spread
 
     @property
-    def source_spread(self) -> float:
+    def illumination_semiangle(self) -> float:
         """
-        The source spread (mrad)
+        The illumination semiangle (mrad)
 
         """
-        return self._source_spread
+        return self._illumination_semiangle
 
-    @source_spread.setter
-    def source_spread(self, source_spread: float):
-        self._source_spread = source_spread
+    @illumination_semiangle.setter
+    def illumination_semiangle(self, illumination_semiangle: float):
+        self._illumination_semiangle = illumination_semiangle
 
     @property
     def electrons_per_angstrom(self) -> float:
@@ -149,7 +148,7 @@ def new(config: parakeet.config.Beam) -> Beam:
         energy=config.energy,
         energy_spread=config.energy_spread,
         acceleration_voltage_spread=config.acceleration_voltage_spread,
-        source_spread=config.source_spread,
+        illumination_semiangle=config.illumination_semiangle,
         electrons_per_angstrom=config.electrons_per_angstrom,
         theta=config.theta,
         phi=config.phi,

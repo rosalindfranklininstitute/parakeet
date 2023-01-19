@@ -54,7 +54,7 @@ METADATA_DTYPE = np.dtype(
         ("energy_shift", "f8"),
         ("acceleration_voltage_spread", "f8"),
         ("energy_spread", "f8"),
-        ("source_spread", "f8"),
+        ("illumination_semiangle", "f8"),
         ("exposure_time", "f8"),
         ("theta", "f8"),
         ("phi", "f8"),

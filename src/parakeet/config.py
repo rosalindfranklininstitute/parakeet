@@ -348,7 +348,9 @@ class Beam(BaseModel):
         30, description="The number of electrons per square angstrom"
     )
 
-    source_spread: float = Field(0.1, description="The source spread (mrad).")
+    illumination_semiangle: float = Field(
+        0.1, description="The illumination semiangle (mrad)."
+    )
 
     theta: float = Field(0, description="The beam tilt theta angle (deg)")
 
@@ -744,7 +746,7 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     else:
         include = {
             "microscope": {
-                "beam": {"electrons_per_angstrom", "energy", "source_spread"},
+                "beam": {"electrons_per_angstrom", "energy", "illumination_semiangle"},
                 "detector": {
                     "nx",
                     "ny",
