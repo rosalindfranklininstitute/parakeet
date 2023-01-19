@@ -349,7 +349,7 @@ class Beam(BaseModel):
     )
 
     illumination_semiangle: float = Field(
-        0.1, description="The illumination semiangle (mrad)."
+        0.02, description="The illumination semiangle (mrad)."
     )
 
     theta: float = Field(0, description="The beam tilt theta angle (deg)")
