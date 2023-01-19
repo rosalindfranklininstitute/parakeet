@@ -71,7 +71,7 @@ def run(
     return _run_Config(config, sample_file, exit_wave_file, optics_file, image_file)
 
 
-@run.register
+@run.register(parakeet.config.Config)
 def _run_Config(
     config: parakeet.config.Config,
     sample_file: str,

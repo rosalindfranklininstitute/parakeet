@@ -188,7 +188,7 @@ def image(config_file, optics_file: str, image_file: str):
     _image_Config(config, optics_file, image_file)
 
 
-@image.register
+@image.register(parakeet.config.Config)
 def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: str):
     """
     Simulate the image with noise
