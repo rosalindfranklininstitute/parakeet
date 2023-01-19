@@ -188,13 +188,13 @@ parakeet.export
    :func: get_parser
    :prog: parakeet.export
 
-parakeet.read_pdb
+parakeet.pdb.read
 ^^^^^^^^^^^^^^^^^
 
 .. argparse::
-   :module: parakeet.command_line._read_pdb
+   :module: parakeet.command_line.pdb._read
    :func: get_parser
-   :prog: parakeet.read_pdb
+   :prog: parakeet.pdb.read
 
 parakeet.run
 ^^^^^^^^^^^^
