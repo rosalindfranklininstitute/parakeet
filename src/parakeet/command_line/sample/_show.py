@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.io
@@ -16,6 +16,7 @@ import parakeet.command_line
 import parakeet.config
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["show"]
@@ -70,7 +71,7 @@ def show_impl(args):
     logger.info(sample.info())
 
 
-def show(args: list[str] = None):
+def show(args: List[str] = None):
     """
     Show the sample information
 
