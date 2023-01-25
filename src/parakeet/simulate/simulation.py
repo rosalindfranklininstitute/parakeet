@@ -254,8 +254,10 @@ class Simulation(object):
 
     def angles(self):
         if self.scan is None:
-            return [0]
-        return self.scan.angles
+            return [(0, 0, 0)]
+        return list(
+            zip(self.scan.image_number, self.scan.fraction_number, self.scan.angles)
+        )
 
     def run(self, writer=None):
         """
@@ -272,9 +274,9 @@ class Simulation(object):
 
         # If we are executing in a single process just do a for loop
         if self.cluster is None or self.cluster["method"] is None:
-            for i, angle in enumerate(self.angles()):
+            for i, (image_number, fraction_number, angle) in enumerate(self.angles()):
                 logger.info(
-                    f"    Running job: {i+1}/{self.shape[0]} for {angle} degrees"
+                    f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"
                 )
                 _, image, metadata = self.simulate_image(i)
                 if writer is not None:
@@ -298,9 +300,11 @@ class Simulation(object):
                 # Submit all jobs
                 logger.info("Running simulation...")
                 futures = []
-                for i, angle in enumerate(self.scan.angles):
+                for i, (image_number, fraction_number, angle) in enumerate(
+                    self.scan.angles
+                ):
                     logger.info(
-                        f"    Submitting job: {i+1}/{self.shape[0]} for {angle} degrees"
+                        f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"
                     )
                     futures.append(executor.submit(self.simulate_image, i))
 

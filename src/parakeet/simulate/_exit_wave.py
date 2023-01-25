@@ -162,6 +162,8 @@ class ExitWaveImageSimulator(object):
         logger.info(f"Simulating image {index+1}")
 
         # Get the rotation angle
+        image_number = self.scan.image_number[index]
+        fraction_number = self.scan.fraction_number[index]
         angle = self.scan.angles[index]
         axis = self.scan.axes[index]
         position = self.scan.position[index]
@@ -317,6 +319,8 @@ class ExitWaveImageSimulator(object):
 
         # Set the metaadata
         metadata = self.metadata[index]
+        metadata["image_number"] = image_number
+        metadata["fraction_number"] = fraction_number
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
         metadata["tilt_axis_x"] = axis[0]

@@ -93,6 +93,7 @@ class Scan(object):
         """
         return self.data["image_number"]
 
+    @property
     def fraction_number(self) -> np.ndarray:
         """
         Get the movie fraction number
@@ -106,7 +107,7 @@ class Scan(object):
         Get the orientations
 
         """
-        return self.axes * self.data["angle"][:, np.newaxis]
+        return self.axes * np.array(self.data["angle"])[:, np.newaxis]
 
     @property
     def shift(self) -> np.ndarray:
@@ -287,11 +288,11 @@ class ScanFactory(object):
 
         # Set the image number and frame number
         image_number = np.arange(len(angles))
-        fraction_number = np.zeros(len(angles))
+        fraction_number = np.arange(num_fractions)
+        fraction_number = np.repeat([fraction_number], len(angles), axis=0).flatten()
 
         # Duplicate for the number of movie frames per step
         image_number = np.repeat(image_number, num_fractions, axis=0)
-        fraction_number = np.repeat(fraction_number, num_fractions, axis=0)
         axis = np.repeat(axis, num_fractions, axis=0)
         angles = np.repeat(angles, num_fractions, axis=0)
         shift = np.repeat(shift, num_fractions, axis=0)
@@ -539,11 +540,11 @@ class ScanFactory(object):
 
         # Set the image number and fraction number
         image_number = np.arange(len(angle))
-        fraction_number = np.zeros(len(angle))
+        fraction_number = np.arange(num_fractions)
+        fraction_number = np.repeat([fraction_number], len(angle), axis=0).flatten()
 
         # Duplicate for the number of movie frames per step
         image_number = np.repeat(image_number, num_fractions, axis=0)
-        fraction_number = np.repeat(fraction_number, num_fractions, axis=0)
         axis = np.repeat(axis, num_fractions, axis=0)
         angle = np.repeat(angle, num_fractions, axis=0)
 
@@ -624,11 +625,11 @@ class ScanFactory(object):
 
         # Set the image number and fraction number
         image_number = np.arange(len(angles))
-        fraction_number = np.zeros(len(angles))
+        fraction_number = np.arange(num_fractions)
+        fraction_number = np.repeat([fraction_number], len(angles), axis=0).flatten()
 
         # Duplicate for the number of movie frames per step
         image_number = np.repeat(image_number, num_fractions, axis=0)
-        fraction_number = np.repeat(fraction_number, num_fractions, axis=0)
         axis = np.repeat(axis, num_fractions, axis=0)
         angle = np.repeat(angle, num_fractions, axis=0)
         shift = np.repeat(shift, num_fractions, axis=0)
