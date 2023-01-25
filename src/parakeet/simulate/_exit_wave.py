@@ -211,6 +211,11 @@ class ExitWaveImageSimulator(object):
         input_multislice.theta += beam_tilt_theta
         input_multislice.phi += beam_tilt_phi
 
+        # Compute the dose
+        electrons_per_angstrom = (
+            self.microscope.beam.total_electrons_per_angstrom / len(self.scan)
+        )
+
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
             input_multislice.static_B_factor = (
@@ -218,7 +223,7 @@ class ExitWaveImageSimulator(object):
                 * pi**2
                 * (
                     self.simulation["sensitivity_coefficient"]
-                    * self.microscope.beam.electrons_per_angstrom
+                    * electrons_per_angstrom
                     * (index + 1)
                 )
             )

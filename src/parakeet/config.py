@@ -345,8 +345,9 @@ class Beam(BaseModel):
         0.8e-6, description="The acceleration voltage spread (dV/V)"
     )
 
-    electrons_per_angstrom: float = Field(
-        30, description="The number of electrons per square angstrom"
+    total_electrons_per_angstrom: float = Field(
+        140,
+        description="The number of electrons per square angstrom. This is the total dose for the whole scan.",
     )
 
     illumination_semiangle: float = Field(
@@ -770,7 +771,11 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     else:
         include = {
             "microscope": {
-                "beam": {"electrons_per_angstrom", "energy", "illumination_semiangle"},
+                "beam": {
+                    "total_electrons_per_angstrom",
+                    "energy",
+                    "illumination_semiangle",
+                },
                 "detector": {
                     "nx",
                     "ny",
