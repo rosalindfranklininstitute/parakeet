@@ -31,6 +31,11 @@ METADATA_DTYPE = np.dtype(
         ("application_version", "S16"),
         ("timestamp", "f8"),
         #
+        # Scan parameters
+        #
+        ("image_number", "i4"),
+        ("fraction_number", "i4"),
+        #
         # Stage parameters
         #
         ("tilt_alpha", "f8"),
@@ -396,6 +401,8 @@ class Header(object):
 
         # Return a scan object
         return parakeet.scan.Scan(
+            image_number=metadata["image_number"],
+            fraction_number=metadata["fraction_number"],
             axis=axis,
             angle=metadata["tilt_alpha"],
             shift=shift,
@@ -498,6 +505,11 @@ class MrcfileHeader(Header):
             "application": "Application",
             "application_version": "Application version",
             "timestamp": "Timestamp",
+            #
+            # Scan parameters
+            #
+            "image_number": "Start frame",
+            "fraction_number": "Fraction number",
             #
             # Stage parameters
             #

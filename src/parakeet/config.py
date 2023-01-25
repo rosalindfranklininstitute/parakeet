@@ -523,12 +523,12 @@ class Scan(BaseModel):
         description=(
             "The number of images to simulate. "
             "For a tilt series this is the number of tilt steps. "
-            "If num_frames is also set to something other than 1, "
-            "then there will be num_frames number of 'movie frames' per 'image'"
+            "If num_fractions is also set to something other than 1, "
+            "then there will be num_fractions number of 'movie frames' per 'image'"
         ),
     )
 
-    num_frames: int = Field(
+    num_fractions: int = Field(
         1,
         description=(
             "The number of movie frames. This refers to the frames of the micrograph 'movies'. "
