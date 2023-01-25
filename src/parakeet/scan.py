@@ -224,7 +224,7 @@ class ScanFactory(object):
     @classmethod
     def _rotvec_from_axis_and_angles(
         Class, axis: np.ndarray, angles: np.ndarray
-    ) -> np.ndarray:
+    ) -> tuple:
         """
         Generate the rotvec
 
@@ -233,7 +233,7 @@ class ScanFactory(object):
         return np.array([axis for a in angles]), angles
 
     @classmethod
-    def _axis_angle_from_rotvec(Class, orientation):
+    def _axis_angle_from_rotvec(Class, orientation) -> tuple:
         """
         Get the axis and angle from the rotvec
 
@@ -283,18 +283,18 @@ class ScanFactory(object):
         num_images = len(angles)
 
         # Create the orientation and shift
-        axis, angles = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
+        axis, angle = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
         shift = Class._shift_from_axis_and_positions(np.array(axis), positions)
 
         # Set the image number and frame number
-        image_number = np.arange(len(angles))
+        image_number = np.arange(num_images)
         fraction_number = np.arange(num_fractions)
-        fraction_number = np.repeat([fraction_number], len(angles), axis=0).flatten()
+        fraction_number = np.repeat([fraction_number], num_images, axis=0).flatten()
 
         # Duplicate for the number of movie frames per step
         image_number = np.repeat(image_number, num_fractions, axis=0)
         axis = np.repeat(axis, num_fractions, axis=0)
-        angles = np.repeat(angles, num_fractions, axis=0)
+        angle = np.repeat(angle, num_fractions, axis=0)
         shift = np.repeat(shift, num_fractions, axis=0)
 
         # Create the shift delta
@@ -310,7 +310,7 @@ class ScanFactory(object):
             image_number=image_number,
             fraction_number=fraction_number,
             axis=axis,
-            angle=angles,
+            angle=angle,
             shift=shift,
             shift_delta=shift_delta,
             exposure_time=exposure_time,
