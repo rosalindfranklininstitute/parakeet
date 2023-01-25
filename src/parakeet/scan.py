@@ -24,7 +24,8 @@ class Scan(object):
 
     def __init__(
         self,
-        orientation: np.ndarray = None,
+        axis: np.ndarray = None,
+        angle: np.ndarray = None,
         shift: np.ndarray = None,
         shift_delta: np.ndarray = None,
         beam_tilt_theta: np.ndarray = None,
@@ -38,26 +39,30 @@ class Scan(object):
         """
         self.is_uniform_angular_scan = is_uniform_angular_scan
 
-        if orientation is None:
-            orientation = np.array([[0, 0, 0]])
+        if axis is None:
+            axis = np.array([[0, 0, 0]])
+
+        if angle is None:
+            angle = np.zeros(len(axis))
 
         if shift is None:
-            shift = np.zeros((len(orientation), 3))
+            shift = np.zeros((len(axis), 3))
 
         if shift_delta is None:
-            shift_delta = np.zeros((len(orientation), 3))
+            shift_delta = np.zeros((len(axis), 3))
 
         if beam_tilt_theta is None:
-            beam_tilt_theta = np.zeros(len(orientation))
+            beam_tilt_theta = np.zeros(len(axis))
 
         if beam_tilt_phi is None:
-            beam_tilt_phi = np.zeros(len(orientation))
+            beam_tilt_phi = np.zeros(len(axis))
 
         self.data = pd.DataFrame(
             data={
-                "orientation_x": orientation[:, 0],
-                "orientation_y": orientation[:, 1],
-                "orientation_z": orientation[:, 2],
+                "axis_x": axis[:, 0],
+                "axis_y": axis[:, 1],
+                "axis_z": axis[:, 2],
+                "angle": angle * pi / 180,
                 "shift_x": shift[:, 0],
                 "shift_y": shift[:, 1],
                 "shift_z": shift[:, 2],
@@ -66,7 +71,7 @@ class Scan(object):
                 "shift_delta_z": shift_delta[:, 2],
                 "beam_tilt_theta": beam_tilt_theta,
                 "beam_tilt_phi": beam_tilt_phi,
-                "exposure_time": np.ones(len(orientation)) * exposure_time,
+                "exposure_time": np.ones(len(axis)) * exposure_time,
             }
         )
 
@@ -76,7 +81,7 @@ class Scan(object):
         Get the orientations
 
         """
-        return np.array(self.data[["orientation_x", "orientation_y", "orientation_z"]])
+        return self.axes * self.data["angle"][:, np.newaxis]
 
     @property
     def shift(self) -> np.ndarray:
@@ -132,9 +137,7 @@ class Scan(object):
         Get the angles
 
         """
-        n = np.linalg.norm(self.orientation, axis=1)
-        d = np.dot(self.orientation, np.array([0, 1, 0]))
-        return n * np.sign(d) * 180.0 / pi
+        return self.data["angle"] * 180.0 / pi
 
     @property
     def axes(self) -> np.ndarray:
@@ -142,12 +145,7 @@ class Scan(object):
         Get the axes
 
         """
-        n = np.linalg.norm(self.orientation, axis=1)
-        d = np.dot(self.orientation, np.array([0, 1, 0]))
-        s = n > 0
-        n[s] = 1.0 / n[s]
-        n = n * np.sign(d)
-        return self.orientation * n[:, np.newaxis]
+        return np.array(self.data[["axis_x", "axis_y", "axis_z"]])
 
     @property
     def euler_angles(self) -> np.ndarray:
@@ -206,8 +204,22 @@ class ScanFactory(object):
 
         """
         axis = axis / np.linalg.norm(axis)
-        angles = angles * pi / 180.0
-        return np.array([axis * a for a in angles])
+        return np.array([axis for a in angles]), angles
+
+    @classmethod
+    def _axis_angle_from_rotvec(Class, orientation):
+        """
+        Get the axis and angle from the rotvec
+
+        """
+        n = np.linalg.norm(orientation, axis=1)
+        d = np.dot(orientation, np.array([0, 1, 0]))
+        angle = n * np.sign(d) * 180 / pi
+        s = n > 0
+        n[s] = 1.0 / n[s]
+        n = n * np.sign(d)
+        axis = orientation * n[:, np.newaxis]
+        return axis, angle
 
     @classmethod
     def _shift_from_axis_and_positions(
@@ -217,7 +229,7 @@ class ScanFactory(object):
         Generate the shifts
 
         """
-        return np.array([axis * p for p in positions])
+        return axis * positions[:, np.newaxis]
 
     @classmethod
     def single_axis(
@@ -244,7 +256,7 @@ class ScanFactory(object):
         num_images = len(angles)
 
         # Create the orientation and shift
-        orientation = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
+        axis, angles = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
         shift = Class._shift_from_axis_and_positions(np.array(axis), positions)
 
         # Create the shift delta
@@ -256,7 +268,8 @@ class ScanFactory(object):
 
         # Create the scan object
         return Scan(
-            orientation=orientation,
+            axis=axis,
+            angle=angles,
             shift=shift,
             shift_delta=shift_delta,
             exposure_time=exposure_time,
@@ -467,6 +480,9 @@ class ScanFactory(object):
             special_ortho_group.rvs(dim=3, size=num_images)
         ).as_rotvec()
 
+        # Get the axis and angle
+        axis, angle = Class._axis_angle_from_rotvec(orientation)
+
         # Create the shift delta
         shift_delta = None
         if drift is not None:
@@ -476,7 +492,8 @@ class ScanFactory(object):
 
         # Create the scan
         return Scan(
-            orientation=orientation,
+            axis=axis,
+            angle=angle,
             exposure_time=exposure_time,
             shift_delta=shift_delta,
             is_uniform_angular_scan=True,
@@ -534,7 +551,7 @@ class ScanFactory(object):
         assert positions is not None
 
         # Create the orientation and shift
-        orientation = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
+        axis, angle = Class._rotvec_from_axis_and_angles(np.array(axis), angles)
         shift = Class._shift_from_axis_and_positions(np.array(axis), positions)
 
         # Create the shift delta
@@ -546,7 +563,8 @@ class ScanFactory(object):
 
         # Create the scan object
         return Scan(
-            orientation=orientation,
+            axis=axis,
+            angle=angle,
             shift=shift,
             shift_delta=shift_delta,
             beam_tilt_theta=beam_tilt_theta,
@@ -588,6 +606,7 @@ def new(
     start_pos: float = 0,
     step_pos: float = 0,
     num_images: int = 1,
+    num_frames: int = 1,
     num_nhelix: int = 1,
     exposure_time: float = 1,
     theta: np.ndarray = None,
@@ -610,6 +629,7 @@ def new(
         start_pos: The starting position (A)
         step_pos: The step in position (A)
         num_images: The number of images
+        num_frames: The number of movie frames per image
         num_nhelix: The number of scans in an n-helix
         exposure_time: The exposure time (seconds)
         theta: The beam tilt theta angle
@@ -629,6 +649,7 @@ def new(
         "start_pos": start_pos,
         "step_pos": step_pos,
         "num_images": num_images,
+        "num_frames": num_frames,
         "num_nhelix": num_nhelix,
         "exposure_time": exposure_time,
         "theta": theta,

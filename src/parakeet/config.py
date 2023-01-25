@@ -518,7 +518,24 @@ class Scan(BaseModel):
         "auto", description="The step distance for a translational scan (A)"
     )
 
-    num_images: int = Field(1, description="The number of images to simulate")
+    num_images: int = Field(
+        1,
+        description=(
+            "The number of images to simulate. "
+            "For a tilt series this is the number of tilt steps. "
+            "If num_frames is also set to something other than 1, "
+            "then there will be num_frames number of 'movie frames' per 'image'"
+        ),
+    )
+
+    num_frames: int = Field(
+        1,
+        description=(
+            "The number of movie frames. This refers to the frames of the micrograph 'movies'. "
+            "For a tilt series, all these images will be at the same step and the dose for a 'single image' "
+            "will be fractionated over these image frames"
+        ),
+    )
 
     num_nhelix: int = Field(1, description="The number of scans in an n-helix")
 
