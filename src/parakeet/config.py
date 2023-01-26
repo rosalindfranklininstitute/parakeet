@@ -10,6 +10,7 @@
 #
 import copy
 import logging
+import os
 import yaml
 
 from enum import Enum
@@ -344,8 +345,9 @@ class Beam(BaseModel):
         0.8e-6, description="The acceleration voltage spread (dV/V)"
     )
 
-    electrons_per_angstrom: float = Field(
-        30, description="The number of electrons per square angstrom"
+    total_electrons_per_angstrom: float = Field(
+        140,
+        description="The number of electrons per square angstrom. This is the total dose for the whole scan.",
     )
 
     illumination_semiangle: float = Field(
@@ -517,7 +519,24 @@ class Scan(BaseModel):
         "auto", description="The step distance for a translational scan (A)"
     )
 
-    num_images: int = Field(1, description="The number of images to simulate")
+    num_images: int = Field(
+        1,
+        description=(
+            "The number of images to simulate. "
+            "For a tilt series this is the number of tilt steps. "
+            "If num_fractions is also set to something other than 1, "
+            "then there will be num_fractions number of 'movie frames' per 'image'"
+        ),
+    )
+
+    num_fractions: int = Field(
+        1,
+        description=(
+            "The number of movie frames. This refers to the frames of the micrograph 'movies'. "
+            "For a tilt series, all these images will be at the same step and the dose for a 'single image' "
+            "will be fractionated over these image frames"
+        ),
+    )
 
     num_nhelix: int = Field(1, description="The number of scans in an n-helix")
 
@@ -613,7 +632,13 @@ class Simulation(BaseModel):
     )
 
     sensitivity_coefficient: float = Field(
-        0.022, description="The radiation damage model sensitivity coefficient"
+        0.022,
+        description=(
+            "The radiation damage model sensitivity coefficient. "
+            "This value relates the value of an isotropic B factor to the number of "
+            "incident electrons. Typical values for this (calibrated from X-ray and EM data) "
+            "range between 0.02 and 0.08 where a higher value will result in a larger B factor."
+        ),
     )
 
 
@@ -746,7 +771,11 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     else:
         include = {
             "microscope": {
-                "beam": {"electrons_per_angstrom", "energy", "illumination_semiangle"},
+                "beam": {
+                    "total_electrons_per_angstrom",
+                    "energy",
+                    "illumination_semiangle",
+                },
                 "detector": {
                     "nx",
                     "ny",
@@ -815,16 +844,39 @@ def edit(
     return config
 
 
-def show(config: Config, full: bool = False):
+def show(config: Config, full: bool = False, schema: str = None):
     """
     Print the command line arguments
 
     Args:
         config: The configuration object
         full: Show the full configuration (True or False)
+        schema: Show the schema
 
     """
-    return yaml.safe_dump(config.dict(exclude_unset=not full), indent=4)
+    if schema:
+        if schema in ["."]:
+            d = config.schema()
+        elif schema.startswith("/definitions/"):
+            schema = os.path.basename(schema)
+            try:
+                d = config.schema()["definitions"][schema]
+            except Exception as e:
+                raise RuntimeError(
+                    "Unable to find definition '%s' in\n%s"
+                    % (
+                        schema,
+                        "\n".join(
+                            " - %s" % v
+                            for v in sorted(config.schema()["definitions"].keys())
+                        ),
+                    )
+                )
+        else:
+            raise RuntimeError("Unknown scheme value '%s' (see help)" % schema)
+    else:
+        d = config.dict(exclude_unset=not full)
+    return yaml.safe_dump(d, indent=4)
 
 
 def deepmerge(a: dict, b: dict) -> dict:

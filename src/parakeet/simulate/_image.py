@@ -78,10 +78,14 @@ class ImageSimulator(object):
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
 
+        # Compute the dose
+        electrons_per_angstrom = (
+            self.microscope.beam.total_electrons_per_angstrom / len(self.scan)
+        )
+
         # Compute the number of counts per pixel
         electrons_per_pixel = (
-            self.microscope.beam.electrons_per_angstrom
-            * self.microscope.detector.pixel_size**2
+            electrons_per_angstrom * self.microscope.detector.pixel_size**2
         )
 
         # Compute the electrons per pixel second
@@ -117,7 +121,7 @@ class ImageSimulator(object):
 
         # Get the image metadata
         metadata = np.asarray(self.optics.header[index])
-        metadata["dose"] = self.microscope.beam.electrons_per_angstrom
+        metadata["dose"] = electrons_per_angstrom
         metadata["dqe"] = self.microscope.detector.dqe
         metadata["gain"] = 1
         metadata["offset"] = 0

@@ -162,6 +162,8 @@ class ExitWaveImageSimulator(object):
         logger.info(f"Simulating image {index+1}")
 
         # Get the rotation angle
+        image_number = self.scan.image_number[index]
+        fraction_number = self.scan.fraction_number[index]
         angle = self.scan.angles[index]
         axis = self.scan.axes[index]
         position = self.scan.position[index]
@@ -211,6 +213,11 @@ class ExitWaveImageSimulator(object):
         input_multislice.theta += beam_tilt_theta
         input_multislice.phi += beam_tilt_phi
 
+        # Compute the dose
+        electrons_per_angstrom = (
+            self.microscope.beam.total_electrons_per_angstrom / len(self.scan)
+        )
+
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
             input_multislice.static_B_factor = (
@@ -218,7 +225,7 @@ class ExitWaveImageSimulator(object):
                 * pi**2
                 * (
                     self.simulation["sensitivity_coefficient"]
-                    * self.microscope.beam.electrons_per_angstrom
+                    * electrons_per_angstrom
                     * (index + 1)
                 )
             )
@@ -312,6 +319,8 @@ class ExitWaveImageSimulator(object):
 
         # Set the metaadata
         metadata = self.metadata[index]
+        metadata["image_number"] = image_number
+        metadata["fraction_number"] = fraction_number
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
         metadata["tilt_axis_x"] = axis[0]

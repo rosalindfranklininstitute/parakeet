@@ -23,7 +23,7 @@ class Beam(object):
         energy_spread: float = 0,
         acceleration_voltage_spread: float = 0,
         illumination_semiangle: float = 0.1,
-        electrons_per_angstrom: float = 30,
+        total_electrons_per_angstrom: float = 140,
         theta: float = 0,
         phi: float = 0,
     ):
@@ -35,7 +35,7 @@ class Beam(object):
             energy_spread: dE / E where dE is the 1/e half width
             acceleration_voltage_spread: dV / V where dV is the 1 / e half width
             illumination_semiangle: The illumination semiangle spread (mrad)
-            electrons_per_angstrom: The number of electrons per angstrom
+            total_electrons_per_angstrom: The number of electrons per angstrom
             theta: The beam tilt theta
             phi: The beam tilt phi
 
@@ -44,7 +44,7 @@ class Beam(object):
         self._energy_spread = energy_spread
         self._acceleration_voltage_spread = acceleration_voltage_spread
         self._illumination_semiangle = illumination_semiangle
-        self._electrons_per_angstrom = electrons_per_angstrom
+        self._total_electrons_per_angstrom = total_electrons_per_angstrom
         self._theta = theta
         self._phi = phi
 
@@ -97,16 +97,16 @@ class Beam(object):
         self._illumination_semiangle = illumination_semiangle
 
     @property
-    def electrons_per_angstrom(self) -> float:
+    def total_electrons_per_angstrom(self) -> float:
         """
         The number of electrons per angstrom
 
         """
-        return self._electrons_per_angstrom
+        return self._total_electrons_per_angstrom
 
-    @electrons_per_angstrom.setter
-    def electrons_per_angstrom(self, electrons_per_angstrom: float):
-        self._electrons_per_angstrom = electrons_per_angstrom
+    @total_electrons_per_angstrom.setter
+    def total_electrons_per_angstrom(self, total_electrons_per_angstrom: float):
+        self._total_electrons_per_angstrom = total_electrons_per_angstrom
 
     @property
     def theta(self) -> float:
@@ -149,7 +149,7 @@ def new(config: parakeet.config.Beam) -> Beam:
         energy_spread=config.energy_spread,
         acceleration_voltage_spread=config.acceleration_voltage_spread,
         illumination_semiangle=config.illumination_semiangle,
-        electrons_per_angstrom=config.electrons_per_angstrom,
+        total_electrons_per_angstrom=config.total_electrons_per_angstrom,
         theta=config.theta,
         phi=config.phi,
     )

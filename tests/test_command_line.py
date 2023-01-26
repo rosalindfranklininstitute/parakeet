@@ -16,7 +16,7 @@ def config_path(tmpdir_factory):
         "microscope": {
             "detector": {"nx": 250, "ny": 250, "pixel_size": 2},
             "beam": {
-                "electrons_per_angstrom": 1000,
+                "total_electrons_per_angstrom": 10000,
             },
         },
         "sample": {
