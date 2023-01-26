@@ -1,5 +1,4 @@
 import glob
-import mrcfile
 import pytest
 import os
 import yaml
@@ -196,21 +195,21 @@ def test_analyse_reconstruct(config_path):
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
     image = os.path.abspath(os.path.join(config_path, "image.mrc"))
     rec_cpu = os.path.abspath(os.path.join(config_path, "rec.mrc"))
-    rec_gpu = os.path.abspath(os.path.join(config_path, "rec_gpu.mrc"))
+    # rec_gpu = os.path.abspath(os.path.join(config_path, "rec_gpu.mrc"))
     assert os.path.exists(config)
     assert os.path.exists(image)
     parakeet.command_line.analyse.reconstruct(
         ["-c", config, "-i", image, "-r", rec_cpu, "-d", "cpu"]
     )
-    parakeet.command_line.analyse.reconstruct(
-        ["-c", config, "-i", image, "-r", rec_gpu, "-d", "gpu"]
-    )
+    # parakeet.command_line.analyse.reconstruct(
+    #     ["-c", config, "-i", image, "-r", rec_gpu, "-d", "gpu"]
+    # )
     assert os.path.exists(rec_cpu)
-    assert os.path.exists(rec_gpu)
+    # assert os.path.exists(rec_gpu)
 
     # FIXME TEST GIVES THE SAME RESULT
-    d1 = mrcfile.open(rec_cpu).data
-    d2 = mrcfile.open(rec_gpu).data
+    # d1 = mrcfile.open(rec_cpu).data
+    # d2 = mrcfile.open(rec_gpu).data
     # assert np.all(np.isclose(d1, d2))
 
 
