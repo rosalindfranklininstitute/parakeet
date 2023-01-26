@@ -198,7 +198,7 @@ def simple(config_file, atoms_file: str, output_file: str):
     _simple_Config(config, atoms_file, output_file)
 
 
-@simple.register
+@simple.register(parakeet.config.Config)
 def _simple_Config(config: parakeet.config.Config, atoms_file: str, output_file: str):
     """
     Simulate the image

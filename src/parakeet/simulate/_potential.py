@@ -274,7 +274,7 @@ def potential(
     _potential_Config(config, sample_file, potential_prefix)
 
 
-@potential.register
+@potential.register(parakeet.config.Config)
 def _potential_Config(
     config: parakeet.config.Config, sample_file: str, potential_prefix: str
 ):

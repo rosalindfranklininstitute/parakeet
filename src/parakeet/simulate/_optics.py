@@ -537,7 +537,7 @@ def optics(
     _optics_Config(config, exit_wave_file, optics_file)
 
 
-@optics.register
+@optics.register(parakeet.config.Config)
 def _optics_Config(
     config: parakeet.config.Config, exit_wave_file: str, optics_file: str
 ):

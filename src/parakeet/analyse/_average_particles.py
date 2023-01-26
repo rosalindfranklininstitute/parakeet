@@ -194,7 +194,7 @@ def average_particles(
     )
 
 
-@average_particles.register
+@average_particles.register(parakeet.config.Scan)
 def _average_particles_Config(
     config: parakeet.config.Scan,
     sample: parakeet.sample.Sample,
@@ -365,7 +365,7 @@ def average_all_particles(
     )
 
 
-@average_all_particles.register
+@average_all_particles.register(parakeet.config.Scan)
 def _average_all_particles_Config(
     config: parakeet.config.Scan,
     sample: parakeet.sample.Sample,

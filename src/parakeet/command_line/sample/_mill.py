@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import time
@@ -17,6 +17,7 @@ import parakeet.command_line
 import parakeet.config
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["mill"]
@@ -85,7 +86,7 @@ def mill_impl(args):
     logger.info("Time taken: %.1f seconds" % (time.time() - start_time))
 
 
-def mill(args: list[str] = None):
+def mill(args: List[str] = None):
     """
     Mill to the shape of the sample
 

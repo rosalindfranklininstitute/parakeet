@@ -50,7 +50,7 @@ def sputter(config_file, sample_file: str) -> Sample:
     return _sputter_Config(config, sample_file)
 
 
-@sputter.register
+@sputter.register(parakeet.config.Config)
 def _sputter_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     """
     Take a sample and add a load of molecules
@@ -74,7 +74,7 @@ def _sputter_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     return sample
 
 
-@sputter.register
+@sputter.register(parakeet.config.Sputter)
 def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
     """
     Add a sputter coating to the sample of the desired thickness

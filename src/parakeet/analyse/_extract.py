@@ -60,7 +60,7 @@ def extract(
     _extract_Config(config, sample, rec_file, particles_file, particle_size)
 
 
-@extract.register
+@extract.register(parakeet.config.Config)
 def _extract_Config(
     config: parakeet.config.Config,
     sample: parakeet.sample.Sample,

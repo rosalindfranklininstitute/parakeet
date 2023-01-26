@@ -144,7 +144,7 @@ def ctf(config_file, output_file: str):
     _ctf_Config(config, output_file)
 
 
-@ctf.register
+@ctf.register(parakeet.config.Config)
 def _ctf_Config(config: parakeet.config.Config, output_file: str):
     """
     Simulate the ctf

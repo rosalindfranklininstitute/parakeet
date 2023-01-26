@@ -435,7 +435,7 @@ def exit_wave(
     _exit_wave_Config(config, sample, exit_wave_file)
 
 
-@exit_wave.register
+@exit_wave.register(parakeet.config.Config)
 def _exit_wave_Config(
     config: parakeet.config.Config, sample: parakeet.sample.Sample, exit_wave_file: str
 ):

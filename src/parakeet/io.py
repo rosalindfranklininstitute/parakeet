@@ -8,7 +8,6 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-import functools
 import h5py
 import numpy as np
 import mrcfile
@@ -20,7 +19,6 @@ try:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
 except Exception:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
-
 
 METADATA_DTYPE = np.dtype(
     [
@@ -251,39 +249,28 @@ class Header(object):
 
     """
 
-    @functools.singledispatchmethod
     def __getitem__(self, item):
         """
         Get a row or column item
 
         """
-        return Row(self, item)
+        if isinstance(item, str):
+            Class = Column
+        else:
+            Class = Row
+        return Class(self, item)
 
-    @__getitem__.register
-    def _(self, item: str):
-        """
-        Get a row or column item
-
-        """
-        return Column(self, item)
-
-    @functools.singledispatchmethod
     def __setitem__(self, item, value):
         """
         Set a row or column item
 
         """
-        row = Row(self, item)
-        row.assign(value)
-
-    @__setitem__.register
-    def _(self, item: str, value):
-        """
-        Set a row or column item
-
-        """
-        col = Column(self, item)
-        col[:] = value
+        if isinstance(item, str):
+            col = Column(self, item)
+            col[:] = value
+        else:
+            row = Row(self, item)
+            row.assign(value)
 
     def rows(self):
         """

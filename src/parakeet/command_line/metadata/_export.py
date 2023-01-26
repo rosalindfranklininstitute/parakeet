@@ -8,12 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.metadata
 import parakeet.command_line
 from argparse import ArgumentParser
+from typing import List
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ def export_impl(args):
     parakeet.metadata.export(args.config, args.sample, args.directory, args.relion)
 
 
-def export(args: list[str] = None):
+def export(args: List[str] = None):
     """
     Export the metadata
 
