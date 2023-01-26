@@ -48,8 +48,21 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
-        required=True,
         help="The yaml file to configure the simulation",
+    )
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-s",
+        "--schema",
+        type=str,
+        default=None,
+        dest="schema",
+        help=(
+            "Show the config schema. \n"
+            "To show full scheme type '-s .'. \n"
+            "To show the schema for a specific section type e.g. '-s /definitions/Simulation'"
+        ),
     )
 
     return parser
@@ -65,7 +78,7 @@ def show_impl(args):
     config = parakeet.config.load(args.config)
 
     # Print some options
-    print(parakeet.config.show(config, full=True))
+    print(parakeet.config.show(config, full=True, schema=args.schema))
 
 
 def show(args: List[str] = None):

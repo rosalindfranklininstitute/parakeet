@@ -14,7 +14,6 @@ import mrcfile
 import os
 import PIL.Image
 import parakeet
-from math import pi
 
 try:
     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
@@ -29,6 +28,11 @@ METADATA_DTYPE = np.dtype(
         ("application", "S16"),
         ("application_version", "S16"),
         ("timestamp", "f8"),
+        #
+        # Scan parameters
+        #
+        ("image_number", "i4"),
+        ("fraction_number", "i4"),
         #
         # Stage parameters
         #
@@ -52,7 +56,7 @@ METADATA_DTYPE = np.dtype(
         ("energy_shift", "f8"),
         ("acceleration_voltage_spread", "f8"),
         ("energy_spread", "f8"),
-        ("source_spread", "f8"),
+        ("illumination_semiangle", "f8"),
         ("exposure_time", "f8"),
         ("theta", "f8"),
         ("phi", "f8"),
@@ -360,11 +364,11 @@ class Header(object):
         metadata = np.array(self)
 
         # Construct the orientation
-        orientation = np.stack(
+        axis = np.stack(
             [
-                metadata["tilt_axis_x"] * metadata["tilt_alpha"] * pi / 180.0,
-                metadata["tilt_axis_y"] * metadata["tilt_alpha"] * pi / 180.0,
-                metadata["tilt_axis_z"] * metadata["tilt_alpha"] * pi / 180.0,
+                metadata["tilt_axis_x"],
+                metadata["tilt_axis_y"],
+                metadata["tilt_axis_z"],
             ]
         ).T
 
@@ -384,7 +388,10 @@ class Header(object):
 
         # Return a scan object
         return parakeet.scan.Scan(
-            orientation=orientation,
+            image_number=metadata["image_number"],
+            fraction_number=metadata["fraction_number"],
+            axis=axis,
+            angle=metadata["tilt_alpha"],
             shift=shift,
             shift_delta=shift_delta,
             beam_tilt_theta=metadata["theta"],
@@ -485,6 +492,11 @@ class MrcfileHeader(Header):
             "application": "Application",
             "application_version": "Application version",
             "timestamp": "Timestamp",
+            #
+            # Scan parameters
+            #
+            "image_number": "Start frame",
+            "fraction_number": "Fraction number",
             #
             # Stage parameters
             #

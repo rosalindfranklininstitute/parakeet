@@ -8,13 +8,13 @@ def test_beam():
             energy=300,
             energy_spread=1,
             acceleration_voltage_spread=2,
-            source_spread=0.1,
-            electrons_per_angstrom=30,
+            illumination_semiangle=0.1,
+            total_electrons_per_angstrom=30,
         )
     )
 
     assert beam.energy == 300
     assert beam.energy_spread == 1
     assert beam.acceleration_voltage_spread == 2
-    assert beam.source_spread == 0.1
-    assert beam.electrons_per_angstrom == 30
+    assert beam.illumination_semiangle == 0.1
+    assert beam.total_electrons_per_angstrom == 30
