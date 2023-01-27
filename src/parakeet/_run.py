@@ -74,7 +74,9 @@ def run(
     parakeet.config.show(config)
 
     # Create the sample
-    return _run_Config(config, sample_file, exit_wave_file, optics_file, image_file, steps)
+    return _run_Config(
+        config, sample_file, exit_wave_file, optics_file, image_file, steps
+    )
 
 
 @run.register(parakeet.config.Config)

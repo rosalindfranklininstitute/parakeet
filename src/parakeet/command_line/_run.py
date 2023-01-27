@@ -113,9 +113,21 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     parser.add_argument(
         "--steps",
         type=str,
-        choices=["sample.new", "sample.add_molecules", "simulate.exit_wave", "simulate.optics", "simulate.image"],
+        choices=[
+            "sample.new",
+            "sample.add_molecules",
+            "simulate.exit_wave",
+            "simulate.optics",
+            "simulate.image",
+        ],
         nargs="+",
-        default=["sample.new", "sample.add_molecules", "simulate.exit_wave", "simulate.optics", "simulate.image"],
+        default=[
+            "sample.new",
+            "sample.add_molecules",
+            "simulate.exit_wave",
+            "simulate.optics",
+            "simulate.image",
+        ],
         dest="steps",
         help="Which simulation steps to run",
     )
