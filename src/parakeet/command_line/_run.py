@@ -110,6 +110,15 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="cluster_method",
         help="The cluster method to use",
     )
+    parser.add_argument(
+        "--steps",
+        type=str,
+        choices=["sample.new", "sample.add_molecules", "simulate.exit_wave", "simulate.optics", "simulate.image"],
+        nargs="+",
+        default=["sample.new", "sample.add_molecules", "simulate.exit_wave", "simulate.optics", "simulate.image"],
+        dest="steps",
+        help="Which simulation steps to run",
+    )
 
     return parser
 
@@ -136,6 +145,7 @@ def run_impl(args):
         args.device,
         args.cluster_method,
         args.cluster_max_workers,
+        args.steps,
     )
 
     # Print output

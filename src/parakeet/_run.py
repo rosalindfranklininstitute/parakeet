@@ -37,9 +37,14 @@ def run(
     device: Device = Device.gpu,
     cluster_method: ClusterMethod = None,
     cluster_max_workers: int = 1,
+    steps: list = None,
 ):
     """
     Simulate the TEM image from the sample
+
+    If steps is None then all steps are run, otherwise steps is
+    a list which contains one or more of the following: sample.new,
+    sample.add_molecules, simulate.exit_wave, simulate.optics, simulate.image
 
     Args:
         config_file: The config filename
@@ -50,6 +55,7 @@ def run(
         device: The device to run on (CPU or GPU)
         cluster_method: The cluster method to use (default None)
         cluster_max_workers: The maximum number of cluster jobs
+        steps: Choose the steps to run
 
     """
 
@@ -68,7 +74,7 @@ def run(
     parakeet.config.show(config)
 
     # Create the sample
-    return _run_Config(config, sample_file, exit_wave_file, optics_file, image_file)
+    return _run_Config(config, sample_file, exit_wave_file, optics_file, image_file, steps)
 
 
 @run.register(parakeet.config.Config)
@@ -78,6 +84,7 @@ def _run_Config(
     exit_wave_file: str,
     optics_file: str,
     image_file: str,
+    steps: list = None,
 ):
     """
     Simulate the TEM image from the sample
@@ -90,24 +97,31 @@ def _run_Config(
         image_file: The image filename
 
     """
-    # Create the sample model
-    sample = parakeet.sample.new(config, sample_file)
+    # Create the sample model or open
+    if steps is None or "sample.new" in steps:
+        sample = parakeet.sample.new(config, sample_file)
+    else:
+        sample = parakeet.sample.load(sample_file)
 
     # Add the molecules
-    sample = parakeet.sample.add_molecules(config.sample, sample)  # type: ignore
+    if steps is None or "sample.add_molecules" in steps:
+        sample = parakeet.sample.add_molecules(config.sample, sample)  # type: ignore
 
     # Simulate the exit wave
-    parakeet.simulate.exit_wave(config, sample, exit_wave_file)  # type: ignore
+    if steps is None or "simulate.exit_wave" in steps:
+        parakeet.simulate.exit_wave(config, sample, exit_wave_file)  # type: ignore
 
     # Simulate the optics
-    parakeet.simulate.optics(
-        config,
-        exit_wave_file,
-        optics_file,
-    )
+    if steps is None or "simulate.optics" in steps:
+        parakeet.simulate.optics(
+            config,
+            exit_wave_file,
+            optics_file,
+        )
 
     # Simulate the image
-    parakeet.simulate.image(config, optics_file, image_file)
+    if steps is None or "simulate.image" in steps:
+        parakeet.simulate.image(config, optics_file, image_file)
 
     # Export the metadata
     # parakeet.metadata.export(config, sample)  # type: ignore
