@@ -208,7 +208,7 @@ class ScanFactory(object):
         """
 
         # Generate some random noise
-        drift = np.random.normal(0, magnitude, size=(num_images, 3))
+        drift = np.random.uniform(-magnitude, magnitude, size=(num_images, 3))
 
         # Optionally smooth the noise
         if kernel_size > 0:
