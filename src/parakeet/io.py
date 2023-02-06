@@ -769,7 +769,6 @@ class ImageWriter(Writer):
             self.vmax = vmax
 
         def __setitem__(self, item, data):
-
             # Check the input
             assert isinstance(item, tuple)
             assert isinstance(item[1], slice)

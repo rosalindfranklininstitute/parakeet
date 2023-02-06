@@ -284,7 +284,6 @@ class Simulation(object):
                     if metadata is not None:
                         writer.header[i] = metadata
         else:
-
             # Set the maximum number of workers
             self.cluster["max_workers"] = min(
                 self.cluster["max_workers"], self.shape[0]
@@ -293,7 +292,6 @@ class Simulation(object):
 
             # Get the futures executor
             with parakeet.futures.factory(**self.cluster) as executor:
-
                 # Copy the data to each worker
                 logger.info("Copying data to workers...")
 
@@ -310,7 +308,6 @@ class Simulation(object):
 
                 # Wait for results
                 for j, future in enumerate(parakeet.futures.as_completed(futures)):
-
                     # Get the result
                     i, image, metadata = future.result()
 

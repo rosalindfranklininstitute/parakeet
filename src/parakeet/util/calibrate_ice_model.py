@@ -121,7 +121,6 @@ def compute_potential():
     """
 
     def compute(atom_data, pixel_size, thickness):
-
         # Get the dimensions
         x_min = atom_data.data["x"].min()
         x_max = atom_data.data["x"].max()
@@ -231,7 +230,6 @@ def compute_observed_mean(size, pixel_size):
     # For N random placements compute the mean intensity
     means = []
     for j in range(10):
-
         # Compute the position
         x0 = np.random.uniform(0, 1) + nx // 2
         y0 = np.random.uniform(0, 1) + ny // 2
@@ -341,7 +339,6 @@ def compute_mean_correction2(ax=None):
     # Loop through the pixel sizes
     thickness = 20
     for pixel_size in np.arange(0.1, 2.1, 0.1):
-
         # Read the projected potential
         handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
@@ -400,7 +397,6 @@ def compute_variance_correction(ax=None):
     # Loop through the pixel sizes
     thickness = 20
     for pixel_size in np.arange(0.1, 2.1, 0.1):
-
         # Read the projected potential
         handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
@@ -456,7 +452,6 @@ def compute_power(ax=None):
     # Compute the fit to the power spectrum
     pixel_size = 0.1
     for thickness in [20]:  # , 19, 18, 15, 10, 5]:
-
         # Read the projected potential
         handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
@@ -684,7 +679,6 @@ def compute_exit_wave(atom_data, pixel_size):
 
 
 def load_exit_wave(atom_data, ps):
-
     physical_filename = "exit_wave_physical_%.1f.mrc" % ps
     random_filename = "exit_wave_random_%.1f.mrc" % ps
     metadata_filename = "metadata_%.1f.dat" % ps
@@ -715,7 +709,6 @@ def load_exit_wave(atom_data, ps):
 
 
 def plot_mean_and_var(physical_data, random_data, xmin, xmax, ps):
-
     x0 = np.floor(xmin / ps).astype("int32")
     x1 = np.floor(xmax / ps).astype("int32")
     xr = x1 - x0
@@ -816,7 +809,6 @@ def plot_mean_and_var(physical_data, random_data, xmin, xmax, ps):
 
 
 def plot_power(physical_data, random_data, xmin, xmax, ps):
-
     x0 = np.floor(xmin / ps).astype("int32")
     x1 = np.floor(xmax / ps).astype("int32")
     xr = x1 - x0
@@ -866,7 +858,6 @@ def plot_power(physical_data, random_data, xmin, xmax, ps):
 
 
 def plot_edge(physical_data, random_data, xmin, xmax, ps):
-
     x0 = np.floor(xmin / ps).astype("int32")
     x1 = np.floor(xmax / ps).astype("int32")
     xd = x1 - x0
@@ -1051,7 +1042,6 @@ def plot_all_mean_and_power(pixel_size, stats_list, power_list):
 
 
 def plot_all_edge(pixel_size, edge_list):
-
     width = 0.0393701 * 190
     height = 0.5 * width
     fig, ax = pylab.subplots(
@@ -1062,7 +1052,6 @@ def plot_all_edge(pixel_size, edge_list):
     edge_list = [edge_list[i] for i in [0, 3, 6, 9]]
 
     for i, (ps, edge) in enumerate(zip(pixel_size, edge_list)):
-
         vmin = min(np.min(edge[0]), np.min(edge[0]))
         vmax = max(np.max(edge[1]), np.max(edge[1]))
 
@@ -1103,7 +1092,6 @@ def validate():
     edge_list = []
 
     for ps in pixel_size:
-
         # Get the simulated exit wave
         physical_data, random_data, xmin, xmax = load_exit_wave(atom_data, ps)
 
@@ -1123,7 +1111,6 @@ def validate():
 
 
 if __name__ == "__main__":
-
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Do the ice model configuration")
 

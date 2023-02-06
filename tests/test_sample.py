@@ -9,7 +9,6 @@ from math import sqrt
 
 @pytest.fixture
 def atom_data_4v5d():
-
     # Get the filename of the 4v5d.cif file
     filename = parakeet.data.get_path("4v5d.cif")
 
@@ -55,13 +54,11 @@ def test_recentre(atom_data_4v5d):
 
 
 def test_number_of_water_molecules():
-
     n = parakeet.sample.number_of_water_molecules(1000**3)
     assert n == 31422283
 
 
 def test_random_uniform_rotation():
-
     rotations = parakeet.sample.random_uniform_rotation(size=10)
     assert rotations.shape == (10, 3)
 
@@ -76,7 +73,6 @@ def test_random_uniform_rotation():
 
 
 def test_shape_bounding_box():
-
     b1 = parakeet.sample.shape_bounding_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
@@ -98,7 +94,6 @@ def test_shape_bounding_box():
 
 
 def test_shape_enclosed_box():
-
     b1 = parakeet.sample.shape_enclosed_box(
         (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
@@ -120,7 +115,6 @@ def test_shape_enclosed_box():
 
 
 def test_is_shape_inside_box():
-
     assert (
         parakeet.sample.is_shape_inside_box(
             (10, 10, 10), (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
@@ -137,7 +131,6 @@ def test_is_shape_inside_box():
 
 
 def test_is_box_inside_shape():
-
     assert (
         parakeet.sample.is_box_inside_shape(
             ((0, 0, 0), (0.1, 0.1, 0.1)),
@@ -194,7 +187,6 @@ def test_is_box_inside_shape():
 
 
 def test_AtomData(atom_data_4v5d):
-
     # Check rotate doesn't modify types
     atom_data_4v5d.rotate((0, 0, 1))
     for name, dtype in parakeet.sample.AtomData.column_data.items():
@@ -207,7 +199,6 @@ def test_AtomData(atom_data_4v5d):
 
 
 def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
-
     # Get handle
     handle = parakeet.sample.SampleHDF5Adapter(
         os.path.join(tmp_path, "test_SampleHDF5Adapter.h5"), "w"
@@ -263,7 +254,6 @@ def test_SampleHDF5Adapter(tmp_path, atom_data_4v5d):
 
 
 def test_Sample(tmp_path, atom_data_4v5d):
-
     sample = parakeet.sample.Sample(os.path.join(tmp_path, "test_Sample.h5"), mode="w")
 
     assert sample.atoms_dataset_name((1, 2, 3)) == "X=000001; Y=000002; Z=000003"
@@ -319,7 +309,6 @@ def test_Sample(tmp_path, atom_data_4v5d):
 
 
 def test_AtomSliceExtractor(tmp_path):
-
     config = {
         "box": (50, 50, 50),
         "centre": (25, 25, 25),
@@ -347,7 +336,6 @@ def test_AtomSliceExtractor(tmp_path):
 
 
 def test_AtomDeleter(tmp_path):
-
     config = {
         "box": (50, 50, 50),
         "centre": (25, 25, 25),
@@ -373,7 +361,6 @@ def test_AtomDeleter(tmp_path):
 
 
 def test_load(tmp_path):
-
     config = {
         "box": (50, 50, 50),
         "centre": (25, 25, 25),
@@ -391,7 +378,6 @@ def test_load(tmp_path):
 
 
 def test_new(tmp_path):
-
     config = {
         "box": (50, 50, 50),
         "centre": (25, 25, 25),
@@ -428,7 +414,6 @@ def test_new(tmp_path):
 
 
 def test_add_molecules(tmp_path):
-
     config = {
         "box": (1000, 1000, 1000),
         "centre": (500, 500, 500),
@@ -491,7 +476,6 @@ def test_add_molecules(tmp_path):
 
 
 def test_sample_new_with_local(tmp_path):
-
     filename = os.path.join(tmp_path, "my.pdb")
 
     src = parakeet.data.get_4v1w()

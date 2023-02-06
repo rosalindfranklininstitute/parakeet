@@ -135,7 +135,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
 
     # Uniform random or packed
     if not pack:
-
         # The water filename
         filename = parakeet.data.get_path("water.cif")
 
@@ -169,7 +168,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         H2 = rotation.apply(water_coords.iloc[2].copy()) + translation
 
         def create_atom_data(atomic_number, coords):
-
             # Create a new array
             def new_array(size, name, value):
                 return (
@@ -207,7 +205,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
 
     else:
-
         # Van der Waals radius of water
         van_der_waals_radius = 2.7 / 2.0  # A
 
@@ -256,7 +253,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         max_buffer = 10_000_000
         data_buffer = []
         for x_index, x_slice in enumerate(packer):
-
             # Read the coordinates. The packer goes along the z axis so we need to
             # flip the coordinates since we want x slices
             coords = []
@@ -277,7 +273,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
 
             def create_atom_data(atomic_number, coords):
-
                 # Create a new array
                 def new_array(size, name, value):
                     return (

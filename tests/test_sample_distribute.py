@@ -5,7 +5,6 @@ from parakeet.sample.distribute import distribute_particles_uniformly
 
 
 def test_cube():
-
     radius = np.random.uniform(100, 250, size=1000)
 
     lower = (0, 0, 0)
@@ -26,7 +25,6 @@ def test_cube():
 
 
 def test_cuboid():
-
     radius = np.random.uniform(100, 250, size=1000)
 
     lower = (0, 0, 0)
@@ -47,7 +45,6 @@ def test_cuboid():
 
 
 def test_cylinder_1():
-
     radius = np.random.uniform(100, 250, size=1000)
 
     lower = 0
@@ -77,7 +74,6 @@ def test_cylinder_1():
 
 
 def test_cylinder_2():
-
     radius = np.random.uniform(100, 250, size=400)
 
     lower = 0
@@ -107,7 +103,6 @@ def test_cylinder_2():
 
 
 def test_cylinder_3():
-
     radius = np.random.uniform(100, 250, size=900)
 
     lower = 0
@@ -153,7 +148,6 @@ def test_cylinder_3():
 
 
 def test_cylinder_4():
-
     radius = np.random.uniform(100, 250, size=900)
 
     lower = 0

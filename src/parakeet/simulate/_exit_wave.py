@@ -281,7 +281,6 @@ class ExitWaveImageSimulator(object):
             )
 
         if self.simulation["ice"] == True:
-
             # Get the masker
             masker = self.get_masker(
                 index,
@@ -298,7 +297,6 @@ class ExitWaveImageSimulator(object):
             output_multislice = multem.simulate(system_conf, input_multislice, masker)
 
         else:
-
             # Run the simulation
             logger.info("Simulating")
             output_multislice = multem.simulate(system_conf, input_multislice)

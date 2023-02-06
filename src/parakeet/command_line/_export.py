@@ -323,7 +323,6 @@ def export_impl(args):
             min_image = []
             max_image = []
             for i in indices:
-
                 # Transform if necessary
                 image = {
                     "complex": lambda x: x,

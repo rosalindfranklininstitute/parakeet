@@ -27,7 +27,6 @@ random.seed(0)
 
 
 def _rotate_array(data, rotation, offset):
-
     # Create the pixel indices
     az = np.arange(data.shape[0])
     ay = np.arange(data.shape[1])
@@ -65,7 +64,6 @@ def _rotate_array(data, rotation, offset):
 
 
 def _process_sub_tomo(args):
-
     sub_tomo, position, orientation, half_index = args
 
     # Set the data to transform
@@ -94,7 +92,6 @@ def _iterate_particles(
     voxel_size,
     tomogram,
 ):
-
     for j in range(len(indices)):
         for i in indices[j]:
             position = positions[i]
@@ -234,7 +231,6 @@ def _average_particles_Config(
     # Loop through the
     assert sample.number_of_molecules == 1
     for name, (atoms, positions, orientations) in sample.iter_molecules():
-
         # Compute the box size based on the size of the particle so that any
         # orientation should fit within the box
         xmin = atoms.data["x"].min()
@@ -302,7 +298,6 @@ def _average_particles_Config(
                     tomogram,
                 ),
             ):
-
                 # Add the contribution to the average
                 half[half_index, :, :, :] += data
                 num[half_index] += 1
@@ -379,7 +374,6 @@ def _average_all_particles_Config(
     """
 
     def rotate_array(data, rotation, offset):
-
         # Create the pixel indices
         az = np.arange(data.shape[0])
         ay = np.arange(data.shape[1])
@@ -440,7 +434,6 @@ def _average_all_particles_Config(
     # Loop through the
     assert sample.number_of_molecules == 1
     for name, (atoms, positions, orientations) in sample.iter_molecules():
-
         # Compute the box size based on the size of the particle so that any
         # orientation should fit within the box
         xmin = atoms.data["x"].min()
@@ -504,7 +497,6 @@ def _average_all_particles_Config(
                     tomogram,
                 ),
             ):
-
                 # Add the contribution to the average
                 average += data
                 num += 1

@@ -92,7 +92,6 @@ def test_nhelix():
 
 
 def test_single_particle():
-
     scan = parakeet.scan.new(
         mode="single_particle",
         num_images=8,
@@ -124,6 +123,5 @@ def test_beam_tilt():
 
 
 def test_unknown():
-
     with pytest.raises(KeyError):
         scan = parakeet.scan.new("unknown")

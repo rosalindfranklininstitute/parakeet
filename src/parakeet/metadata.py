@@ -162,7 +162,6 @@ class RelionMetadataExporter(object):
         """
 
         for i in range(1, self.config.scan.num_images + 1):
-
             # Create the dictionary
             data = {
                 "picking": pd.DataFrame.from_dict(

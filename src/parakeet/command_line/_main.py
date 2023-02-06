@@ -330,7 +330,10 @@ def metadata_main(parser, args):
     Perform the parakeet metadata action
 
     """
-    {None: lambda x: parser.print_help(), "export": metadata._export.export_impl,}[
+    {
+        None: lambda x: parser.print_help(),
+        "export": metadata._export.export_impl,
+    }[
         args.metadata_command
     ](args)
 

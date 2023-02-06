@@ -87,7 +87,6 @@ def get_pdb_cache() -> dict:
 
     # Check local and cache directories
     for directory in [get_local_path(), get_cache_path()]:
-
         # Create the directory if not exists
         if not os.path.exists(directory):
             os.mkdir(directory)

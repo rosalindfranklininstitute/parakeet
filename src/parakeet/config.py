@@ -41,7 +41,6 @@ class BaseModel(PydanticBaseModel):
     """
 
     class Config:
-
         # Ensure that enums use string values
         use_enum_values = True
 

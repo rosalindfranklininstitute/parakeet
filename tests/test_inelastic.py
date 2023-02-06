@@ -4,7 +4,6 @@ from parakeet import inelastic
 
 
 def test_zero_loss_fraction():
-
     cube = {"type": "cube", "cube": {"length": 3150}}
 
     cuboid = {
@@ -40,7 +39,6 @@ def test_zero_loss_fraction():
 
 
 def test_mp_loss_fraction():
-
     cube = {"type": "cube", "cube": {"length": 3150}}
 
     cuboid = {
@@ -76,7 +74,6 @@ def test_mp_loss_fraction():
 
 
 def test_fraction_of_electrions():
-
     cube = {"type": "cube", "cube": {"length": 3150}}
 
     fraction = inelastic.fraction_of_electrons(cube, 0, "zero_loss")
@@ -101,7 +98,6 @@ def test_fraction_of_electrions():
 
 
 def test_most_probable_loss():
-
     cube = {"type": "cube", "cube": {"length": 3150}}
 
     peak, sigma = inelastic.most_probable_loss(300, cube, 0)

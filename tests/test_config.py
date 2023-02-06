@@ -21,30 +21,25 @@ def dict_approx_equal(a, b):
 
 
 def test_temp_directory():
-
     assert parakeet.config.temp_directory() == "_parakeet"
 
 
 def test_default():
-
     config = parakeet.config.default()
 
 
 def test_save(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp-save.yaml")
     config = parakeet.config.default()
     parakeet.config.save(config, filename)
 
 
 def test_new(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp.yaml")
     config = parakeet.config.new(filename)
 
 
 def test_edit(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp.yaml")
     config = parakeet.config.new(filename)
     config = parakeet.config.edit(
@@ -72,7 +67,6 @@ def test_edit(tmp_path):
 
 
 def test_load(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp.yaml")
     config = parakeet.config.new(filename)
     config = parakeet.config.load(filename)
@@ -81,5 +75,4 @@ def test_load(tmp_path):
 
 
 def test_show():
-
     parakeet.config.show(parakeet.config.Config())

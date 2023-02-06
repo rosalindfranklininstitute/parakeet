@@ -244,7 +244,6 @@ def shape_volume_object(centre: tuple, shape: dict):
         return CuboidVolume(lower, upper)
 
     def make_cylinder_volume(centre, cylinder):
-
         # Get the cylinder params
         length = cylinder["length"]
         radius = cylinder["radius"]
@@ -295,7 +294,6 @@ def distribute_particles_uniformly(
     """
 
     def update(volume, position, radius, max_iterations):
-
         assert len(position) == len(radius)
 
         # Get the initial velocities
@@ -323,7 +321,6 @@ def distribute_particles_uniformly(
 
         # Loop through the iterations
         for t in range(max_iterations):
-
             # Update the current position
             position += velocity * dt
 
@@ -350,7 +347,6 @@ def distribute_particles_uniformly(
 
             # Loop through the overlaps and calculate an elastic collision
             for i, j in zip(i_list, j_list):
-
                 # Compute the distance between the position and min separation
                 dp = position[i] - position[j]
                 dr2 = np.sum(dp**2) + epsilon**2

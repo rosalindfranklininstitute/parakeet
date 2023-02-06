@@ -1236,7 +1236,6 @@ class Sample(object):
 
         # Check the old bounding box
         if self.number_of_atoms > 0:
-
             # Get the bounding box
             (bx0, by0, bz0), (bx1, by1, bz1) = self.bounding_box
 
@@ -1326,7 +1325,6 @@ class Sample(object):
         for position, rotation, orientation in zip(
             positions, Rotation.from_rotvec(orientations), orientations
         ):
-
             # Make a copy and apply the rotation and translation
             coords = (rotation.apply(reference_coords) + position).astype("float32")
             temp = atoms.data.copy()

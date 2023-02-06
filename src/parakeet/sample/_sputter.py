@@ -179,7 +179,6 @@ def _sputter_Sputter(config: parakeet.config.Sputter, sample: Sample) -> Sample:
     position = np.array((x, y, z)).T
 
     def create_atom_data(atomic_number, coords):
-
         # Create a new array
         def new_array(size, name, value):
             return (

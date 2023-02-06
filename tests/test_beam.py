@@ -2,7 +2,6 @@ import parakeet.beam
 
 
 def test_beam():
-
     beam = parakeet.beam.new(
         parakeet.config.Beam(
             energy=300,

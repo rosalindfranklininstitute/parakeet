@@ -123,7 +123,6 @@ def add_multiple_molecules(sample, molecules):
 
     # Generate the orientations and boxes
     for name, value in molecules.items():
-
         # Get the type and instances
         mtype = value["type"]
         items = value["instances"]
@@ -172,7 +171,6 @@ def add_multiple_molecules(sample, molecules):
     positions = defaultdict(list)
     orientations = defaultdict(list)
     for label, rotation, position in zip(all_labels, all_orientations, all_positions):
-
         # # Get atom data bounds
         # x0 = position - box / 2.0
         # x1 = position + box / 2.0
@@ -268,7 +266,6 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
         if items is None:
             continue
         for item in items:
-
             # Get the key
             if origin == "local":
                 key = item["filename"]

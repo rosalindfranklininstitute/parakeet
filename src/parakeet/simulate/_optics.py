@@ -87,7 +87,6 @@ class OpticsImageSimulator(object):
         def compute_image(
             psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
         ):
-
             # Create the multem system configuration
             system_conf = parakeet.simulate.simulation.create_system_configuration(
                 device
@@ -163,7 +162,6 @@ class OpticsImageSimulator(object):
         shape = self.sample["shape"]
         energy_shift = 0
         if self.simulation["inelastic_model"] is None:
-
             # If no inelastic model just calculate image as normal
             image = compute_image(
                 psi,
@@ -178,7 +176,6 @@ class OpticsImageSimulator(object):
             electron_fraction = 1.0
 
         elif self.simulation["inelastic_model"] == "zero_loss":
-
             # Compute the image
             image = compute_image(
                 psi,
@@ -198,7 +195,6 @@ class OpticsImageSimulator(object):
             image *= electron_fraction
 
         elif self.simulation["inelastic_model"] == "mp_loss":
-
             # Set the filter width
             filter_width = self.simulation["mp_loss_width"]  # eV
 
@@ -286,7 +282,6 @@ class OpticsImageSimulator(object):
             image = elastic_fraction * image1 + inelastic_fraction * image2
 
         elif self.simulation["inelastic_model"] == "unfiltered":
-
             # Compute the energy and spread of the plasmon peak
             peak, sigma = parakeet.inelastic.most_probable_loss(
                 microscope.beam.energy, shape, angle
@@ -335,7 +330,6 @@ class OpticsImageSimulator(object):
             image = zero_loss_fraction * image1 + mp_loss_fraction * image2
 
         elif self.simulation["inelastic_model"] == "cc_corrected":
-
             # Set the Cs and CC to zero
             microscope.lens.c_30 = 0
             microscope.lens.c_c = 0

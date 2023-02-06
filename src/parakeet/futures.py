@@ -30,7 +30,6 @@ def factory(method="sge", max_workers=1):
     import dask.distributed
 
     if method == "sge":
-
         # Create the SGECluster object
         # For each worker:
         #   - request 1 gpu and 1 core

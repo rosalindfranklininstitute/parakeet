@@ -4,7 +4,6 @@ import parakeet.freeze
 
 
 def test_sphere_packer():
-
     # Set the volume size
     length_x = 30  # A
     length_y = 30
