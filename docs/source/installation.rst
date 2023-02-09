@@ -13,7 +13,7 @@ In order to build this package, the following dependencies are required:
 
 On ubuntu 20.04, the dependencies can be install on a clean install as follows
 (you may need to contact your system administrator if you do not have admin
-priviliges):
+privileges):
 
 
 .. code-block:: bash
@@ -36,7 +36,7 @@ priviliges):
   sudo apt-get update
   sudo apt-get -y install cuda
 
-Enviornment variables
+Environment variables
 ---------------------
 
 If you have multiple compiler versions or the compilers you want to use are not
@@ -54,7 +54,7 @@ Depending on your GPU and the version of the CUDA toolkit you are using, it may
 also be necessary to set the CMAKE_CUDA_ARCHITECTURES variable. This variable
 is by default set to "OFF" in the CMakeLists.txt file which has the effect of
 compiling CUDA kernels on the fly. If you have an old GPU, this may not work
-and you will receive CUDA errors when attemping to run the simulations on the
+and you will receive CUDA errors when attempting to run the simulations on the
 GPU. In this case simply set the variable to the architecture supported by your
 GPU as follows (the example below is for the compute_37 architecture):
 
@@ -169,7 +169,7 @@ command replace the 'latest' with one of the tags that you can find here
 ( https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags).
 
 To use parakeet with docker with GPU support the host machine should have the
-approprate Nvidia drivers installed and docker needs to be installed with the
+appropriate Nvidia drivers installed and docker needs to be installed with the
 nvidia container toolkit
 (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
@@ -294,7 +294,7 @@ Now we can build the singularity image from the docker image
 
 .. code-block:: bash
 
-  singularity build myapp.sif docker-deamon://me/myapp:latest
+  singularity build myapp.sif docker-daemon://me/myapp:latest
 
 
 Install as a Apptainer image
