@@ -421,7 +421,7 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
         else:
             position = (0, 0, 0)
             orientation = (0, 0, 0)
-        if coords.positions:
+        if coords.position:
             position = coords.position  # type: ignore
         if coords.orientation:
             orientation = coords.orientation  # type: ignore
