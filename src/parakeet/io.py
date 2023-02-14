@@ -682,6 +682,48 @@ class NexusHeader(Header):
         return self._handle["data"].shape[0]
 
 
+class ImageHeader(Header):
+    """
+    A sub class for an image header
+
+    """
+
+    def __init__(self, handle):
+        self._handle = handle
+
+    def mapping(self, key):
+        """
+        Get the mapping between names
+
+        """
+        assert key in self.dtype.fields
+        return key
+
+    def get(self, index, key):
+        """
+        Get the mapping between names
+
+        """
+        mapping = self.mapping(key)
+        return self._handle[mapping][index]
+
+    def set(self, index, key, value):
+        """
+        Set the value of a property
+
+        """
+        mapping = self.mapping(key)
+        self._handle[mapping][index] = value
+
+    @property
+    def size(self):
+        """
+        Get the size of the header
+
+        """
+        return self._handle.shape[0]
+
+
 class NexusWriter(Writer):
     """
     Write to a nexus file
@@ -820,7 +862,7 @@ class ImageWriter(Writer):
         self._data = ImageWriter.DataProxy(template, shape, vmin, vmax)
 
         # Create dummy arrays for angle and position
-        self._header = np.zeros(shape=shape[0], dtype=METADATA_DTYPE)
+        self._header = ImageHeader(np.zeros(shape=shape[0], dtype=METADATA_DTYPE))
 
     @property
     def vmin(self):
@@ -956,7 +998,7 @@ class Reader(object):
         header = MrcfileHeader(extended_header)
 
         # Get the pixel size
-        pixel_size = handle.voxel_size["x"]
+        pixel_size = float(handle.voxel_size["x"])
 
         # Create the reader
         return Reader(
