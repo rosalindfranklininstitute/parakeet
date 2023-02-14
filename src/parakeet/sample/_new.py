@@ -417,12 +417,18 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
         if coords.recentre:
             atoms.data = recentre(atoms.data)
             position = sample.centre
+            orientation = (0, 0, 0)
         else:
             position = (0, 0, 0)
+            orientation = (0, 0, 0)
+        if coords.positions:
+            position = coords.position  # type: ignore
+        if coords.orientation:
+            orientation = coords.orientation  # type: ignore
 
         # Add the molecule
         sample.add_molecule(
-            atoms, positions=[position], orientations=[(0, 0, 0)], name=None
+            atoms, positions=[position], orientations=[orientation], name=None
         )
 
     # Print some info

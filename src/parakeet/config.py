@@ -195,6 +195,31 @@ class CoordinateFile(BaseModel):
 
     recentre: bool = Field(True, description="Recentre the coordinates")
 
+    position: Optional[Tuple[float, float, float]] = Field(
+        description=(
+            "The model position (A, A, A). "
+            "If recentre if set then the model will be centred on the given position. "
+            "If recentre if not set then the model will be translated by the given position. "
+        ),
+        examples=[
+            "position: null # Assign [0, 0, 0] position",
+            "position: [1, 2, 3] # Assign known position",
+        ],
+    )
+
+    orientation: Optional[Tuple[float, float, float]] = Field(
+        description=(
+            "The model orientation defined as a rotation vector where "
+            "the direction of the vector gives the rotation axis and the "
+            "magnitude of the vector gives the rotation angle in radians. Setting "
+            "this to null or an empty list will cause parakeet to give a zero orientation"
+        ),
+        examples=[
+            "orienation: null # Assign [0, 0, 0] orienation",
+            "orienation: [1, 2, 3] # Assign known orienation",
+        ],
+    )
+
 
 class LocalMolecule(BaseModel):
     """
