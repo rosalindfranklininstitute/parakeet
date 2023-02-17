@@ -200,7 +200,12 @@ class ScanFactory(object):
 
     @classmethod
     def _generate_drift(
-        Class, num_images: int, magnitude: float = 0, kernel_size: int = 0
+        Class,
+        num_images: int,
+        x: float = 0,
+        y: float = 0,
+        z: float = 0,
+        kernel_size: int = 0,
     ) -> np.ndarray:
         """
         Get the beam drift
@@ -208,7 +213,7 @@ class ScanFactory(object):
         """
 
         # Generate some random noise
-        drift = np.random.uniform(-magnitude, magnitude, size=(num_images, 3))
+        drift = np.random.normal((0, 0, 0), (x, y, z), size=(num_images, 3))
 
         # Optionally smooth the noise
         if kernel_size > 0:
@@ -300,9 +305,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(
-                num_images, drift["magnitude"], drift["kernel_size"]
-            )
+            shift_delta = Class._generate_drift(num_images, **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan object
@@ -551,9 +554,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(
-                num_images, drift["magnitude"], drift["kernel_size"]
-            )
+            shift_delta = Class._generate_drift(num_images, **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan
@@ -639,9 +640,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(
-                len(angles), drift["magnitude"], drift["kernel_size"]
-            )
+            shift_delta = Class._generate_drift(len(angles), **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan object
