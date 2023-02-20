@@ -202,19 +202,27 @@ class ScanFactory(object):
     def _generate_drift(
         Class,
         angles: np.array,
-        x: tuple = (0, 0),
-        y: tuple = (0, 0),
-        z: tuple = (0, 0),
+        x: Union[float, tuple] = 0,
+        y: Union[float, tuple] = 0,
+        z: Union[float, tuple] = 0,
     ) -> np.ndarray:
         """
         Get the beam drift
 
         """
 
+        # Check type
+        if isinstance(x, float):
+            x = tuple([x, 0])
+        if isinstance(y, float):
+            y = tuple([y, 0])
+        if isinstance(z, float):
+            z = tuple([z, 0])
+
         # Compute the sigma of the normal in x, y, z
-        x_sigma = x[0] * (angles * np.pi / 180.0) ** 4 + x[1]
-        y_sigma = y[0] * (angles * np.pi / 180.0) ** 4 + y[1]
-        z_sigma = z[0] * (angles * np.pi / 180.0) ** 4 + z[1]
+        x_sigma = x[0] + x[1] * (angles * np.pi / 180.0) ** 4
+        y_sigma = y[0] + x[1] * (angles * np.pi / 180.0) ** 4
+        z_sigma = z[0] + x[1] * (angles * np.pi / 180.0) ** 4
 
         # Generate some random noise
         drift = np.random.normal(0, [x_sigma, y_sigma, z_sigma]).T

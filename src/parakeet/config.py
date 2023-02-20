@@ -515,14 +515,14 @@ class Drift(BaseModel):
 
     """
 
-    x: Tuple[float, float] = Field(
-        (0, 0), description="The model for the x drift a*theta**4 + b (A)"
+    x: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the x drift a + b*theta**4 (A)"
     )
-    y: Tuple[float, float] = Field(
-        (0, 0), description="The model for the y drift a*theta**4 + b (A)"
+    y: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the y drift a + b*theta**4 (A)"
     )
-    z: Tuple[float, float] = Field(
-        (0, 0), description="The model for the z drift a*theta**4 + b (A)"
+    z: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the z drift a + b*theta**4 (A)"
     )
 
 
