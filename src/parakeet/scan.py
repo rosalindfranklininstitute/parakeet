@@ -213,11 +213,11 @@ class ScanFactory(object):
 
         # Check type
         if isinstance(x, float):
-            x = tuple([x, 0])
+            x = tuple([x, 0.0])
         if isinstance(y, float):
-            y = tuple([y, 0])
+            y = tuple([y, 0.0])
         if isinstance(z, float):
-            z = tuple([z, 0])
+            z = tuple([z, 0.0])
 
         # Compute the sigma of the normal in x, y, z
         x_sigma = x[0] + x[1] * (angles * np.pi / 180.0) ** 4
