@@ -515,11 +515,15 @@ class Drift(BaseModel):
 
     """
 
-    x: float = Field(0, description="The magnitude of the x drift (A)")
-    y: float = Field(0, description="The magnitude of the y drift (A)")
-    z: float = Field(0, description="The magnitude of the z drift (A)")
-
-    kernel_size: int = Field(0, description="How much to smooth the drift")
+    x: Tuple[float, float] = Field(
+        (0, 0), description="The model for the x drift a*theta**4 + b (A)"
+    )
+    y: Tuple[float, float] = Field(
+        (0, 0), description="The model for the y drift a*theta**4 + b (A)"
+    )
+    z: Tuple[float, float] = Field(
+        (0, 0), description="The model for the z drift a*theta**4 + b (A)"
+    )
 
 
 class Scan(BaseModel):

@@ -201,27 +201,23 @@ class ScanFactory(object):
     @classmethod
     def _generate_drift(
         Class,
-        num_images: int,
-        x: float = 0,
-        y: float = 0,
-        z: float = 0,
-        kernel_size: int = 0,
+        angles: np.array,
+        x: tuple = (0, 0),
+        y: tuple = (0, 0),
+        z: tuple = (0, 0),
     ) -> np.ndarray:
         """
         Get the beam drift
 
         """
 
-        # Generate some random noise
-        drift = np.random.normal((0, 0, 0), (x, y, z), size=(num_images, 3))
+        # Compute the sigma of the normal in x, y, z
+        x_sigma = x[0] * (angles * np.pi / 180.0) ** 4 + x[1]
+        y_sigma = y[0] * (angles * np.pi / 180.0) ** 4 + y[1]
+        z_sigma = z[0] * (angles * np.pi / 180.0) ** 4 + z[1]
 
-        # Optionally smooth the noise
-        if kernel_size > 0:
-            kernel_size = min(kernel_size, num_images)
-            kernel = np.ones(kernel_size) / kernel_size
-            drift = np.apply_along_axis(
-                lambda m: np.convolve(m, kernel, mode="same"), axis=0, arr=drift
-            )
+        # Generate some random noise
+        drift = np.random.normal(0, [x_sigma, y_sigma, z_sigma]).T
 
         # Return the drift
         return drift
@@ -305,7 +301,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(num_images, **drift)
+            shift_delta = Class._generate_drift(angles, **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan object
@@ -554,7 +550,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(num_images, **drift)
+            shift_delta = Class._generate_drift(np.zeros(num_images), **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan
@@ -640,7 +636,7 @@ class ScanFactory(object):
         # Create the shift delta
         shift_delta = None
         if drift is not None:
-            shift_delta = Class._generate_drift(len(angles), **drift)
+            shift_delta = Class._generate_drift(angles, **drift)
             shift_delta = np.repeat(shift_delta, num_fractions, axis=0)
 
         # Create the scan object
