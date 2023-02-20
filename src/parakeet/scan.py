@@ -201,7 +201,7 @@ class ScanFactory(object):
     @classmethod
     def _generate_drift(
         Class,
-        angles: np.array,
+        angles: np.ndarray,
         x: Union[float, tuple] = 0,
         y: Union[float, tuple] = 0,
         z: Union[float, tuple] = 0,
