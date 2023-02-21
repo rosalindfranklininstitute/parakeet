@@ -32,6 +32,7 @@ class Scan(object):
         shift_delta: np.ndarray = None,
         beam_tilt_theta: np.ndarray = None,
         beam_tilt_phi: np.ndarray = None,
+        electrons_per_angstrom: np.ndarray = None,
         exposure_time: float = 1,
         is_uniform_angular_scan: bool = False,
     ):
@@ -65,6 +66,9 @@ class Scan(object):
         if beam_tilt_phi is None:
             beam_tilt_phi = np.zeros(len(image_number))
 
+        if electrons_per_angstrom is None:
+            electrons_per_angstrom = np.ones(len(image_number))
+
         self.data = pd.DataFrame(
             data={
                 "image_number": image_number,
@@ -81,6 +85,7 @@ class Scan(object):
                 "shift_delta_z": shift_delta[:, 2],
                 "beam_tilt_theta": beam_tilt_theta,
                 "beam_tilt_phi": beam_tilt_phi,
+                "electrons_per_angstrom": electrons_per_angstrom,
                 "exposure_time": np.ones(len(axis)) * exposure_time,
             }
         )
@@ -140,6 +145,14 @@ class Scan(object):
 
         """
         return self.data["beam_tilt_phi"]
+
+    @property
+    def electrons_per_angstrom(self) -> np.ndarray:
+        """
+        Get the dose
+
+        """
+        return self.data["electrons_per_angstrom"]
 
     @property
     def exposure_time(self) -> np.ndarray:
@@ -273,6 +286,7 @@ class ScanFactory(object):
         angles: np.ndarray = None,
         positions: np.ndarray = None,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -305,6 +319,7 @@ class ScanFactory(object):
         axis = np.repeat(axis, num_fractions, axis=0)
         angle = np.repeat(angle, num_fractions, axis=0)
         shift = np.repeat(shift, num_fractions, axis=0)
+        dose = np.full(angle.shape, electrons_per_angstrom / num_fractions)
 
         # Create the shift delta
         shift_delta = None
@@ -320,6 +335,7 @@ class ScanFactory(object):
             angle=angle,
             shift=shift,
             shift_delta=shift_delta,
+            electrons_per_angstrom=dose,
             exposure_time=exposure_time,
         )
 
@@ -330,6 +346,7 @@ class ScanFactory(object):
         angles: np.ndarray = None,
         positions: np.ndarray = None,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -358,6 +375,7 @@ class ScanFactory(object):
             angles=angles,
             positions=positions,
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -370,6 +388,7 @@ class ScanFactory(object):
         start_pos: float = 0,
         num_images: int = 1,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -385,6 +404,7 @@ class ScanFactory(object):
             angles=angles,
             positions=positions,
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -398,6 +418,7 @@ class ScanFactory(object):
         start_pos: float = 0,
         num_images: int = 1,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -417,6 +438,7 @@ class ScanFactory(object):
             angles=angles,
             positions=positions,
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -430,6 +452,7 @@ class ScanFactory(object):
         start_pos: float = 0,
         num_images: int = 1,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -449,6 +472,7 @@ class ScanFactory(object):
             angles=angles,
             positions=positions,
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -463,6 +487,7 @@ class ScanFactory(object):
         step_pos: float = 0,
         num_images: int = 1,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -481,6 +506,7 @@ class ScanFactory(object):
             angles=angles,
             positions=positions,
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -496,6 +522,7 @@ class ScanFactory(object):
         num_images: int = 1,
         num_fractions: int = 1,
         num_nhelix: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -518,6 +545,7 @@ class ScanFactory(object):
             angles=angles.flatten(),
             positions=positions.flatten(),
             num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
             drift=drift,
         )
@@ -528,6 +556,7 @@ class ScanFactory(object):
         num_images: int = 1,
         num_fractions: int = 1,
         exposure_time: float = 1,
+        electrons_per_angstrom: float = 1,
         drift: dict = None,
         **kwargs
     ) -> Scan:
@@ -554,6 +583,7 @@ class ScanFactory(object):
         image_number = np.repeat(image_number, num_fractions, axis=0)
         axis = np.repeat(axis, num_fractions, axis=0)
         angle = np.repeat(angle, num_fractions, axis=0)
+        dose = np.full(angle.shape, electrons_per_angstrom / num_fractions)
 
         # Create the shift delta
         shift_delta = None
@@ -567,6 +597,7 @@ class ScanFactory(object):
             fraction_number=fraction_number,
             axis=axis,
             angle=angle,
+            electrons_per_angstrom=dose,
             exposure_time=exposure_time,
             shift_delta=shift_delta,
             is_uniform_angular_scan=True,
@@ -581,6 +612,7 @@ class ScanFactory(object):
         theta: np.ndarray = None,
         phi: np.ndarray = None,
         num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
         drift: dict = None,
         **kwargs
@@ -640,6 +672,7 @@ class ScanFactory(object):
         shift = np.repeat(shift, num_fractions, axis=0)
         beam_tilt_theta = np.repeat(beam_tilt_theta, num_fractions, axis=0)
         beam_tilt_phi = np.repeat(beam_tilt_phi, num_fractions, axis=0)
+        dose = np.full(angle.shape, electrons_per_angstrom / num_fractions)
 
         # Create the shift delta
         shift_delta = None
@@ -657,6 +690,7 @@ class ScanFactory(object):
             shift_delta=shift_delta,
             beam_tilt_theta=beam_tilt_theta,
             beam_tilt_phi=beam_tilt_phi,
+            electrons_per_angstrom=dose,
             exposure_time=exposure_time,
         )
 
@@ -700,6 +734,7 @@ def new(
     theta: np.ndarray = None,
     phi: np.ndarray = None,
     drift: dict = None,
+    electrons_per_angstrom: float = 40,
 ) -> Scan:
     """
     Create an scan
@@ -723,6 +758,7 @@ def new(
         theta: The beam tilt theta angle
         phi: The beam tilt phi angle
         drift: The beam drift model
+        electrons_per_angstrom: The number of electrons per angstrom (per image)
 
     Returns:
         The scan object
@@ -743,5 +779,6 @@ def new(
         "theta": theta,
         "phi": phi,
         "drift": drift,
+        "electrons_per_angstrom": electrons_per_angstrom,
     }
     return ScanFactory.make_scan(mode, **kwargs)

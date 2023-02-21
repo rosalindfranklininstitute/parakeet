@@ -173,6 +173,7 @@ class ExitWaveImageSimulator(object):
         beam_tilt_theta = self.scan.beam_tilt_theta[index]
         beam_tilt_phi = self.scan.beam_tilt_phi[index]
         exposure_time = self.scan.exposure_time[index]
+        electrons_per_angstrom = self.scan.electrons_per_angstrom[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -212,11 +213,6 @@ class ExitWaveImageSimulator(object):
         # Set the beam tilt
         input_multislice.theta += beam_tilt_theta
         input_multislice.phi += beam_tilt_phi
-
-        # Compute the dose
-        electrons_per_angstrom = (
-            self.microscope.beam.total_electrons_per_angstrom / len(self.scan)
-        )
 
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
@@ -339,6 +335,7 @@ class ExitWaveImageSimulator(object):
         metadata["damage_model"] = self.simulation["radiation_damage_model"]
         metadata["sensitivity_coefficient"] = self.simulation["sensitivity_coefficient"]
         metadata["exposure_time"] = exposure_time
+        metadata["dose"] = electrons_per_angstrom
 
         # Compute the image scaled with Poisson noise
         return (index, image, metadata)
@@ -454,7 +451,10 @@ def _exit_wave_Config(
     if config.scan.step_pos == "auto":
         radius = sample.shape_radius
         config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = parakeet.scan.new(
+        electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
+        **config.scan.dict(),
+    )
 
     # Create the simulation
     simulation = simulation_factory(

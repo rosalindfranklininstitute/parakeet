@@ -197,7 +197,6 @@ def create_input_multislice(
             microscope.beam.acceleration_voltage_spread,
         )
     )
-    print(input_multislice.obj_lens_ti_sigma)
 
     # zero defocus reference
     if centre is not None:
