@@ -425,6 +425,10 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
             position = coords.position  # type: ignore
         if coords.orientation:
             orientation = coords.orientation  # type: ignore
+        if coords.scale != 1.0:
+            atoms.data["x"] = atoms.data["x"] * coords.scale
+            atoms.data["y"] = atoms.data["y"] * coords.scale
+            atoms.data["z"] = atoms.data["z"] * coords.scale
 
         # Add the molecule
         sample.add_molecule(

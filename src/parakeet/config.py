@@ -195,6 +195,8 @@ class CoordinateFile(BaseModel):
 
     recentre: bool = Field(True, description="Recentre the coordinates")
 
+    scale: float = Field(1, description="Scale the coordinates x' = x * scale")
+
     position: Optional[Tuple[float, float, float]] = Field(
         description=(
             "The model position (A, A, A). "
