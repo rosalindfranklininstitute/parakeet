@@ -302,7 +302,11 @@ class ExitWaveImageSimulator(object):
         # generally deal with data in row major format so we must do a
         # transpose here.
         image = np.array(output_multislice.data[0].psi_coh).T
-        image = image[padding:-padding, padding:-padding]
+        x0 = padding
+        y0 = padding
+        x1 = image.shape[1] - padding
+        y1 = image.shape[0] - padding
+        image = image[y0:y1, x0:x1]
 
         # Print some info
         psi_tot = np.abs(image) ** 2

@@ -4,3 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "src/parakeet/_version.py"
+
+[tool.towncrier]
+package = "parakeet"
+package_dir = "src"
+filename = "CHANGES.rst"
+directory = "newsfragments"
