@@ -74,6 +74,10 @@ by clicking "watch" on this repository.
 
 Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet/issues) to submit bugs or request features.
 
+## Changes
+
+Checkout the [changelog](CHANGES.rst) for a list of recent changes to parakeet.
+
 ## License
 
 Copyright Diamond Light Source and Rosalind Franklin Institute, 2019.
