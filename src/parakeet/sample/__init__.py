@@ -565,6 +565,9 @@ class AtomData(object):
                 for chain in model:
                     for residue in chain:
                         for atom in residue:
+                            if atom.element.atomic_number <= 0:
+                                print("BAD ELEMENT")
+                                continue
                             assert atom.element.atomic_number > 0
                             yield (
                                 atom.element.atomic_number,
@@ -1930,8 +1933,7 @@ class AtomDeleter(object):
         # from matplotlib import pylab
         # pylab.imshow(self.grid[:,:,grid_shape[2]//2])
         # pylab.show()
-
-        self.grid = scipy.ndimage.distance_transform_edt(self.grid) < min_distance
+        # self.grid = scipy.ndimage.distance_transform_edt(~self.grid) < min_distance
         return
         # self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         # self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)
