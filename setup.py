@@ -17,7 +17,6 @@ class CMakeBuild(build_ext):
     """
 
     def build_extensions(self):
-
         # Set the cmake directory
         cmake_lists_dir = os.path.abspath(".")
 
@@ -66,7 +65,7 @@ def main():
             "h5py",
             "maptools",
             "mrcfile",
-            "numpy",
+            "numpy==1.23",  # Until scikit-image updates
             "pandas",
             "pillow",
             "profet",
