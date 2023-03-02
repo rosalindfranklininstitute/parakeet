@@ -216,15 +216,25 @@ Below is an example on how to use parakeet, after its singularity image has been
 
 .. code-block:: bash
 
-  singularity run --nv parakeet.sif \
-    parakeet.config.new
+  # You can open an interactive shell in the singularity container like this:
+  singularity shell --nv --bind=/data/directory:/mnt --pwd=/mnt parakeet.sif
+
+  # Or you can execute multiple commands
+  singularity exec --nv --bind=/data/directory:/mnt --pwd=/mnt parakeet.sif \
+    bash -c "parakeet.config.new && parakeet.sample.new"
 
 You may also build and run parakeet with a single command.
 
 .. code-block:: bash
 
-  singularity run --nv docker://quay.io/rosalindfranklininstitute/parakeet:latest \
-    parakeet.config.new
+  # You can open an interactive shell in the singularity container like this:
+  singularity shell --nv --bind=/data/directory:/mnt --pwd=/mnt \
+    docker://quay.io/rosalindfranklininstitute/parakeet:latest
+
+  # Or you can execute multiple commands
+  singularity exec --nv --bind=/data/directory:/mnt --pwd=/mnt \
+    docker://quay.io/rosalindfranklininstitute/parakeet:latest \
+    bash -c "parakeet.config.new && parakeet.sample.new"
 
 
 Install as Singularity sandbox
@@ -395,12 +405,7 @@ your account-project code, qos and how much time do you expect to take for your 
   source env/bin/activate
 
   # Parakeet commands
-  parakeet.config.new -c config.yaml
-  parakeet.sample.new -c config.yaml
-  parakeet.sample.add_molecules -c config.yaml
-  parakeet.simulate.exit_wave -c config.yaml
-  parakeet.simulate.optics -c config.yaml
-  parakeet.simulate.image -c config.yaml
+  parakeet.run -c config.yaml
 
 To submit the run.sh script and therefore run the parakeet simulations execute the following:
 
@@ -435,13 +440,7 @@ available), execute the following commands to install parakeet:
   source env/bin/activate
 
   # Parakeet commands
-  parakeet.config.new -c config.yaml
-  parakeet.sample.new -c config.yaml
-  parakeet.sample.add_molecules -c config.yaml
-  parakeet.simulate.exit_wave -c config.yaml
-  parakeet.simulate.optics -c config.yaml
-  parakeet.simulate.image -c config.yaml
-
+  parakeet.run -c config.yaml
 
 Install on Baskerville (apptainer)
 ------------------------------------
@@ -470,17 +469,14 @@ your account-project code, qos and how much time do you expect to take for your 
 
   export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
 
-  function parakeet {
-    apptainer run --nv quay.io/rosalindfranklininstitute/parakeet:latest $@
+  function container {
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
-  parakeet.config.new -c config.yaml
-  parakeet.sample.new -c config.yaml
-  parakeet.sample.add_molecules -c config.yaml
-  parakeet.simulate.exit_wave -c config.yaml
-  parakeet.simulate.optics -c config.yaml
-  parakeet.simulate.image -c config.yaml
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
 To submit the run.sh script and therefore run the parakeet simulations execute the following:
 
@@ -513,17 +509,14 @@ available), execute the following commands to install parakeet:
 
   export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
 
-  function parakeet {
-    apptainer run --nv quay.io/rosalindfranklininstitute/parakeet:latest $@
+  function container {
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
-  parakeet.config.new -c config.yaml
-  parakeet.sample.new -c config.yaml
-  parakeet.sample.add_molecules -c config.yaml
-  parakeet.simulate.exit_wave -c config.yaml
-  parakeet.simulate.optics -c config.yaml
-  parakeet.simulate.image -c config.yaml
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
 
 Install on STFC Scarf
@@ -550,12 +543,14 @@ write a script called run.sh with the following contents:
   #!/bin/bash
   #SBATCH --gpus=1
 
-  function parakeet {
-    singularity run --nv parakeet.sif parakeet $@
+  function container {
+    singularity exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
-  parakeet run -c config.yaml
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
 Then run the simulations as follows:
 
