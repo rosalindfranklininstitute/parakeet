@@ -470,7 +470,8 @@ your account-project code, qos and how much time do you expect to take for your 
   export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
 
   function container {
-    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
@@ -510,7 +511,8 @@ available), execute the following commands to install parakeet:
   export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
 
   function container {
-    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
@@ -544,7 +546,8 @@ write a script called run.sh with the following contents:
   #SBATCH --gpus=1
 
   function container {
-    singularity exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
+    singularity exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
