@@ -236,7 +236,7 @@ def export(config_file, sample_file: str, directory: str = ".", relion: bool = T
     sample = Sample(sample_file, mode="r")
 
     # Export the metadata
-    return _export_Config(config, sample)
+    return _export_Config(config, sample, directory, relion)
 
 
 @export.register(parakeet.config.Config)
