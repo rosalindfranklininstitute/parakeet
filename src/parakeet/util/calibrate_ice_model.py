@@ -559,6 +559,68 @@ def compute_power(ax=None):
     ax.set_yticklabels("")
 
 
+def compute_correlation(ax=None):
+    """
+    Compute the correlation length
+
+    """
+
+    pixel_size = 0.1
+    for thickness in [5]:  # , 19, 18, 15, 10, 5]:
+        # Read the projected potential
+        handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
+        potential = handle["potential"]
+        num_atoms = handle["num_atoms"]
+
+        # Select the pixels with potential in
+        xsize, ysize = potential.shape
+        x0 = xsize // 8
+        x1 = 7 * xsize // 8
+        y0 = ysize // 8
+        y1 = 7 * ysize // 8
+        potential = potential[x0:x1, y0:y1]
+
+        data = potential
+        data = data - np.mean(data)
+        f = np.fft.fft2(data)
+        power = np.abs(f) ** 2
+        corr = np.abs(np.fft.ifft2(power))
+        corr = np.fft.fftshift(corr)
+        corr = corr / (corr.size * np.var(data))
+
+        rc = radial_average(corr)[0 : data.shape[0] // 2]
+        rd = np.arange(rc.size) * pixel_size
+
+        corr_length = 0
+        val = rc[0] / np.exp(1)
+        for d, c in zip(rd, rc):
+            if c < val:
+                corr_length = d
+                break
+
+    print("Correlation Length: %f" % corr_length)
+
+    # Plot the correlation
+    width = 0.0393701 * 190
+    height = width * 0.74
+    fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
+    ax.plot(rd, rc)
+    ax.axvline(
+        corr_length,
+        color="black",
+        linestyle="--",
+        label="Correlation length = %.1f A" % corr_length,
+    )
+
+    # Set some plot properties
+    ax.set_xlabel("Distance ($Å$)")
+    ax.set_title("Autocorrelation")
+    ax.set_xlim(0, 5)
+    ax.legend()
+    fig.savefig("correlation_%.1fA.png" % pixel_size, dpi=300, bbox_inches="tight")
+    pylab.close("all")
+
+
 def calibrate():
     """
     Calibrate ice model
@@ -574,6 +636,7 @@ def calibrate():
     width = 0.0393701 * 190
     height = width / 3.0
     fig, ax = pylab.subplots(ncols=3, figsize=(width, height), constrained_layout=True)
+    compute_correlation()
     compute_power(ax[0])
     compute_mean_correction(ax[1])
     # compute_mean_correction2(ax[1])
