@@ -10,3 +10,12 @@ package = "parakeet"
 package_dir = "src"
 filename = "CHANGES.rst"
 directory = "newsfragments"
+
+[tool.mypy]
+ignore_missing_imports = true
+implicit_optional = true
+follow_imports = "skip"
+
+plugins = [
+  "pydantic.mypy"
+]

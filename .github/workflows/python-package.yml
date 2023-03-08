@@ -60,7 +60,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Check typing with mypy
       run: |
-        mypy src/ tests/ --ignore-missing --implicit-optional
+        mypy src/ tests/ 
     - name: Test with pytest
       run: |
         pytest
