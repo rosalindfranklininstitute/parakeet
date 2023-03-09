@@ -331,7 +331,7 @@ class ScanFactory(object):
         return Scan(
             image_number=image_number,
             fraction_number=fraction_number,
-            axis=axis,
+            axis=np.array(axis),
             angle=angle,
             shift=shift,
             shift_delta=shift_delta,
@@ -684,7 +684,7 @@ class ScanFactory(object):
         return Scan(
             image_number=image_number,
             fraction_number=fraction_number,
-            axis=axis,
+            axis=np.array(axis),
             angle=angle,
             shift=shift,
             shift_delta=shift_delta,

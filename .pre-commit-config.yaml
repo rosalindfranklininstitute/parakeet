@@ -16,5 +16,5 @@ repos:
     hooks:
     -   id: mypy
         args: []
-        additional_dependencies: [ types-PyYAML ]
+        additional_dependencies: [ types-PyYAML, pydantic ]
         exclude: docs
