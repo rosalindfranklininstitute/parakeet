@@ -277,7 +277,13 @@ class ScanFactory(object):
         Generate the shifts
 
         """
-        return axis * positions[:, np.newaxis]
+        if len(positions.shape) == 1:
+            positions = axis * positions[:, np.newaxis]
+        else:
+            assert len(positions.shape) == 2
+            z = np.zeros((positions.shape[0], 1))
+            positions = np.append(positions, z, axis=1)
+        return positions
 
     @classmethod
     def single_axis(
@@ -303,6 +309,7 @@ class ScanFactory(object):
             positions = np.array([])
         assert angles is not None
         assert positions is not None
+        assert len(angles) == len(positions)
         num_images = len(angles)
 
         # Create the orientation and shift
@@ -695,6 +702,51 @@ class ScanFactory(object):
         )
 
     @classmethod
+    def grid_scan(
+        Class,
+        axis: Union[np.ndarray, tuple] = (0, 1, 0),
+        angles: np.ndarray = None,
+        start_pos: tuple = (0, 0),
+        step_pos: tuple = (0, 0),
+        num_images: tuple = (1, 1),
+        num_fractions: int = 1,
+        electrons_per_angstrom: float = 1,
+        exposure_time: float = 1,
+        drift: dict = None,
+        **kwargs
+    ) -> Scan:
+        """
+        Make a gridscan. For each angle we perform the grid scan
+
+        """
+
+        # Create the list of angles
+        if angles is None:
+            angles = np.array([0])
+
+        # Create the list of positions
+        x = start_pos[0] + step_pos[0] * np.arange(num_images[0])
+        y = start_pos[1] + step_pos[1] * np.arange(num_images[1])
+        positions = np.array([(xx, yy) for yy in x for xx in y])
+
+        # Get the positions
+        len_angles = len(angles)
+        len_positions = len(positions)
+        angles = np.repeat(angles, len_positions, axis=0)
+        positions = np.concatenate([positions] * len_angles)
+
+        # Create a single axis scan
+        return Class.single_axis(
+            axis=axis,
+            angles=angles,
+            positions=positions,
+            num_fractions=num_fractions,
+            electrons_per_angstrom=electrons_per_angstrom,
+            exposure_time=exposure_time,
+            drift=drift,
+        )
+
+    @classmethod
     def make_scan(Class, mode: str, **kwargs) -> Scan:
         """
         Make a scan from the input arguments
@@ -712,6 +764,7 @@ class ScanFactory(object):
             "nhelix": Class.nhelix,
             "single_particle": Class.single_particle,
             "beam_tilt": Class.beam_tilt,
+            "grid_scan": Class.grid_scan,
         }[mode]
 
         # Create the scan
