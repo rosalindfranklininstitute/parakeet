@@ -100,6 +100,7 @@ def main():
                 "parakeet.simulate.optics=parakeet.command_line.simulate:optics",
                 "parakeet.simulate.image=parakeet.command_line.simulate:image",
                 "parakeet.simulate.simple=parakeet.command_line.simulate:simple",
+                "parakeet.simulate.cbed=parakeet.command_line.simulate:cbed",
                 "parakeet.simulate.ctf=parakeet.command_line.simulate:ctf",
                 "parakeet.metadata.export=parakeet.command_line.metadata:export",
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",

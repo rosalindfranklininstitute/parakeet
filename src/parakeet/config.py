@@ -442,6 +442,9 @@ class Lens(BaseModel):
         0, description="The Azimuthal angle of 6-fold astigmatism (rad)"
     )
 
+    inner_aper_ang: float = Field(0, description="The inner aperture angle")
+    outer_aper_ang: float = Field(0, description="The outer aperture angle")
+
     c_c: float = Field(2.7, description="The chromatic aberration (mm)")
 
     current_spread: float = Field(0.33e-6, description="The current spread (dI/I)")

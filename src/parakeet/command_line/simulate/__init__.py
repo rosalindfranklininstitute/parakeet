@@ -5,4 +5,5 @@ from parakeet.command_line.simulate._optics import *  # noqa
 from parakeet.command_line.simulate._ctf import *  # noqa
 from parakeet.command_line.simulate._image import *  # noqa
 from parakeet.command_line.simulate._simple import *  # noqa
+from parakeet.command_line.simulate._cbed import *  # noqa
 # fmt: on

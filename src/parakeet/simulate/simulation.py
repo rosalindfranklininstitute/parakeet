@@ -212,6 +212,138 @@ def create_input_multislice(
     return input_multislice
 
 
+def create_input_multislice_diffraction(
+    microscope, slice_thickness, margin, simulation_type, centre=None
+):
+    """
+    Create the input multislice object
+
+    Args:
+        microscope (object): The microscope object
+        slice_thickness (float): The slice thickness
+        margin (int): The pixel margin
+
+    Returns:
+        object: The input multislice object
+
+    """
+
+    # Initialise the input and system configuration
+    input_multislice = multem.Input()
+
+    # Set simulation experiment
+    input_multislice.simulation_type = simulation_type
+
+    # Electron-Specimen interaction model
+    input_multislice.interaction_model = "Multislice"
+    input_multislice.potential_type = "Lobato_0_12"
+
+    # Potential slicing
+    # XXX If this is set to "Planes" then for the ribosome example I found that
+    # the simulation would not work well (e.g. The image may have nothing or a
+    # single point of intensity and nothing else). Best to keep this set to
+    # dz_Proj.
+    input_multislice.potential_slicing = "dz_Proj"
+
+    # Electron-Phonon interaction model
+    input_multislice.pn_model = "Still_Atom"  # "Frozen_Phonon"
+    # input_multislice.pn_model = "Frozen_Phonon"
+    input_multislice.pn_coh_contrib = 0
+    input_multislice.pn_single_conf = False
+    input_multislice.pn_nconf = 50
+    input_multislice.pn_dim = 110
+    input_multislice.pn_seed = 300_183
+
+    # Set the slice thickness
+    input_multislice.spec_dz = slice_thickness
+
+    # Specimen thickness
+    input_multislice.thick_type = "Whole_Spec"
+
+    # x-y sampling
+    input_multislice.nx = microscope.detector.nx + margin * 2
+    input_multislice.ny = microscope.detector.ny + margin * 2
+    input_multislice.bwl = False
+
+    # Microscope parameters
+    input_multislice.E_0 = microscope.beam.energy
+    input_multislice.theta = microscope.beam.theta
+    input_multislice.phi = microscope.beam.phi
+
+    # Illumination model
+    input_multislice.illumination_model = "Partial_Coherent"
+    input_multislice.temporal_spatial_incoh = "Temporal_Spatial"
+
+    # Set the incident wave
+    # For some reason need this to work with CBED
+    input_multislice.iw_x = [0]  # input_multislice.spec_lx/2
+    input_multislice.iw_y = [0]  # input_multislice.spec_ly/2
+
+    # Condenser lens
+    # source spread (illumination semiangle) function
+    ssf_sigma = multem.mrad_to_sigma(
+        input_multislice.E_0, microscope.beam.illumination_semiangle
+    )
+    input_multislice.cond_lens_si_sigma = ssf_sigma
+
+    # Objective lens
+    input_multislice.cond_lens_m = microscope.lens.m
+    input_multislice.cond_lens_c_10 = microscope.lens.c_10
+    input_multislice.cond_lens_c_12 = microscope.lens.c_12
+    input_multislice.cond_lens_phi_12 = microscope.lens.phi_12
+    input_multislice.cond_lens_c_21 = microscope.lens.c_21
+    input_multislice.cond_lens_phi_21 = microscope.lens.phi_21
+    input_multislice.cond_lens_c_23 = microscope.lens.c_23
+    input_multislice.cond_lens_phi_23 = microscope.lens.phi_23
+    input_multislice.cond_lens_c_30 = microscope.lens.c_30
+    input_multislice.cond_lens_c_32 = microscope.lens.c_32
+    input_multislice.cond_lens_phi_32 = microscope.lens.phi_32
+    input_multislice.cond_lens_c_34 = microscope.lens.c_34
+    input_multislice.cond_lens_phi_34 = microscope.lens.phi_34
+    input_multislice.cond_lens_c_41 = microscope.lens.c_41
+    input_multislice.cond_lens_phi_41 = microscope.lens.phi_41
+    input_multislice.cond_lens_c_43 = microscope.lens.c_43
+    input_multislice.cond_lens_phi_43 = microscope.lens.phi_43
+    input_multislice.cond_lens_c_45 = microscope.lens.c_45
+    input_multislice.cond_lens_phi_45 = microscope.lens.phi_45
+    input_multislice.cond_lens_c_50 = microscope.lens.c_50
+    input_multislice.cond_lens_c_52 = microscope.lens.c_52
+    input_multislice.cond_lens_phi_52 = microscope.lens.phi_52
+    input_multislice.cond_lens_c_54 = microscope.lens.c_54
+    input_multislice.cond_lens_phi_54 = microscope.lens.phi_54
+    input_multislice.cond_lens_c_56 = microscope.lens.c_56
+    input_multislice.cond_lens_phi_56 = microscope.lens.phi_56
+    input_multislice.cond_lens_inner_aper_ang = microscope.lens.inner_aper_ang
+    input_multislice.cond_lens_outer_aper_ang = microscope.lens.outer_aper_ang
+
+    # Do we have a phase plate
+    if microscope.phase_plate:
+        input_multislice.phase_shift = pi / 2.0
+
+    # defocus spread function
+    input_multislice.obj_lens_ti_sigma = multem.iehwgd_to_sigma(
+        defocus_spread(
+            microscope.lens.c_c * 1e-3 / 1e-10,  # Convert from mm to A
+            microscope.beam.energy_spread,
+            microscope.lens.current_spread,
+            microscope.beam.acceleration_voltage_spread,
+        )
+    )
+
+    # zero defocus reference
+    if centre is not None:
+        input_multislice.cond_lens_zero_defocus_type = "User_Define"
+        input_multislice.obj_lens_zero_defocus_type = "User_Define"
+        input_multislice.cond_lens_zero_defocus_plane = centre
+        input_multislice.obj_lens_zero_defocus_plane = centre
+    else:
+        input_multislice.cond_lens_zero_defocus_type = "Last"
+        input_multislice.obj_lens_zero_defocus_type = "Last"
+
+    # Return the input multislice object
+    return input_multislice
+
+
 class Simulation(object):
     """
     An object to wrap the simulation
