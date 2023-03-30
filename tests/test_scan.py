@@ -99,6 +99,25 @@ def test_single_particle():
     assert len(scan) == 8
 
 
+def test_grid_scan():
+    scan = parakeet.scan.new(
+        mode="grid_scan",
+        axis=(0, 1, 0),
+        angles=[1, 2, 3, 4],
+        start_pos=(0, 0),
+        step_pos=(10, 10),
+        num_images=(10, 10),
+    )
+    angles = np.array([[1, 2, 3, 4]] * 10 * 10).T.flatten()
+    positions = np.array(
+        [(x * 10, y * 10, 0) for a in range(4) for y in range(10) for x in range(10)]
+    )
+    axis = np.array([[0, 1, 0]] * 10 * 10 * 4)
+    assert np.allclose(scan.axes, axis)
+    assert np.allclose(scan.angles, angles)
+    assert np.allclose(scan.position, positions)
+
+
 def test_beam_tilt():
     scan = parakeet.scan.new(
         mode="beam_tilt",
@@ -114,7 +133,6 @@ def test_beam_tilt():
     theta = np.array([[0, 0, 0, 0, 0, 0]] * 4).flatten()
     phi = np.array([[0, 0.1, 0.2, 0.3, 0.4, 0.5]] * 4).flatten()
     axis = np.array([[0, 1, 0]] * 4 * 6)
-    print(scan.angles)
     assert np.allclose(scan.axes, axis)
     assert np.allclose(scan.angles, angles)
     assert np.allclose(scan.position, positions)

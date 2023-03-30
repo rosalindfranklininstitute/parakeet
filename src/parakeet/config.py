@@ -442,6 +442,9 @@ class Lens(BaseModel):
         0, description="The Azimuthal angle of 6-fold astigmatism (rad)"
     )
 
+    inner_aper_ang: float = Field(0, description="The inner aperture angle")
+    outer_aper_ang: float = Field(0, description="The outer aperture angle")
+
     c_c: float = Field(2.7, description="The chromatic aberration (mm)")
 
     current_spread: float = Field(0.33e-6, description="The current spread (dI/I)")
@@ -509,6 +512,7 @@ class ScanMode(str, Enum):
     helical_scan = "helical_scan"
     nhelix = "nhelix"
     beam_tilt = "beam_tilt"
+    grid_scan = "grid_scan"
 
 
 class Drift(BaseModel):
@@ -544,15 +548,15 @@ class Scan(BaseModel):
 
     step_angle: float = Field(0, description="The step angle for the rotation (deg)")
 
-    start_pos: float = Field(
+    start_pos: Union[float, Tuple[float, float]] = Field(
         0, description="The start position for a translational scan (A)"
     )
 
-    step_pos: Union[float, Auto] = Field(
+    step_pos: Union[float, Tuple[float, float], Auto] = Field(
         "auto", description="The step distance for a translational scan (A)"
     )
 
-    num_images: int = Field(
+    num_images: Union[int, Tuple[int, int]] = Field(
         1,
         description=(
             "The number of images to simulate. "
