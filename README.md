@@ -2,7 +2,7 @@
 
 # Parakeet :parrot:
 
-![Parakeet](docs/source/images/parakeet_small.png)
+![Parakeet](docs/source/images/parakeet_logo.png)
 
 > **Parakeet** is a digital twin for cryo electron tomography and stands for **P**rogram for **A**nalysis and **R**econstruction of **A**rtificial data for **K**ryo **E**l**E**ctron **T**omography
 
