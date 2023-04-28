@@ -479,6 +479,19 @@ class MicroscopeModel(str, Enum):
     talos = "talos"
 
 
+class PhasePlate(BaseModel):
+    """
+    A model to describe the phase plate
+
+    """
+
+    use: bool = Field(False, description="Use the phase plate")
+
+    phase_shift: float = Field(90, description="The phase shift (degrees)")
+
+    radius: float = Field(0.005, gt=0, description="The spot radius (1/A)")
+
+
 class Microscope(BaseModel):
     """
     A model to describe the microscope
@@ -493,7 +506,9 @@ class Microscope(BaseModel):
 
     lens: Lens = Field(Lens(), description="The lens model parameters")
 
-    phase_plate: bool = Field(False, description="Use a phase plate (True/False)")
+    phase_plate: PhasePlate = Field(
+        PhasePlate(), description="The phase plate parameters"
+    )
 
     detector: Detector = Field(Detector(), description="The detector model parameters")
 

@@ -27,10 +27,6 @@ from math import sqrt
 from parakeet.simulate.simulation import Simulation
 
 
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
-
-
 __all__ = ["optics"]
 
 
@@ -109,6 +105,14 @@ class OpticsImageSimulator(object):
             # Compute and apply the CTF
             ctf = np.array(multem.compute_ctf(system_conf, input_multislice)).T
 
+            # Add the effect of the phase plate
+            if microscope.phase_plate.use:
+                ctf = ctf * parakeet.simulate.phase_plate.compute_phase_shift(
+                    ctf.shape,
+                    microscope.detector.pixel_size,
+                    microscope.phase_plate.phase_shift,
+                    microscope.phase_plate.radius,
+                )
             # Compute the B factor for radiation damage
             # if simulation["radiation_damage_model"]:
             #    sigma_B = sqrt(
@@ -453,7 +457,7 @@ def simulation_factory(
     microscope: Microscope,
     exit_wave: object,
     scan: Scan,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     sample: dict = None,
     cluster: dict = None,
@@ -496,8 +500,8 @@ def optics(
     config_file,
     exit_wave_file: str,
     optics_file: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
+    cluster_method: parakeet.config.ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """

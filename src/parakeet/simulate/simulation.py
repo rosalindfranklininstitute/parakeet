@@ -185,8 +185,8 @@ def create_input_multislice(
     input_multislice.obj_lens_outer_aper_ang = microscope.lens.outer_aper_ang
 
     # Do we have a phase plate
-    if microscope.phase_plate:
-        input_multislice.phase_shift = pi / 2.0
+    # if microscope.phase_plate:
+    #     input_multislice.phase_shift = pi / 2.0
 
     # defocus spread function
     input_multislice.obj_lens_ti_sigma = multem.iehwgd_to_sigma(
