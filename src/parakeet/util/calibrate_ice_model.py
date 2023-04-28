@@ -322,9 +322,10 @@ def compute_mean_correction(ax=None):
             outfile.write("%.2f, %.7f\n" % (x, y))
 
     # Plot the mean correction
-    ax.plot(area, mean)
-    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(b)")
-    ax.set_title("Mean correction factor")
+    ax.plot(area, mean, label="Mean correction")
+    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(c)", fontsize=9)
+    ax.set_title("Mean correction factor", fontsize=9)
+    ax.set_xlim(0, 4)
 
 
 def compute_mean_correction2(ax=None):
@@ -381,8 +382,9 @@ def compute_mean_correction2(ax=None):
 
     # Plot
     ax.plot(X, Y)
-    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(c)")
-    ax.set_title("Mean correction factor")
+    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(d)", fontsize=9)
+    ax.set_title("Mean correction factor", fontsize=9)
+    ax.set_xlim(0, 4)
 
 
 def compute_variance_correction(ax=None):
@@ -438,9 +440,10 @@ def compute_variance_correction(ax=None):
             outfile.write("%.2f, %.7f\n" % (x, y))
 
     # Plot
-    ax.plot(X, Y)
-    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(c)")
-    ax.set_title("Variance correction factor")
+    ax.plot(X, Y, label="Variance correction")
+    ax.set_xlabel(r"Pixel area ($Å^2$)" + "\n(c)", fontsize=9)
+    ax.set_title("Mean and variance correction factors", fontsize=9)
+    ax.set_xlim(0, 4)
 
 
 def compute_power(ax=None):
@@ -549,13 +552,14 @@ def compute_power(ax=None):
         d = np.arange(rp.size) / (pixel_size * power.shape[0])
 
         # Plot the power spectrum and best fit
-        ax.plot(d[1:], rp[1:] / C, label="%d" % thickness)
+        ax.plot(d[1:], rp[1:] / C)  # , label="%d" % thickness)
         ax.plot(d[1:], rm[1:] / C, color="black", alpha=0.5, label="Model")
 
     # Set some plot properties
-    ax.set_xlabel("Spatial frequency ($Å$)\n(a)")
-    ax.set_title("Power spectrum")
+    ax.set_xlabel("Spatial frequency ($Å^{-1}$)\n(a)", fontsize=9)
+    ax.set_title("Power spectrum", fontsize=9)
     ax.set_xlim(0, 1)
+    ax.legend(fontsize=9)
     ax.set_yticklabels("")
 
 
@@ -590,6 +594,7 @@ def compute_correlation(ax=None):
 
         rc = radial_average(corr)[0 : data.shape[0] // 2]
         rd = np.arange(rc.size) * pixel_size
+        rc = rc / np.max(rc)
 
         corr_length = 0
         val = rc[0] / np.exp(1)
@@ -601,24 +606,26 @@ def compute_correlation(ax=None):
     print("Correlation Length: %f" % corr_length)
 
     # Plot the correlation
-    width = 0.0393701 * 190
-    height = width * 0.74
-    fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
+    if ax is None:
+        width = 0.0393701 * 190
+        height = width * 0.74
+        fig, ax = pylab.subplots(figsize=(width, height), constrained_layout=True)
     ax.plot(rd, rc)
     ax.axvline(
         corr_length,
         color="black",
         linestyle="--",
-        label="Correlation length = %.1f A" % corr_length,
+        label="$𝜉 = %.1f Å$" % corr_length,
     )
 
     # Set some plot properties
-    ax.set_xlabel("Distance ($Å$)")
-    ax.set_title("Autocorrelation")
-    ax.set_xlim(0, 5)
-    ax.legend()
-    fig.savefig("correlation_%.1fA.png" % pixel_size, dpi=300, bbox_inches="tight")
-    pylab.close("all")
+    ax.set_xlabel("Distance ($Å$)\n(b)", fontsize=9)
+    ax.set_title("Autocorrelation", fontsize=9)
+    ax.set_xlim(0, 2.5)
+    ax.legend(fontsize=9)
+    if ax is None:
+        fig.savefig("correlation_%.1fA.png" % pixel_size, dpi=300, bbox_inches="tight")
+        pylab.close("all")
 
 
 def calibrate():
@@ -636,11 +643,14 @@ def calibrate():
     width = 0.0393701 * 190
     height = width / 3.0
     fig, ax = pylab.subplots(ncols=3, figsize=(width, height), constrained_layout=True)
-    compute_correlation()
     compute_power(ax[0])
-    compute_mean_correction(ax[1])
+    compute_correlation(ax[1])
+    compute_mean_correction(ax[2])
     # compute_mean_correction2(ax[1])
     compute_variance_correction(ax[2])
+    ax[2].legend(fontsize=9)
+    for axx in ax:
+        axx.tick_params(axis="both", labelsize=9)
     fig.savefig("model.png", dpi=300, bbox_inches="tight")
 
 
