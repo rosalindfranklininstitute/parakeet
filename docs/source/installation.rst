@@ -11,7 +11,9 @@ In order to build this package, the following dependencies are required:
 - Python development libraries
 - The CUDA toolkit
 
-On ubuntu 20.04, the dependencies can be install on a clean install as follows:
+On ubuntu 20.04, the dependencies can be install on a clean install as follows
+(you may need to contact your system administrator if you do not have admin
+privileges):
 
 
 .. code-block:: bash
@@ -34,7 +36,7 @@ On ubuntu 20.04, the dependencies can be install on a clean install as follows:
   sudo apt-get update
   sudo apt-get -y install cuda
 
-Enviornment variables
+Environment variables
 ---------------------
 
 If you have multiple compiler versions or the compilers you want to use are not
@@ -52,7 +54,7 @@ Depending on your GPU and the version of the CUDA toolkit you are using, it may
 also be necessary to set the CMAKE_CUDA_ARCHITECTURES variable. This variable
 is by default set to "OFF" in the CMakeLists.txt file which has the effect of
 compiling CUDA kernels on the fly. If you have an old GPU, this may not work
-and you will receive CUDA errors when attemping to run the simulations on the
+and you will receive CUDA errors when attempting to run the simulations on the
 GPU. In this case simply set the variable to the architecture supported by your
 GPU as follows (the example below is for the compute_37 architecture):
 
@@ -82,8 +84,13 @@ environment variables described above.
 
 .. code-block:: bash
 
-  # Close the repository and submodules
-  git clone https://github.com/rosalindfranklininstitute/amplus-digital-twin.git
+  # Clone the repository
+  git clone https://github.com/rosalindfranklininstitute/parakeet.git
+
+  # Enter the parakeet directory
+  cd parakeet
+
+  # Checkout the submodules
   git submodule update --init --recursive
 
   # Install the package locally
@@ -100,8 +107,13 @@ environment variables described above:
 
 .. code-block:: bash
 
-  # Close the repository and submodules
-  git clone https://github.com/rosalindfranklininstitute/amplus-digital-twin.git
+  # Clone the repository
+  git clone https://github.com/rosalindfranklininstitute/parakeet.git
+
+  # Enter the parakeet directory
+  cd parakeet
+
+  # Checkout the submodules
   git submodule update --init --recursive
 
   # Install the package locally
@@ -125,7 +137,7 @@ any other branch) directly using pip by using the following command:
 
 .. code-block:: bash
 
-  python -m pip install git+https://github.com/rosalindfranklininstitute/amplus-digital-twin.git@master
+  python -m pip install git+https://github.com/rosalindfranklininstitute/parakeet.git@master
 
 Install using conda
 -------------------
@@ -138,69 +150,91 @@ You can install parakeet using conda as follows:
   conda create -n parakeet python=3.9
 
   # Install parakeet
-  conda install -c james.parkhurst python-parakeet
+  conda install -c conda-forge -c james.parkhurst python-parakeet
 
 
 Install as a Docker container
 -----------------------------
 
-Parakeet can also be installed and used via Docker
-(https://www.docker.com/get-started). To download parakeet's docker container
-you can do the following:
+Parakeet can also be run via Docker
+(https://www.docker.com/get-started). To pull the docker container with the latest version
+parakeet, you can do the following:
 
 .. code-block:: bash
   
-  docker pull ghcr.io/rosalindfranklininstitute/parakeet:master
+  docker pull quay.io/rosalindfranklininstitute/parakeet:latest
+
+You may also pull the docker container of a specific version of parakeet. To do this in the above
+command replace the 'latest' with one of the tags that you can find here
+( https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags).
 
 To use parakeet with docker with GPU support the host machine should have the
-approprate Nvidia drivers installed and docker needs to be installed with the
+appropriate Nvidia drivers installed and docker needs to be installed with the
 nvidia container toolkit
 (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
 To easily input and output data from the container the volume mechanism can be
 used, where a workspace directory of the host machine is mounted to a directory
 in the container (in the folder /mnt in the example below). For this reason it
-is advised that all the relevent files (e.g. config.yaml, sample.h5, etc.)
+is advised that all the relevant files (e.g. config.yaml, sample.h5, etc.)
 should be present in the host workspace directory.
 
-Below is an example on how to use parakeet with docker to simulate the exit
-wave:
+Below is an example on how to use parakeet after, its docker image has been pulled, to run parakeet commands:
 
 .. code-block:: bash
 
-  docker run --gpus all -v $(pwd):/mnt --workdir=/mnt parakeet:master \
-    parakeet.simulate.exit_wave \
-      -c config.yaml \
-      -d gpu \
-      -s sample.h5 \
-      -e exit_wave.h5
+  docker run --gpus all -v $(pwd):/mnt --workdir=/mnt parakeet:latest \
+    parakeet.config.new
+
+You may also pull and run parakeet with a single command.
+
+.. code-block:: bash
+
+  docker run --gpus all -v $(pwd):/mnt --workdir=/mnt \
+    quay.io/rosalindfranklininstitute/parakeet:latest parakeet.config.new
 
 
 Install as a Singularity image
 ------------------------------
 
-Parakeet can also be installed and used via Singularity
-(https://sylabs.io/guides/2.6/user-guide/installation.html). To download
+Parakeet can also be run via Singularity
+(https://sylabs.io/guides/2.6/user-guide/installation.html). To build
 parakeet's singularity container you can do the following:
 
 .. code-block:: bash
 
-  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
+  singularity build parakeet.sif docker://quay.io/rosalindfranklininstitute/parakeet:latest
 
-Again similar to docker, to use parakeet with singularity and GPU support, the
-host machine should have the approprate Nvidia drivers installed.
+Again similar to docker, you may build the singularity container of a specific version of parakeet
+by replacing the 'latest' in the command above with one of the tags that you can find here
+( https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags).
 
-Below is an example on how to use parakeet with singularity to simulate the
-exit wave:
+Also like with docker, to use parakeet with singularity and GPU support, the
+host machine should have the appropriate Nvidia drivers installed.
+
+Below is an example on how to use parakeet, after its singularity image has been build, to run parakeet commands:
 
 .. code-block:: bash
 
-  singularity run --nv parakeet.sif \
-    parakeet.simulate.exit_wave \
-      -c config_new.yaml \
-      -d gpu \
-      -s sample.h5 \
-      -e exit_wave.h5
+  # You can open an interactive shell in the singularity container like this:
+  singularity shell --nv --bind=/data/directory:/mnt --pwd=/mnt parakeet.sif
+
+  # Or you can execute multiple commands
+  singularity exec --nv --bind=/data/directory:/mnt --pwd=/mnt parakeet.sif \
+    bash -c "parakeet.config.new && parakeet.sample.new"
+
+You may also build and run parakeet with a single command.
+
+.. code-block:: bash
+
+  # You can open an interactive shell in the singularity container like this:
+  singularity shell --nv --bind=/data/directory:/mnt --pwd=/mnt \
+    docker://quay.io/rosalindfranklininstitute/parakeet:latest
+
+  # Or you can execute multiple commands
+  singularity exec --nv --bind=/data/directory:/mnt --pwd=/mnt \
+    docker://quay.io/rosalindfranklininstitute/parakeet:latest \
+    bash -c "parakeet.config.new && parakeet.sample.new"
 
 
 Install as Singularity sandbox
@@ -251,7 +285,7 @@ with the following contents:
 
 .. code-block:: bash
 
-  FROM ghcr.io/rosalindfranklininstitute/parakeet:master
+  FROM quay.io/rosalindfranklininstitute/parakeet:latest
 
   WORKDIR /myapp
   COPY . .
@@ -270,7 +304,20 @@ Now we can build the singularity image from the docker image
 
 .. code-block:: bash
 
-  singularity build myapp.sif docker-deamon://me/myapp:latest
+  singularity build myapp.sif docker-daemon://me/myapp:latest
+
+
+Install as a Apptainer image
+------------------------------
+
+Parakeet can also be run via Apptainer. Apptainer is the new name for the Singularity
+project after is official move to the Linux Foundation
+(https://apptainer.org/news/community-announcement-20211130/).
+
+You may build and run parakeet via an Apptainer container the same way you would
+build and run parakeet via an Singularity container, but instead of the command
+'singularity' the command 'apptainer' should be used. The arguments of the command
+'apptainer' is the exact same with the command 'singularity'.
 
 
 Install as a snap
@@ -300,40 +347,44 @@ Note that the snap installation only exposes the top level parakeet command:
   parakeet -h
 
 
-Install on Baskerville (native)
+Install on Baskerville HPC (native)
 -------------------------------
 
-In order to install parakeet on the baskerville tier 2 supercomputer with
-singularity, start an interactive job as follows (you will need to know your
-account number and qos to do this):
+In order to install parakeet on the Baskerville tier 2 supercomputer (https://www.baskerville.ac.uk/)
+within a virtual python environment (https://docs.baskerville.ac.uk/self-install/),
+start an interactive job as follows (you will need to know your
+account-project code and qos to do this):
 
 .. code-block:: bash
   
-  salloc --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=1:0:0
-  srun --pty bash -i
+  srun --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=0:20:0 \
+    --export=USER,HOME,PATH,TERM --pty /bin/bash
 
-Now execute the following commands to install parakeet:
+When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:
 
 .. code-block:: bash
    
   # Load required modules
   module purge
   module load baskerville
-  module load bask-apps/test
   module load CUDA/11.4
   module load FFTW
   module load Python/3
    
   # Create a virtual environment
-  python -m venv env
+  python -m venv --system-site-packages env
   source env/bin/activate
   python -m pip install pip --upgrade
 
   # Install parakeet
   python -m pip install python-parakeet
 
-To run parakeet on a baskerville then write a script called run.sh with the
-following contents:
+You can run parakeet on Baskerville non-interactively and interactively.
+
+To run parakeet on Baskerville non-interactively (https://docs.baskerville.ac.uk/jobs/)
+you need write a script called run.sh with the following contents (you will need to know
+your account-project code, qos and how much time do you expect to take for your script to finish):
 
 .. code-block:: bash
 
@@ -341,11 +392,11 @@ following contents:
   #SBATCH --account=$ACCOUNT
   #SBATCH --qos=$QOS
   #SBATCH --gpus=1
+  #SBATCH --time=$TIME
 
   # Load required modules
   module purge
   module load baskerville
-  module load bask-apps/test
   module load CUDA/11.4
   module load FFTW
   module load Python/3
@@ -354,41 +405,52 @@ following contents:
   source env/bin/activate
 
   # Parakeet commands
-  parakeet run -c config.yaml
+  parakeet.run -c config.yaml
 
-Then run the simulations as follows:
+To submit the run.sh script and therefore run the parakeet simulations execute the following:
 
 .. code-block:: bash
 
   sbatch run.sh
 
+The benefit of non-interactive job submissions is that your job will be executed automatically,
+when the requested computational resources are available and that you can submit and queue multiple
+jobs.
 
-Install on Baskerville (singularity)
-------------------------------------
-
-In order to install parakeet on the baskerville tier 2 supercomputer with
-singularity, start an interactive job as follows (you will need to know your
-account number and qos to do this):
+To run parakeet interactively (https://docs.baskerville.ac.uk/interactive-jobs/), execute:
 
 .. code-block:: bash
-  
-  salloc --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=1:0:0
-  srun --pty bash -i
 
-Now run the following commands:
+  srun --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=${TIME} \
+    --export=USER,HOME,PATH,TERM --pty /bin/bash
+
+When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:
 
 .. code-block:: bash
 
   # Load required modules
   module purge
   module load baskerville
-  module load bask-singularity-conf/live
+  module load CUDA/11.4
+  module load FFTW
+  module load Python/3
 
-  # Install package
-  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
+  # Activate environment
+  source env/bin/activate
 
-Once you are happy, log out of the interactive node. To run parakeet on
-baskerville write a script called run.sh with the following contents:
+  # Parakeet commands
+  parakeet.run -c config.yaml
+
+Install on Baskerville (apptainer)
+------------------------------------
+
+Alternatively, you may run parakeet on the baskerville tier 2 supercomputer with
+apptainer (https://docs.baskerville.ac.uk/containerisation/).
+
+To run parakeet on Baskerville non-interactively (https://docs.baskerville.ac.uk/jobs/)
+you need write a script called run.sh with the following contents (you will need to know
+your account-project code, qos and how much time do you expect to take for your script to finish):
 
 .. code-block:: bash
 
@@ -396,40 +458,67 @@ baskerville write a script called run.sh with the following contents:
   #SBATCH --account=$ACCOUNT
   #SBATCH --qos=$QOS
   #SBATCH --gpus=1
+  #SBATCH --time=$TIME
 
   # Load required modules
   module purge
   module load baskerville
-  module load bask-singularity-conf/live
+  module load CUDA/11.4
+  module load FFTW
+  module load Python/3
 
-  function parakeet {
-    singularity run --nv parakeet.sif parakeet $@
+  export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
+
+  function container {
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
-  parakeet run -c config.yaml
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
-Then run the simulations as follows:
+To submit the run.sh script and therefore run the parakeet simulations execute the following:
 
 .. code-block:: bash
 
   sbatch run.sh
 
-.. warning::
-  
-  On Baskerville, you may receive an error like this when using the parakeet sandbox:
+The benefit of non-interactive job submissions is that your job will be executed automatically,
+when the requested computational resources are available and that you can submit and queue multiple
+jobs.
+
+To run parakeet interactively (https://docs.baskerville.ac.uk/interactive-jobs/), execute:
 
 .. code-block:: bash
 
-  WARNING: By using --writable, Singularity can't create /bask destination automatically without overlay or underlay            
-  FATAL:   container creation failed: mount /var/singularity/mnt/session/bask->/bask error: while mounting /var/singularity/mnt/
-  session/bask: destination /bask doesn't exist in container
+  srun --account=${ACCOUNT} --qos=${QOS} --gpus=1 --time=${TIME} \
+    --export=USER,HOME,PATH,TERM --pty /bin/bash
 
-You can fix this by creating the following directory within the sandbox directory:
+When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:
 
 .. code-block:: bash
 
-  mkdir -p parakeet_sandbox/bask
+  # Load required modules
+  module purge
+  module load baskerville
+  module load CUDA/11.4
+  module load FFTW
+  module load Python/3
+
+  export APPTAINER_CACHEDIR=/path/to/cache/directory/within/your/project/directory
+
+  function container {
+    apptainer exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
+  }
+
+  # Parakeet commands
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
 
 Install on STFC Scarf
@@ -446,7 +535,7 @@ Now run the following commands:
 
 .. code-block:: bash
 
-  singularity build parakeet.sif docker://ghcr.io/rosalindfranklininstitute/parakeet:master
+  singularity build parakeet.sif docker://quay.io/rosalindfranklininstitute/parakeet:latest
 
 Once you are happy, log out of the interactive node. To run parakeet on scarf
 write a script called run.sh with the following contents:
@@ -456,12 +545,15 @@ write a script called run.sh with the following contents:
   #!/bin/bash
   #SBATCH --gpus=1
 
-  function parakeet {
-    singularity run --nv parakeet.sif parakeet $@
+  function container {
+    singularity exec --nv --bind=/path/to/data/directory/within/your/project/directory:/mnt --pwd=/mnt \
+      docker://quay.io/rosalindfranklininstitute/parakeet:latest bash -c "$@"
   }
 
   # Parakeet commands
-  parakeet run -c config.yaml
+  container \
+  "echo Below you can have multiple commands && \
+  parakeet.run -c config.yaml"
 
 Then run the simulations as follows:
 

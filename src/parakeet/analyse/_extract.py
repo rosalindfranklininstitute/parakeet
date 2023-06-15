@@ -60,7 +60,7 @@ def extract(
     _extract_Config(config, sample, rec_file, particles_file, particle_size)
 
 
-@extract.register
+@extract.register(parakeet.config.Config)
 def _extract_Config(
     config: parakeet.config.Config,
     sample: parakeet.sample.Sample,
@@ -74,7 +74,6 @@ def _extract_Config(
     """
 
     def rotate_array(data, rotation, offset):
-
         # Create the pixel indices
         az = np.arange(data.shape[0])
         ay = np.arange(data.shape[1])
@@ -132,7 +131,6 @@ def _extract_Config(
     # Loop through the
     assert sample.number_of_molecules == 1
     for name, (atoms, positions, orientations) in sample.iter_molecules():
-
         # Compute the box size based on the size of the particle so that any
         # orientation should fit within the box
         xmin = atoms.data["x"].min()
@@ -171,7 +169,6 @@ def _extract_Config(
 
         # Loop through all the particles
         for i, (position, orientation) in enumerate(zip(positions, orientations)):
-
             # Compute p within the volume
             # start_position = np.array([0, scan["start_pos"], 0])
             p = position - (centre - size / 2.0)  # - start_position
@@ -194,7 +191,6 @@ def _extract_Config(
             print("Getting sub tomogram")
             sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
             if sub_tomo.shape == particle_instance.shape:
-
                 # Set the data to transform
                 data = sub_tomo
 

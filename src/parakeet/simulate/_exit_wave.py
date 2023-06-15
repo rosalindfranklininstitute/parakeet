@@ -25,16 +25,13 @@ from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
-from math import pi, sin
+from math import pi
 from collections.abc import Iterable
+from scipy.spatial.transform import Rotation as R
 
 
 __all__ = ["exit_wave"]
 
-
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
-Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -59,45 +56,84 @@ class ExitWaveImageSimulator(object):
         self.simulation = simulation
         self.device = device
 
-    def get_beam_drift(self, index, angle):
+    def get_masker(
+        self,
+        index,
+        input_multislice,
+        pixel_size,
+        drift,
+        origin,
+        offset,
+        orientation,
+        shift,
+    ):
         """
-        Get the beam drift
+        Get the masker object for the ice specification
 
-        Returns:
-            tuple: shiftx, shifty - the beam drift
         """
 
-        beam_drift = self.microscope.beam.drift
-        driftx = 0
-        drifty = 0
-        if beam_drift and not beam_drift["type"] is None:
-            if beam_drift["type"] == "random":
-                driftx, drifty = np.random.normal(0, beam_drift["magnitude"], size=2)
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            elif beam_drift["type"] == "random_smoothed":
-                if index == 0:
+        # Create the masker
+        masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
 
-                    def generate_smoothed_random(magnitude, num_images):
-                        drift = np.random.normal(0, magnitude, size=(num_images, 2))
-                        driftx = np.convolve(drift[:, 0], np.ones(5) / 5, mode="same")
-                        drifty = np.convolve(drift[:, 1], np.ones(5) / 5, mode="same")
-                        return driftx, drifty
+        # Get the sample centre
+        shape = self.sample.shape
+        centre = np.array(self.sample.centre)
+        drift = np.array(drift)
+        detector_origin = np.array([origin[0], origin[1], 0])
+        centre = centre + offset - detector_origin - shift
 
-                    self._beam_drift = generate_smoothed_random(
-                        beam_drift["magnitude"], len(self.scan)
-                    )
-                driftx = self._beam_drift[0][index]
-                drifty = self._beam_drift[1][index]
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            elif beam_drift["type"] == "sinusoidal":
-                driftx = sin(angle * pi / 180) * beam_drift["magnitude"]
-                drifty = driftx
-                logger.info("Adding drift of %f, %f " % (driftx, drifty))
-            else:
-                raise RuntimeError("Unknown drift type")
+        # Set the shape
+        if shape["type"] == "cube":
+            length = shape["cube"]["length"]
+            masker.set_cuboid(
+                (
+                    centre[0] - length / 2,
+                    centre[1] - length / 2,
+                    centre[2] - length / 2,
+                ),
+                (length, length, length),
+            )
+        elif shape["type"] == "cuboid":
+            length_x = shape["cuboid"]["length_x"]
+            length_y = shape["cuboid"]["length_y"]
+            length_z = shape["cuboid"]["length_z"]
+            masker.set_cuboid(
+                (
+                    centre[0] - length_x / 2,
+                    centre[1] - length_y / 2,
+                    centre[2] - length_z / 2,
+                ),
+                (length_x, length_y, length_z),
+            )
+        elif shape["type"] == "cylinder":
+            radius = shape["cylinder"]["radius"]
+            if not isinstance(radius, Iterable):
+                radius = [radius]
+            length = shape["cylinder"]["length"]
+            offset_x = shape["cylinder"].get("offset_x", None)
+            offset_z = shape["cylinder"].get("offset_z", None)
+            axis = shape["cylinder"].get("axis", (0, 1, 0))
+            if offset_x is None:
+                offset_x = [0] * len(radius)
+            if offset_z is None:
+                offset_z = [0] * len(radius)
+            masker.set_cylinder(
+                (centre[0], centre[1] - length / 2, centre[2]),
+                axis,
+                length,
+                list(radius),
+                list(offset_x),
+                list(offset_z),
+            )
 
-        # Return the beam drift
-        return driftx, drifty
+        # Rotate unless we have a single particle type simulation
+        if self.scan.is_uniform_angular_scan:
+            masker.set_rotation(centre, (0, 0, 0))
+        else:
+            masker.set_rotation(centre, orientation)
+
+        # Get the masker
+        return masker
 
     def __call__(self, index):
         """
@@ -116,11 +152,18 @@ class ExitWaveImageSimulator(object):
         logger.info(f"Simulating image {index+1}")
 
         # Get the rotation angle
+        image_number = self.scan.image_number[index]
+        fraction_number = self.scan.fraction_number[index]
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
-
-        # Add the beam drift
-        driftx, drifty = self.get_beam_drift(index, angle)
+        axis = self.scan.axes[index]
+        position = self.scan.position[index]
+        orientation = self.scan.orientation[index]
+        shift = self.scan.shift[index]
+        drift = self.scan.shift_delta[index]
+        beam_tilt_theta = self.scan.beam_tilt_theta[index]
+        beam_tilt_phi = self.scan.beam_tilt_phi[index]
+        exposure_time = self.scan.exposure_time[index]
+        electrons_per_angstrom = self.scan.electrons_per_angstrom[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -153,6 +196,10 @@ class ExitWaveImageSimulator(object):
         simulate.input.spec_ly = y_fov + offset * 2
         simulate.input.spec_lz = self.sample.containing_box[1][2]
 
+        # Set the beam tilt
+        input_multislice.theta += beam_tilt_theta
+        input_multislice.phi += beam_tilt_phi
+
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
             simulate.input.static_B_factor = (
@@ -160,7 +207,7 @@ class ExitWaveImageSimulator(object):
                 * pi**2
                 * (
                     self.simulation["sensitivity_coefficient"]
-                    * self.microscope.beam.electrons_per_angstrom
+                    * electrons_per_angstrom
                     * (index + 1)
                 )
             )
@@ -173,45 +220,65 @@ class ExitWaveImageSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                self.scan.poses.orientations[index].apply(coords - self.sample.centre)
+                R.from_rotvec(orientation).apply(coords - self.sample.centre)
                 + self.sample.centre
-                - self.scan.poses.shifts[index]
-                + np.array([driftx, drifty, 0])
+                - position
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
 
-        simulate.input.spec_atoms = atoms.translate(
+        # Select atoms in FOV
+        fov_xmin = origin[0] - offset
+        fov_xmax = fov_xmin + x_fov + 2 * offset
+        fov_ymin = origin[1] - offset
+        fov_ymax = fov_ymin + y_fov + 2 * offset
+        if len(atoms.data) > 0:
+            select = (
+                (atoms.data["x"] >= fov_xmin)
+                & (atoms.data["x"] <= fov_xmax)
+                & (atoms.data["y"] >= fov_ymin)
+                & (atoms.data["y"] <= fov_ymax)
+            )
+            atoms.data = atoms.data[select]
+
+        # Translate for the detector
+        input_multislice.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
         logger.info("   Got spec atoms")
 
-        print(
-            "Atoms X min/max: %.1f, %.1f"
-            % (atoms.data["x"].min(), atoms.data["x"].max())
-        )
-        print(
-            "Atoms Y min/max: %.1f, %.1f"
-            % (atoms.data["y"].min(), atoms.data["y"].max())
-        )
-        print(
-            "Atoms Z min/max: %.1f, %.1f"
-            % (atoms.data["z"].min(), atoms.data["z"].max())
-        )
+        if len(atoms.data) > 0:
+            print(
+                "Atoms X min/max: %.1f, %.1f"
+                % (atoms.data["x"].min(), atoms.data["x"].max())
+            )
+            print(
+                "Atoms Y min/max: %.1f, %.1f"
+                % (atoms.data["y"].min(), atoms.data["y"].max())
+            )
+            print(
+                "Atoms Z min/max: %.1f, %.1f"
+                % (atoms.data["z"].min(), atoms.data["z"].max())
+            )
 
         if self.simulation["ice"] == True:
-
             # Get the masker
-            masker = simulate.masker(
-                index, pixel_size, (driftx, drifty, 0), origin, offset
+            masker = self.get_masker(
+                index,
+                input_multislice,
+                pixel_size,
+                drift,
+                origin,
+                offset,
+                orientation,
+                position,
             )
 
             # Run the simulation
             image = simulate.image(masker)
 
         else:
-
             # Run the simulation
             logger.info("Simulating")
             image = simulate.image()
@@ -220,24 +287,35 @@ class ExitWaveImageSimulator(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = image[padding:-padding, padding:-padding]
+        image = np.array(output_multislice.data[0].psi_coh).T
+        x0 = padding
+        y0 = padding
+        x1 = image.shape[1] - padding
+        y1 = image.shape[0] - padding
+        image = image[y0:y1, x0:x1]
 
         # Print some info
         psi_tot = np.abs(image) ** 2
         logger.info("Ideal image min/max: %f/%f" % (np.min(psi_tot), np.max(psi_tot)))
 
         # Get the timestamp
-        timestamp = time.time_ns() / 1e9
+        timestamp = time.time()
 
         # Set the metaadata
         metadata = self.metadata[index]
+        metadata["image_number"] = image_number
+        metadata["fraction_number"] = fraction_number
         metadata["timestamp"] = timestamp
         metadata["tilt_alpha"] = angle
-        metadata["stage_z"] = position[2]
-        metadata["shift_x"] = position[0]
-        metadata["shift_y"] = position[1]
-        metadata["shift_offset_x"] = driftx
-        metadata["shift_offset_y"] = drifty
+        metadata["tilt_axis_x"] = axis[0]
+        metadata["tilt_axis_y"] = axis[1]
+        metadata["tilt_axis_z"] = axis[2]
+        metadata["shift_x"] = shift[0]
+        metadata["shift_y"] = shift[1]
+        metadata["stage_z"] = shift[2]
+        metadata["shift_offset_x"] = drift[0]
+        metadata["shift_offset_y"] = drift[1]
+        metadata["stage_offset_z"] = drift[2]
         metadata["energy"] = self.microscope.beam.energy
         metadata["theta"] = self.microscope.beam.theta
         metadata["phi"] = self.microscope.beam.phi
@@ -246,6 +324,8 @@ class ExitWaveImageSimulator(object):
         metadata["ice"] = self.simulation["ice"]
         metadata["damage_model"] = self.simulation["radiation_damage_model"]
         metadata["sensitivity_coefficient"] = self.simulation["sensitivity_coefficient"]
+        metadata["exposure_time"] = exposure_time
+        metadata["dose"] = electrons_per_angstrom
 
         # Compute the image scaled with Poisson noise
         return (index, image, metadata)
@@ -253,9 +333,9 @@ class ExitWaveImageSimulator(object):
 
 def simulation_factory(
     microscope: Microscope,
-    sample: Sample,
+    sample: parakeet.config.Sample,
     scan: Scan,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ) -> Simulation:
@@ -301,8 +381,8 @@ def exit_wave(
     config_file,
     sample_file: str,
     exit_wave_file: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
+    cluster_method: parakeet.config.ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
@@ -340,7 +420,7 @@ def exit_wave(
     _exit_wave_Config(config, sample, exit_wave_file)
 
 
-@exit_wave.register
+@exit_wave.register(parakeet.config.Config)
 def _exit_wave_Config(
     config: parakeet.config.Config, sample: parakeet.sample.Sample, exit_wave_file: str
 ):
@@ -361,7 +441,10 @@ def _exit_wave_Config(
     if config.scan.step_pos == "auto":
         radius = sample.shape_radius
         config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = parakeet.scan.new(
+        electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
+        **config.scan.dict(),
+    )
 
     # Create the simulation
     simulation = simulation_factory(

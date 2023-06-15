@@ -63,7 +63,7 @@ def correct(
     )
 
 
-@correct.register
+@correct.register(parakeet.config.Config)
 def _correct_Config(
     config: parakeet.config.Config,
     image_filename: str,

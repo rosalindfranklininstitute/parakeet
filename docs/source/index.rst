@@ -6,7 +6,7 @@
 Welcome to parakeet's documentation!
 ====================================
 
-.. image:: images/parakeet.png
+.. image:: images/parakeet_logo.png
    :width: 300
 
 .. toctree::

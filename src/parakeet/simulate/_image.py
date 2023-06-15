@@ -24,9 +24,6 @@ from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 
 
-Device = parakeet.config.Device
-
-
 __all__ = ["image"]
 
 
@@ -68,6 +65,10 @@ class ImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
+        exposure_time = self.scan.exposure_time[index]
+        electrons_per_angstrom = self.scan.electrons_per_angstrom[index]
+        if exposure_time <= 0:
+            exposure_time = 1.0
 
         # Check the angle and position
         assert abs(angle - self.optics.header[index]["tilt_alpha"]) < 1e7
@@ -77,12 +78,11 @@ class ImageSimulator(object):
 
         # Compute the number of counts per pixel
         electrons_per_pixel = (
-            self.microscope.beam.electrons_per_angstrom
-            * self.microscope.detector.pixel_size**2
+            electrons_per_angstrom * self.microscope.detector.pixel_size**2
         )
 
         # Compute the electrons per pixel second
-        electrons_per_second = electrons_per_pixel / self.scan.exposure_time
+        electrons_per_second = electrons_per_pixel / exposure_time
         energy = self.microscope.beam.energy
 
         # Get the image
@@ -113,8 +113,8 @@ class ImageSimulator(object):
         )
 
         # Get the image metadata
-        metadata = np.asarray(self.optics.header)[index]
-        metadata["dose"] = self.microscope.beam.electrons_per_angstrom
+        metadata = np.asarray(self.optics.header[index])
+        metadata["dose"] = electrons_per_angstrom
         metadata["dqe"] = self.microscope.detector.dqe
         metadata["gain"] = 1
         metadata["offset"] = 0
@@ -127,7 +127,7 @@ def simulation_factory(
     microscope: Microscope,
     optics: object,
     scan: Scan,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ) -> Simulation:
@@ -185,7 +185,7 @@ def image(config_file, optics_file: str, image_file: str):
     _image_Config(config, optics_file, image_file)
 
 
-@image.register
+@image.register(parakeet.config.Config)
 def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: str):
     """
     Simulate the image with noise
@@ -205,9 +205,14 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
     optics = parakeet.io.open(optics_file)
 
     # Create the scan
-    config.scan.angles = optics.header["tilt_alpha"][:]
-    config.scan.positions = optics.header["shift_y"][:]
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = optics.header.scan
+
+    # Override the dose
+    scan_new = parakeet.scan.new(
+        electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
+        **config.scan.dict(),
+    )
+    scan.data["electrons_per_angstrom"] = scan_new.electrons_per_angstrom
 
     # Create the simulation
     simulation = simulation_factory(

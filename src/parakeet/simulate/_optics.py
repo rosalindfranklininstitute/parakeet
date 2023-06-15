@@ -20,15 +20,10 @@ import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
 from functools import singledispatch
-from math import pi, sin
 from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
-
-
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["optics"]
@@ -77,45 +72,9 @@ class OpticsImageSimulator(object):
 
         """
 
-        def get_defocus(index, angle):
-            """
-            Get the defocus
-
-            Returns:
-                float: defocus
-            """
-
-            defocus = self.microscope.lens.c_10
-            drift = 0
-            defocus_drift = self.microscope.beam.defocus_drift
-            if defocus_drift and not defocus_drift["type"] is None:
-                if defocus_drift["type"] == "random":
-                    drift = np.random.normal(0, defocus_drift["magnitude"])
-                elif defocus_drift["type"] == "random_smoothed":
-                    if index == 0:
-
-                        def generate_smoothed_random(magnitude, num_images):
-                            drift = np.random.normal(0, magnitude, size=(num_images))
-                            drift = np.convolve(drift, np.ones(5) / 5, mode="same")
-                            return drift
-
-                        self._defocus_drift = generate_smoothed_random(
-                            defocus_drift["magnitude"], len(self.scan)
-                        )
-                    drift = self._defocus_drift[index]
-                elif defocus_drift["type"] == "sinusoidal":
-                    drift = sin(angle * pi / 180) * defocus_drift["magnitude"]
-                else:
-                    raise RuntimeError("Unknown drift type")
-                logger.info("Adding defocus drift of %f" % (drift))
-
-            # Return the defocus
-            return defocus + drift
-
         def compute_image(
             psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
         ):
-
             # Set the defocus
             if defocus is not None:
                 microscope.lens.c_10 = defocus
@@ -137,6 +96,14 @@ class OpticsImageSimulator(object):
             # Compute and apply the CTF
             ctf = simulate.ctf()
 
+            # Add the effect of the phase plate
+            if microscope.phase_plate.use:
+                ctf = ctf * parakeet.simulate.phase_plate.compute_phase_shift(
+                    ctf.shape,
+                    microscope.detector.pixel_size,
+                    microscope.phase_plate.phase_shift,
+                    microscope.phase_plate.radius,
+                )
             # Compute the B factor for radiation damage
             # if simulation["radiation_damage_model"]:
             #    sigma_B = sqrt(
@@ -183,14 +150,13 @@ class OpticsImageSimulator(object):
         microscope = copy.deepcopy(self.microscope)
 
         # Get the defocus
-        defocus = get_defocus(index, angle)
+        defocus = microscope.lens.c_10
 
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero
         shape = self.sample["shape"]
         energy_shift = 0
         if self.simulation["inelastic_model"] is None:
-
             # If no inelastic model just calculate image as normal
             image = compute_image(
                 psi,
@@ -205,7 +171,6 @@ class OpticsImageSimulator(object):
             electron_fraction = 1.0
 
         elif self.simulation["inelastic_model"] == "zero_loss":
-
             # Compute the image
             image = compute_image(
                 psi,
@@ -225,11 +190,9 @@ class OpticsImageSimulator(object):
             image *= electron_fraction
 
         else:
-
             # Get the effective thickness
             thickness = parakeet.inelastic.effective_thickness(shape, angle)  # A
             if self.simulation["inelastic_model"] == "unfiltered":
-
                 # Get the energy bins
                 bin_energy, bin_spread, bin_weight = parakeet.inelastic.get_energy_bins(
                     energy=microscope.beam.energy * 1000,  # eV
@@ -240,7 +203,6 @@ class OpticsImageSimulator(object):
                 )
 
             elif self.simulation["inelastic_model"] == "cc_corrected":
-
                 # Get the energy bins
                 bin_energy, bin_spread, bin_weight = parakeet.inelastic.get_energy_bins(
                     energy=microscope.beam.energy * 1000,  # eV
@@ -255,7 +217,6 @@ class OpticsImageSimulator(object):
                 microscope.lens.c_c = 0
 
             elif self.simulation["inelastic_model"] == "mp_loss":
-
                 # Set the filter width
                 filter_width = self.simulation["mp_loss_width"]  # eV
 
@@ -408,7 +369,7 @@ class OpticsImageSimulator(object):
         metadata["phi_56"] = self.microscope.lens.phi_56
         metadata["c_c"] = self.microscope.lens.c_c
         metadata["current_spread"] = self.microscope.lens.current_spread
-        metadata["source_spread"] = self.microscope.beam.source_spread
+        metadata["illumination_semiangle"] = self.microscope.beam.illumination_semiangle
         metadata[
             "acceleration_voltage_spread"
         ] = self.microscope.beam.acceleration_voltage_spread
@@ -430,7 +391,7 @@ def simulation_factory(
     microscope: Microscope,
     exit_wave: object,
     scan: Scan,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     sample: dict = None,
     cluster: dict = None,
@@ -473,8 +434,8 @@ def optics(
     config_file,
     exit_wave_file: str,
     optics_file: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
+    cluster_method: parakeet.config.ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
@@ -508,7 +469,7 @@ def optics(
     _optics_Config(config, exit_wave_file, optics_file)
 
 
-@optics.register
+@optics.register(parakeet.config.Config)
 def _optics_Config(
     config: parakeet.config.Config, exit_wave_file: str, optics_file: str
 ):
@@ -530,9 +491,7 @@ def _optics_Config(
     exit_wave = parakeet.io.open(exit_wave_file)
 
     # Create the scan
-    config.scan.angles = exit_wave.header["tilt_alpha"][:]
-    config.scan.positions = exit_wave.header["shift_y"][:]
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = exit_wave.header.scan
 
     # Create the simulation
     simulation = simulation_factory(

@@ -57,7 +57,7 @@ def reconstruct(
     )
 
 
-@reconstruct.register
+@reconstruct.register(parakeet.config.Config)
 def _reconstruct_Config(
     config: parakeet.config.Config, image_filename: str, rec_filename: str
 ):

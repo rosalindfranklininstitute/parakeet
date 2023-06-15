@@ -21,30 +21,52 @@ def dict_approx_equal(a, b):
 
 
 def test_temp_directory():
-
     assert parakeet.config.temp_directory() == "_parakeet"
 
 
 def test_default():
-
     config = parakeet.config.default()
 
 
 def test_save(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp-save.yaml")
     config = parakeet.config.default()
     parakeet.config.save(config, filename)
 
 
 def test_new(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp.yaml")
     config = parakeet.config.new(filename)
 
 
-def test_load(tmp_path):
+def test_edit(tmp_path):
+    filename = os.path.join(tmp_path, "tmp.yaml")
+    config = parakeet.config.new(filename)
+    config = parakeet.config.edit(
+        filename,
+        config_obj="""
+        sample:
+            box:
+                - 2000
+                - 2000
+                - 2000
+    """,
+    )
+    config = parakeet.config.edit(
+        filename,
+        config_obj="""
+        sample:
+            molecules:
+                pdb:
+                    - id: 4v1w
+                      instances: 1
+    """,
+    )
+    assert config.sample.molecules.pdb[0].id == "4v1w"
+    assert config.sample.box[0] == 2000
 
+
+def test_load(tmp_path):
     filename = os.path.join(tmp_path, "tmp.yaml")
     config = parakeet.config.new(filename)
     config = parakeet.config.load(filename)
@@ -53,5 +75,4 @@ def test_load(tmp_path):
 
 
 def test_show():
-
     parakeet.config.show(parakeet.config.Config())

@@ -8,13 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
-import yaml
 import parakeet.config
 import parakeet.command_line
 from argparse import ArgumentParser
+from typing import List
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -83,25 +83,14 @@ def edit_impl(args):
     # Configure some basic logging
     parakeet.command_line.configure_logging()
 
-    # Parse the arguments
-    config = parakeet.config.load(args.input)
-
-    # Merge the dictionaries
-    d1 = config.dict(exclude_unset=True)
-    d2 = yaml.safe_load(args.config)
-    d = parakeet.config.deepmerge(d1, d2)
-
-    # Load the new configuration
-    config = parakeet.config.load(d)
+    # Call internally
+    config = parakeet.config.edit(args.input, args.output, args.config)
 
     # Print the config
     parakeet.config.show(config, full=True)
 
-    # Save the config
-    parakeet.config.save(config, args.output, exclude_unset=True)
 
-
-def edit(args: list[str] = None):
+def edit(args: List[str] = None):
     """
     Edit the configuration
 

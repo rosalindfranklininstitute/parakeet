@@ -21,9 +21,9 @@ from parakeet.sample import AtomDeleter
 from parakeet.sample import Sample
 from parakeet.sample import recentre
 from parakeet.sample import random_uniform_rotation
-from parakeet.sample import distribute_boxes_uniformly
-from parakeet.sample import shape_enclosed_box
 from parakeet.sample import is_box_inside_shape
+from parakeet.sample.distribute import distribute_particles_uniformly
+from parakeet.sample.distribute import shape_volume_object
 
 
 __all__ = ["add_molecules", "add_single_molecule"]
@@ -117,13 +117,12 @@ def add_multiple_molecules(sample, molecules):
     # Setup some arrays
     atom_data = {}
     all_labels = []
-    all_boxes = []
+    all_radii = []
     all_positions = []
     all_orientations = []
 
     # Generate the orientations and boxes
     for name, value in molecules.items():
-
         # Get the type and instances
         mtype = value["type"]
         items = value["instances"]
@@ -154,31 +153,30 @@ def add_multiple_molecules(sample, molecules):
                 rotation = random_uniform_rotation(1)[0]
             rotation = Rotation.from_rotvec(rotation)
             coords = rotation.apply(atoms.data[["x", "y", "z"]])
+            centre_of_mass = np.mean(coords, axis=0)
+            radius = np.max(np.sqrt(np.sum((coords - centre_of_mass) ** 2, axis=1)))
             all_orientations.append(rotation.as_rotvec())
             all_positions.append(item.get("position", None))
-            all_boxes.append(np.max(coords, axis=0) - np.min(coords, axis=0))
+            all_radii.append(radius)
             all_labels.append(name)
 
     # Put the molecules in the sample
     logger.info("Placing molecules:")
     if any(p is None or len(p) == 0 for p in all_positions):
-        all_positions = distribute_boxes_uniformly(
-            shape_enclosed_box(sample.centre, sample.shape), all_boxes
+        all_positions = distribute_particles_uniformly(
+            shape_volume_object(sample.centre, sample.shape), np.array(all_radii)
         )
 
     # Set the positions and orientations by molecule
     positions = defaultdict(list)
     orientations = defaultdict(list)
-    for label, rotation, position, box in zip(
-        all_labels, all_orientations, all_positions, all_boxes
-    ):
+    for label, rotation, position in zip(all_labels, all_orientations, all_positions):
+        # # Get atom data bounds
+        # x0 = position - box / 2.0
+        # x1 = position + box / 2.0
 
-        # Get atom data bounds
-        x0 = position - box / 2.0
-        x1 = position + box / 2.0
-
-        # Check the coords
-        assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
+        # # Check the coords
+        # assert is_box_inside_shape((x0, x1), sample.centre, sample.shape)
 
         # Construct arrays
         positions[label].append(position)
@@ -224,7 +222,7 @@ def add_molecules(config_file, sample_file: str) -> Sample:
     return _add_molecules_Config(config, sample_file)
 
 
-@add_molecules.register
+@add_molecules.register(parakeet.config.Config)
 def _add_molecules_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     """
     Take a sample and add a load of molecules
@@ -244,7 +242,7 @@ def _add_molecules_Config(config: parakeet.config.Config, sample_file: str) -> S
     return _add_molecules_Sample(config.sample, sample)
 
 
-@add_molecules.register
+@add_molecules.register(parakeet.config.Sample)
 def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Take a sample and add a load of molecules
@@ -268,7 +266,6 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
         if items is None:
             continue
         for item in items:
-
             # Get the key
             if origin == "local":
                 key = item["filename"]

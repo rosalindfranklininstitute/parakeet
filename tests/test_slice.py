@@ -7,7 +7,6 @@ import parakeet.sample
 
 
 def create_input_multislice(n_phonons, single_phonon_conf=False):
-
     # Initialise the input and system configuration
     input_multislice = multem.Input()
 
@@ -56,7 +55,6 @@ def create_input_multislice(n_phonons, single_phonon_conf=False):
 
 
 def test_slice(tmpdir_factory):
-
     directory = tmpdir_factory.mktemp("proc")
     filename = os.path.join(directory, "temp.h5")
     box = (400, 400, 400)

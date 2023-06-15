@@ -8,12 +8,13 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.config
 import parakeet.command_line
 from argparse import ArgumentParser
+from typing import List
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -47,8 +48,21 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=str,
         default=None,
         dest="config",
-        required=True,
         help="The yaml file to configure the simulation",
+    )
+
+    # Add some command line arguments
+    parser.add_argument(
+        "-s",
+        "--schema",
+        type=str,
+        default=None,
+        dest="schema",
+        help=(
+            "Show the config schema. \n"
+            "To show full scheme type '-s .'. \n"
+            "To show the schema for a specific section type e.g. '-s /definitions/Simulation'"
+        ),
     )
 
     return parser
@@ -64,10 +78,10 @@ def show_impl(args):
     config = parakeet.config.load(args.config)
 
     # Print some options
-    parakeet.config.show(config, full=True)
+    print(parakeet.config.show(config, full=True, schema=args.schema))
 
 
-def show(args: list[str] = None):
+def show(args: List[str] = None):
     """
     Show the full configuration
 

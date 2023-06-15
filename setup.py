@@ -17,7 +17,6 @@ class CMakeBuild(build_ext):
     """
 
     def build_extensions(self):
-
         # Set the cmake directory
         cmake_lists_dir = os.path.abspath(".")
 
@@ -66,9 +65,10 @@ def main():
             "h5py",
             "maptools",
             "mrcfile",
-            "numpy",
+            "numpy==1.23",  # Until scikit-image updates
             "pandas",
             "pillow",
+            "profet",
             "pydantic",
             "python-multem",
             "pyyaml",
@@ -83,9 +83,10 @@ def main():
         entry_points={
             "console_scripts": [
                 "parakeet=parakeet.command_line:main",
-                "parakeet.read_pdb=parakeet.command_line:read_pdb",
                 "parakeet.export=parakeet.command_line:export",
                 "parakeet.run=parakeet.command_line:run",
+                "parakeet.pdb.get=parakeet.command_line.pdb:get",
+                "parakeet.pdb.read=parakeet.command_line.pdb:read",
                 "parakeet.config.show=parakeet.command_line.config:show",
                 "parakeet.config.new=parakeet.command_line.config:new",
                 "parakeet.config.edit=parakeet.command_line.config:edit",
@@ -99,6 +100,7 @@ def main():
                 "parakeet.simulate.optics=parakeet.command_line.simulate:optics",
                 "parakeet.simulate.image=parakeet.command_line.simulate:image",
                 "parakeet.simulate.simple=parakeet.command_line.simulate:simple",
+                "parakeet.simulate.cbed=parakeet.command_line.simulate:cbed",
                 "parakeet.simulate.ctf=parakeet.command_line.simulate:ctf",
                 "parakeet.metadata.export=parakeet.command_line.metadata:export",
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",

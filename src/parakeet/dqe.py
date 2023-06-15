@@ -9,7 +9,6 @@
 # which is included in the root directory of this package.
 #
 import numpy as np
-import scipy.interpolate
 
 
 class DQETable(object):
@@ -101,7 +100,7 @@ class DQETable(object):
             ]
         )
 
-    def dqe_table(self, energy, eps):
+    def dqe_table(self, energy: float, eps: float) -> np.ndarray:
         """
         Return a DQE table for the specified electrons per second
 
@@ -111,7 +110,7 @@ class DQETable(object):
             table.append(np.interp(eps, self.eps, self.dqe_300kev[i, :]))
         return np.array(table)
 
-    def dqe_fs(self, energy, eps, shape):
+    def dqe_fs(self, energy: float, eps: float, shape: tuple) -> np.ndarray:
         """
         Return a DQE image in fourier space
 
@@ -128,4 +127,4 @@ class DQETable(object):
         )
 
         # Compute the DQE array
-        return scipy.interp(F, self.spatial_freq, dqe_table).reshape(shape)
+        return np.interp(F.flatten(), self.spatial_freq, dqe_table).reshape(shape)

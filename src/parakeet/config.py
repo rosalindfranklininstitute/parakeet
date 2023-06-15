@@ -10,6 +10,7 @@
 #
 import copy
 import logging
+import os
 import yaml
 
 from enum import Enum
@@ -40,7 +41,6 @@ class BaseModel(PydanticBaseModel):
     """
 
     class Config:
-
         # Ensure that enums use string values
         use_enum_values = True
 
@@ -48,7 +48,7 @@ class BaseModel(PydanticBaseModel):
         extra = "forbid"
 
 
-class Auto(Enum):
+class Auto(str, Enum):
     """
     An enumeration just containing auto
 
@@ -57,7 +57,7 @@ class Auto(Enum):
     auto = "auto"
 
 
-class ShapeType(Enum):
+class ShapeType(str, Enum):
     """
     An enumeration of sample shape types
 
@@ -95,7 +95,22 @@ class Cylinder(BaseModel):
     """
 
     length: float = Field(0, description="The cylinder length (A)", gt=0)
-    radius: float = Field(0, description="The cylinder radius (A)", gt=0)
+
+    radius: Union[float, List[float]] = Field(
+        0, description="The cylinder radius (A)", gt=0
+    )
+
+    axis: Tuple[float, float, float] = Field(
+        (0, 1, 0), description="The axis of the cylinder"
+    )
+
+    offset_x: List[float] = Field(
+        None, description="The x offset as a function of cylinder y position"
+    )
+
+    offset_z: List[float] = Field(
+        None, description="The z offset as a function of cylinder y position"
+    )
 
 
 class Shape(BaseModel):
@@ -155,13 +170,54 @@ class MoleculePose(BaseModel):
 
     orientation: Optional[Tuple[float, float, float]] = Field(
         description=(
-            "The molecule orientation defined as a rotation vector. Setting "
-            "this to null or an empty list will cause parakeet to give a "
-            "random orientation"
+            "The molecule orientation defined as a rotation vector where "
+            "the direction of the vector gives the rotation axis and the "
+            "magnitude of the vector gives the rotation angle in radians. Setting "
+            "this to null or an empty list will cause parakeet to give a random orientation"
         ),
         examples=[
             "orienation: null # Assign random orienation",
             "orienation: [] # Assign random orienation",
+            "orienation: [1, 2, 3] # Assign known orienation",
+        ],
+    )
+
+
+class CoordinateFile(BaseModel):
+    """
+    A model to describe a local coordinate file
+
+    """
+
+    filename: str = Field(
+        None, description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
+    )
+
+    recentre: bool = Field(True, description="Recentre the coordinates")
+
+    scale: float = Field(1, description="Scale the coordinates x' = x * scale")
+
+    position: Optional[Tuple[float, float, float]] = Field(
+        description=(
+            "The model position (A, A, A). "
+            "If recentre if set then the model will be centred on the given position. "
+            "If recentre if not set then the model will be translated by the given position. "
+        ),
+        examples=[
+            "position: null # Assign [0, 0, 0] position",
+            "position: [1, 2, 3] # Assign known position",
+        ],
+    )
+
+    orientation: Optional[Tuple[float, float, float]] = Field(
+        description=(
+            "The model orientation defined as a rotation vector where "
+            "the direction of the vector gives the rotation axis and the "
+            "magnitude of the vector gives the rotation angle in radians. Setting "
+            "this to null or an empty list will cause parakeet to give a zero orientation"
+        ),
+        examples=[
+            "orienation: null # Assign [0, 0, 0] orienation",
             "orienation: [1, 2, 3] # Assign known orienation",
         ],
     )
@@ -178,6 +234,7 @@ class LocalMolecule(BaseModel):
     )
 
     instances: Union[int, List[MoleculePose]] = Field(
+        1,
         description=(
             "The instances of the molecule to put into the sample model. This "
             "field can be set as either an integer or a list of MoleculePose "
@@ -207,6 +264,7 @@ class PDBMolecule(BaseModel):
     )
 
     instances: Union[int, List[MoleculePose]] = Field(
+        1,
         description=(
             "The instances of the molecule to put into the sample model. This "
             "field can be set as either an integer or a list of MoleculePose "
@@ -285,6 +343,10 @@ class Sample(BaseModel):
         (500, 500, 500), description="The centre of rotation (A, A, A)"
     )
 
+    coords: Optional[CoordinateFile] = Field(
+        description="Coordinates to initialise the sample"
+    )
+
     molecules: Optional[Molecules] = Field(
         description="The molecules to include in the sample model"
     )
@@ -294,39 +356,6 @@ class Sample(BaseModel):
     sputter: Optional[Sputter] = Field(
         description="The sputter coating model parameters."
     )
-
-
-class DriftType(Enum):
-    """
-    An enumeration to describe the beam and defocus drift type
-
-    """
-
-    random = "random"
-    random_smoothed = "random_smoothed"
-    sinusoidal = "sinusoidal"
-
-
-class BeamDrift(BaseModel):
-    """
-    A model to describe the beam drift
-
-    """
-
-    type: DriftType = Field(None, description="The beam drift type")
-
-    magnitude: float = Field(0, description="The magnitude of the beam drift (A)")
-
-
-class DefocusDrift(BaseModel):
-    """
-    A model to describe the defocus drift
-
-    """
-
-    type: DriftType = Field(None, description="The defocus drift type")
-
-    magnitude: float = Field(0, description="The magnitude of the defocus drift (A)")
 
 
 class Beam(BaseModel):
@@ -344,20 +373,17 @@ class Beam(BaseModel):
     )
 
     electrons_per_angstrom: float = Field(
-        30, description="The number of electrons per square angstrom"
+        140,
+        description="The number of electrons per square angstrom. This is the dose per image (across all fractions).",
     )
 
-    source_spread: float = Field(0.1, description="The source spread (mrad).")
+    illumination_semiangle: float = Field(
+        0.02, description="The illumination semiangle (mrad)."
+    )
 
     theta: float = Field(0, description="The beam tilt theta angle (deg)")
 
     phi: float = Field(0, description="The beam tilt phi angle (deg)")
-
-    drift: Optional[BeamDrift] = Field(description="The beam drift model parameters")
-
-    defocus_drift: Optional[DefocusDrift] = Field(
-        description="The defocus drift model parameters"
-    )
 
 
 class Lens(BaseModel):
@@ -416,6 +442,9 @@ class Lens(BaseModel):
         0, description="The Azimuthal angle of 6-fold astigmatism (rad)"
     )
 
+    inner_aper_ang: float = Field(0, description="The inner aperture angle")
+    outer_aper_ang: float = Field(0, description="The outer aperture angle")
+
     c_c: float = Field(2.7, description="The chromatic aberration (mm)")
 
     current_spread: float = Field(0.33e-6, description="The current spread (dI/I)")
@@ -440,7 +469,7 @@ class Detector(BaseModel):
     )
 
 
-class MicroscopeModel(Enum):
+class MicroscopeModel(str, Enum):
     """
     An enumeration to describe the microscope model
 
@@ -448,6 +477,19 @@ class MicroscopeModel(Enum):
 
     krios = "krios"
     talos = "talos"
+
+
+class PhasePlate(BaseModel):
+    """
+    A model to describe the phase plate
+
+    """
+
+    use: bool = Field(False, description="Use the phase plate")
+
+    phase_shift: float = Field(90, description="The phase shift (degrees)")
+
+    radius: float = Field(0.005, gt=0, description="The spot radius (1/A)")
 
 
 class Microscope(BaseModel):
@@ -464,22 +506,45 @@ class Microscope(BaseModel):
 
     lens: Lens = Field(Lens(), description="The lens model parameters")
 
-    phase_plate: bool = Field(False, description="Use a phase plate (True/False)")
+    phase_plate: PhasePlate = Field(
+        PhasePlate(), description="The phase plate parameters"
+    )
 
     detector: Detector = Field(Detector(), description="The detector model parameters")
 
 
-class ScanMode(Enum):
+class ScanMode(str, Enum):
     """
     An enumeration to describe the scan mode
 
     """
 
+    manual = "manual"
     still = "still"
     tilt_series = "tilt_series"
     dose_symmetric = "dose_symmetric"
     single_particle = "single_particle"
     helical_scan = "helical_scan"
+    nhelix = "nhelix"
+    beam_tilt = "beam_tilt"
+    grid_scan = "grid_scan"
+
+
+class Drift(BaseModel):
+    """
+    A model to describe the beam drift
+
+    """
+
+    x: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the x drift a + b*theta**4 (A)"
+    )
+    y: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the y drift a + b*theta**4 (A)"
+    )
+    z: Union[float, Tuple[float, float]] = Field(
+        0, description="The model for the z drift a + b*theta**4 (A)"
+    )
 
 
 class Scan(BaseModel):
@@ -498,36 +563,73 @@ class Scan(BaseModel):
 
     step_angle: float = Field(0, description="The step angle for the rotation (deg)")
 
-    start_pos: float = Field(
+    start_pos: Union[float, Tuple[float, float]] = Field(
         0, description="The start position for a translational scan (A)"
     )
 
-    step_pos: Union[float, Auto] = Field(
+    step_pos: Union[float, Tuple[float, float], Auto] = Field(
         "auto", description="The step distance for a translational scan (A)"
     )
 
-    num_images: int = Field(1, description="The number of images to simulate")
+    num_images: Union[int, Tuple[int, int]] = Field(
+        1,
+        description=(
+            "The number of images to simulate. "
+            "For a tilt series this is the number of tilt steps. "
+            "If num_fractions is also set to something other than 1, "
+            "then there will be num_fractions number of 'movie frames' per 'image'"
+        ),
+    )
+
+    num_fractions: int = Field(
+        1,
+        description=(
+            "The number of movie frames. This refers to the frames of the micrograph 'movies'. "
+            "For a tilt series, all these images will be at the same step and the dose for a 'single image' "
+            "will be fractionated over these image frames"
+        ),
+    )
+
+    num_nhelix: int = Field(1, description="The number of scans in an n-helix")
 
     exposure_time: float = Field(1, description="The exposure time per image (s)")
 
     angles: Optional[List[float]] = Field(
         None,
         description=(
-            "The list of angles to use (deg). If this is set, then the "
-            "num_images, start_angle and step_angle fields are overridden"
+            "The list of angles to use (deg). This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
         ),
     )
 
     positions: Optional[List[float]] = Field(
         None,
         description=(
-            "The list of positions to use (A). If this is set, then the "
-            "num_images, start_pos and step_pos fields are overridden"
+            "The list of positions to use (A). This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
         ),
     )
 
+    theta: Optional[Union[float, List[float]]] = Field(
+        None,
+        description=(
+            "The list of theta angles to use (mrad) for the beam tilt."
+            "This must either be the same length as phi or a scalar"
+        ),
+    )
 
-class InelasticModel(Enum):
+    phi: Optional[Union[float, List[float]]] = Field(
+        None,
+        description=(
+            "The list of phi angles to use (mrad) for the beam tilt."
+            "This must either be the same length as theta or a scalar"
+        ),
+    )
+
+    drift: Optional[Drift] = Field(description="The drift model parameters")
+
+
+class InelasticModel(str, Enum):
     """
     A model to describe the inelastic scattering mode
 
@@ -539,7 +641,7 @@ class InelasticModel(Enum):
     cc_corrected = "cc_corrected"
 
 
-class MPLPosition(Enum):
+class MPLPosition(str, Enum):
     """
     A model to describe the MPL position mode
 
@@ -582,11 +684,17 @@ class Simulation(BaseModel):
     )
 
     sensitivity_coefficient: float = Field(
-        0.022, description="The radiation damage model sensitivity coefficient"
+        0.022,
+        description=(
+            "The radiation damage model sensitivity coefficient. "
+            "This value relates the value of an isotropic B factor to the number of "
+            "incident electrons. Typical values for this (calibrated from X-ray and EM data) "
+            "range between 0.02 and 0.08 where a higher value will result in a larger B factor."
+        ),
     )
 
 
-class ClusterMethod(Enum):
+class ClusterMethod(str, Enum):
     """
     An enumeration to describe the cluster method
 
@@ -606,7 +714,7 @@ class Cluster(BaseModel):
     max_workers: int = Field(1, description="The maximum number of worker processes")
 
 
-class Device(Enum):
+class Device(str, Enum):
     """
     An enumeration to set whether to run on the GPU or CPU
 
@@ -715,7 +823,11 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     else:
         include = {
             "microscope": {
-                "beam": {"electrons_per_angstrom", "energy", "source_spread"},
+                "beam": {
+                    "electrons_per_angstrom",
+                    "energy",
+                    "illumination_semiangle",
+                },
                 "detector": {
                     "nx",
                     "ny",
@@ -749,25 +861,74 @@ def new(filename: str = "config.yaml", full: bool = False) -> Config:
     return config
 
 
-def show(config: Config, full: bool = False):
+def edit(
+    in_filename: str = "config.yaml", out_filename: str = None, config_obj: str = ""
+):
+    """
+    Edit the configuration
+
+    """
+
+    def get_config_obj(config_obj):
+        if isinstance(config_obj, str):
+            return yaml.safe_load(config_obj)
+        return config_obj
+
+    # Check the output filename
+    if out_filename is None:
+        out_filename = in_filename
+
+    # Parse the arguments
+    config = load(in_filename)
+
+    # Merge the dictionaries
+    d1 = config.dict(exclude_unset=True)
+    d2 = get_config_obj(config_obj)
+    d = deepmerge(d1, d2)
+
+    # # Load the new configuration
+    config = load(d)
+
+    # Save the config
+    save(config, out_filename, exclude_unset=True)
+
+    # Return config
+    return config
+
+
+def show(config: Config, full: bool = False, schema: str = None):
     """
     Print the command line arguments
 
     Args:
         config: The configuration object
         full: Show the full configuration (True or False)
+        schema: Show the schema
 
     """
-    logger.info(
-        "\n".join(
-            [
-                f"{line}"
-                for line in yaml.safe_dump(
-                    config.dict(exclude_unset=not full), indent=4
-                ).split("\n")
-            ]
-        )
-    )
+    if schema:
+        if schema in ["."]:
+            d = config.schema()
+        elif schema.startswith("/definitions/"):
+            schema = os.path.basename(schema)
+            try:
+                d = config.schema()["definitions"][schema]
+            except Exception as e:
+                raise RuntimeError(
+                    "Unable to find definition '%s' in\n%s"
+                    % (
+                        schema,
+                        "\n".join(
+                            " - %s" % v
+                            for v in sorted(config.schema()["definitions"].keys())
+                        ),
+                    )
+                )
+        else:
+            raise RuntimeError("Unknown scheme value '%s' (see help)" % schema)
+    else:
+        d = config.dict(exclude_unset=not full)
+    return yaml.safe_dump(d, indent=4)
 
 
 def deepmerge(a: dict, b: dict) -> dict:
@@ -786,6 +947,8 @@ def deepmerge(a: dict, b: dict) -> dict:
         for key, value in other.items():
             if key in self:
                 if isinstance(value, dict):
+                    if self[key] is None:
+                        self[key] = {}
                     deepmerge_internal(self[key], value)
                 else:
                     self[key] = copy.deepcopy(value)

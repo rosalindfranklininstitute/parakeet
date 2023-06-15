@@ -23,8 +23,6 @@ from parakeet.microscope import Microscope
 from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
 
-Device = parakeet.config.Device
-
 
 __all__ = ["simple"]
 
@@ -117,7 +115,7 @@ class SimpleImageSimulator(object):
 def simulation_factory(
     microscope: Microscope,
     atoms: str,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
 ):
     """
@@ -181,7 +179,7 @@ def simple(config_file, atoms_file: str, output_file: str):
     _simple_Config(config, atoms_file, output_file)
 
 
-@simple.register
+@simple.register(parakeet.config.Config)
 def _simple_Config(config: parakeet.config.Config, atoms_file: str, output_file: str):
     """
     Simulate the image

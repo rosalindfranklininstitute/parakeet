@@ -177,6 +177,26 @@ parakeet.analyse.refine
    :prog: parakeet.analyse.refine
 
 
+PDB file programs
+------------------
+
+parakeet.pdb.read
+^^^^^^^^^^^^^^^^^
+
+.. argparse::
+   :module: parakeet.command_line.pdb._read
+   :func: get_parser
+   :prog: parakeet.pdb.read
+
+parakeet.pdb.get
+^^^^^^^^^^^^^^^^^
+
+.. argparse::
+   :module: parakeet.command_line.pdb._get
+   :func: get_parser
+   :prog: parakeet.pdb.get
+
+
 Other programs
 --------------
 
@@ -187,14 +207,6 @@ parakeet.export
    :module: parakeet.command_line._export
    :func: get_parser
    :prog: parakeet.export
-
-parakeet.read_pdb
-^^^^^^^^^^^^^^^^^
-
-.. argparse::
-   :module: parakeet.command_line._read_pdb
-   :func: get_parser
-   :prog: parakeet.read_pdb
 
 parakeet.run
 ^^^^^^^^^^^^

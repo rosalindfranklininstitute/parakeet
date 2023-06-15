@@ -8,6 +8,9 @@ on:
   release:
     types: [ created ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   build-linux:
     
@@ -36,6 +39,7 @@ jobs:
     - name: Install dependencies
       run: |
         conda env update --file conda/environment.yaml --name base
+        conda config --env --add channels conda-forge
         conda config --env --add channels james.parkhurst
         conda config --set anaconda_upload yes
         

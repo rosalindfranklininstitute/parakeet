@@ -59,6 +59,9 @@ class RelionMetadataExporter(object):
         self.corrected_micrographs_filename = os.path.join(
             self.directory, "corrected_micrographs.star"
         )
+        self.single_particle_scan_filename = os.path.join(
+            self.directory, "particle.star"
+        )
 
     def write_input_file(self):
         """
@@ -159,7 +162,6 @@ class RelionMetadataExporter(object):
         """
 
         for i in range(1, self.config.scan.num_images + 1):
-
             # Create the dictionary
             data = {
                 "picking": pd.DataFrame.from_dict(
@@ -175,6 +177,25 @@ class RelionMetadataExporter(object):
 
             # Write the file
             starfile.write(data, self.manual_pick_filename % i, overwrite=True)
+
+    def write_single_particle_scan_files(self):
+        """
+        Write out a star file with single particle simulation metadata
+
+        """
+        scan = parakeet.scan.new(**self.config.scan.dict())
+        relion_eulers = scan.euler_angles
+        relion_shifts = -scan.shift
+        data = {
+            "rlnAngleRot": relion_eulers[:, 0],
+            "rlnAngleTilt": relion_eulers[:, 1],
+            "rlnAnglePsi": relion_eulers[:, 2],
+            "rlnOriginX": relion_shifts[:, 0],
+            "rlnOriginY": relion_shifts[:, 1],
+            "rlnOriginZ": relion_shifts[:, 2],
+        }
+        df = pd.DataFrame.from_dict(data)
+        starfile.write(df, self.single_particle_scan_filename, overwrite=True)
 
 
 def export_relion(config: parakeet.config.Config, sample: Sample, directory: str):
@@ -193,6 +214,7 @@ def export_relion(config: parakeet.config.Config, sample: Sample, directory: str
     exporter.write_input_file()
     exporter.write_mtf_file()
     exporter.write_corrected_micrographs_file()
+    exporter.write_single_particle_scan_files()
 
 
 @singledispatch
@@ -214,10 +236,10 @@ def export(config_file, sample_file: str, directory: str = ".", relion: bool = T
     sample = Sample(sample_file, mode="r")
 
     # Export the metadata
-    return _export_Config(config, sample)
+    return _export_Config(config, sample, directory, relion)
 
 
-@export.register
+@export.register(parakeet.config.Config)
 def _export_Config(
     config: parakeet.config.Config,
     sample: Sample,

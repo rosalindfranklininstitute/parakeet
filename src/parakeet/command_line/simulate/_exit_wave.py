@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import time
@@ -20,6 +20,7 @@ import parakeet.sample
 import parakeet.scan
 import parakeet.simulate
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["exit_wave"]
@@ -126,7 +127,7 @@ def exit_wave_impl(args):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def exit_wave(args: list[str] = None):
+def exit_wave(args: List[str] = None):
     """
     Simulate the exit wave from the sample
 

@@ -19,6 +19,7 @@ import parakeet.freeze
 from math import pi, floor
 from scipy.spatial.transform import Rotation
 from functools import singledispatch
+from parakeet.sample import recentre
 from parakeet.sample import Sample
 from parakeet.sample import AtomData
 from parakeet.sample import random_uniform_rotation
@@ -134,7 +135,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
 
     # Uniform random or packed
     if not pack:
-
         # The water filename
         filename = parakeet.data.get_path("water.cif")
 
@@ -168,7 +168,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         H2 = rotation.apply(water_coords.iloc[2].copy()) + translation
 
         def create_atom_data(atomic_number, coords):
-
             # Create a new array
             def new_array(size, name, value):
                 return (
@@ -206,7 +205,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         sample.add_atoms(AtomData(data=pandas.concat(data_buffer, ignore_index=True)))
 
     else:
-
         # Van der Waals radius of water
         van_der_waals_radius = 2.7 / 2.0  # A
 
@@ -255,7 +253,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         max_buffer = 10_000_000
         data_buffer = []
         for x_index, x_slice in enumerate(packer):
-
             # Read the coordinates. The packer goes along the z axis so we need to
             # flip the coordinates since we want x slices
             coords = []
@@ -276,7 +273,6 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
 
             def create_atom_data(atomic_number, coords):
-
                 # Create a new array
                 def new_array(size, name, value):
                     return (
@@ -365,7 +361,7 @@ def new(config_file, sample_file: str) -> Sample:
     return _new_Config(config, sample_file)
 
 
-@new.register
+@new.register(parakeet.config.Config)
 def _new_Config(config: parakeet.config.Config, filename: str) -> Sample:
     """
     Create the sample
@@ -381,7 +377,7 @@ def _new_Config(config: parakeet.config.Config, filename: str) -> Sample:
     return _new_Sample(config.sample, filename)
 
 
-@new.register
+@new.register(parakeet.config.Sample)
 def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     """
     Create the sample
@@ -398,6 +394,7 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     centre = config.centre
     shape = config.shape.dict()
     ice = config.ice
+    coords = config.coords
 
     # Check the dimensions are valid
     assert parakeet.sample.is_shape_inside_box(box, centre, shape)
@@ -413,6 +410,30 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     # Add some ice
     if ice is not None and ice.generate:
         add_ice(sample, centre, shape, ice.density)
+
+    # Add atoms from coordinates file
+    if coords is not None and coords.filename is not None:
+        atoms = AtomData.from_gemmi_file(coords.filename)
+        if coords.recentre:
+            atoms.data = recentre(atoms.data)
+            position = sample.centre
+            orientation = (0, 0, 0)
+        else:
+            position = (0, 0, 0)
+            orientation = (0, 0, 0)
+        if coords.position:
+            position = coords.position  # type: ignore
+        if coords.orientation:
+            orientation = coords.orientation  # type: ignore
+        if coords.scale != 1.0:
+            atoms.data["x"] = atoms.data["x"] * coords.scale
+            atoms.data["y"] = atoms.data["y"] * coords.scale
+            atoms.data["z"] = atoms.data["z"] * coords.scale
+
+        # Add the molecule
+        sample.add_molecule(
+            atoms, positions=[position], orientations=[orientation], name=None
+        )
 
     # Print some info
     logger.info(sample.info())

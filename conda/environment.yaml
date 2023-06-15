@@ -1,7 +1,7 @@
 name: parakeet
 channels:
-  - james.parkhurst
   - conda-forge
+  - james.parkhurst
 dependencies:
   - python=3.9
   - conda-build

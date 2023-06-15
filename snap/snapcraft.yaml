@@ -24,7 +24,7 @@ architectures:
 package-repositories:
   - type: apt
     formats: [deb]
-    key-id: AE09FE4BBD223A84B2CCFCE3F60F4B3D7FA2AF80
+    key-id: EB693B3035CD5710E231E123A4B469963BF863CC
     key-server: hkp://keyserver.ubuntu.com:80
     url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64
 
@@ -50,7 +50,7 @@ parts:
       - libcufft-11-6
     override-pull: |
       snapcraftctl pull
-      snapcraftctl set-version "$(git describe --tags)"
+      snapcraftctl set-version "$(git describe --tags --always)"
 
 apps:
   parakeet:

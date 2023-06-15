@@ -27,7 +27,6 @@ random.seed(0)
 
 
 def _rotate_array(data, rotation, offset):
-
     # Create the pixel indices
     az = np.arange(data.shape[0])
     ay = np.arange(data.shape[1])
@@ -65,7 +64,6 @@ def _rotate_array(data, rotation, offset):
 
 
 def _process_sub_tomo(args):
-
     sub_tomo, position, orientation, half_index = args
 
     # Set the data to transform
@@ -92,36 +90,61 @@ def _iterate_particles(
     size,
     half_length,
     half_shape,
+    voxel_size,
     tomogram,
 ):
+    for j in range(len(indices)):
+        for i in indices[j]:
+            position = positions[i]
+            orientation = orientations[i]
 
-    for j, i in zip(half_index, indices):
-        position = positions[i]
-        orientation = orientations[i]
-
-        # Compute p within the volume
-        # start_position = np.array([0, scan["start_pos"], 0])
-        p = position - (centre - size / 2.0)  # - start_position
-        p[2] = size[2] - p[2]
-        print(
-            "Particle %d: position = %s, orientation = %s"
-            % (
-                i,
-                "[ %.1f, %.1f, %.1f ]" % tuple(p),
-                "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
+            # Compute p within the volume
+            # start_position = np.array([0, scan["start_pos"], 0])
+            p = position - (centre - size / 2.0)  # - start_position
+            p[2] = size[2] - p[2]
+            print(
+                "Particle %d: position = %s, orientation = %s"
+                % (
+                    i,
+                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
+                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
+                )
             )
-        )
 
-        # Set the region to extract
-        x0 = np.floor(p).astype("int32") - half_length
-        x1 = np.floor(p).astype("int32") + half_length
-        offset = p - np.floor(p).astype("int32")
+            # Set the region to extract
+            x0 = np.floor(p / voxel_size).astype("int32") - half_length
+            x1 = np.floor(p / voxel_size).astype("int32") + half_length
+            offset = p - np.floor(p).astype("int32")
 
-        # Get the sub tomogram
-        print("Getting sub tomogram")
-        sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-        if sub_tomo.shape == half_shape[1:]:
-            yield (sub_tomo, offset, orientation, j)
+            # Get the sub tomogram
+            print("Getting sub tomogram")
+            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
+            if sub_tomo.shape == half_shape[-3:]:
+                print("YIELD")
+                yield (sub_tomo, offset, orientation, j)
+
+
+def lazy_map(executor, func, iterable) -> tuple:
+    """
+    A lazy map function for concurrent processes
+
+    """
+    max_workers = executor._max_workers
+
+    futures = []
+    for it in iterable:
+        futures.append(executor.submit(func, it))
+        while len(futures) >= max_workers:
+            temp = []
+            for f in futures:
+                if f.done():
+                    yield f.result()
+                else:
+                    temp.append(f)
+            futures = temp
+
+    for future in concurrent.futures.as_completed(futures):
+        yield future.result()
 
 
 @singledispatch
@@ -169,7 +192,7 @@ def average_particles(
     )
 
 
-@average_particles.register
+@average_particles.register(parakeet.config.Scan)
 def _average_particles_Config(
     config: parakeet.config.Scan,
     sample: parakeet.sample.Sample,
@@ -202,12 +225,13 @@ def _average_particles_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] == voxel_size[1]
+    assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
     assert sample.number_of_molecules == 1
     for name, (atoms, positions, orientations) in sample.iter_molecules():
-
         # Compute the box size based on the size of the particle so that any
         # orientation should fit within the box
         xmin = atoms.data["x"].min()
@@ -222,7 +246,15 @@ def _average_particles_Config(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                int(
+                    ceil(
+                        sqrt(
+                            ((xmin - xc) / voxel_size[0]) ** 2
+                            + ((ymin - yc) / voxel_size[1]) ** 2
+                            + ((zmin - zc) / voxel_size[2]) ** 2
+                        )
+                    )
+                )
                 + 1
             )
         else:
@@ -262,8 +294,9 @@ def _average_particles_Config(
 
         # Loop through all the particles
         count = 0
-        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-            for half_index, data in executor.map(
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            for half_index, data in lazy_map(
+                executor,
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
@@ -274,6 +307,7 @@ def _average_particles_Config(
                     size,
                     half_length,
                     half.shape,
+                    voxel_size,
                     tomogram,
                 ),
             ):
@@ -342,7 +376,7 @@ def average_all_particles(
     )
 
 
-@average_all_particles.register
+@average_all_particles.register(parakeet.config.Scan)
 def _average_all_particles_Config(
     config: parakeet.config.Scan,
     sample: parakeet.sample.Sample,
@@ -356,8 +390,44 @@ def _average_all_particles_Config(
 
     """
 
-    # Get the scan dict
-    # scan = config.dict()
+    def rotate_array(data, rotation, offset):
+        # Create the pixel indices
+        az = np.arange(data.shape[0])
+        ay = np.arange(data.shape[1])
+        ax = np.arange(data.shape[2])
+        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
+
+        # Create a stack of coordinates
+        xyz = np.vstack(
+            [
+                x.reshape(-1) - offset[0],
+                y.reshape(-1) - offset[1],
+                z.reshape(-1) - offset[2],
+            ]
+        ).T
+
+        # create transformation matrix
+        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
+
+        # apply transformation
+        transformed_xyz = r.apply(xyz)
+
+        # extract coordinates
+        x = transformed_xyz[:, 0] + offset[0]
+        y = transformed_xyz[:, 1] + offset[1]
+        z = transformed_xyz[:, 2] + offset[2]
+
+        # Reshape
+        x = x.reshape(data.shape)
+        y = y.reshape(data.shape)
+        z = z.reshape(data.shape)
+
+        # sample
+        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
+        return result
+
+    # Get the scan config
+    scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
@@ -374,12 +444,13 @@ def _average_all_particles_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] == voxel_size[1]
+    assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
     assert sample.number_of_molecules == 1
     for name, (atoms, positions, orientations) in sample.iter_molecules():
-
         # Compute the box size based on the size of the particle so that any
         # orientation should fit within the box
         xmin = atoms.data["x"].min()
@@ -394,7 +465,15 @@ def _average_all_particles_Config(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                int(
+                    ceil(
+                        sqrt(
+                            ((xmin - xc) / voxel_size[0]) ** 2
+                            + ((ymin - yc) / voxel_size[1]) ** 2
+                            + ((zmin - zc) / voxel_size[2]) ** 2
+                        )
+                    )
+                )
                 + 1
             )
         else:
@@ -419,15 +498,12 @@ def _average_all_particles_Config(
         )
 
         # Get the random indices
-        indices = np.arange(len(positions), dtype=np.int32)
-        zpos = list(zip(*positions))[1]
-        sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
-        indices = indices[sorted_indices]
-        half_index = np.zeros(indices.size, dtype=np.int32)
+        indices = [list(range(len(positions)))]
 
         # Loop through all the particles
-        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-            for half_index, data in executor.map(
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            for half_index, data in lazy_map(
+                executor,
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
@@ -438,6 +514,7 @@ def _average_all_particles_Config(
                     size,
                     half_length,
                     average.shape,
+                    voxel_size,
                     tomogram,
                 ),
             ):
@@ -450,6 +527,10 @@ def _average_all_particles_Config(
         print("Averaging map with %d particles" % num)
         if num > 0:
             average = average / num
+
+        # from matplotlib import pylab
+        # pylab.imshow(average[half_length, :, :])
+        # pylab.show()
 
         # Save the averaged data
         print("Saving map to %s" % average_filename)

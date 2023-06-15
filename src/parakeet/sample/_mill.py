@@ -48,7 +48,7 @@ def mill(config_file, sample_file: str) -> Sample:
     return _mill_Config(config, sample_file)
 
 
-@mill.register
+@mill.register(parakeet.config.Config)
 def _mill_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     """
     Take a sample and add a load of molecules
@@ -68,7 +68,7 @@ def _mill_Config(config: parakeet.config.Config, sample_file: str) -> Sample:
     return _mill_Sample(config.sample, sample)
 
 
-@mill.register
+@mill.register(parakeet.config.Sample)
 def _mill_Sample(config: parakeet.config.Sample, sample: Sample) -> Sample:
     """
     Mill the sample

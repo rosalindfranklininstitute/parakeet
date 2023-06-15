@@ -24,10 +24,7 @@ from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
 from functools import singledispatch
 from math import pi, floor
-
-Sample = parakeet.sample.Sample
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
+from scipy.spatial.transform import Rotation as R
 
 
 __all__ = ["potential"]
@@ -78,7 +75,12 @@ class ProjectedPotentialSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
-        position = self.scan.positions[index]
+        position = self.scan.position[index]
+        orientation = self.scan.orientation[index]
+        shift = self.scan.shift[index]
+        drift = self.scan.shift_delta[index]
+        beam_tilt_theta = self.scan.beam_tilt_theta[index]
+        beam_tilt_phi = self.scan.beam_tilt_phi[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -124,9 +126,9 @@ class ProjectedPotentialSimulator(object):
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
             coords = (
-                self.scan.poses.orientations[index].apply(coords - self.sample.centre)
+                R.from_rotvec(orientation).apply(coords - self.sample.centre)
                 + self.sample.centre
-                - self.scan.poses.shifts[index]
+                - position
             ).astype("float32")
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
@@ -161,9 +163,9 @@ class ProjectedPotentialSimulator(object):
 def simulation_factory(
     potential_prefix: str,
     microscope: Microscope,
-    sample: Sample,
+    sample: parakeet.sample.Sample,
     scan: Scan,
-    device: Device = Device.gpu,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ) -> Simulation:
@@ -211,8 +213,8 @@ def potential(
     config_file,
     sample_file: str,
     potential_prefix: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
+    cluster_method: parakeet.config.ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """
@@ -246,7 +248,7 @@ def potential(
     _potential_Config(config, sample_file, potential_prefix)
 
 
-@potential.register
+@potential.register(parakeet.config.Config)
 def _potential_Config(
     config: parakeet.config.Config, sample_file: str, potential_prefix: str
 ):
@@ -271,7 +273,10 @@ def _potential_Config(
     if config.scan.step_pos == "auto":
         radius = sample.shape_radius
         config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
-    scan = parakeet.scan.new(**config.scan.dict())
+    scan = parakeet.scan.new(
+        electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
+        **config.scan.dict(),
+    )
 
     # Create the simulation
     simulation = simulation_factory(

@@ -15,6 +15,7 @@ import logging
 import numpy as np
 import pandas
 import scipy.constants
+import json
 from math import pi, sqrt, floor, ceil
 from scipy.spatial.transform import Rotation
 
@@ -140,71 +141,71 @@ def random_uniform_rotation(size=1):
     return vector
 
 
-def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
-    """
-    Find n random non overlapping positions for cuboids within a volume
+# def distribute_boxes_uniformly(volume_box, boxes, max_tries=1000):
+#     """
+#     Find n random non overlapping positions for cuboids within a volume
 
-    Args:
-        volume_box (array): The size of the volume
-        boxes (array): The list of boxes
-        max_tries (int): The maximum tries per cube
+#     Args:
+#         volume_box (array): The size of the volume
+#         boxes (array): The list of boxes
+#         max_tries (int): The maximum tries per cube
 
-    Returns:
-        list: A list of centre positions
+#     Returns:
+#         list: A list of centre positions
 
-    """
+#     """
 
-    # Cast to numpy array
-    volume_lower, volume_upper = np.array(volume_box)
-    boxes = np.array(boxes)
+#     # Cast to numpy array
+#     volume_lower, volume_upper = np.array(volume_box)
+#     boxes = np.array(boxes)
 
-    # Check if the cube overlaps with any other
-    def overlapping(positions, box_sizes, q, q_size):
-        for p, p_size in zip(positions, box_sizes):
-            p0 = p - p_size / 2
-            p1 = p + p_size / 2
-            q0 = q - q_size / 2
-            q1 = q + q_size / 2
-            if not (
-                q0[0] > p1[0]
-                or q1[0] < p0[0]
-                or q0[1] > p1[1]
-                or q1[1] < p0[1]
-                or q0[2] > p1[2]
-                or q1[2] < p0[2]
-            ):
-                return True
-        return False
+#     # Check if the cube overlaps with any other
+#     def overlapping(positions, box_sizes, q, q_size):
+#         for p, p_size in zip(positions, box_sizes):
+#             p0 = p - p_size / 2
+#             p1 = p + p_size / 2
+#             q0 = q - q_size / 2
+#             q1 = q + q_size / 2
+#             if not (
+#                 q0[0] > p1[0]
+#                 or q1[0] < p0[0]
+#                 or q0[1] > p1[1]
+#                 or q1[1] < p0[1]
+#                 or q0[2] > p1[2]
+#                 or q1[2] < p0[2]
+#             ):
+#                 return True
+#         return False
 
-    # Loop until we have added the boxes
-    positions = []
-    box_sizes = []
-    for box_size in boxes:
+#     # Loop until we have added the boxes
+#     positions = []
+#     box_sizes = []
+#     for box_size in boxes:
 
-        # The bounds to search in
-        lower = volume_lower + box_size / 2
-        upper = volume_upper - box_size / 2
-        assert lower[0] < upper[0]
-        assert lower[1] < upper[1]
-        assert lower[2] < upper[2]
+#         # The bounds to search in
+#         lower = volume_lower + box_size / 2
+#         upper = volume_upper - box_size / 2
+#         assert lower[0] < upper[0]
+#         assert lower[1] < upper[1]
+#         assert lower[2] < upper[2]
 
-        # Try to add the box
-        num_tries = 0
-        while True:
-            q = np.random.uniform(lower, upper)
-            if len(positions) == 0 or not overlapping(
-                positions, box_sizes, q, box_size
-            ):
-                positions.append(q)
-                box_sizes.append(box_size)
-                break
-            num_tries += 1
-            if num_tries > max_tries:
-                print("Number of particles placed = %d" % (len(box_sizes)))
-                raise RuntimeError(f"Unable to place cube of size {box_size}")
+#         # Try to add the box
+#         num_tries = 0
+#         while True:
+#             q = np.random.uniform(lower, upper)
+#             if len(positions) == 0 or not overlapping(
+#                 positions, box_sizes, q, box_size
+#             ):
+#                 positions.append(q)
+#                 box_sizes.append(box_size)
+#                 break
+#             num_tries += 1
+#             if num_tries > max_tries:
+#                 print("Number of particles placed = %d" % (len(box_sizes)))
+#                 raise RuntimeError(f"Unable to place cube of size {box_size}")
 
-    # Return the cube positions
-    return positions
+#     # Return the cube positions
+#     return positions
 
 
 def shape_bounding_box(centre, shape):
@@ -491,9 +492,7 @@ class AtomData(object):
         if len(self.data) > 0:
             coords = self.data[["x", "y", "z"]].to_numpy()
             coords = Rotation.from_rotvec(vector).apply(coords).astype(coords.dtype)
-            self.data["x"] = coords[:, 0]
-            self.data["y"] = coords[:, 1]
-            self.data["z"] = coords[:, 2]
+            self.data = self.data.assign(x=coords[:, 0], y=coords[:, 1], z=coords[:, 2])
         return self
 
     def translate(self, translation):
@@ -507,9 +506,7 @@ class AtomData(object):
         if len(self.data) > 0:
             coords = self.data[["x", "y", "z"]].to_numpy()
             coords += np.array(translation, dtype=coords.dtype)
-            self.data["x"] = coords[:, 0]
-            self.data["y"] = coords[:, 1]
-            self.data["z"] = coords[:, 2]
+            self.data = self.data.assign(x=coords[:, 0], y=coords[:, 1], z=coords[:, 2])
         return self
 
     def to_multem(self):
@@ -529,7 +526,7 @@ class AtomData(object):
                 self.data["y"].astype("float32"),
                 self.data["z"].astype("float32"),
                 self.data["sigma"].astype("float32"),
-                [float(1) for i in range(self.data.shape[0])],
+                self.data["occupancy"].astype("float32"),
                 [int(0) for i in range(self.data.shape[0])],
                 self.data["charge"].astype("uint8"),
             )
@@ -575,6 +572,9 @@ class AtomData(object):
                 for chain in model:
                     for residue in chain:
                         for atom in residue:
+                            if atom.element.atomic_number <= 0:
+                                print("BAD ELEMENT")
+                                continue
                             assert atom.element.atomic_number > 0
                             yield (
                                 atom.element.atomic_number,
@@ -583,7 +583,7 @@ class AtomData(object):
                                 atom.pos.z,
                                 get_atom_sigma(atom),
                                 1,  # atom.occ,
-                                0,  # atom.charge,
+                                atom.charge,
                             )
 
         # Create a dictionary of column data
@@ -1102,7 +1102,8 @@ class SampleHDF5Adapter(object):
 
             # Set the shape attributes
             for key, value in shape[shape["type"]].items():
-                self.__handle["shape"].attrs[key] = value
+                if value is not None:
+                    self.__handle["shape"].attrs[key] = value
 
             # Set the margin
             self.__handle["shape"].attrs["margin"] = shape.get("margin", (0, 0, 0))
@@ -1245,7 +1246,6 @@ class Sample(object):
 
         # Check the old bounding box
         if self.number_of_atoms > 0:
-
             # Get the bounding box
             (bx0, by0, bz0), (bx1, by1, bz1) = self.bounding_box
 
@@ -1335,7 +1335,6 @@ class Sample(object):
         for position, rotation, orientation in zip(
             positions, Rotation.from_rotvec(orientations), orientations
         ):
-
             # Make a copy and apply the rotation and translation
             coords = (rotation.apply(reference_coords) + position).astype("float32")
             temp = atoms.data.copy()
@@ -1348,6 +1347,7 @@ class Sample(object):
 
         # Add the molecule to it's own field
         if name is not None:
+            name = name.replace("/", "_").replace("\\", "_").replace(".", "_")
             self.__handle.sample.molecules[name].atoms = atoms.data
             self.__handle.sample.molecules[name].positions = positions
             self.__handle.sample.molecules[name].orientations = orientations
@@ -1624,6 +1624,34 @@ class Sample(object):
             str: Some sample info
 
         """
+
+        class NumpyEncoder(json.JSONEncoder):
+            """Special json encoder for numpy types"""
+
+            def default(self, obj):
+                if isinstance(
+                    obj,
+                    (
+                        np.int_,
+                        np.intc,
+                        np.intp,
+                        np.int8,
+                        np.int16,
+                        np.int32,
+                        np.int64,
+                        np.uint8,
+                        np.uint16,
+                        np.uint32,
+                        np.uint64,
+                    ),
+                ):
+                    return int(obj)
+                elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+                    return float(obj)
+                elif isinstance(obj, (np.ndarray,)):
+                    return obj.tolist()
+                return json.JSONEncoder.default(self, obj)
+
         lines = [
             "Sample information:",
             "    # Molecules:   %d" % self.number_of_molecules,
@@ -1647,7 +1675,8 @@ class Sample(object):
             "    Centre x:      %.2f" % self.centre[0],
             "    Centre y:      %.2f" % self.centre[1],
             "    Centre z:      %.2f" % self.centre[2],
-            "    Shape:         %s" % str(self.shape),
+            "    Shape:         %s"
+            % json.dumps(self.shape, cls=NumpyEncoder, indent=2),
         ]
         for name, molecule in self.iter_molecules():
             molecule_lines = [
@@ -1911,10 +1940,7 @@ class AtomDeleter(object):
         # from matplotlib import pylab
         # pylab.imshow(self.grid[:,:,grid_shape[2]//2])
         # pylab.show()
-
-        self.grid = (
-            scipy.ndimage.morphology.distance_transform_edt(self.grid) < min_distance
-        )
+        # self.grid = scipy.ndimage.distance_transform_edt(~self.grid) < min_distance
         return
         # self.grid = scipy.ndimage.morphology.binary_closing(self.grid, iterations=2)
         # self.grid = scipy.ndimage.morphology.binary_fill_holes(self.grid)

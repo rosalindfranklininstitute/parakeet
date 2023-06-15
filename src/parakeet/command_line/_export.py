@@ -8,7 +8,7 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import logging.config
@@ -18,6 +18,7 @@ import parakeet.io
 import parakeet.config
 import parakeet.sample
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["export"]
@@ -27,32 +28,43 @@ __all__ = ["export"]
 logger = logging.getLogger(__name__)
 
 
-def rebin(data, shape):
+def rebin(data, shape, filter=True):
     """
     Rebin a multidimensional array
 
     Args:
         data (array): The input array
         shape (tuple): The new shape
+        filter: Filter in Fourier space
 
     """
-    f = np.fft.fft2(data)
-    f = np.fft.fftshift(f)
-    yc, xc = data.shape[0] // 2, data.shape[1] // 2
-    yh = shape[0] // 2
-    xh = shape[1] // 2
-    x0 = xc - xh
-    y0 = yc - yh
-    x1 = x0 + shape[1]
-    y1 = y0 + shape[0]
-    y, x = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
-    r = (y - yc) ** 2 / yh**2 + (x - xc) ** 2 / xh**2
-    mask = r < 1.0
-    f = f * mask
-    f = f[y0:y1, x0:x1]
-    f = np.fft.ifftshift(f)
-    d = np.fft.ifft2(f)
-    return d.real
+    if filter:
+        f = np.fft.fft2(data)
+        f = np.fft.fftshift(f)
+        yc, xc = data.shape[0] // 2, data.shape[1] // 2
+        yh = shape[0] // 2
+        xh = shape[1] // 2
+        x0 = xc - xh
+        y0 = yc - yh
+        x1 = x0 + shape[1]
+        y1 = y0 + shape[0]
+        y, x = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+        r = (y - yc) ** 2 / yh**2 + (x - xc) ** 2 / xh**2
+        mask = r < 1.0
+        f = f * mask
+        f = f[y0:y1, x0:x1]
+        f = np.fft.ifftshift(f)
+        d = np.fft.ifft2(f)
+        output = d.real
+    else:
+        shape = (
+            shape[0],
+            data.shape[0] // shape[0],
+            shape[1],
+            data.shape[1] // shape[1],
+        )
+        output = data.reshape(shape).sum(-1).sum(1)
+    return output
 
 
 def filter_image(data, pixel_size, resolution, shape):
@@ -322,7 +334,6 @@ def export_impl(args):
             min_image = []
             max_image = []
             for i in indices:
-
                 # Transform if necessary
                 image = {
                     "complex": lambda x: x,
@@ -386,7 +397,7 @@ def export_impl(args):
         # Rebin the array
         if args.rebin != 1:
             new_shape = np.array(image.shape) // args.rebin
-            image = rebin(image, new_shape)
+            image = rebin(image, new_shape, filter=False)
 
         # Write the image info
         writer.data[j, :, :] = image
@@ -396,7 +407,7 @@ def export_impl(args):
     writer.update()
 
 
-def export(args: list[str] = None):
+def export(args: List[str] = None):
     """
     Convert the input file type to a different file type
 

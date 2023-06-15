@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/ambv/black
-    rev: 22.1.0
+    rev: 23.1.0
     hooks:
     - id: black
       args: [--safe]
@@ -12,9 +12,9 @@ repos:
       args: ['--max-line-length=88', '--select=W291,W292,W293,F401']
       language_version: python3
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.941'
+    rev: 'v0.991'
     hooks:
     -   id: mypy
-        args: [--ignore-missing-imports]
-        additional_dependencies: [ types-PyYAML ]
+        args: []
+        additional_dependencies: [ types-PyYAML, pydantic ]
         exclude: docs

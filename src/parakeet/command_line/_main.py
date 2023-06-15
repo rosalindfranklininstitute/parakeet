@@ -8,17 +8,20 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
-from __future__ import annotations
+
 
 import logging
 import parakeet.config
+
 import parakeet.command_line
-import parakeet.command_line.config as config
-import parakeet.command_line.sample as sample
-import parakeet.command_line.simulate as simulate
-import parakeet.command_line.metadata as metadata
-import parakeet.command_line.analyse as analyse
+from parakeet.command_line import config as config
+from parakeet.command_line import sample as sample
+from parakeet.command_line import simulate as simulate
+from parakeet.command_line import metadata as metadata
+from parakeet.command_line import analyse as analyse
+from parakeet.command_line import pdb as pdb
 from argparse import ArgumentParser
+from typing import List
 
 
 __all__ = ["main"]
@@ -190,6 +193,31 @@ def add_analyse_command(parser: ArgumentParser):
     return parser
 
 
+def add_pdb_command(parser: ArgumentParser):
+    """
+    Add the pdb sub command
+
+    """
+    # Add some sub commands
+    subparsers = parser.add_subparsers(
+        dest="pdb_command", help="The parakeet pdb sub commands"
+    )
+
+    # Add pdb commands
+    pdb._get.get_parser(
+        subparsers.add_parser(
+            "get",
+            help=pdb._get.get_description(),
+        )
+    )
+    pdb._read.get_parser(
+        subparsers.add_parser("read", help=pdb._read.get_description())
+    )
+
+    # Return parser
+    return parser
+
+
 def get_parser() -> ArgumentParser:
     """
     Get the parser for the parakeet.config.new command
@@ -219,14 +247,19 @@ def get_parser() -> ArgumentParser:
         subparsers.add_parser("simulate", help="Commands to simulate the TEM images")
     )
 
+    # Add the "parakeet analyse" command
+    add_analyse_command(
+        subparsers.add_parser("analyse", help="Commands to analyse the simulated data")
+    )
+
     # Add the "parakeet metadata" command
     add_metadata_command(
         subparsers.add_parser("metadata", help="Commands to manipulate metadata")
     )
 
-    # Add the "parakeet analyse" command
-    add_analyse_command(
-        subparsers.add_parser("analyse", help="Commands to analyse the simulated data")
+    # Add the "parakeet pdb" command
+    add_pdb_command(
+        subparsers.add_parser("pdb", help="Commands to operate on pdb files")
     )
 
     # Add the parakeet export command
@@ -237,15 +270,7 @@ def get_parser() -> ArgumentParser:
         )
     )
 
-    # Add the parakeet read_pdb command
-    parakeet.command_line._read_pdb.get_parser(
-        subparsers.add_parser(
-            "read_pdb",
-            help=parakeet.command_line._read_pdb.get_description(),
-        )
-    )
-
-    # Add the parakeet run command
+    # Add the "parakeet run" command
     parakeet.command_line._run.get_parser(
         subparsers.add_parser(
             "run",
@@ -305,7 +330,10 @@ def metadata_main(parser, args):
     Perform the parakeet metadata action
 
     """
-    {None: lambda x: parser.print_help(), "export": metadata._export.export_impl,}[
+    {
+        None: lambda x: parser.print_help(),
+        "export": metadata._export.export_impl,
+    }[
         args.metadata_command
     ](args)
 
@@ -326,20 +354,24 @@ def analyse_main(parser, args):
     }[args.analyse_command](args)
 
 
+def pdb_main(parser, args):
+    """
+    Perform the parakeet pdb action
+
+    """
+    {
+        None: lambda x: parser.print_help(),
+        "get": pdb._get.get_impl,
+        "read": pdb._read.read_impl,
+    }[args.pdb_command](args)
+
+
 def export_main(parser, args):
     """
     Perform the parakeet export action
 
     """
     parakeet.command_line._export.export_impl(args)
-
-
-def read_pdb_main(parser, args):
-    """
-    Perform the parakeet export action
-
-    """
-    parakeet.command_line._read_pdb.read_pdb_impl(args)
 
 
 def run_main(parser, args):
@@ -364,7 +396,25 @@ def get_subparser(parser, command):
     raise RuntimeError("Parser for %s not found" % command)
 
 
-def main():
+def main_impl(parser, args):
+    """
+    Parakeet as a single command line program
+
+    """
+    {
+        None: lambda a, b: parser.print_help(),
+        "config": config_main,
+        "sample": sample_main,
+        "simulate": simulate_main,
+        "analyse": analyse_main,
+        "metadata": metadata_main,
+        "pdb": pdb_main,
+        "export": export_main,
+        "run": run_main,
+    }[args.command](get_subparser(parser, args.command), args)
+
+
+def main(args: List[str] = None):
     """
     Parakeet as a single command line program
 
@@ -374,17 +424,4 @@ def main():
     parser = get_parser()
 
     # Parse the arguments
-    args = parser.parse_args()
-
-    # Call the top level command
-    {
-        None: lambda a, b: parser.print_help(),
-        "config": config_main,
-        "sample": sample_main,
-        "simulate": simulate_main,
-        "analyse": analyse_main,
-        "metadata": metadata_main,
-        "export": export_main,
-        "read_pdb": read_pdb_main,
-        "run": run_main,
-    }[args.command](get_subparser(parser, args.command), args)
+    main_impl(parser, parser.parse_args(args))

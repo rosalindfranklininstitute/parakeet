@@ -8,11 +8,29 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import numpy as np
 import parakeet.config
 import parakeet.beam
 import parakeet.detector
 import parakeet.lens
 from typing import Optional
+from math import pi
+
+
+class PhasePlate(object):
+    """
+    A class to encapsulate a phase plate
+
+    """
+
+    def __init__(self, use=False, phase_shift=0.5 * pi, radius=0.005):
+        """
+        Init the phase plate
+
+        """
+        self.use = use
+        self.phase_shift = phase_shift
+        self.radius = radius
 
 
 class Microscope(object):
@@ -27,7 +45,7 @@ class Microscope(object):
         beam: parakeet.beam.Beam = parakeet.beam.Beam(),
         lens: parakeet.lens.Lens = parakeet.lens.Lens(),
         detector: parakeet.detector.Detector = parakeet.detector.Detector(),
-        phase_plate: bool = False,
+        phase_plate: PhasePlate = PhasePlate(),
     ):
         """
         Initialise the detector
@@ -79,7 +97,7 @@ class Microscope(object):
         return self._detector
 
     @property
-    def phase_plate(self) -> bool:
+    def phase_plate(self) -> PhasePlate:
         """
         Do we have a phase plate
 
@@ -130,5 +148,9 @@ def new(
         beam=beam,
         lens=lens,
         detector=detector,
-        phase_plate=config.phase_plate,
+        phase_plate=PhasePlate(
+            config.phase_plate.use,
+            np.radians(config.phase_plate.phase_shift),
+            config.phase_plate.radius,
+        ),
     )

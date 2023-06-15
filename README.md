@@ -1,25 +1,23 @@
 <div align="center">
 
-# Parakeet :parrot:
-
-![Parakeet](docs/source/images/parakeet_small.png)
+![Parakeet :parrot:](docs/source/images/parakeet_logo.png)
 
 > **Parakeet** is a digital twin for cryo electron tomography and stands for **P**rogram for **A**nalysis and **R**econstruction of **A**rtificial data for **K**ryo **E**l**E**ctron **T**omography
 
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/rosalindfranklininstitute/parakeet.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rosalindfranklininstitute/parakeet/alerts/)
-
 [![PyPI version shields.io](https://img.shields.io/pypi/v/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 [![PyPI download month](https://img.shields.io/pypi/dm/python-parakeet.svg)](https://pypi.python.org/pypi/python-parakeet/)
 
 [![Building](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-package.yml)
 [![Publishing](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/python-publish.yml)
+
 [![Docker](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/docker-publish.yml)
+[![Quay IO](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/quay-io-publish.yml)
 [![Conda](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/conda.yml)
 [![Snapcraft](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/snapcraft.yml)
 
+[![Documentation](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml/badge.svg)](https://github.com/rosalindfranklininstitute/parakeet/actions/workflows/sphinx.yml)
 [![DOI](https://zenodo.org/badge/204956111.svg)](https://zenodo.org/badge/latestdoi/204956111)
 
 </div>
@@ -32,10 +30,11 @@ Parakeet can be installed using pip with the following command:
   pip install python-parakeet
 ```
 
-However, because the package needs to be built locally from source and has some
-external dependencies you may need to ensure your environment is ready before
-running this command. For full instructions please see the installation
-documentation
+> **_NOTE:_** Because the package needs to be built locally from source and has
+some external dependencies you may need to ensure your environment is ready before
+running this command. You need to set the location of the CUDA compiler and
+possibly G++ and FFTW libraries. For full instructions please see the
+installation documentation
 [here](https://rosalindfranklininstitute.github.io/parakeet/installation.html).
 
 ## Usage
@@ -69,6 +68,10 @@ by clicking "watch" on this repository.
 ## Issues
 
 Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitute/parakeet/issues) to submit bugs or request features.
+
+## Changes
+
+Checkout the [changelog](CHANGES.rst) for a list of recent changes to parakeet.
 
 ## License
 

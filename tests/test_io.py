@@ -6,7 +6,6 @@ import parakeet.io
 
 @pytest.fixture
 def io_test_data():
-
     # The shape of the data
     shape = (10, 100, 100)
 
@@ -25,7 +24,6 @@ def io_test_data():
 
 
 def test_read_write_mrcfile(tmp_path, io_test_data):
-
     filename = os.path.join(tmp_path, "tmp.mrc")
 
     data, angle, position = io_test_data
@@ -62,7 +60,6 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
 
 
 def test_write_nexus(tmp_path, io_test_data):
-
     filename = os.path.join(tmp_path, "tmp.h5")
 
     data, angle, position = io_test_data
@@ -99,7 +96,6 @@ def test_write_nexus(tmp_path, io_test_data):
 
 
 def test_write_images(tmp_path, io_test_data):
-
     filename = os.path.join(tmp_path, "tmp_%03d.png")
 
     data, angle, position = io_test_data
@@ -133,7 +129,6 @@ def test_write_images(tmp_path, io_test_data):
 
 
 def test_unknown_image(tmp_path):
-
     filename = os.path.join(tmp_path, "tmp.unknown")
 
     with pytest.raises(RuntimeError):
