@@ -26,7 +26,6 @@ from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi
-from collections.abc import Iterable
 from scipy.spatial.transform import Rotation as R
 
 
@@ -55,85 +54,6 @@ class ExitWaveImageSimulator(object):
         self.scan = scan
         self.simulation = simulation
         self.device = device
-
-    def get_masker(
-        self,
-        index,
-        input_multislice,
-        pixel_size,
-        drift,
-        origin,
-        offset,
-        orientation,
-        shift,
-    ):
-        """
-        Get the masker object for the ice specification
-
-        """
-
-        # Create the masker
-        masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
-
-        # Get the sample centre
-        shape = self.sample.shape
-        centre = np.array(self.sample.centre)
-        drift = np.array(drift)
-        detector_origin = np.array([origin[0], origin[1], 0])
-        centre = centre + offset - detector_origin - shift
-
-        # Set the shape
-        if shape["type"] == "cube":
-            length = shape["cube"]["length"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length / 2,
-                    centre[1] - length / 2,
-                    centre[2] - length / 2,
-                ),
-                (length, length, length),
-            )
-        elif shape["type"] == "cuboid":
-            length_x = shape["cuboid"]["length_x"]
-            length_y = shape["cuboid"]["length_y"]
-            length_z = shape["cuboid"]["length_z"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length_x / 2,
-                    centre[1] - length_y / 2,
-                    centre[2] - length_z / 2,
-                ),
-                (length_x, length_y, length_z),
-            )
-        elif shape["type"] == "cylinder":
-            radius = shape["cylinder"]["radius"]
-            if not isinstance(radius, Iterable):
-                radius = [radius]
-            length = shape["cylinder"]["length"]
-            offset_x = shape["cylinder"].get("offset_x", None)
-            offset_z = shape["cylinder"].get("offset_z", None)
-            axis = shape["cylinder"].get("axis", (0, 1, 0))
-            if offset_x is None:
-                offset_x = [0] * len(radius)
-            if offset_z is None:
-                offset_z = [0] * len(radius)
-            masker.set_cylinder(
-                (centre[0], centre[1] - length / 2, centre[2]),
-                axis,
-                length,
-                list(radius),
-                list(offset_x),
-                list(offset_z),
-            )
-
-        # Rotate unless we have a single particle type simulation
-        if self.scan.is_uniform_angular_scan:
-            masker.set_rotation(centre, (0, 0, 0))
-        else:
-            masker.set_rotation(centre, orientation)
-
-        # Get the masker
-        return masker
 
     def __call__(self, index):
         """
@@ -197,8 +117,8 @@ class ExitWaveImageSimulator(object):
         simulate.input.spec_lz = self.sample.containing_box[1][2]
 
         # Set the beam tilt
-        input_multislice.theta += beam_tilt_theta
-        input_multislice.phi += beam_tilt_phi
+        simulate.input.theta += beam_tilt_theta
+        simulate.input.phi += beam_tilt_phi
 
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
@@ -243,7 +163,7 @@ class ExitWaveImageSimulator(object):
             atoms.data = atoms.data[select]
 
         # Translate for the detector
-        input_multislice.spec_atoms = atoms.translate(
+        simulate.input.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
         logger.info("   Got spec atoms")
@@ -264,9 +184,8 @@ class ExitWaveImageSimulator(object):
 
         if self.simulation["ice"] == True:
             # Get the masker
-            masker = self.get_masker(
+            masker = simulate.get_masker(
                 index,
-                input_multislice,
                 pixel_size,
                 drift,
                 origin,
@@ -287,7 +206,6 @@ class ExitWaveImageSimulator(object):
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = np.array(output_multislice.data[0].psi_coh).T
         x0 = padding
         y0 = padding
         x1 = image.shape[1] - padding

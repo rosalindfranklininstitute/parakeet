@@ -75,10 +75,6 @@ class SimpleImageSimulator(object):
         # Get the specimen atoms
         logger.info(f"Simulating image {index+1}")
 
-        # Set the rotation angle
-        # input_multislice.spec_rot_theta = angle
-        # input_multislice.spec_rot_u0 = simulation.scan.axis
-
         # x0 = (-offset, -offset)
         # x1 = (x_fov + offset, y_fov + offset)
 
