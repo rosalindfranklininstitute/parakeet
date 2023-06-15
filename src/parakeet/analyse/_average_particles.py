@@ -83,7 +83,6 @@ def _process_sub_tomo(args):
 
 def _iterate_particles(
     indices,
-    half_index,
     positions,
     orientations,
     centre,
@@ -124,7 +123,7 @@ def _iterate_particles(
                 yield (sub_tomo, offset, orientation, j)
 
 
-def lazy_map(executor, func, iterable) -> tuple:
+def lazy_map(executor, func, iterable):
     """
     A lazy map function for concurrent processes
 
@@ -282,25 +281,15 @@ def _average_particles_Config(
         indices = np.random.choice(
             range(len(positions)), size=num_particles, replace=False
         )
-        size1 = num_particles // 2
-        size2 = num_particles - size1
-        half_index = np.hstack(
-            [np.zeros(size1, dtype=np.int32), np.ones(size2, dtype=np.int32)]
-        )
-        zpos = list(zip(*positions))[1]
-        sorted_indices = sorted(range(len(indices)), key=lambda x: zpos[indices[x]])
-        indices = indices[sorted_indices]
-        half_index = half_index[sorted_indices]
+        indices = [indices[: num_particles // 2], indices[num_particles // 2 :]]
 
         # Loop through all the particles
-        count = 0
         with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
             for half_index, data in lazy_map(
                 executor,
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
-                    half_index,
                     positions,
                     orientations,
                     centre,
@@ -314,8 +303,6 @@ def _average_particles_Config(
                 # Add the contribution to the average
                 half[half_index, :, :, :] += data
                 num[half_index] += 1
-                count += 1
-                print("Count: ", count)
 
         # Average the sub tomograms
         print("Averaging half 1 with %d particles" % num[0])
@@ -507,7 +494,6 @@ def _average_all_particles_Config(
                 _process_sub_tomo,
                 _iterate_particles(
                     indices,
-                    half_index,
                     positions,
                     orientations,
                     centre,

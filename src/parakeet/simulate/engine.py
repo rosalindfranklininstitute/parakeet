@@ -170,7 +170,7 @@ class SimulationEngine(object):
         # Condenser lens
         # source spread function
         ssf_sigma = multem.mrad_to_sigma(
-            input_multislice.E_0, microscope.beam.source_spread
+            input_multislice.E_0, microscope.beam.illumination_semiangle
         )
         input_multislice.cond_lens_si_sigma = ssf_sigma
         print(ssf_sigma)
