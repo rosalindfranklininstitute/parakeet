@@ -348,7 +348,6 @@ def get_energy_bins(
 
     # Check the filter width and step size
     if filter_energy is not None and filter_width is not None:
-
         # Adjust the step size
         num_step = int(filter_width / dE_step)
         dE_step = filter_width / num_step
@@ -365,7 +364,6 @@ def get_energy_bins(
             bins.append((E1, E2))
 
     else:
-
         # Number of steps
         num_step = int((dE_max - dE_min) / dE_step)
 
