@@ -21,6 +21,7 @@ import parakeet.io
 import parakeet.sample
 import parakeet.simulate
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
