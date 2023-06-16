@@ -279,7 +279,7 @@ class SimulationEngine(object):
         # transpose here.
         return np.array(output_multislice.data[0].psi_coh).T
 
-    def masker(self, index, pixel_size, drift, origin, offset):
+    def masker(self, index, pixel_size, origin, offset, orientation, shift):
         """
         Get the masker object for the ice specification
 
@@ -291,10 +291,8 @@ class SimulationEngine(object):
         # Get the sample centre
         shape = self.sample.shape
         centre = np.array(self.sample.centre)
-        drift = np.array(drift)
-        shift = self.scan.poses.shifts[index]
         detector_origin = np.array([origin[0], origin[1], 0])
-        centre = centre + offset - drift - detector_origin - shift
+        centre = centre + offset - detector_origin - shift
 
         # Set the shape
         if shape["type"] == "cube":
@@ -340,7 +338,7 @@ class SimulationEngine(object):
         if self.scan.is_uniform_angular_scan:
             masker.set_rotation(centre, (0, 0, 0))
         else:
-            masker.set_rotation(centre, self.scan.poses.orientations[index].as_rotvec())
+            masker.set_rotation(centre, orientation)
 
         # Get the masker
         return masker

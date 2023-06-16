@@ -187,7 +187,6 @@ class ExitWaveImageSimulator(object):
             masker = simulate.get_masker(
                 index,
                 pixel_size,
-                drift,
                 origin,
                 offset,
                 orientation,
