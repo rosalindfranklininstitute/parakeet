@@ -91,30 +91,17 @@ def create_input_multislice():
 
     # Electron-Specimen interaction model
     input_multislice.interaction_model = "Multislice"
-    input_multislice.potential_type = "Lobato_0_12"
-    # input_multislice.potential_type = "Peng_0_12"
+    # input_multislice.potential_type = "Lobato_0_12"
+    input_multislice.potential_type = "Peng_0_12"
 
     # Potential slicing
     input_multislice.potential_slicing = "dz_Proj"
 
     # Electron-Phonon interaction model
     input_multislice.pn_model = "Still_Atom"
-    input_multislice.pn_coh_contrib = 0
-    input_multislice.pn_single_conf = False
-    input_multislice.pn_nconf = 50
-    input_multislice.pn_dim = 110
-    input_multislice.pn_seed = 300_183
 
     # Specimen thickness
     input_multislice.thick_type = "Whole_Spec"
-
-    # X-y sampling
-    input_multislice.bwl = False
-
-    # Set the energy
-    input_multislice.E_0 = 300
-    input_multislice.theta = 0.0
-    input_multislice.phi = 0.0
 
     # Illumination model
     input_multislice.illumination_model = "Partial_Coherent"
@@ -678,6 +665,19 @@ def compute_exit_wave(atom_data, pixel_size):
     x_max = atom_data.data["x"].max()
     y_min = atom_data.data["y"].min()
     y_max = atom_data.data["y"].max()
+    x_size = x_max - x_min
+    y_size = y_max - y_min
+    select = (
+        (atom_data.data["x"] > x_min + x_size / 6)
+        & (atom_data.data["x"] < x_max - x_size / 6)
+        & (atom_data.data["y"] > y_min + y_size / 6)
+        & (atom_data.data["y"] < y_max - y_size / 6)
+    )
+    atom_data = parakeet.sample.AtomData(data=atom_data.data[select])
+    x_min = atom_data.data["x"].min()
+    x_max = atom_data.data["x"].max()
+    y_min = atom_data.data["y"].min()
+    y_max = atom_data.data["y"].max()
     z_min = atom_data.data["z"].min()
     z_max = atom_data.data["z"].max()
     x_size = x_max - x_min
@@ -685,9 +685,9 @@ def compute_exit_wave(atom_data, pixel_size):
     z_size = z_max - z_min
 
     # Translate to centre
-    x_box_size = 1000  # x_size
-    y_box_size = 1000  # y_size
-    z_box_size = 1000  # z_size
+    x_box_size = x_size
+    y_box_size = y_size
+    z_box_size = z_size
 
     # Create the system configuration
     system_conf = multem.SystemConfiguration()
@@ -703,7 +703,6 @@ def compute_exit_wave(atom_data, pixel_size):
 
     x_box_size = nx * pixel_size
     y_box_size = ny * pixel_size
-    z_box_size = x_box_size
     x_trans = (x_box_size - x_size) / 2.0 - x_min
     y_trans = (y_box_size - y_size) / 2.0 - y_min
     z_trans = (z_box_size - z_size) / 2.0 - z_min
