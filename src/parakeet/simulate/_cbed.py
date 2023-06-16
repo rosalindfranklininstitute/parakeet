@@ -12,7 +12,6 @@
 import logging
 import numpy as np
 import time
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -26,7 +25,6 @@ from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi
-from collections.abc import Iterable
 from scipy.spatial.transform import Rotation as R
 
 
@@ -39,12 +37,6 @@ Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 class CBEDImageSimulator(object):
@@ -65,85 +57,6 @@ class CBEDImageSimulator(object):
         self.scan = scan
         self.simulation = simulation
         self.device = device
-
-    def get_masker(
-        self,
-        index,
-        input_multislice,
-        pixel_size,
-        drift,
-        origin,
-        offset,
-        orientation,
-        shift,
-    ):
-        """
-        Get the masker object for the ice specification
-
-        """
-
-        # Create the masker
-        masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
-
-        # Get the sample centre
-        shape = self.sample.shape
-        centre = np.array(self.sample.centre)
-        drift = np.array(drift)
-        detector_origin = np.array([origin[0], origin[1], 0])
-        centre = centre + offset - detector_origin - shift
-
-        # Set the shape
-        if shape["type"] == "cube":
-            length = shape["cube"]["length"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length / 2,
-                    centre[1] - length / 2,
-                    centre[2] - length / 2,
-                ),
-                (length, length, length),
-            )
-        elif shape["type"] == "cuboid":
-            length_x = shape["cuboid"]["length_x"]
-            length_y = shape["cuboid"]["length_y"]
-            length_z = shape["cuboid"]["length_z"]
-            masker.set_cuboid(
-                (
-                    centre[0] - length_x / 2,
-                    centre[1] - length_y / 2,
-                    centre[2] - length_z / 2,
-                ),
-                (length_x, length_y, length_z),
-            )
-        elif shape["type"] == "cylinder":
-            radius = shape["cylinder"]["radius"]
-            if not isinstance(radius, Iterable):
-                radius = [radius]
-            length = shape["cylinder"]["length"]
-            offset_x = shape["cylinder"].get("offset_x", None)
-            offset_z = shape["cylinder"].get("offset_z", None)
-            axis = shape["cylinder"].get("axis", (0, 1, 0))
-            if offset_x is None:
-                offset_x = [0] * len(radius)
-            if offset_z is None:
-                offset_z = [0] * len(radius)
-            masker.set_cylinder(
-                (centre[0], centre[1] - length / 2, centre[2]),
-                axis,
-                length,
-                list(radius),
-                list(offset_x),
-                list(offset_z),
-            )
-
-        # Rotate unless we have a single particle type simulation
-        if self.scan.is_uniform_angular_scan:
-            masker.set_rotation(centre, (0, 0, 0))
-        else:
-            masker.set_rotation(centre, orientation)
-
-        # Get the masker
-        return masker
 
     def __call__(self, index):
         """
@@ -197,28 +110,27 @@ class CBEDImageSimulator(object):
         z_centre = self.sample.centre[2]
 
         # Create the multem input multislice object
-        input_multislice = (
-            parakeet.simulate.simulation.create_input_multislice_diffraction(
-                self.microscope,
-                self.simulation["slice_thickness"],
-                self.simulation["margin"] + self.simulation["padding"],
-                "CBED",
-                z_centre,
-            )
+        simulate = SimulationEngine(
+            self.device,
+            self.microscope,
+            self.simulation["slice_thickness"],
+            self.simulation["margin"] + self.simulation["padding"],
+            "CBED",
+            z_centre,
         )
 
         # Set the specimen size
-        input_multislice.spec_lx = x_fov + offset * 2
-        input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = self.sample.containing_box[1][2]
+        simulate.input.spec_lx = x_fov + offset * 2
+        simulate.input.spec_ly = y_fov + offset * 2
+        simulate.input.spec_lz = self.sample.containing_box[1][2]
 
         # Set the beam tilt
-        input_multislice.theta += beam_tilt_theta
-        input_multislice.phi += beam_tilt_phi
+        simulate.input.theta += beam_tilt_theta
+        simulate.input.phi += beam_tilt_phi
 
         # Compute the B factor
         if self.simulation["radiation_damage_model"]:
-            input_multislice.static_B_factor = (
+            simulate.input.static_B_factor = (
                 8
                 * pi**2
                 * (
@@ -228,7 +140,7 @@ class CBEDImageSimulator(object):
                 )
             )
         else:
-            input_multislice.static_B_factor = 0
+            simulate.input.static_B_factor = 0
 
         # Set the atoms in the input after translating them for the offset
         atoms = self.sample.get_atoms()
@@ -259,7 +171,7 @@ class CBEDImageSimulator(object):
             atoms.data = atoms.data[select]
 
         # Translate for the detector
-        input_multislice.spec_atoms = atoms.translate(
+        simulate.input.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
         logger.info("   Got spec atoms")
@@ -280,9 +192,8 @@ class CBEDImageSimulator(object):
 
         if self.simulation["ice"] == True:
             # Get the masker
-            masker = self.get_masker(
+            masker = simulate.get_masker(
                 index,
-                input_multislice,
                 pixel_size,
                 drift,
                 origin,
@@ -292,22 +203,21 @@ class CBEDImageSimulator(object):
             )
 
             # Run the simulation
-            output_multislice = multem.simulate(system_conf, input_multislice, masker)
+            image = simulate.image(masker)
 
         else:
             # Set the incident wave
-            input_multislice.iw_x = [0]  # input_multislice.spec_lx/2
-            input_multislice.iw_y = [0]  # input_multislice.spec_ly/2
+            simulate.input.iw_x = [0]  # simulate.input.spec_lx/2
+            simulate.input.iw_y = [0]  # simulate.input.spec_ly/2
 
             # Run the simulation
             logger.info("Simulating")
-            output_multislice = multem.simulate(system_conf, input_multislice)
+            image = simulate.image(masker)
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
         # generally deal with data in row major format so we must do a
         # transpose here.
-        image = np.array(output_multislice.data[0].m2psi_tot).T
         x0 = padding
         y0 = padding
         x1 = image.shape[1] - padding
