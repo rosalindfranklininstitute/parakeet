@@ -17,6 +17,7 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
+from typing import Tuple
 
 
 # Get the logger
@@ -31,7 +32,7 @@ class Simulation(object):
 
     def __init__(
         self,
-        image_size: tuple[int, int],
+        image_size: Tuple[int, int],
         pixel_size: float,
         scan=None,
         cluster=None,
@@ -54,7 +55,7 @@ class Simulation(object):
         self.simulate_image = simulate_image
 
     @property
-    def shape(self) -> tuple[int, int, int]:
+    def shape(self) -> Tuple[int, int, int]:
         """
         Return
             The simulation data shape

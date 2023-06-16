@@ -250,7 +250,7 @@ class ExitWaveImageSimulator(object):
 
 def simulation_factory(
     microscope: Microscope,
-    sample: parakeet.config.Sample,
+    sample: parakeet.sample.Sample,
     scan: Scan,
     device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,

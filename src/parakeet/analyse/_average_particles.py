@@ -278,8 +278,8 @@ def _average_particles_Config(
         )
 
         # Get the random indices
-        indices = np.random.choice(
-            range(len(positions)), size=num_particles, replace=False
+        indices = list(
+            np.random.choice(range(len(positions)), size=num_particles, replace=False)
         )
         indices = [indices[: num_particles // 2], indices[num_particles // 2 :]]
 
