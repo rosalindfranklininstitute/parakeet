@@ -375,13 +375,22 @@ def get_energy_bins(
 
     # Get the distribution of energy losses
     optimizer = EnergyFilterOptimizer(
-        energy_spread, dE_min=dE_min, dE_max=dE_max, dE_step=dE_step_sub
+        energy_spread,
+        dE_min=dE_min + dE_step_sub / 2.0,
+        dE_max=dE_max + dE_step_sub / 2.0,
+        dE_step=dE_step_sub,
     )
     dE, distribution = optimizer.energy_loss_distribution(energy, thickness)
     distribution /= np.sum(distribution)
 
+    # The maximum spread
+    dE_spread_max = sqrt(dE_step**2 / 12) * sqrt(2)
+
     # Loop over the subdivisions and compute mean energy, spread and total
-    # weight
+    # weight. For each bin we take the distribution and compute the weighted
+    # mean energy loss and the weighted variance as the energy spread. The mean
+    # will always be within the energy bin and the variance will always be > 0
+    # and < the variance of the uniform distribution within the bin.
     nbins = len(bins)
     bin_energy = np.zeros(nbins)
     bin_spread = np.zeros(nbins)
@@ -394,9 +403,16 @@ def get_energy_bins(
         dE_mean = np.mean(dE_sub)
         P_tot = np.sum(P_sub)
         if P_tot > 1e-7:
-            dE_spread = sqrt(np.sum(P_sub * (dE_sub - dE_mean) ** 2) / P_tot) * sqrt(2)
+            P_sub = P_sub / P_tot
+            dE_mean = np.sum(P_sub * dE_sub)
+            dE_spread = np.sum(P_sub * ((dE_sub - dE_mean) ** 2))
+            dE_spread = sqrt(dE_spread) * sqrt(2)
         else:
-            dE_spread = sqrt(dE_step**2 / 12) * sqrt(2)
+            dE_spread = dE_spread_max
+        assert dE_mean >= E1
+        assert dE_mean <= E2
+        assert dE_spread >= 0
+        assert dE_spread <= dE_spread_max
         bin_energy[i] = energy - dE_mean
         bin_weight[i] = P_tot
         bin_spread[i] = dE_spread

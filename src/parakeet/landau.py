@@ -176,7 +176,7 @@ class Landau(object):
         # Generate the table of values for the universal function
         if Landau.CACHE is None:
             l0 = -10
-            l1 = 500
+            l1 = 200
             dl = 0.01
             lambda_ = np.arange(l0, l1, dl)
             phi = np.array([landau(xx) for xx in lambda_])

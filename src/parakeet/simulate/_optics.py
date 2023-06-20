@@ -272,13 +272,15 @@ class OpticsImageSimulator(object):
             energy_spread1 = bin_spread / bin_energy  # dE / E
 
             # Compute the defocus at this point
+            # Energy loss is positive.
+            # Energy loss results in over focus which is also positive
             c_c_A = microscope.lens.c_c * 1e7  # A
             dE_E = (energy0 - energy1) / energy0
             defocus1 = defocus0 + c_c_A * dE_E  # A
 
             # Adjust defocus to mean
-            defocus_mean = np.average(defocus1, weights=bin_weight)
-            defocus1 = defocus1 + (defocus0 - defocus_mean)
+            # defocus_mean = np.average(defocus1, weights=bin_weight)
+            # defocus1 = defocus1 + (defocus0 - defocus_mean)
 
             # Loop through all energies and sum images
             image = None
