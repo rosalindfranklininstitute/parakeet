@@ -409,10 +409,11 @@ def get_energy_bins(
             dE_spread = sqrt(dE_spread) * sqrt(2)
         else:
             dE_spread = dE_spread_max
+        assert (E2 - E1) <= dE_step
         assert dE_mean >= E1
         assert dE_mean <= E2
         assert dE_spread >= 0
-        assert dE_spread <= dE_spread_max
+        assert dE_spread <= dE_spread_max + dE_step_sub
         bin_energy[i] = energy - dE_mean
         bin_weight[i] = P_tot
         bin_spread[i] = dE_spread
