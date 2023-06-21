@@ -414,7 +414,9 @@ class SimulationEngine(object):
         # transpose here.
         return np.array(output_multislice.data[0].psi_coh).T
 
-    def masker(self, index, pixel_size, origin, offset, orientation, shift):
+    def masker(
+        self, index, pixel_size, origin, offset, orientation, shift, sample, scan
+    ):
         """
         Get the masker object for the ice specification
 
@@ -424,8 +426,8 @@ class SimulationEngine(object):
         masker = multem.Masker(self.input.nx, self.input.ny, pixel_size)
 
         # Get the sample centre
-        shape = self.sample.shape
-        centre = np.array(self.sample.centre)
+        shape = sample.shape
+        centre = np.array(sample.centre)
         detector_origin = np.array([origin[0], origin[1], 0])
         centre = centre + offset - detector_origin - shift
 
@@ -470,7 +472,7 @@ class SimulationEngine(object):
             )
 
         # Rotate unless we have a single particle type simulation
-        if self.scan.is_uniform_angular_scan:
+        if scan.is_uniform_angular_scan:
             masker.set_rotation(centre, (0, 0, 0))
         else:
             masker.set_rotation(centre, orientation)

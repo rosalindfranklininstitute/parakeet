@@ -184,13 +184,15 @@ class ExitWaveImageSimulator(object):
 
         if self.simulation["ice"] == True:
             # Get the masker
-            masker = simulate.get_masker(
+            masker = simulate.masker(
                 index,
                 pixel_size,
                 origin,
                 offset,
                 orientation,
                 position,
+                self.sample,
+                self.scan,
             )
 
             # Run the simulation
