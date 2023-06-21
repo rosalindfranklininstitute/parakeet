@@ -23,7 +23,6 @@ import parakeet.sample
 import parakeet.simulate
 from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
-from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi
 from collections.abc import Iterable
@@ -32,10 +31,6 @@ from scipy.spatial.transform import Rotation as R
 
 __all__ = ["exit_wave"]
 
-
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
-Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -84,6 +79,17 @@ class ExitWaveImageSimulator(object):
 
         # Create the masker
         masker = multem.Masker(input_multislice.nx, input_multislice.ny, pixel_size)
+
+        # Set the ice parameters
+        ice_parameters = multem.IceParameters()
+        ice_parameters.m1 = self.simulation["ice_parameters"]["m1"]
+        ice_parameters.m2 = self.simulation["ice_parameters"]["m1"]
+        ice_parameters.s1 = self.simulation["ice_parameters"]["s1"]
+        ice_parameters.s2 = self.simulation["ice_parameters"]["s2"]
+        ice_parameters.a1 = self.simulation["ice_parameters"]["a1"]
+        ice_parameters.a2 = self.simulation["ice_parameters"]["a2"]
+        ice_parameters.density = self.simulation["ice_parameters"]["density"]
+        masker.set_ice_parameters(ice_parameters)
 
         # Get the sample centre
         shape = self.sample.shape
@@ -347,9 +353,9 @@ class ExitWaveImageSimulator(object):
 
 def simulation_factory(
     microscope: Microscope,
-    sample: Sample,
-    scan: Scan,
-    device: Device = Device.gpu,
+    sample: parakeet.sample.Sample,
+    scan: parakeet.config.Scan,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     cluster: dict = None,
 ) -> Simulation:
@@ -395,8 +401,8 @@ def exit_wave(
     config_file,
     sample_file: str,
     exit_wave_file: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
+    device: parakeet.config.Device = parakeet.config.Device.gpu,
+    cluster_method: parakeet.config.ClusterMethod = None,
     cluster_max_workers: int = 1,
 ):
     """

@@ -34,6 +34,9 @@ def config_path(tmpdir_factory):
             "start_angle": -90,
             "step_angle": 18,
         },
+        "simulation": {
+            "ice": True,
+        },
     }
 
     config = parakeet.config.load(config_dict)
