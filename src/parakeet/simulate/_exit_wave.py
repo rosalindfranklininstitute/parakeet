@@ -23,7 +23,6 @@ import parakeet.simulate
 from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
-from parakeet.scan import Scan
 from functools import singledispatch
 from math import pi
 from scipy.spatial.transform import Rotation as R
@@ -193,6 +192,7 @@ class ExitWaveImageSimulator(object):
                 position,
                 self.sample,
                 self.scan,
+                self.simulation,
             )
 
             # Run the simulation
@@ -253,7 +253,7 @@ class ExitWaveImageSimulator(object):
 def simulation_factory(
     microscope: Microscope,
     sample: parakeet.sample.Sample,
-    scan: Scan,
+    scan: parakeet.config.Scan,
     device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     cluster: dict = None,

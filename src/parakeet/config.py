@@ -651,6 +651,21 @@ class MPLPosition(str, Enum):
     optimal = "optimal"
 
 
+class IceParameters(BaseModel):
+    """
+    A model to describe the ice parameters
+
+    """
+
+    m1: float = Field(0, description="The mean of gaussian 1")
+    m2: float = Field(1.0 / 2.88, description="The mean of gaussian 2")
+    s1: float = Field(0.731, description="The standard deviation of gaussian 1")
+    s2: float = Field(0.081, description="The standard deviation of gaussian 2")
+    a1: float = Field(0.199, description="The amplitude of gaussian 1")
+    a2: float = Field(0.801, description="The amplitude of gaussian 2")
+    density: float = Field(0.91, gt=0, description="The density of the ice (g/cm^3)")
+
+
 class Simulation(BaseModel):
     """
     A model to describe the simulation parameters
@@ -667,6 +682,10 @@ class Simulation(BaseModel):
 
     ice: bool = Field(
         False, description="Use the Gaussian Random Field ice model (True/False)"
+    )
+
+    ice_parameters: IceParameters = Field(
+        IceParameters(), description="The parameters for the GRF ice model"
     )
 
     radiation_damage_model: bool = Field(
