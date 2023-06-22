@@ -83,7 +83,7 @@ class ExitWaveImageSimulator(object):
         # Set the ice parameters
         ice_parameters = multem.IceParameters()
         ice_parameters.m1 = self.simulation["ice_parameters"]["m1"]
-        ice_parameters.m2 = self.simulation["ice_parameters"]["m1"]
+        ice_parameters.m2 = self.simulation["ice_parameters"]["m2"]
         ice_parameters.s1 = self.simulation["ice_parameters"]["s1"]
         ice_parameters.s2 = self.simulation["ice_parameters"]["s2"]
         ice_parameters.a1 = self.simulation["ice_parameters"]["a1"]
