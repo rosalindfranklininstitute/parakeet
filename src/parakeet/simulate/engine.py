@@ -415,7 +415,16 @@ class SimulationEngine(object):
         return np.array(output_multislice.data[0].psi_coh).T
 
     def masker(
-        self, index, pixel_size, origin, offset, orientation, shift, sample, scan
+        self,
+        index,
+        pixel_size,
+        origin,
+        offset,
+        orientation,
+        shift,
+        sample,
+        scan,
+        simulation,
     ):
         """
         Get the masker object for the ice specification
@@ -424,6 +433,17 @@ class SimulationEngine(object):
 
         # Create the masker
         masker = multem.Masker(self.input.nx, self.input.ny, pixel_size)
+
+        # Set the ice parameters
+        ice_parameters = multem.IceParameters()
+        ice_parameters.m1 = simulation["ice_parameters"]["m1"]
+        ice_parameters.m2 = simulation["ice_parameters"]["m1"]
+        ice_parameters.s1 = simulation["ice_parameters"]["s1"]
+        ice_parameters.s2 = simulation["ice_parameters"]["s2"]
+        ice_parameters.a1 = simulation["ice_parameters"]["a1"]
+        ice_parameters.a2 = simulation["ice_parameters"]["a2"]
+        ice_parameters.density = simulation["ice_parameters"]["density"]
+        masker.set_ice_parameters(ice_parameters)
 
         # Get the sample centre
         shape = sample.shape
