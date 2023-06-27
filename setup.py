@@ -105,6 +105,7 @@ def main():
                 "parakeet.metadata.export=parakeet.command_line.metadata:export",
                 "parakeet.analyse.reconstruct=parakeet.command_line.analyse:reconstruct",
                 "parakeet.analyse.average_particles=parakeet.command_line.analyse:average_particles",
+                "parakeet.analyse.average_extracted_particles=parakeet.command_line.analyse:average_extracted_particles",
                 "parakeet.analyse.average_all_particles=parakeet.command_line.analyse:average_all_particles",
                 "parakeet.analyse.extract=parakeet.command_line.analyse:extract",
                 "parakeet.analyse.refine=parakeet.command_line.analyse:refine",
