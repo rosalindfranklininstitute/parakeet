@@ -447,7 +447,7 @@ class AtomData(object):
         "z": "float32",
         "sigma": "float32",
         "occupancy": "float32",
-        "charge": "uint8",
+        "charge": "int8",
     }
 
     def __init__(self, data=None, **kwargs):
@@ -528,7 +528,7 @@ class AtomData(object):
                 self.data["sigma"].astype("float32"),
                 self.data["occupancy"].astype("float32"),
                 [int(0) for i in range(self.data.shape[0])],
-                self.data["charge"].astype("uint8"),
+                self.data["charge"].astype("int8"),
             )
         )
 
