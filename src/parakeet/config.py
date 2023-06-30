@@ -159,7 +159,8 @@ class MoleculePose(BaseModel):
     position: Optional[Tuple[float, float, float]] = Field(
         description=(
             "The molecule position (A, A, A). Setting this to null or an "
-            "empty list will cause parakeet to give a random position"
+            "empty list will cause parakeet to give a random position. "
+            "The position is given in [x y z] order. "
         ),
         examples=[
             "position: null # Assign random position",
@@ -173,7 +174,8 @@ class MoleculePose(BaseModel):
             "The molecule orientation defined as a rotation vector where "
             "the direction of the vector gives the rotation axis and the "
             "magnitude of the vector gives the rotation angle in radians. Setting "
-            "this to null or an empty list will cause parakeet to give a random orientation"
+            "this to null or an empty list will cause parakeet to give a random "
+            "orientation. The axis is given in [x, y, z] order."
         ),
         examples=[
             "orienation: null # Assign random orienation",
