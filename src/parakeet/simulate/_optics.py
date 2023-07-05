@@ -560,6 +560,10 @@ def _optics_Config(
     # Create the scan
     scan = exit_wave.header.scan
 
+    # Override the defocus_offset
+    scan_new = parakeet.scan.new(**config.scan.dict())
+    scan.data["defocus_offset"] = scan_new.defocus_offset
+
     # Create the simulation
     simulation = simulation_factory(
         microscope,
