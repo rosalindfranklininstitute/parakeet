@@ -69,7 +69,7 @@ def main():
             "pandas",
             "pillow",
             "profet",
-            "pydantic",
+            "pydantic=1.10.11",
             "python-multem",
             "pyyaml",
             "scipy",

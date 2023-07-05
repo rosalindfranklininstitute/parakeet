@@ -54,7 +54,7 @@ requirements:
     - pillow
     - pip
     - profet
-    - pydantic
+    - pydantic==1.10.11
     - python
     - python-multem
     - pyyaml
@@ -75,7 +75,7 @@ requirements:
     - pandas
     - pillow
     - profet
-    - pydantic
+    - pydantic=1.10.11
     - python
     - python-multem
     - pyyaml
