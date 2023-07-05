@@ -384,13 +384,14 @@ def get_energy_bins(
     distribution /= np.sum(distribution)
 
     # The maximum spread
-    dE_spread_max = sqrt(dE_step**2 / 12) * sqrt(2)
+    dE_spread_max = sqrt(dE_step**2 / 12) * sqrt(2) * 2
 
     # Loop over the subdivisions and compute mean energy, spread and total
     # weight. For each bin we take the distribution and compute the weighted
     # mean energy loss and the weighted variance as the energy spread. The mean
     # will always be within the energy bin and the variance will always be > 0
     # and < the variance of the uniform distribution within the bin.
+    TINY = 1e-5
     nbins = len(bins)
     bin_energy = np.zeros(nbins)
     bin_spread = np.zeros(nbins)
@@ -409,7 +410,7 @@ def get_energy_bins(
             dE_spread = sqrt(dE_spread) * sqrt(2)
         else:
             dE_spread = dE_spread_max
-        assert (E2 - E1) <= dE_step
+        assert (E2 - E1) <= dE_step + TINY
         assert dE_mean >= E1
         assert dE_mean <= E2
         assert dE_spread >= 0
