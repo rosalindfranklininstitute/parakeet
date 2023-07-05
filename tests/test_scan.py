@@ -12,7 +12,11 @@ def test_none():
 
 def test_manual():
     scan = parakeet.scan.new(
-        mode="manual", axis=(0, 1, 0), angles=[1, 2, 3], positions=[4, 5, 6]
+        mode="manual",
+        axis=(0, 1, 0),
+        angles=[1, 2, 3],
+        positions=[4, 5, 6],
+        defocus_offset=[0, 500, 1000],
     )
     assert np.all(np.equal(scan.axes, np.array([[0, 1, 0]])))
     assert np.allclose(scan.angles, np.array([1, 2, 3]))
@@ -95,6 +99,7 @@ def test_single_particle():
     scan = parakeet.scan.new(
         mode="single_particle",
         num_images=8,
+        defocus_offset=[0, 500, 1000, 1500, 2000, 2500, 3000, 3500],
     )
     assert len(scan) == 8
 

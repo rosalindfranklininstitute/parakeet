@@ -137,6 +137,7 @@ class OpticsImageSimulator(object):
 
         # Get the rotation angle
         angle = self.scan.angles[index]
+        defocus_offset = self.scan.defocus_offset[index]
 
         # Check the angle and position
         assert abs(angle - self.exit_wave.header[index]["tilt_alpha"]) < 1e7
@@ -159,7 +160,7 @@ class OpticsImageSimulator(object):
         microscope = copy.deepcopy(self.microscope)
 
         # Get the defocus
-        defocus = microscope.lens.c_10
+        defocus = microscope.lens.c_10 + defocus_offset
 
         # If we do CC correction then set spherical aberration and chromatic
         # aberration to zero
