@@ -7,4 +7,4 @@ dependencies:
   - conda-build
   - conda-verify
   - anaconda-client
-  - cudatoolkit-dev
+  - cudatoolkit-dev=11.4.0
