@@ -32,6 +32,8 @@ def effective_thickness(shape, angle):
         thickness = D0 / cos_angle
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
+    if isinstance(thickness, list):
+        thickness = np.mean(thickness)
     return abs(thickness)
 
 

@@ -14,7 +14,6 @@ import mrcfile
 import random
 import h5py
 import parakeet.sample
-from typing import Any
 from functools import singledispatch
 from math import sqrt, ceil
 from parakeet.analyse._average_particles import lazy_map
@@ -131,11 +130,11 @@ def _extract_Config(
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
-            "Averaging %d %s particles with box size %d" % (num_particles, name, length)
+            "Extracting %d %s particles with box size %d"
+            % (num_particles, name, length)
         )
 
         # Create the average array
-        extract_map: Any = []
         shape = (length, length, length)
         num = 0
 
@@ -200,6 +199,7 @@ def average_extracted_particles(
         num_particles = data.shape[0]
     half_num_particles = num_particles // 2
     assert half_num_particles > 0
+    assert num_particles <= data.shape[0]
 
     # Setup the arrays
     half = np.zeros((2,) + data.shape[1:], dtype="float32")
