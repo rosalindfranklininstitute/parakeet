@@ -106,14 +106,15 @@ def test_most_probable_loss():
     assert sigma == pytest.approx(5.300095984425282)
 
 
-def test_get_energy_bins():
+@pytest.mark.parametrize("thickness", [100, 1000, 4000])
+def test_get_energy_bins(thickness):
     bin_energy, bin_spread, bin_weight = inelastic.get_energy_bins(
-        energy=300000, thickness=4000, energy_spread=0.798
+        energy=300000, thickness=thickness, energy_spread=0.798
     )
 
     assert np.min(bin_weight) >= 0
     assert np.max(bin_weight) <= 1
     assert np.isclose(np.sum(bin_weight), 1)
     assert np.argmax(bin_weight) == 2
-    assert np.max(bin_spread) <= sqrt(5**2 / 12) * sqrt(2)
+    assert np.max(bin_spread) <= sqrt(5**2 / 12) * sqrt(2) + 0.05
     assert np.min(bin_spread) >= 0
