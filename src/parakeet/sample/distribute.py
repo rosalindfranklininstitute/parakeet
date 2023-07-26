@@ -228,22 +228,26 @@ def shape_volume_object(centre: tuple, shape: dict):
 
     """
 
-    def make_cube_volume(centre, cube):
+    def make_cube_volume(centre, cube, margin):
         length = cube["length"]
         lower = np.array(centre) - length / 2.0
         upper = lower + length
+        lower += np.array(margin)
+        upper -= np.array(margin)
         return CuboidVolume(lower, upper)
 
-    def make_cuboid_volume(centre, cuboid):
+    def make_cuboid_volume(centre, cuboid, margin):
         length_x = cuboid["length_x"]
         length_y = cuboid["length_y"]
         length_z = cuboid["length_z"]
         length = np.array((length_x, length_y, length_z))
         lower = np.array(centre) - length / 2.0
         upper = lower + length
+        lower += np.array(margin)
+        upper -= np.array(margin)
         return CuboidVolume(lower, upper)
 
-    def make_cylinder_volume(centre, cylinder):
+    def make_cylinder_volume(centre, cylinder, margin):
         # Get the cylinder params
         length = cylinder["length"]
         radius = cylinder["radius"]
@@ -267,6 +271,10 @@ def shape_volume_object(centre: tuple, shape: dict):
             np.array((centre[0], centre[2])) + np.array(list(zip(offset_x, offset_z)))
         )
 
+        # Add a margin
+        lower += margin[1]
+        upper -= margin[1]
+
         # Return volume
         return CylindricalVolume(lower, upper, centre, radius)
 
@@ -274,7 +282,7 @@ def shape_volume_object(centre: tuple, shape: dict):
         "cube": make_cube_volume,
         "cuboid": make_cuboid_volume,
         "cylinder": make_cylinder_volume,
-    }[shape["type"]](centre, shape[shape["type"]])
+    }[shape["type"]](centre, shape[shape["type"]], shape["margin"])
 
 
 def distribute_particles_uniformly(
