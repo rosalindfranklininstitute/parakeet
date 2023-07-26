@@ -274,6 +274,7 @@ def shape_volume_object(centre: tuple, shape: dict):
         # Add a margin
         lower += margin[1]
         upper -= margin[1]
+        radius = [max(1, r - margin[0]) for r in radius]
 
         # Return volume
         return CylindricalVolume(lower, upper, centre, radius)
