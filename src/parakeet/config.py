@@ -612,6 +612,14 @@ class Scan(BaseModel):
         ),
     )
 
+    defocus_offset: Optional[List[float]] = Field(
+        None,
+        description=(
+            "The list of defoci to use (A). This field is used when the mode"
+            "is set to 'manual' or 'single_particle'"
+        ),
+    )
+
     theta: Optional[Union[float, List[float]]] = Field(
         None,
         description=(

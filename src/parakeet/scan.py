@@ -33,6 +33,7 @@ class Scan(object):
         beam_tilt_theta: np.ndarray = None,
         beam_tilt_phi: np.ndarray = None,
         electrons_per_angstrom: np.ndarray = None,
+        defocus_offset: np.ndarray = None,
         exposure_time: float = 1,
         is_uniform_angular_scan: bool = False,
     ):
@@ -69,6 +70,9 @@ class Scan(object):
         if electrons_per_angstrom is None:
             electrons_per_angstrom = np.ones(len(image_number))
 
+        if defocus_offset is None:
+            defocus_offset = np.zeros(len(image_number))
+
         self.data = pd.DataFrame(
             data={
                 "image_number": image_number,
@@ -86,6 +90,7 @@ class Scan(object):
                 "beam_tilt_theta": beam_tilt_theta,
                 "beam_tilt_phi": beam_tilt_phi,
                 "electrons_per_angstrom": electrons_per_angstrom,
+                "defocus_offset": defocus_offset,
                 "exposure_time": np.ones(len(axis)) * exposure_time,
             }
         )
@@ -185,6 +190,14 @@ class Scan(object):
 
         """
         return np.array(self.data[["axis_x", "axis_y", "axis_z"]])
+
+    @property
+    def defocus_offset(self) -> np.ndarray:
+        """
+        Get the defocus offset
+
+        """
+        return self.data["defocus_offset"]
 
     @property
     def euler_angles(self) -> np.ndarray:
@@ -291,6 +304,7 @@ class ScanFactory(object):
         axis: Union[np.ndarray, tuple] = (0, 1, 0),
         angles: np.ndarray = None,
         positions: np.ndarray = None,
+        defocus_offset: np.ndarray = None,
         num_fractions: int = 1,
         electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
@@ -307,9 +321,13 @@ class ScanFactory(object):
             angles = np.array([])
         if positions is None:
             positions = np.array([])
+        if defocus_offset is None:
+            defocus_offset = np.zeros(len(angles))
         assert angles is not None
         assert positions is not None
+        assert defocus_offset is not None
         assert len(angles) == len(positions)
+        assert len(angles) == len(defocus_offset)
         num_images = len(angles)
 
         # Create the orientation and shift
@@ -327,6 +345,7 @@ class ScanFactory(object):
         angle = np.repeat(angle, num_fractions, axis=0)
         shift = np.repeat(shift, num_fractions, axis=0)
         dose = np.full(angle.shape, electrons_per_angstrom / num_fractions)
+        defocus_offset = np.repeat(defocus_offset, num_fractions, axis=0)
 
         # Create the shift delta
         shift_delta = None
@@ -344,6 +363,7 @@ class ScanFactory(object):
             shift_delta=shift_delta,
             electrons_per_angstrom=dose,
             exposure_time=exposure_time,
+            defocus_offset=defocus_offset,
         )
 
     @classmethod
@@ -352,6 +372,7 @@ class ScanFactory(object):
         axis: tuple = (0, 1, 0),
         angles: np.ndarray = None,
         positions: np.ndarray = None,
+        defocus_offset: np.ndarray = None,
         num_fractions: int = 1,
         electrons_per_angstrom: float = 1,
         exposure_time: float = 1,
@@ -370,9 +391,12 @@ class ScanFactory(object):
             angles = np.zeros(len(positions))
         elif positions is None and angles is not None:
             positions = np.zeros(len(angles))
+        if defocus_offset is None:
+            defocus_offset = np.zeros(angles.shape[0])  # type: ignore
         assert angles is not None
         assert positions is not None
         assert len(angles) == len(positions)
+        assert len(angles) == len(defocus_offset)
         angles = np.array(angles)
         positions = np.array(positions)
 
@@ -381,6 +405,7 @@ class ScanFactory(object):
             axis=axis,
             angles=angles,
             positions=positions,
+            defocus_offset=defocus_offset,
             num_fractions=num_fractions,
             electrons_per_angstrom=electrons_per_angstrom,
             exposure_time=exposure_time,
@@ -565,6 +590,7 @@ class ScanFactory(object):
         exposure_time: float = 1,
         electrons_per_angstrom: float = 1,
         drift: dict = None,
+        defocus_offset: np.ndarray = None,
         **kwargs
     ) -> Scan:
         """
@@ -572,6 +598,9 @@ class ScanFactory(object):
         just the particle in different orientations
 
         """
+        if defocus_offset is None:
+            defocus_offset = np.zeros(num_images)
+        assert num_images == len(defocus_offset)
 
         # Get a random list of uniform orientations
         orientation = R.from_matrix(
@@ -591,6 +620,7 @@ class ScanFactory(object):
         axis = np.repeat(axis, num_fractions, axis=0)
         angle = np.repeat(angle, num_fractions, axis=0)
         dose = np.full(angle.shape, electrons_per_angstrom / num_fractions)
+        defocus_offset = np.repeat(defocus_offset, num_fractions, axis=0)
 
         # Create the shift delta
         shift_delta = None
@@ -604,9 +634,10 @@ class ScanFactory(object):
             fraction_number=fraction_number,
             axis=axis,
             angle=angle,
+            shift_delta=shift_delta,
             electrons_per_angstrom=dose,
             exposure_time=exposure_time,
-            shift_delta=shift_delta,
+            defocus_offset=defocus_offset,
             is_uniform_angular_scan=True,
         )
 
@@ -784,6 +815,7 @@ def new(
     num_fractions: int = 1,
     num_nhelix: int = 1,
     exposure_time: float = 1,
+    defocus_offset: np.ndarray = None,
     theta: np.ndarray = None,
     phi: np.ndarray = None,
     drift: dict = None,
@@ -808,6 +840,7 @@ def new(
         num_fractions: The number of movie frames per image
         num_nhelix: The number of scans in an n-helix
         exposure_time: The exposure time (seconds)
+        defocus_offset: The defocus_offset (A)
         theta: The beam tilt theta angle
         phi: The beam tilt phi angle
         drift: The beam drift model
@@ -829,6 +862,7 @@ def new(
         "num_fractions": num_fractions,
         "num_nhelix": num_nhelix,
         "exposure_time": exposure_time,
+        "defocus_offset": defocus_offset,
         "theta": theta,
         "phi": phi,
         "drift": drift,
