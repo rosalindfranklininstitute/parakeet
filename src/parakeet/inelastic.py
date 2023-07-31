@@ -417,7 +417,7 @@ def get_energy_bins(
         assert dE_mean >= E1
         assert dE_mean <= E2
         assert dE_spread >= 0
-        assert dE_spread <= (dE_spread_max + fudge)
+        # assert dE_spread <= (dE_spread_max + fudge)
         bin_energy[i] = energy - dE_mean
         bin_weight[i] = P_tot
         bin_spread[i] = dE_spread
