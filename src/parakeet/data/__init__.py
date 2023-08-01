@@ -35,6 +35,9 @@ def get_remote_pdb(pdb_id: str) -> tuple:
     else:
         raise RuntimeError("No PDB or CIF file found")
 
+    if not isinstance(filedata, str):
+        filedata = filedata.decode("ascii")
+
     # Return filedata
     return filename, filedata
 
