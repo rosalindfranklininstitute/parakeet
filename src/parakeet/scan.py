@@ -392,7 +392,7 @@ class ScanFactory(object):
         elif positions is None and angles is not None:
             positions = np.zeros(len(angles))
         if defocus_offset is None:
-            defocus_offset = np.zeros(angles.shape[0])  # type: ignore
+            defocus_offset = np.zeros(len(angles))  # type: ignore
         assert angles is not None
         assert positions is not None
         assert len(angles) == len(positions)
