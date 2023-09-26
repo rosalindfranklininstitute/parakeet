@@ -92,6 +92,7 @@ def _extract_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] > 0
     assert voxel_size[0] == voxel_size[1]
     assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
