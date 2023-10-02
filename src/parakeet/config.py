@@ -673,7 +673,7 @@ class IceParameters(BaseModel):
     s2: float = Field(0.081, description="The standard deviation of gaussian 2")
     a1: float = Field(0.199, description="The amplitude of gaussian 1")
     a2: float = Field(0.801, description="The amplitude of gaussian 2")
-    density: float = Field(0.91, gt=0, description="The density of the ice (g/cm^3)")
+    density: float = Field(0.94, gt=0, description="The density of the ice (g/cm^3)")
 
 
 class Simulation(BaseModel):
