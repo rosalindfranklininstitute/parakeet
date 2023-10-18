@@ -1063,8 +1063,8 @@ def plot_all_mean_and_power(pixel_size, stats_list, power_list):
     ) = map(np.array, zip(*stats_list))
 
     width = 0.0393701 * 190
-    height = (4 / 8) * width
-    fig, ax = pylab.subplots(figsize=(width, height), ncols=2, constrained_layout=True)
+    height = (3 / 8) * width
+    fig, ax = pylab.subplots(figsize=(width, height), ncols=3, constrained_layout=True)
     l1 = ax[0].plot(pixel_size, p_real, label="Physical (real)")
     l2 = ax[0].plot(pixel_size, p_imag, label="Physical (imag)")
     l3 = ax[0].plot(pixel_size, r_real, label="Random (real)")
@@ -1097,18 +1097,30 @@ def plot_all_mean_and_power(pixel_size, stats_list, power_list):
         color=l4[0].get_color(),
         alpha=0.3,
     )
-    ax[0].legend(loc="lower right")
-    ax[0].set_xlabel("Pixel size (A)\n(a)")
-    ax[0].set_ylabel("Exit wave mean and standard deviation")
+    ax[0].legend(loc="lower right", fontsize=6)
+    ax[0].set_xlabel("Pixel size (Å)\n(a)")
+    ax[0].set_ylabel("Exit wave mean")
+
+    ax[1].scatter(pixel_size, r_real - p_real, label="Real")
+    ax[1].scatter(pixel_size, r_imag - p_imag, label="Imag")
+    ax[1].set_ylim((-0.01, 0.01))
+    ax[1].set_yticks([-0.01, 0, 0.01])
+    ax[1].legend(fontsize=8)
+    ax[1].set_xlabel("Pixel size (Å)\n(b)")
+    ax[1].set_ylabel("Difference in exit wave mean\n(physical - random)")
+    ax[0].tick_params(axis="both", which="major", labelsize=8)
+    ax[1].tick_params(axis="both", which="major", labelsize=8)
+    ax[2].tick_params(axis="both", which="major", labelsize=8)
+    ax[2].set(yticklabels=[])
 
     cycle = pylab.rcParams["axes.prop_cycle"].by_key()["color"]
     for ps, power in zip(pixel_size, power_list):
-        p1 = ax[1].plot(power[0], power[1], color=cycle[0], alpha=0.5)
-        p2 = ax[1].plot(power[2], power[3], color=cycle[1], alpha=0.5)
-    ax[1].set_xlabel("Spatial frequency (1/Å)\n(b)")
-    ax[1].set_ylabel("Power spectrum")
-    ax[1].legend(handles=[p1[0], p2[0]], labels=["Physical", "Random"])
-    ax[1].set_xlim(0, 1.0)
+        p1 = ax[2].plot(power[0], power[1], color=cycle[0], alpha=0.5)
+        p2 = ax[2].plot(power[2], power[3], color=cycle[1], alpha=0.5)
+    ax[2].set_xlabel("Spatial frequency (1/Å)\n(c)")
+    ax[2].set_ylabel("Power spectrum")
+    ax[2].legend(handles=[p1[0], p2[0]], labels=["Physical", "Random"], fontsize=8)
+    ax[2].set_xlim(0, 1.0)
     # pylab.show()
     fig.savefig("mean_and_power.png", dpi=300, bbox_inches="tight")
     pylab.close("all")
