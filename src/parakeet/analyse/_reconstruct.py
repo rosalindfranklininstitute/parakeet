@@ -14,7 +14,6 @@ import random
 import parakeet.microscope
 import parakeet.sample
 from functools import singledispatch
-from parakeet.config import Device
 
 
 __all__ = ["reconstruct"]
@@ -25,9 +24,7 @@ random.seed(0)
 
 
 @singledispatch
-def reconstruct(
-    config_file, image_file: str, rec_file: str, device: Device = Device.gpu
-):
+def reconstruct(config_file, image_file: str, rec_file: str, device: str = None):
     """
     Reconstruct the volume
 
@@ -44,7 +41,7 @@ def reconstruct(
 
     # Set the device
     if device is not None:
-        config.device = device
+        config.multiprocessing.device = device
 
     # Print some options
     parakeet.config.show(config)
@@ -110,5 +107,5 @@ def _reconstruct_Config(
         astigmatism_angle=astigmatism_angle,
         phase_shift=phase_shift,
         angular_weights=True,
-        device=config.device,
+        device=config.multiprocessing.device,
     )

@@ -38,13 +38,20 @@ class SimpleImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, atoms=None, scan=None, simulation=None, device="gpu"
+        self,
+        microscope=None,
+        atoms=None,
+        scan=None,
+        simulation=None,
+        device="gpu",
+        gpu_id=None,
     ):
         self.microscope = microscope
         self.atoms = atoms
         self.scan = scan
         self.simulation = simulation
         self.device = device
+        self.gpu_id = gpu_id
 
     def __call__(self, index):
         """
@@ -81,6 +88,7 @@ class SimpleImageSimulator(object):
         # Create the multem system configuration
         simulate = SimulationEngine(
             self.device,
+            self.gpu_id,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
@@ -111,8 +119,8 @@ class SimpleImageSimulator(object):
 def simulation_factory(
     microscope: Microscope,
     atoms: str,
-    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
+    multiprocessing: dict = None,
 ):
     """
     Create the simulation
@@ -120,9 +128,8 @@ def simulation_factory(
     Args:
         microscope (object); The microscope object
         atoms (object): The atom data
-        device (str): The device to use
         simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
+        multiprocessing (object): The multiprocessing parameters
 
     Returns:
         object: The simulation object
@@ -134,6 +141,13 @@ def simulation_factory(
     # Get the margin
     margin = 0 if simulation is None else simulation.get("margin", 0)
 
+    # Check multiprocessing settings
+    if multiprocessing is None:
+        multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
+    else:
+        assert multiprocessing["nproc"] in [None, 1]
+        assert len(multiprocessing["gpu_id"]) == 1
+
     # Create the simulation
     return Simulation(
         image_size=(
@@ -142,13 +156,13 @@ def simulation_factory(
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
-        cluster={"method": None},
         simulate_image=SimpleImageSimulator(
             microscope=microscope,
             scan=scan,
             atoms=atoms,
             simulation=simulation,
-            device=device,
+            device=multiprocessing["device"],
+            gpu_id=multiprocessing["gpu_id"][0],
         ),
     )
 
@@ -197,8 +211,8 @@ def _simple_Config(config: parakeet.config.Config, atoms_file: str, output_file:
     simulation = simulation_factory(
         microscope=microscope,
         atoms=atoms,
-        device=config.device,
         simulation=config.simulation.dict(),
+        multiprocessing=config.multiprocessing.dict(),
     )
 
     # Create the writer

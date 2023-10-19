@@ -17,7 +17,6 @@ import parakeet.simulate
 from functools import singledispatch
 
 Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["run"]
@@ -34,9 +33,9 @@ def run(
     exit_wave_file: str,
     optics_file: str,
     image_file: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
-    cluster_max_workers: int = 1,
+    device: str = None,
+    nproc: int = None,
+    gpu_id: list = None,
     steps: list = None,
 ):
     """
@@ -53,9 +52,9 @@ def run(
         exit_wave_file: The exit wave filename
         optics_file: The optics filename
         image_file: The image filename
-        device: The device to run on (CPU or GPU)
-        cluster_method: The cluster method to use (default None)
-        cluster_max_workers: The maximum number of cluster jobs
+        device: The device to run on (cpu or gpu)
+        nproc: The number of processes
+        gpu_id: The list of gpu ids
         steps: Choose the steps to run
 
     """
@@ -65,11 +64,11 @@ def run(
 
     # Set the command line args in a dict
     if device is not None:
-        config.device = device
-    if cluster_max_workers is not None:
-        config.cluster.max_workers = cluster_max_workers
-    if cluster_method is not None:
-        config.cluster.method = cluster_method
+        config.multiprocessing.device = device
+    if nproc is not None:
+        config.multiprocessing.nproc = nproc
+    if gpu_id is not None:
+        config.multiprocessing.gpu_id = gpu_id
 
     # Print some options
     parakeet.config.show(config)

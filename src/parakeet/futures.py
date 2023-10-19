@@ -8,16 +8,18 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import concurrent.futures
+import multiprocessing
 import parakeet.config
 
 
 def as_completed(futures):
-    import dask.distributed
+    return concurrent.futures.as_completed(futures)
+    # import dask.distributed
+    # return dask.distributed.as_completed(futures)
 
-    return dask.distributed.as_completed(futures)
 
-
-def factory(method="sge", max_workers=1):
+def factory(method="mp", max_workers=1):
     """
     Configure the future to use for parallel processing
 
@@ -26,10 +28,11 @@ def factory(method="sge", max_workers=1):
         max_workers (int): The number of worker processes
 
     """
-    import dask_jobqueue
-    import dask.distributed
 
     if method == "sge":
+        import dask_jobqueue
+        import dask.distributed
+
         # Create the SGECluster object
         # For each worker:
         #   - request 1 gpu and 1 core
@@ -57,6 +60,20 @@ def factory(method="sge", max_workers=1):
 
         # Return the client
         executor = dask.distributed.Client(cluster)
+    elif method == "mp":
+        # We set a process index for each process so that we always uses the
+        # same GPU with the same process
+        def initializer(count):
+            global process_index
+            process_index = count.value
+            count.value += 1
+
+        # Create the process pool executor
+        executor = concurrent.futures.ProcessPoolExecutor(
+            max_workers=max_workers,
+            initializer=initializer,
+            initargs=(multiprocessing.Value("i", 0),),
+        )
     else:
         raise RuntimeError(f"Unknown multiprocessing method: {method}")
 
