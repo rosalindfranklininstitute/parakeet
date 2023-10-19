@@ -59,6 +59,7 @@ class OpticsImageSimulator(object):
         simulation=None,
         sample=None,
         device="gpu",
+        gpu_id=None,
     ):
         self.microscope = microscope
         self.exit_wave = exit_wave
@@ -66,6 +67,7 @@ class OpticsImageSimulator(object):
         self.simulation = simulation
         self.sample = sample
         self.device = device
+        self.gpu_id = gpu_id
 
     def __call__(self, index):
         """
@@ -81,11 +83,20 @@ class OpticsImageSimulator(object):
         """
 
         def compute_image(
-            psi, microscope, simulation, x_fov, y_fov, offset, device, defocus=None
+            psi,
+            microscope,
+            simulation,
+            x_fov,
+            y_fov,
+            offset,
+            device,
+            gpu_id,
+            defocus=None,
         ):
             # Create the multem system configuration
             system_conf = parakeet.simulate.simulation.create_system_configuration(
-                device
+                device,
+                gpu_id,
             )
 
             # Set the defocus
@@ -176,6 +187,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
             electron_fraction = 1.0
@@ -190,6 +202,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -252,6 +265,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -274,6 +288,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -303,6 +318,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -323,6 +339,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -356,6 +373,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -376,6 +394,7 @@ class OpticsImageSimulator(object):
                 y_fov,
                 offset,
                 self.device,
+                self.gpu_id,
                 defocus,
             )
 
@@ -458,10 +477,9 @@ def simulation_factory(
     microscope: Microscope,
     exit_wave: object,
     scan: Scan,
-    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
     sample: dict = None,
-    cluster: dict = None,
+    multiprocessing: dict = None,
 ) -> Simulation:
     """
     Create the simulation
@@ -470,28 +488,34 @@ def simulation_factory(
         microscope (object); The microscope object
         exit_wave (object): The exit_wave object
         scan (object): The scan object
-        device (str): The device to use
         simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
+        multiprocessing (object): The multiprocessing parameters
 
     Returns:
         object: The simulation object
 
     """
 
+    # Check multiprocessing settings
+    if multiprocessing is None:
+        multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
+    else:
+        assert multiprocessing["nproc"] in [None, 1]
+        assert len(multiprocessing["gpu_id"]) == 1
+
     # Create the simulation
     return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
-        cluster=cluster,
         simulate_image=OpticsImageSimulator(
             microscope=microscope,
             exit_wave=exit_wave,
             scan=scan,
             simulation=simulation,
             sample=sample,
-            device=device,
+            device=multiprocessing["device"],
+            gpu_id=multiprocessing["gpu_id"][0],
         ),
     )
 
@@ -501,9 +525,9 @@ def optics(
     config_file,
     exit_wave_file: str,
     optics_file: str,
-    device: parakeet.config.Device = parakeet.config.Device.gpu,
-    cluster_method: parakeet.config.ClusterMethod = None,
-    cluster_max_workers: int = 1,
+    device: str = None,
+    nproc: int = None,
+    gpu_id: list = None,
 ):
     """
     Simulate the optics
@@ -512,22 +536,22 @@ def optics(
         config_file: The input config filename
         exit_wave_file: The input exit wave filename
         optics_file: The output optics filename
-        device: The device to run on (CPU or GPU)
-        cluster_method: The cluster method to use (default None)
-        cluster_max_workers: The maximum number of cluster jobs
+        device: The device to run on (cpu or gpu)
+        nproc: The number of processes
+        gpu_id: The list of gpu ids
 
     """
 
     # Load the full configuration
     config = parakeet.config.load(config_file)
 
-    # Set the device in a dict
+    # Set the command line args in a dict
     if device is not None:
-        config.device = device
-    if cluster_max_workers is not None:
-        config.cluster.max_workers = cluster_max_workers
-    if cluster_method is not None:
-        config.cluster.method = cluster_method
+        config.multiprocessing.device = device
+    if nproc is not None:
+        config.multiprocessing.nproc = nproc
+    if gpu_id is not None:
+        config.multiprocessing.gpu_id = gpu_id
 
     # Print some options
     parakeet.config.show(config)
@@ -569,10 +593,9 @@ def _optics_Config(
         microscope,
         exit_wave,
         scan,
-        device=config.device,
         simulation=config.simulation.dict(),
         sample=config.sample.dict(),
-        cluster=config.cluster.dict(),
+        multiprocessing=config.multiprocessing.dict(),
     )
 
     # Create the writer

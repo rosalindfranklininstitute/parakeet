@@ -49,7 +49,7 @@ def defocus_spread(Cc, dEE, dII, dVV):
     return Cc * sqrt((dEE) ** 2 + (2 * dII) ** 2 + (dVV) ** 2)
 
 
-def create_system_configuration(device):
+def create_system_configuration(device, gpu_id=0):
     """
     Create an appropriate system configuration
 
@@ -77,6 +77,10 @@ def create_system_configuration(device):
             warnings.warn("GPU not present, reverting to CPU")
     else:
         system_conf.device = "host"
+
+    # Set the gpu_device
+    if gpu_id is not None:
+        system_conf.gpu_device = gpu_id
 
     # Print some output
     logger.info("Simulating using %s" % system_conf.device)
@@ -350,23 +354,21 @@ class Simulation(object):
 
     """
 
-    def __init__(
-        self, image_size, pixel_size, scan=None, cluster=None, simulate_image=None
-    ):
+    def __init__(self, image_size, pixel_size, scan=None, nproc=1, simulate_image=None):
         """
         Initialise the simulation
 
         Args:
             image_size (tuple): The image size
             scan (object): The scan object
-            cluster (object): The cluster spec
+            nproc: The number of processes
             simulate_image (func): The image simulation function
 
         """
         self.pixel_size = pixel_size
         self.image_size = image_size
         self.scan = scan
-        self.cluster = cluster
+        self.nproc = nproc
         self.simulate_image = simulate_image
 
     @property
@@ -404,7 +406,7 @@ class Simulation(object):
             assert writer.shape == self.shape
 
         # If we are executing in a single process just do a for loop
-        if self.cluster is None or self.cluster["method"] is None:
+        if self.nproc is None or self.nproc <= 1:
             for i, (image_number, fraction_number, angle) in enumerate(self.angles()):
                 logger.info(
                     f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"
@@ -416,21 +418,15 @@ class Simulation(object):
                         writer.header[i] = metadata
         else:
             # Set the maximum number of workers
-            self.cluster["max_workers"] = min(
-                self.cluster["max_workers"], self.shape[0]
-            )
-            logger.info("Initialising %d worker threads" % self.cluster["max_workers"])
+            self.nproc = min(self.nproc, self.shape[0])
+            logger.info("Initialising %d worker threads" % self.nproc)
 
             # Get the futures executor
-            with parakeet.futures.factory(**self.cluster) as executor:
-                # Copy the data to each worker
-                logger.info("Copying data to workers...")
-
+            with parakeet.futures.factory(max_workers=self.nproc) as executor:
                 # Submit all jobs
-                logger.info("Running simulation...")
                 futures = []
                 for i, (image_number, fraction_number, angle) in enumerate(
-                    self.scan.angles
+                    self.angles()
                 ):
                     logger.info(
                         f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"

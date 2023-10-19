@@ -83,19 +83,18 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         help="Choose the device to use",
     )
     parser.add_argument(
-        "--cluster.max_workers",
+        "--nproc",
         type=int,
         default=None,
-        dest="cluster_max_workers",
-        help="The maximum number of worker processes",
+        dest="nproc",
+        help="The number of processes to use",
     )
     parser.add_argument(
-        "--cluster.method",
-        type=str,
-        choices=["sge"],
+        "--gpu_id",
+        type=lambda x: [int(item) for item in x.split(",")],
         default=None,
-        dest="cluster_method",
-        help="The cluster method to use",
+        dest="gpu_id",
+        help="The GPU ids (must match number of processors)",
     )
 
     return parser
@@ -119,8 +118,8 @@ def cbed_impl(args):
         args.sample,
         args.image,
         device=args.device,
-        cluster_method=args.cluster_method,
-        cluster_max_workers=args.cluster_max_workers,
+        nproc=args.nproc,
+        gpu_id=args.gpu_id,
     )
 
     # Write some timing stats
