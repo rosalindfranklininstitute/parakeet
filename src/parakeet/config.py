@@ -741,7 +741,7 @@ class Multiprocessing(BaseModel):
 
     nproc: int = Field(1, description="The number of processes", gt=0)
 
-    gpu_id: List[int] = Field(None, description="The GPU id for each thread")
+    gpu_id: List[int] = Field([0], description="The GPU id for each thread")
 
 
 class Config(BaseModel):

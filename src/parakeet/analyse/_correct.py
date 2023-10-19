@@ -14,7 +14,6 @@ import random
 import parakeet.microscope
 import parakeet.sample
 from functools import singledispatch
-from parakeet.config import Device
 
 
 __all__ = ["correct"]
@@ -30,7 +29,7 @@ def correct(
     image_file: str,
     corrected_file: str,
     num_defocus: int = 1,
-    device: Device = Device.gpu,
+    device: str = None,
 ):
     """
     Correct the images using 3D CTF correction
@@ -49,7 +48,7 @@ def correct(
 
     # Set the device
     if device is not None:
-        config.device = device
+        config.multiprocessing.device = device
 
     # Print some options
     parakeet.config.show(config)
@@ -115,5 +114,5 @@ def _correct_Config(
         astigmatism=astigmatism,
         astigmatism_angle=astigmatism_angle,
         phase_shift=phase_shift,
-        device=config.device,
+        device=config.multiprocessing.device,
     )
