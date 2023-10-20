@@ -51,7 +51,7 @@ jobs:
     - name: Build documentation
       run: |
         sphinx-build docs/source docs/build
-        cp -rv docs/build/sphinx/html/* docs/
+        cp -rv docs/build/* docs/
     
     - name: Publish to Github pages
       env:
