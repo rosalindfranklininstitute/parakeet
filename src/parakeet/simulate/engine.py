@@ -52,7 +52,14 @@ class SimulationEngine(object):
     """
 
     def __init__(
-        self, device, microscope, slice_thickness, margin, simulation_type, centre=None
+        self,
+        device,
+        gpu_id,
+        microscope,
+        slice_thickness,
+        margin,
+        simulation_type,
+        centre=None,
     ):
         """
         Initialise the simulation engine
@@ -63,7 +70,7 @@ class SimulationEngine(object):
         self.margin = margin
 
         # Setup the system configuration
-        self.system_conf = self._create_system_configuration(device)
+        self.system_conf = self._create_system_configuration(device, gpu_id)
 
         # Setup the input multislice
         if simulation_type in ["CBED"]:
@@ -75,12 +82,13 @@ class SimulationEngine(object):
                 microscope, slice_thickness, margin, simulation_type, centre
             )
 
-    def _create_system_configuration(self, device):
+    def _create_system_configuration(self, device, gpu_id):
         """
         Create an appropriate system configuration
 
         Args:
             device (str): The device to use
+            gpu_id (int): The gpu id
 
         Returns:
             object: The system configuration
@@ -103,6 +111,10 @@ class SimulationEngine(object):
                 warnings.warn("GPU not present, reverting to CPU")
         else:
             system_conf.device = "host"
+
+        # Set the GPU ID
+        if gpu_id is not None:
+            system_conf.gpu_device = gpu_id
 
         # Print some output
         logger.info("Simulating using %s" % system_conf.device)

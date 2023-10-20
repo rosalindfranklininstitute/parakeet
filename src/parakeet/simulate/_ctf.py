@@ -66,6 +66,7 @@ class CTFSimulator(object):
         # Create the multem system configuration
         simulate = SimulationEngine(
             "cpu",
+            0,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],

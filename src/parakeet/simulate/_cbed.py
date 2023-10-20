@@ -118,6 +118,7 @@ class CBEDImageSimulator(object):
         # Create the multem input multislice object
         simulate = SimulationEngine(
             self.device,
+            self.gpu_id,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"] + self.simulation["padding"],

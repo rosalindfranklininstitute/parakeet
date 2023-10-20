@@ -111,6 +111,7 @@ class ExitWaveImageSimulator(object):
         # Create the multem system configuration
         simulate = SimulationEngine(
             self.device,
+            self.gpu_id,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"] + self.simulation["padding"],
