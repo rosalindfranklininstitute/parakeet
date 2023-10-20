@@ -96,19 +96,18 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         help="Choose the device to use",
     )
     parser.add_argument(
-        "--cluster.max_workers",
+        "--nproc",
         type=int,
         default=None,
-        dest="cluster_max_workers",
-        help="The maximum number of worker processes",
+        dest="nproc",
+        help="The number of processes to use",
     )
     parser.add_argument(
-        "--cluster.method",
-        type=str,
-        choices=["sge"],
+        "--gpu_id",
+        type=lambda x: [int(item) for item in x.split(",")],
         default=None,
-        dest="cluster_method",
-        help="The cluster method to use",
+        dest="gpu_id",
+        help="The GPU ids (must match number of processors)",
     )
     parser.add_argument(
         "--steps",
@@ -152,8 +151,8 @@ def run_impl(args):
         args.optics,
         args.image,
         args.device,
-        args.cluster_method,
-        args.cluster_max_workers,
+        args.nproc,
+        args.gpu_id,
         args.steps,
     )
 

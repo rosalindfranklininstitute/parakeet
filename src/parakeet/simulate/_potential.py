@@ -19,16 +19,14 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
+from parakeet.config import Device
+from parakeet.sample import Sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from parakeet.simulate.simulation import Simulation
 from functools import singledispatch
 from math import pi, floor
 from scipy.spatial.transform import Rotation as R
-
-Sample = parakeet.sample.Sample
-Device = parakeet.config.Device
-ClusterMethod = parakeet.config.ClusterMethod
 
 
 __all__ = ["potential"]
@@ -63,6 +61,7 @@ class ProjectedPotentialSimulator(object):
         scan=None,
         simulation=None,
         device="gpu",
+        gpu_id=None,
     ):
         self.potential_prefix = potential_prefix
         self.microscope = microscope
@@ -70,6 +69,7 @@ class ProjectedPotentialSimulator(object):
         self.scan = scan
         self.simulation = simulation
         self.device = device
+        self.gpu_id = gpu_id
 
     def __call__(self, index):
         """
@@ -111,7 +111,8 @@ class ProjectedPotentialSimulator(object):
 
         # Create the multem system configuration
         system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device
+            self.device,
+            self.gpu_id,
         )
 
         # The Z centre
@@ -191,9 +192,8 @@ def simulation_factory(
     microscope: Microscope,
     sample: Sample,
     scan: Scan,
-    device: Device = Device.gpu,
     simulation: dict = None,
-    cluster: dict = None,
+    multiprocessing: dict = None,
 ) -> Simulation:
     """
     Create the simulation
@@ -203,9 +203,8 @@ def simulation_factory(
         microscope: The microscope object
         sample: The sample object
         scan: The scan object
-        device: The device to use
         simulation: The simulation parameters
-        cluster: The cluster parameters
+        multiprocessing (object): The multiprocessing parameters
 
     Returns:
         object: The simulation object
@@ -213,6 +212,13 @@ def simulation_factory(
     """
     # Get the margin
     margin = 0 if simulation is None else simulation.get("margin", 0)
+
+    # Check multiprocessing settings
+    if multiprocessing is None:
+        multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
+    else:
+        assert multiprocessing["nproc"] in [None, 1]
+        assert len(multiprocessing["gpu_id"]) == 1
 
     # Create the simulation
     return Simulation(
@@ -222,14 +228,14 @@ def simulation_factory(
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
-        cluster=cluster,
         simulate_image=ProjectedPotentialSimulator(
             potential_prefix=potential_prefix,
             microscope=microscope,
             sample=sample,
             scan=scan,
             simulation=simulation,
-            device=device,
+            device=multiprocessing["device"],
+            gpu_id=multiprocessing["gpu_id"][0],
         ),
     )
 
@@ -239,9 +245,9 @@ def potential(
     config_file,
     sample_file: str,
     potential_prefix: str,
-    device: Device = Device.gpu,
-    cluster_method: ClusterMethod = None,
-    cluster_max_workers: int = 1,
+    device: Device = None,
+    nproc: int = None,
+    gpu_id: list = None,
 ):
     """
     Simulate the projected potential from the sample
@@ -250,9 +256,9 @@ def potential(
         config_file: The input config filename
         sample_file: The input sample filename
         potential_prefix: The input potential filename
-        device: The device to run on (CPU or GPU)
-        cluster_method: The cluster method to use (default None)
-        cluster_max_workers: The maximum number of cluster jobs
+        device: The device to run on (cpu or gpu)
+        nproc: The number of processes
+        gpu_id: The list of gpu ids
 
     """
 
@@ -261,11 +267,11 @@ def potential(
 
     # Set the command line args in a dict
     if device is not None:
-        config.device = device
-    if cluster_max_workers is not None:
-        config.cluster.max_workers = cluster_max_workers
-    if cluster_method is not None:
-        config.cluster.method = cluster_method
+        config.multiprocessing.device = device
+    if nproc is not None:
+        config.multiprocessing.nproc = nproc
+    if gpu_id is not None:
+        config.multiprocessing.gpu_id = gpu_id
 
     # Print some options
     parakeet.config.show(config)
@@ -310,9 +316,8 @@ def _potential_Config(
         microscope=microscope,
         sample=sample,
         scan=scan,
-        device=config.device,
         simulation=config.simulation.dict(),
-        cluster=config.cluster.dict(),
+        multiprocessing=config.multiprocessing.dict(),
     )
 
     # Run the simulation

@@ -45,13 +45,20 @@ class ImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, optics=None, scan=None, simulation=None, device="gpu"
+        self,
+        microscope=None,
+        optics=None,
+        scan=None,
+        simulation=None,
+        device="gpu",
+        gpu_id=None,
     ):
         self.microscope = microscope
         self.optics = optics
         self.scan = scan
         self.simulation = simulation
         self.device = device
+        self.gpu_id = gpu_id
 
     def __call__(self, index):
         """
@@ -130,9 +137,8 @@ def simulation_factory(
     microscope: Microscope,
     optics: object,
     scan: Scan,
-    device: Device = Device.gpu,
     simulation: dict = None,
-    cluster: dict = None,
+    multiprocessing: dict = None,
 ) -> Simulation:
     """
     Create the simulation
@@ -141,27 +147,32 @@ def simulation_factory(
         microscope (object); The microscope object
         optics (object): The optics object
         scan (object): The scan object
-        device (str): The device to use
         simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
+        multiprocessing (object): The multiprocessing parameters
 
     Returns:
         object: The simulation object
 
     """
+    # Check multiprocessing settings
+    if multiprocessing is None:
+        multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
+    else:
+        assert multiprocessing["nproc"] in [None, 1]
+        assert len(multiprocessing["gpu_id"]) == 1
 
     # Create the simulation
     return Simulation(
         image_size=(microscope.detector.nx, microscope.detector.ny),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
-        cluster=cluster,
         simulate_image=ImageSimulator(
             microscope=microscope,
             optics=optics,
             scan=scan,
             simulation=simulation,
-            device=device,
+            device=multiprocessing["device"],
+            gpu_id=multiprocessing["gpu_id"][0],
         ),
     )
 
@@ -222,9 +233,8 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
         microscope=microscope,
         optics=optics,
         scan=scan,
-        device=config.device,
         simulation=config.simulation.dict(),
-        cluster=config.cluster.dict(),
+        multiprocessing=config.multiprocessing.dict(),
     )
 
     # Create the writer

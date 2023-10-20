@@ -721,26 +721,6 @@ class Simulation(BaseModel):
     )
 
 
-class ClusterMethod(str, Enum):
-    """
-    An enumeration to describe the cluster method
-
-    """
-
-    sge = "sge"
-
-
-class Cluster(BaseModel):
-    """
-    A model to set the cluster parameters for multiprocessing
-
-    """
-
-    method: ClusterMethod = Field(None, description="The cluster method to use")
-
-    max_workers: int = Field(1, description="The maximum number of worker processes")
-
-
 class Device(str, Enum):
     """
     An enumeration to set whether to run on the GPU or CPU
@@ -749,6 +729,19 @@ class Device(str, Enum):
 
     gpu = "gpu"
     cpu = "cpu"
+
+
+class Multiprocessing(BaseModel):
+    """
+    The multiprocessing parameters
+
+    """
+
+    device: Device = Field("gpu", description="The device to use (cpu or gpu)")
+
+    nproc: int = Field(1, description="The number of processes", gt=0)
+
+    gpu_id: List[int] = Field([0], description="The GPU id for each thread")
 
 
 class Config(BaseModel):
@@ -773,9 +766,9 @@ class Config(BaseModel):
         Simulation(), description="The simulation parameters"
     )
 
-    device: Device = Field("gpu", description="The device to use (cpu or gpu)")
-
-    cluster: Cluster = Field(Cluster(), description="The cluster parameters")
+    multiprocessing: Multiprocessing = Field(
+        Multiprocessing(), description="The multiprocessing parameters"
+    )
 
 
 def default() -> Config:

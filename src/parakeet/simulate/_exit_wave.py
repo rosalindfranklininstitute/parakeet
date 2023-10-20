@@ -21,6 +21,7 @@ import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
 import parakeet.simulate
+from parakeet.config import Device
 from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
 from functools import singledispatch
@@ -53,13 +54,20 @@ class ExitWaveImageSimulator(object):
     """
 
     def __init__(
-        self, microscope=None, sample=None, scan=None, simulation=None, device="gpu"
+        self,
+        microscope=None,
+        sample=None,
+        scan=None,
+        simulation=None,
+        device="gpu",
+        gpu_id=None,
     ):
         self.microscope = microscope
         self.sample = sample
         self.scan = scan
         self.simulation = simulation
         self.device = device
+        self.gpu_id = gpu_id
 
     def get_masker(
         self,
@@ -196,7 +204,8 @@ class ExitWaveImageSimulator(object):
 
         # Create the multem system configuration
         system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device
+            self.device,
+            self.gpu_id,
         )
 
         # The Z centre
@@ -355,9 +364,8 @@ def simulation_factory(
     microscope: Microscope,
     sample: parakeet.sample.Sample,
     scan: parakeet.scan.Scan,
-    device: parakeet.config.Device = parakeet.config.Device.gpu,
     simulation: dict = None,
-    cluster: dict = None,
+    multiprocessing: dict = None,
 ) -> Simulation:
     """
     Create the simulation
@@ -366,9 +374,8 @@ def simulation_factory(
         microscope (object); The microscope object
         sample (object): The sample object
         scan (object): The scan object
-        device (str): The device to use
         simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
+        multiprocessing (object): The multiprocessing parameters
 
     Returns:
         object: The simulation object
@@ -376,6 +383,13 @@ def simulation_factory(
     """
     # Get the margin
     margin = 0 if simulation is None else simulation.get("margin", 0)
+
+    # Check multiprocessing settings
+    if multiprocessing is None:
+        multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
+    else:
+        assert multiprocessing["nproc"] in [None, 1]
+        assert len(multiprocessing["gpu_id"]) == 1
 
     # Create the simulation
     return Simulation(
@@ -385,13 +399,13 @@ def simulation_factory(
         ),
         pixel_size=microscope.detector.pixel_size,
         scan=scan,
-        cluster=cluster,
         simulate_image=ExitWaveImageSimulator(
             microscope=microscope,
             sample=sample,
             scan=scan,
             simulation=simulation,
-            device=device,
+            device=multiprocessing["device"],
+            gpu_id=multiprocessing["gpu_id"][0],
         ),
     )
 
@@ -401,9 +415,9 @@ def exit_wave(
     config_file,
     sample_file: str,
     exit_wave_file: str,
-    device: parakeet.config.Device = parakeet.config.Device.gpu,
-    cluster_method: parakeet.config.ClusterMethod = None,
-    cluster_max_workers: int = 1,
+    device: Device = None,
+    nproc: int = None,
+    gpu_id: list = None,
 ):
     """
     Simulate the exit wave from the sample
@@ -412,9 +426,9 @@ def exit_wave(
         config_file: The config filename
         sample_file: The sample filename
         exit_wave_file: The exit wave filename
-        device: The device to run on (CPU or GPU)
-        cluster_method: The cluster method to use (default None)
-        cluster_max_workers: The maximum number of cluster jobs
+        device: The device to run on (cpu or gpu)
+        nproc: The number of processes
+        gpu_id: The list of gpu ids
 
     """
 
@@ -423,11 +437,11 @@ def exit_wave(
 
     # Set the command line args in a dict
     if device is not None:
-        config.device = device
-    if cluster_max_workers is not None:
-        config.cluster.max_workers = cluster_max_workers
-    if cluster_method is not None:
-        config.cluster.method = cluster_method
+        config.multiprocessing.device = device
+    if nproc is not None:
+        config.multiprocessing.nproc = nproc
+    if gpu_id is not None:
+        config.multiprocessing.gpu_id = gpu_id
 
     # Print some options
     parakeet.config.show(config)
@@ -471,9 +485,8 @@ def _exit_wave_Config(
         microscope,
         sample,
         scan,
-        device=config.device,
         simulation=config.simulation.dict(),
-        cluster=config.cluster.dict(),
+        multiprocessing=config.multiprocessing.dict(),
     )
 
     # Create the writer

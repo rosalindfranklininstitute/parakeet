@@ -104,11 +104,7 @@ def simulation_factory(microscope: Microscope, simulation: dict) -> Simulation:
 
     Args:
         microscope (object); The microscope object
-        exit_wave (object): The exit_wave object
-        scan (object): The scan object
-        device (str): The device to use
         simulation (object): The simulation parameters
-        cluster (object): The cluster parameters
 
     Returns:
         object: The simulation object
