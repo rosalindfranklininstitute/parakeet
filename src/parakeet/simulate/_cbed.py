@@ -20,6 +20,7 @@ import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
 import parakeet.simulate
+from parakeet.config import Device
 from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
@@ -31,9 +32,6 @@ from scipy.spatial.transform import Rotation as R
 
 __all__ = ["cbed"]
 
-
-Device = parakeet.config.Device
-Sample = parakeet.sample.Sample
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -323,7 +321,7 @@ def cbed(
     config_file,
     sample_file: str,
     image_file: str,
-    device: str = None,
+    device: Device = None,
     nproc: int = None,
     gpu_id: list = None,
 ):

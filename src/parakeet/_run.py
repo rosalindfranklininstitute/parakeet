@@ -14,9 +14,8 @@ import parakeet.config
 import parakeet.metadata
 import parakeet.sample
 import parakeet.simulate
+from parakeet.config import Device
 from functools import singledispatch
-
-Device = parakeet.config.Device
 
 
 __all__ = ["run"]
@@ -33,7 +32,7 @@ def run(
     exit_wave_file: str,
     optics_file: str,
     image_file: str,
-    device: str = None,
+    device: Device = None,
     nproc: int = None,
     gpu_id: list = None,
     steps: list = None,

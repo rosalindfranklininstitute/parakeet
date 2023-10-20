@@ -19,6 +19,9 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
+from parakeet.config import Device
+from parakeet.microscope import Microscope
+from parakeet.scan import Scan
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 from parakeet.simulate.engine import SimulationEngine
@@ -456,7 +459,7 @@ def optics(
     config_file,
     exit_wave_file: str,
     optics_file: str,
-    device: str = None,
+    device: Device = None,
     nproc: int = None,
     gpu_id: list = None,
 ):

@@ -13,6 +13,7 @@ import guanaco
 import random
 import parakeet.microscope
 import parakeet.sample
+from parakeet.config import Device
 from functools import singledispatch
 
 
@@ -29,7 +30,7 @@ def correct(
     image_file: str,
     corrected_file: str,
     num_defocus: int = 1,
-    device: str = None,
+    device: Device = None,
 ):
     """
     Correct the images using 3D CTF correction
