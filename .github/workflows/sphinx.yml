@@ -50,8 +50,8 @@ jobs:
     
     - name: Build documentation
       run: |
-        python setup.py build_sphinx
-        cp -rv build/sphinx/html/* docs/
+        sphinx-build docs/source docs/build
+        cp -rv docs/build/sphinx/html/* docs/
     
     - name: Publish to Github pages
       env:
