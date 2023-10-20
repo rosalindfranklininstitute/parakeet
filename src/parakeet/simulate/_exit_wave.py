@@ -21,6 +21,7 @@ import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
 import parakeet.simulate
+from parakeet.config import Device
 from parakeet.simulate.simulation import Simulation
 from parakeet.microscope import Microscope
 from functools import singledispatch
@@ -414,7 +415,7 @@ def exit_wave(
     config_file,
     sample_file: str,
     exit_wave_file: str,
-    device: str = None,
+    device: Device = None,
     nproc: int = None,
     gpu_id: list = None,
 ):

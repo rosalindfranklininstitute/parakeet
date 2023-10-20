@@ -19,6 +19,7 @@ import parakeet.freeze
 import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
+from parakeet.config import Device
 from parakeet.sample import Sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
@@ -244,7 +245,7 @@ def potential(
     config_file,
     sample_file: str,
     potential_prefix: str,
-    device: str = None,
+    device: Device = None,
     nproc: int = None,
     gpu_id: list = None,
 ):

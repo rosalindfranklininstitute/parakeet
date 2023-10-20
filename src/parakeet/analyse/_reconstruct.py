@@ -13,6 +13,7 @@ import guanaco
 import random
 import parakeet.microscope
 import parakeet.sample
+from parakeet.config import Device
 from functools import singledispatch
 
 
@@ -24,7 +25,7 @@ random.seed(0)
 
 
 @singledispatch
-def reconstruct(config_file, image_file: str, rec_file: str, device: str = None):
+def reconstruct(config_file, image_file: str, rec_file: str, device: Device = None):
     """
     Reconstruct the volume
 
