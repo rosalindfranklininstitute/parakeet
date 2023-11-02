@@ -73,7 +73,7 @@ Please use the [GitHub issue tracker](https://github.com/rosalindfranklininstitu
 
 Checkout the [changelog](CHANGES.rst) for a list of recent changes to parakeet.
 
-### Contributions
+## Contributions
 
 If you would like to help contribute to profet, please read our [contribution](CONTRIBUTING.md) guide and [code of conduct](CODE_OF_CONDUCT.md).
 
