@@ -187,8 +187,8 @@ the following command:
 This command will add the detector DQE and the Poisson noise for a given dose
 and will output a file "image.h5".
 
-Other functions
----------------
+Export functions
+----------------
 
 Typically we cant to output an MRC file for further processing. The hdf5 files
 can easily be exported to MRC by the following command:
@@ -198,3 +198,19 @@ can easily be exported to MRC by the following command:
   parakeet.export file.h5 -o file.mrc
   
 The export command can also be used to rebin the image or select a region of interest. 
+
+Analysis functions
+------------------
+
+The reconstruction function can be called in Parakeet in the following way:
+
+.. code-block:: bash
+
+   parakeet.export image.h5 -o image.mrc
+   parakeet.analyse.reconstruct -c config.yaml -i image.mrc
+
+Averaging of the particles can then be done with:
+
+.. code-block:: bash
+
+   parakeet.analyse.average_particles -c config.yaml
