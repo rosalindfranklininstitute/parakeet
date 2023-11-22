@@ -1,5 +1,6 @@
 import pytest
-from math import exp
+import numpy as np
+from math import exp, sqrt
 from parakeet import inelastic
 
 
@@ -103,3 +104,17 @@ def test_most_probable_loss():
     peak, sigma = inelastic.most_probable_loss(300, cube, 0)
     assert peak == pytest.approx(17.92806966151457)
     assert sigma == pytest.approx(5.300095984425282)
+
+
+@pytest.mark.parametrize("thickness", [100, 1000, 4000])
+def test_get_energy_bins(thickness):
+    bin_energy, bin_spread, bin_weight = inelastic.get_energy_bins(
+        energy=300000, thickness=thickness, energy_spread=0.798
+    )
+
+    assert np.min(bin_weight) >= 0
+    assert np.max(bin_weight) <= 1
+    assert np.isclose(np.sum(bin_weight), 1)
+    assert np.argmax(bin_weight) == 2
+    assert np.max(bin_spread) <= sqrt(5**2 / 12) * sqrt(2) + 0.05
+    assert np.min(bin_spread) >= 0

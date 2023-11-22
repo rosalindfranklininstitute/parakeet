@@ -17,16 +17,24 @@ def effective_thickness(shape, angle):
     Compute the effective thickness
 
     """
-    TINY = 1e-10
+    TINY = 1e-5
     if shape["type"] == "cube":
         D0 = shape["cube"]["length"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
+        cos_angle = cos(pi * angle / 180.0)
+        if abs(cos_angle) < TINY:
+            cos_angle = TINY
+        thickness = D0 / cos_angle
     elif shape["type"] == "cuboid":
         D0 = shape["cuboid"]["length_z"]
-        thickness = D0 / (cos(pi * angle / 180.0) + TINY)
+        cos_angle = cos(pi * angle / 180.0)
+        if abs(cos_angle) < TINY:
+            cos_angle = TINY
+        thickness = D0 / cos_angle
     elif shape["type"] == "cylinder":
         thickness = shape["cylinder"]["radius"] * 2
-    return thickness
+    if isinstance(thickness, list):
+        thickness = np.mean(thickness)
+    return abs(thickness)
 
 
 def zero_loss_fraction(shape, angle):
@@ -187,7 +195,9 @@ class EnergyFilterOptimizer(object):
 
         # The energy loss distribution
         energy_loss_distribution = self.landau(dE, energy, thickness)
-        energy_loss_distribution /= self.dE_step * np.sum(energy_loss_distribution)
+        sum_ELD = np.sum(energy_loss_distribution)
+        if sum_ELD > 0:
+            energy_loss_distribution /= self.dE_step * sum_ELD
 
         # The zero loss distribution
         zero_loss_distribution = (1.0 / sqrt(pi * self.energy_spread**2)) * np.exp(
@@ -274,7 +284,9 @@ class EnergyFilterOptimizer(object):
 
         # The energy loss distribution
         P = self.landau(dE, energy, thickness)
-        P /= self.dE_step * np.sum(P)
+        sum_P = np.sum(P)
+        if sum_P > 0:
+            P /= self.dE_step * sum_P
         C = np.cumsum(P) * self.dE_step
 
         # Compute the fractions for the zero loss and energy losses
@@ -312,3 +324,103 @@ class EnergyFilterOptimizer(object):
 
         # Return the fraction and spread
         return fraction, spread
+
+
+def get_energy_bins(
+    energy,
+    thickness,
+    energy_spread=0.8,
+    filter_energy=None,
+    filter_width=None,
+    dE_max=200,
+    dE_step=5,
+):
+    """
+    Get some energy bins with weights
+    """
+
+    # Ensure min and max such that when we split the mean dE will be at
+    # sensible locations (i.e. we will have one at zero)
+    dE_step_sub = 0.01
+    assert dE_step < 10
+    dE_min = -dE_step * (0.5 + int(10 / dE_step))
+    dE_max = dE_step * (0.5 + int(dE_max / dE_step))
+    assert dE_min < 0
+    assert dE_max > dE_min
+
+    # Check the filter width and step size
+    if filter_energy is not None and filter_width is not None:
+        # Adjust the step size
+        num_step = int(filter_width / dE_step)
+        dE_step = filter_width / num_step
+
+        # The min and max energies
+        filter_min = filter_energy - filter_width / 2.0
+        filter_max = filter_energy + filter_width / 2.0
+
+        # Set the bins
+        bins = []
+        for i in range(num_step):
+            E1 = filter_min + i * dE_step
+            E2 = E1 + dE_step
+            bins.append((E1, E2))
+
+    else:
+        # Number of steps
+        num_step = int((dE_max - dE_min) / dE_step)
+
+        bins = []
+        for i in range(num_step):
+            E1 = dE_min + i * dE_step
+            E2 = E1 + dE_step
+            bins.append((E1, E2))
+
+    # Get the distribution of energy losses
+    optimizer = EnergyFilterOptimizer(
+        energy_spread,
+        dE_min=dE_min + dE_step_sub / 2.0,
+        dE_max=dE_max + dE_step_sub / 2.0,
+        dE_step=dE_step_sub,
+    )
+    dE, distribution = optimizer.energy_loss_distribution(energy, thickness)
+    distribution /= np.sum(distribution)
+
+    # The maximum spread
+    dE_spread_max = sqrt(dE_step**2 / 12) * sqrt(2)
+
+    # Loop over the subdivisions and compute mean energy, spread and total
+    # weight. For each bin we take the distribution and compute the weighted
+    # mean energy loss and the weighted variance as the energy spread. The mean
+    # will always be within the energy bin and the variance will always be > 0
+    # and < the variance of the uniform distribution within the bin.
+    TINY = 1e-5
+    nbins = len(bins)
+    bin_energy = np.zeros(nbins)
+    bin_spread = np.zeros(nbins)
+    bin_weight = np.zeros(nbins)
+    for i in range(nbins):
+        E1, E2 = bins[i]
+        select = (dE >= E1) & (dE < E2)
+        dE_sub = dE[select]
+        P_sub = distribution[select]
+        dE_mean = np.mean(dE_sub)
+        P_tot = np.sum(P_sub)
+        if P_tot > 1e-7:
+            P_sub = P_sub / P_tot
+            dE_mean = np.sum(P_sub * dE_sub)
+            dE_spread = np.sum(P_sub * ((dE_sub - dE_mean) ** 2))
+            dE_spread = sqrt(dE_spread) * sqrt(2)
+        else:
+            dE_spread = dE_spread_max
+        fudge = np.sqrt((dE_step_sub**2 / 12) * len(P_sub))
+        assert (E2 - E1) <= (dE_step + TINY)
+        assert dE_mean >= E1
+        assert dE_mean <= E2
+        assert dE_spread >= 0
+        # assert dE_spread <= (dE_spread_max + fudge)
+        bin_energy[i] = energy - dE_mean
+        bin_weight[i] = P_tot
+        bin_spread[i] = dE_spread
+
+    # Return the bins and weights
+    return bin_energy, bin_spread, bin_weight

@@ -12,7 +12,6 @@
 import logging
 import mrcfile
 import numpy as np
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -20,10 +19,10 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.sample
 from parakeet.config import Device
-from parakeet.sample import Sample
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
 from functools import singledispatch
 from math import pi, floor
 from scipy.spatial.transform import Rotation as R
@@ -34,13 +33,6 @@ __all__ = ["potential"]
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 class ProjectedPotentialSimulator(object):
@@ -109,17 +101,13 @@ class ProjectedPotentialSimulator(object):
         x0 = (-offset, -offset)
         x1 = (x_fov + offset, y_fov + offset)
 
-        # Create the multem system configuration
-        system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device,
-            self.gpu_id,
-        )
-
         # The Z centre
         z_centre = self.sample.centre[2]
 
         # Create the multem input multislice object
-        input_multislice = parakeet.simulate.simulation.create_input_multislice(
+        simulate = SimulationEngine(
+            self.device,
+            self.gpu_id,
             self.microscope,
             self.simulation["slice_thickness"],
             self.simulation["margin"],
@@ -128,9 +116,9 @@ class ProjectedPotentialSimulator(object):
         )
 
         # Set the specimen size
-        input_multislice.spec_lx = x_fov + offset * 2
-        input_multislice.spec_ly = y_fov + offset * 2
-        input_multislice.spec_lz = self.sample.containing_box[1][2]
+        simulate.input.spec_lx = x_fov + offset * 2
+        simulate.input.spec_ly = y_fov + offset * 2
+        simulate.input.spec_lz = self.sample.containing_box[1][2]
 
         # Set the atoms in the input after translating them for the offset
         atoms = self.sample.get_atoms_in_fov(x0, x1)
@@ -151,7 +139,7 @@ class ProjectedPotentialSimulator(object):
             atoms.data["z"] = coords[:, 2]
 
         origin = (0, 0)
-        input_multislice.spec_atoms = atoms.translate(
+        simulate.input.spec_atoms = atoms.translate(
             (offset - origin[0], offset - origin[1], 0)
         ).to_multem()
         logger.info("   Got spec atoms")
@@ -169,19 +157,8 @@ class ProjectedPotentialSimulator(object):
         )
         potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
-        def callback(z0, z1, V):
-            V = np.array(V)
-            zc = (z0 + z1) / 2.0
-            index = int(floor((zc - volume_z0) / slice_thickness))
-            print(
-                "Calculating potential for slice: %.2f -> %.2f (index: %d)"
-                % (z0, z1, index)
-            )
-            if index < potential.data.shape[0]:
-                potential.data[index, :, :] = V[margin:-margin, margin:-margin].T
-
-        # Run the simulation
-        multem.compute_projected_potential(system_conf, input_multislice, callback)
+        # Simulate the potential
+        simulate.potential(potential, volume_z0)
 
         # Compute the image scaled with Poisson noise
         return (index, None, None)
@@ -190,7 +167,7 @@ class ProjectedPotentialSimulator(object):
 def simulation_factory(
     potential_prefix: str,
     microscope: Microscope,
-    sample: Sample,
+    sample: parakeet.sample.Sample,
     scan: Scan,
     simulation: dict = None,
     multiprocessing: dict = None,

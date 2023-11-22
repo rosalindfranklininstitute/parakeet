@@ -119,7 +119,6 @@ def _iterate_particles(
             print("Getting sub tomogram")
             sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
             if sub_tomo.shape == half_shape[-3:]:
-                print("YIELD")
                 yield (sub_tomo, offset, orientation, j)
 
 
@@ -262,6 +261,8 @@ def _average_particles_Config(
         assert len(positions) == len(orientations)
         if num_particles <= 0:
             num_particles = len(positions)
+        else:
+            num_particles = min(num_particles, len(positions))
         print(
             "Averaging %d %s particles with box size %d" % (num_particles, name, length)
         )
@@ -310,10 +311,6 @@ def _average_particles_Config(
         if num[1] > 0:
             half[1, :, :, :] = half[1, :, :, :] / num[1]
 
-        # from matplotlib import pylab
-        # pylab.imshow(average[half_length, :, :])
-        # pylab.show()
-
         # Save the averaged data
         print("Saving half 1 to %s" % half_1_filename)
         handle = mrcfile.new(half_1_filename, overwrite=True)
@@ -332,6 +329,7 @@ def average_all_particles(
     rec_file: str,
     average_file: str,
     particle_size: int,
+    num_particles: int,
 ):
     """
     Perform sub tomogram averaging
@@ -356,7 +354,7 @@ def average_all_particles(
 
     # Do the sub tomogram averaging
     _average_all_particles_Config(
-        config.scan, sample, rec_file, average_file, particle_size
+        config.scan, sample, rec_file, average_file, particle_size, num_particles
     )
 
 
@@ -367,47 +365,12 @@ def _average_all_particles_Config(
     rec_filename: str,
     average_filename: str,
     particle_size: int = 0,
+    num_particles: int = 0,
 ):
     """
     Average particles to compute averaged reconstruction
 
     """
-
-    def rotate_array(data, rotation, offset):
-        # Create the pixel indices
-        az = np.arange(data.shape[0])
-        ay = np.arange(data.shape[1])
-        ax = np.arange(data.shape[2])
-        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
-
-        # Create a stack of coordinates
-        xyz = np.vstack(
-            [
-                x.reshape(-1) - offset[0],
-                y.reshape(-1) - offset[1],
-                z.reshape(-1) - offset[2],
-            ]
-        ).T
-
-        # create transformation matrix
-        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
-
-        # apply transformation
-        transformed_xyz = r.apply(xyz)
-
-        # extract coordinates
-        x = transformed_xyz[:, 0] + offset[0]
-        y = transformed_xyz[:, 1] + offset[1]
-        z = transformed_xyz[:, 2] + offset[2]
-
-        # Reshape
-        x = x.reshape(data.shape)
-        y = y.reshape(data.shape)
-        z = z.reshape(data.shape)
-
-        # sample
-        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
-        return result
 
     # Get the scan config
     scan = config.dict()
@@ -463,14 +426,17 @@ def _average_all_particles_Config(
             half_length = particle_size // 2
         length = 2 * half_length
         assert len(positions) == len(orientations)
-        num_particles = len(positions)
+        if num_particles <= 0:
+            num_particles = len(positions)
+        else:
+            num_particles = min(num_particles, len(positions))
         print(
             "Averaging %d %s particles with box size %d" % (num_particles, name, length)
         )
 
         # Create the average array
         average = np.zeros(shape=(length, length, length), dtype="float32")
-        num = 0
+        num = 0.0
 
         # Sort the positions and orientations by y
         positions, orientations = zip(
@@ -500,6 +466,7 @@ def _average_all_particles_Config(
                 # Add the contribution to the average
                 average += data
                 num += 1
+                print("Count: ", num)
 
         # Average the sub tomograms
         print("Averaging map with %d particles" % num)

@@ -304,23 +304,33 @@ def shape_enclosed_box(centre, shape):
 
     """
 
+    # The margin
+    margin = np.array(shape.get("margin", (0, 0, 0)))
+
     def cube_enclosed_box(cube):
         length = cube["length"]
-        return ((0, 0, 0), (length, length, length))
+        return (
+            np.array((0, 0, 0)) + margin,
+            np.array((length, length, length)) - margin,
+        )
 
     def cuboid_enclosed_box(cuboid):
         length_x = cuboid["length_x"]
         length_y = cuboid["length_y"]
         length_z = cuboid["length_z"]
-        return ((0, 0, 0), (length_x, length_y, length_z))
+        return (
+            np.array((0, 0, 0)) + margin,
+            np.array((length_x, length_y, length_z)) - margin,
+        )
 
     def cylinder_enclosed_box(cylinder):
         length = cylinder["length"]
         radius = np.mean(cylinder["radius"])
-        return (
-            (radius * (1 - 1 / sqrt(2)), 0, radius * (1 - 1 / sqrt(2))),
-            (radius * (1 + 1 / sqrt(2)), length, radius * (1 + 1 / sqrt(2))),
-        )
+        x0 = -(radius - margin[0]) / sqrt(2) + radius
+        x1 = (radius - margin[0]) / sqrt(2) + radius
+        z0 = -(radius - margin[2]) / sqrt(2) + radius
+        z1 = (radius - margin[2]) / sqrt(2) + radius
+        return ((x0, 0 + margin[1], z0), (x1, length - margin[1], z1))
 
     # The enclosed box
     x0, x1 = np.array(
@@ -334,11 +344,8 @@ def shape_enclosed_box(centre, shape):
     # The offset
     offset = centre - (x1 + x0) / 2.0
 
-    # The margin
-    margin = np.array(shape.get("margin", (0, 0, 0)))
-
     # Return the bounding box
-    return (x0 + offset + margin, x1 + offset - margin)
+    return (x0 + offset, x1 + offset)
 
 
 def is_shape_inside_box(box, centre, shape):

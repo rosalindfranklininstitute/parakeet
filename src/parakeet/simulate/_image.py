@@ -24,9 +24,6 @@ from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 
 
-Device = parakeet.config.Device
-
-
 __all__ = ["image"]
 
 

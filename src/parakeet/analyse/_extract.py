@@ -8,19 +8,20 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import concurrent.futures
 import numpy as np
 import mrcfile
 import random
 import h5py
-import scipy.ndimage
-import scipy.spatial.transform
 import parakeet.sample
-from typing import Any
 from functools import singledispatch
 from math import sqrt, ceil
+from parakeet.analyse._average_particles import lazy_map
+from parakeet.analyse._average_particles import _process_sub_tomo
+from parakeet.analyse._average_particles import _iterate_particles
 
 
-__all__ = ["extract"]
+__all__ = ["extract", "average_extracted_particles"]
 
 
 # Set the random seed
@@ -64,7 +65,7 @@ def extract(
 def _extract_Config(
     config: parakeet.config.Config,
     sample: parakeet.sample.Sample,
-    rec_file: str,
+    rec_filename: str,
     extract_file: str,
     particle_size: int = 0,
 ):
@@ -73,49 +74,14 @@ def _extract_Config(
 
     """
 
-    def rotate_array(data, rotation, offset):
-        # Create the pixel indices
-        az = np.arange(data.shape[0])
-        ay = np.arange(data.shape[1])
-        ax = np.arange(data.shape[2])
-        x, y, z = np.meshgrid(az, ay, ax, indexing="ij")
-
-        # Create a stack of coordinates
-        xyz = np.vstack(
-            [
-                x.reshape(-1) - offset[0],
-                y.reshape(-1) - offset[1],
-                z.reshape(-1) - offset[2],
-            ]
-        ).T
-
-        # create transformation matrix
-        r = scipy.spatial.transform.Rotation.from_rotvec(rotation)
-
-        # apply transformation
-        transformed_xyz = r.apply(xyz)
-
-        # extract coordinates
-        x = transformed_xyz[:, 0] + offset[0]
-        y = transformed_xyz[:, 1] + offset[1]
-        z = transformed_xyz[:, 2] + offset[2]
-
-        # Reshape
-        x = x.reshape(data.shape)
-        y = y.reshape(data.shape)
-        z = z.reshape(data.shape)
-
-        # sample
-        result = scipy.ndimage.map_coordinates(data, [x, y, z], order=1)
-        return result
-
-    # scan = config.scan.dict()
+    # Get the scan config
+    # scan = config.dict()
 
     # Get the sample centre
     centre = np.array(sample.centre)
 
     # Read the reconstruction file
-    tomo_file = mrcfile.mmap(rec_file)
+    tomo_file = mrcfile.mmap(rec_filename)
     tomogram = tomo_file.data
 
     # Get the size of the volume
@@ -126,6 +92,9 @@ def _extract_Config(
             tomo_file.voxel_size["z"],
         )
     )
+    assert voxel_size[0] > 0
+    assert voxel_size[0] == voxel_size[1]
+    assert voxel_size[0] == voxel_size[2]
     size = np.array(tomogram.shape)[[2, 0, 1]] * voxel_size
 
     # Loop through the
@@ -145,7 +114,15 @@ def _extract_Config(
 
         if particle_size == 0:
             half_length = (
-                int(ceil(sqrt((xmin - xc) ** 2 + (ymin - yc) ** 2 + (zmin - zc) ** 2)))
+                int(
+                    ceil(
+                        sqrt(
+                            ((xmin - xc) / voxel_size[0]) ** 2
+                            + ((ymin - yc) / voxel_size[1]) ** 2
+                            + ((zmin - zc) / voxel_size[2]) ** 2
+                        )
+                    )
+                )
                 + 1
             )
         else:
@@ -154,12 +131,12 @@ def _extract_Config(
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
-            "Averaging %d %s particles with box size %d" % (num_particles, name, length)
+            "Extracting %d %s particles with box size %d"
+            % (num_particles, name, length)
         )
 
         # Create the average array
-        extract_map: Any = []
-        particle_instance = np.zeros(shape=(length, length, length), dtype="float32")
+        shape = (length, length, length)
         num = 0
 
         # Sort the positions and orientations by y
@@ -167,58 +144,99 @@ def _extract_Config(
             *sorted(zip(positions, orientations), key=lambda x: x[0][1])
         )
 
-        # Loop through all the particles
-        for i, (position, orientation) in enumerate(zip(positions, orientations)):
-            # Compute p within the volume
-            # start_position = np.array([0, scan["start_pos"], 0])
-            p = position - (centre - size / 2.0)  # - start_position
-            p[2] = size[2] - p[2]
-            print(
-                "Particle %d: position = %s, orientation = %s"
-                % (
-                    i,
-                    "[ %.1f, %.1f, %.1f ]" % tuple(p),
-                    "[ %.1f, %.1f, %.1f ]" % tuple(orientation),
-                )
-            )
+        # Get the random indices
+        indices = [list(range(len(positions)))]
 
-            # Set the region to extract
-            x0 = np.floor(p).astype("int32") - half_length
-            x1 = np.floor(p).astype("int32") + half_length
-            offset = p - np.floor(p).astype("int32")
-
-            # Get the sub tomogram
-            print("Getting sub tomogram")
-            sub_tomo = tomogram[x0[1] : x1[1], x0[2] : x1[2], x0[0] : x1[0]]
-            if sub_tomo.shape == particle_instance.shape:
-                # Set the data to transform
-                data = sub_tomo
-
-                # Reorder input vectors
-                offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
-                rotation = -np.array(orientation)[[1, 2, 0]]
-                rotation[1] = -rotation[1]
-
-                # Rotate the data
-                print("Rotating volume")
-                data = rotate_array(data, rotation, offset)
-
-                # Add the contribution to the average
-
-                extract_map.append(data)
-                num += 1
-
-        # Average the sub tomograms
-        print("Extracting %d particles" % num)
-        extract_map = np.array(extract_map)
-
-        # from matplotlib import pylab
-        # pylab.imshow(average[half_length, :, :])
-        # pylab.show()
-
-        # Save the averaged data
-        print("Saving extracted particles to %s" % extract_file)
+        # Create a file to store particles
         handle = h5py.File(extract_file, "w")
-        data_handle = handle.create_dataset("data", extract_map.shape, chunks=True)
-        data_handle[:] = extract_map[:]
-        handle.close()
+        handle["voxel_size"] = voxel_size
+        data_handle = handle.create_dataset(
+            "data", (0,) + shape, maxshape=(None,) + shape
+        )
+
+        # Loop through all the particles
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+            for half_index, data in lazy_map(
+                executor,
+                _process_sub_tomo,
+                _iterate_particles(
+                    indices,
+                    positions,
+                    orientations,
+                    centre,
+                    size,
+                    half_length,
+                    shape,
+                    voxel_size,
+                    tomogram,
+                ),
+            ):
+                # Add the particle to the file
+                data_handle.resize(num + 1, axis=0)
+                data_handle[num, :, :, :] = data
+                num += 1
+                print("Count: ", num)
+
+
+def average_extracted_particles(
+    particles_filename: str,
+    half1_filename: str,
+    half2_filename: str,
+    num_particles: int = 0,
+):
+    """
+    Average the extracted particles
+
+    """
+
+    # Open the particles file
+    handle = h5py.File(particles_filename, "r")
+    data = handle["data"]
+    voxel_size = tuple(handle["voxel_size"][:])
+    print("Voxel size: %s" % str(voxel_size))
+
+    # Get the number of particles
+    if num_particles is None or num_particles <= 0:
+        num_particles = data.shape[0]
+    half_num_particles = num_particles // 2
+    assert half_num_particles > 0
+    assert num_particles <= data.shape[0]
+
+    # Setup the arrays
+    half = np.zeros((2,) + data.shape[1:], dtype="float32")
+    num = np.zeros(2)
+
+    # Get the random indices
+    indices = list(
+        np.random.choice(range(data.shape[0]), size=num_particles, replace=False)
+    )
+    indices = [indices[:half_num_particles], indices[half_num_particles:]]
+
+    # Average the particles
+    print("Summing particles")
+    for half_index, particle_indices in enumerate(indices):
+        for i, particle_index in enumerate(particle_indices):
+            print(
+                "Half %d: adding %d / %d"
+                % (half_index + 1, i + 1, len(particle_indices))
+            )
+            half[half_index, :, :, :] += data[particle_index, :, :, :]
+            num[half_index] += 1
+
+    # Average the sub tomograms
+    print("Averaging half 1 with %d particles" % num[0])
+    print("Averaging half 2 with %d particles" % num[1])
+    if num[0] > 0:
+        half[0, :, :, :] = half[0, :, :, :] / num[0]
+    if num[1] > 0:
+        half[1, :, :, :] = half[1, :, :, :] / num[1]
+
+    # Save the averaged data
+    print("Saving half 1 to %s" % half1_filename)
+    handle = mrcfile.new(half1_filename, overwrite=True)
+    handle.set_data(half[0, :, :, :])
+    handle.voxel_size = voxel_size
+    print("Saving half 2 to %s" % half2_filename)
+    handle = mrcfile.new(half2_filename, overwrite=True)
+    handle.set_data(half[1, :, :, :])
+    handle.voxel_size = voxel_size

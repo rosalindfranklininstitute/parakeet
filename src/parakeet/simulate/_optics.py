@@ -12,7 +12,6 @@
 import copy
 import logging
 import numpy as np
-import warnings
 import parakeet.config
 import parakeet.dqe
 import parakeet.freeze
@@ -24,18 +23,13 @@ from parakeet.config import Device
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 from functools import singledispatch
-from math import sqrt
 from parakeet.simulate.simulation import Simulation
+from parakeet.simulate.engine import SimulationEngine
+from parakeet.microscope import Microscope
+from parakeet.scan import Scan
 
 
 __all__ = ["optics"]
-
-
-# Try to input MULTEM
-try:
-    import multem
-except ImportError:
-    warnings.warn("Could not import MULTEM")
 
 
 # Get the logger
@@ -94,28 +88,27 @@ class OpticsImageSimulator(object):
             gpu_id,
             defocus=None,
         ):
-            # Create the multem system configuration
-            system_conf = parakeet.simulate.simulation.create_system_configuration(
-                device,
-                gpu_id,
-            )
-
             # Set the defocus
             if defocus is not None:
                 microscope.lens.c_10 = defocus
 
-            # Create the multem input multislice object
-            input_multislice = parakeet.simulate.simulation.create_input_multislice(
-                microscope, simulation["slice_thickness"], simulation["margin"], "HRTEM"
+            # Create the simulation engine
+            simulate = SimulationEngine(
+                device,
+                gpu_id,
+                microscope,
+                simulation["slice_thickness"],
+                simulation["margin"],
+                "HRTEM",
             )
 
             # Set the specimen size
-            input_multislice.spec_lx = x_fov + offset * 2
-            input_multislice.spec_ly = y_fov + offset * 2
-            input_multislice.spec_lz = x_fov  # self.sample.containing_box[1][2]
+            simulate.input.spec_lx = x_fov + offset * 2
+            simulate.input.spec_ly = y_fov + offset * 2
+            simulate.input.spec_lz = x_fov  # self.sample.containing_box[1][2]
 
             # Compute and apply the CTF
-            ctf = np.array(multem.compute_ctf(system_conf, input_multislice)).T
+            ctf = simulate.ctf()
 
             # Add the effect of the phase plate
             if microscope.phase_plate.use:
@@ -213,202 +206,142 @@ class OpticsImageSimulator(object):
             # Scale the image by the fraction of electrons
             image *= electron_fraction
 
-        elif self.simulation["inelastic_model"] == "mp_loss":
-            # Set the filter width
-            filter_width = self.simulation["mp_loss_width"]  # eV
-
-            # Compute the energy and spread of the plasmon peak
-            thickness = parakeet.inelastic.effective_thickness(shape, angle)  # A
-            peak, sigma = parakeet.inelastic.most_probable_loss(
-                microscope.beam.energy, shape, angle
-            )  # eV
-
-            # Save the energy and energy spread
-            beam_energy = microscope.beam.energy * 1000  # eV
-            beam_energy_spread = microscope.beam.energy_spread  # dE / E
-            # beam_energy_sigma = (1.0 / sqrt(2)) * beam_energy_spread * beam_energy  # eV
-
-            # Set a maximum peak energy loss
-            peak = min(peak, beam_energy * 0.1)  # eV
-
-            # Make optimizer
-            optimizer = parakeet.inelastic.EnergyFilterOptimizer(dE_min=-60, dE_max=200)
-            assert self.simulation["mp_loss_position"] in ["peak", "optimal"]
-            if self.simulation["mp_loss_position"] != "peak":
-                peak = optimizer(beam_energy, thickness, filter_width=filter_width)
-
-            # Compute elastic fraction and spread
-            elastic_fraction, elastic_spread = optimizer.compute_elastic_component(
-                beam_energy, thickness, peak, filter_width
-            )
-
-            # Compute inelastic fraction and spread
-            (
-                inelastic_fraction,
-                inelastic_spread,
-            ) = optimizer.compute_inelastic_component(
-                beam_energy, thickness, peak, filter_width
-            )
-
-            # Compute the spread
-            elastic_spread = elastic_spread / beam_energy  # dE / E
-            inelastic_spread = inelastic_spread / beam_energy  # dE / E
-
-            # Set the spread for the zero loss image
-            microscope.beam.energy_spread = elastic_spread  # dE / E
-
-            # Compute the zero loss image
-            image1 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Add the energy loss
-            microscope.beam.energy = (beam_energy - peak) / 1000.0  # keV
-
-            # Compute the energy spread of the plasmon peak
-            microscope.beam.energy_spread = (
-                beam_energy_spread + inelastic_spread
-            )  # dE / E
-            print("Energy: %f keV" % microscope.beam.energy)
-            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-
-            # Compute the MPL image
-            image2 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Save the energy shift
-            energy_shift = peak
-
-            # Compute the zero loss and mpl image fraction
-            electron_fraction = elastic_fraction + inelastic_fraction
-
-            # Add the images incoherently and scale the image by the fraction of electrons
-            image = elastic_fraction * image1 + inelastic_fraction * image2
-
-        elif self.simulation["inelastic_model"] == "unfiltered":
-            # Compute the energy and spread of the plasmon peak
-            peak, sigma = parakeet.inelastic.most_probable_loss(
-                microscope.beam.energy, shape, angle
-            )  # eV
-            peak = min(peak, 1000 * microscope.beam.energy * 0.1)  # eV
-            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)  # dE / E
-
-            # Compute the zero loss image
-            image1 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Add the energy loss
-            microscope.beam.energy -= peak / 1000  # keV
-
-            # Compute the energy spread of the plasmon peak
-            microscope.beam.energy_spread += spread  # dE / E
-            print("Energy: %f keV" % microscope.beam.energy)
-            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-
-            # Compute the MPL image
-            image2 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Compute the zero loss and mpl image fraction
-            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            electron_fraction = zero_loss_fraction + mp_loss_fraction
-
-            # Add the images incoherently and scale the image by the fraction of electrons
-            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
-
-        elif self.simulation["inelastic_model"] == "cc_corrected":
-            # Set the Cs and CC to zero
-            microscope.lens.c_30 = 0
-            microscope.lens.c_c = 0
-
-            # Compute the energy and spread of the plasmon peak
-            peak, sigma = parakeet.inelastic.most_probable_loss(
-                microscope.beam.energy, shape, angle
-            )
-            peak /= 1000.0
-            peak = min(peak, microscope.beam.energy * 0.1)
-            spread = sigma * sqrt(2) / (microscope.beam.energy * 1000)
-
-            # Compute the zero loss image
-            image1 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Add the energy loss
-            microscope.beam.energy -= peak
-
-            # Compute the energy spread of the plasmon peak
-            microscope.beam.energy_spread += spread
-            print("Energy: %f keV" % microscope.beam.energy)
-            print("Energy spread: %f ppm" % microscope.beam.energy_spread)
-
-            # Compute the MPL image
-            image2 = compute_image(
-                psi,
-                microscope,
-                self.simulation,
-                x_fov,
-                y_fov,
-                offset,
-                self.device,
-                self.gpu_id,
-                defocus,
-            )
-
-            # Compute the zero loss and mpl image fraction
-            zero_loss_fraction = parakeet.inelastic.zero_loss_fraction(shape, angle)
-            mp_loss_fraction = parakeet.inelastic.mp_loss_fraction(shape, angle)
-            electron_fraction = zero_loss_fraction + mp_loss_fraction
-
-            # Add the images incoherently and scale the image by the fraction of electrons
-            image = zero_loss_fraction * image1 + mp_loss_fraction * image2
-
         else:
-            raise RuntimeError("Unknown inelastic model")
+            # Get the effective thickness
+            thickness = parakeet.inelastic.effective_thickness(shape, angle)  # A
+            if self.simulation["inelastic_model"] == "unfiltered":
+                # Get the energy bins
+                bin_energy, bin_spread, bin_weight = parakeet.inelastic.get_energy_bins(
+                    energy=microscope.beam.energy * 1000,  # eV
+                    thickness=thickness,
+                    energy_spread=microscope.beam.energy_spread
+                    * microscope.beam.energy
+                    * 1000,  # dE
+                )
+
+            elif self.simulation["inelastic_model"] == "cc_corrected":
+                # Get the energy bins
+                bin_energy, bin_spread, bin_weight = parakeet.inelastic.get_energy_bins(
+                    energy=microscope.beam.energy * 1000,  # eV
+                    thickness=thickness,
+                    energy_spread=microscope.beam.energy_spread
+                    * microscope.beam.energy
+                    * 1000,  # dE
+                )
+
+                # Set the Cs and CC to zero
+                microscope.lens.c_30 = 0
+                microscope.lens.c_c = 0
+
+            elif self.simulation["inelastic_model"] == "mp_loss":
+                # Set the filter width
+                filter_width = self.simulation["mp_loss_width"]  # eV
+
+                # Make optimizer
+                optimizer = parakeet.inelastic.EnergyFilterOptimizer(
+                    dE_min=-60, dE_max=200
+                )
+                assert self.simulation["mp_loss_position"] in ["peak", "optimal"]
+
+                # Compute the energy and spread of the plasmon peak
+                if self.simulation["mp_loss_position"] != "peak":
+                    peak = optimizer(
+                        microscope.beam.energy, thickness, filter_width=filter_width
+                    )
+                else:
+                    peak, sigma = parakeet.inelastic.most_probable_loss(
+                        microscope.beam.energy, shape, angle
+                    )  # eV
+
+                # Set a maximum peak energy loss at 10% of beam energy
+                peak = min(peak, microscope.beam.energy * 1000 * 0.1)  # eV
+
+                # Get the energy bins
+                bin_energy, bin_spread, bin_weight = parakeet.inelastic.get_energy_bins(
+                    energy=microscope.beam.energy * 1000,  # eV
+                    thickness=thickness,
+                    energy_spread=microscope.beam.energy_spread
+                    * microscope.beam.energy
+                    * 1000,  # dE
+                    filter_energy=peak,
+                    filter_width=filter_width,
+                )
+
+            else:
+                raise RuntimeError("Unknown inelastic model")
+
+            # Get the threshold to exclude bins that don't contribute much
+            threshold = min(0.01 / len(bin_energy), max(bin_weight))
+            print("Threshold weight: %f" % (threshold))
+
+            # Select based on threshold
+            selection = bin_weight >= threshold
+            bin_energy = bin_energy[selection]
+            bin_spread = bin_spread[selection]
+            bin_weight = bin_weight[selection]
+
+            # Get the basic energy and defocus
+            energy0 = microscope.beam.energy
+            defocus0 = microscope.lens.c_10
+
+            # Energy and energy spread
+            energy1 = bin_energy / 1000.0  # keV
+            energy_spread1 = bin_spread / bin_energy  # dE / E
+
+            # Compute the defocus at this point
+            # Energy loss is positive.
+            # Energy loss results in over focus which is also positive
+            c_c_A = microscope.lens.c_c * 1e7  # A
+            dE_E = (energy0 - energy1) / energy0
+            defocus1 = defocus0 + c_c_A * dE_E  # A
+
+            # Adjust defocus to mean
+            # defocus_mean = np.average(defocus1, weights=bin_weight)
+            # defocus1 = defocus1 + (defocus0 - defocus_mean)
+
+            # Loop through all energies and sum images
+            image = None
+            for energy, energy_spread, defocus, weight in zip(
+                energy1, energy_spread1, defocus1, bin_weight
+            ):
+                # Add the energy loss
+                microscope.beam.energy = energy  # keV
+
+                # Compute the energy spread
+                microscope.beam.energy_spread = energy_spread  # dE / E
+
+                # Print some details
+                print(
+                    "Energy: %f eV; Energy spread: %f eV; Weight: %f; Defocus: %f"
+                    % (
+                        microscope.beam.energy * 1000,
+                        microscope.beam.energy_spread * microscope.beam.energy * 1000,
+                        weight,
+                        defocus,
+                    )
+                )
+
+                # Compute the MPL image
+                image_n = weight * compute_image(
+                    psi,
+                    microscope,
+                    self.simulation,
+                    x_fov,
+                    y_fov,
+                    offset,
+                    self.device,
+                    self.gpu_id,
+                    defocus,
+                )
+
+                # Add image component
+                if image is None:
+                    image = image_n
+                else:
+                    image += image_n
+
+            # Compute the electron fraction
+            electron_fraction = np.sum(bin_weight)
 
         # Print the electron fraction
         print("Electron fraction = %.2f" % electron_fraction)

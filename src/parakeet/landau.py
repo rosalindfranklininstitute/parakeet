@@ -165,23 +165,25 @@ class Landau(object):
 
     """
 
-    def __init__(self, l0=-10, l1=500, dl=0.01):
+    CACHE = None
+
+    def __init__(self):
         """
         Initialise the class
-
-        Params:
-            l0 (float): The minimum lambda value
-            l1 (float): The maximum lambda value
-            dl (float): The lambda step size
 
         """
 
         # Generate the table of values for the universal function
-        self.l0 = l0
-        self.l1 = l1
-        self.dl = dl
-        self.lambda_ = np.arange(l0, l1, dl)
-        self.phi = np.array([landau(xx) for xx in self.lambda_])
+        if Landau.CACHE is None:
+            l0 = -10
+            l1 = 200
+            dl = 0.01
+            lambda_ = np.arange(l0, l1, dl)
+            phi = np.array([landau(xx) for xx in lambda_])
+            Landau.CACHE = (l0, l1, dl, lambda_, phi)
+
+        # Get the values from the cache
+        self.l0, self.l1, self.dl, self.lambda_, self.phi = Landau.CACHE
 
     def __call__(self, dE, energy, thickness):
         """

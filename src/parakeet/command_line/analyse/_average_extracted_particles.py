@@ -1,5 +1,5 @@
 #
-# parakeet.command_line.analyse.average_all_particles.py
+# parakeet.command_line.analyse.average_extracted_particles.py
 #
 # Copyright (C) 2019 Diamond Light Source and Rosalind Franklin Institute
 #
@@ -22,7 +22,7 @@ from argparse import ArgumentParser
 from typing import List
 
 
-__all__ = ["average_all_particles"]
+__all__ = ["average_extracted_particles"]
 
 
 # Get the logger
@@ -39,7 +39,7 @@ def get_description():
 
 def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     """
-    Get the parakeet.analyse.average_all_particles parser
+    Get the parakeet.analyse.average_extracted_particles parser
 
     """
 
@@ -49,45 +49,28 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
 
     # Add some command line arguments
     parser.add_argument(
-        "-c",
-        "--config",
+        "-p",
+        "--particles",
         type=str,
-        default=None,
-        dest="config",
-        required=True,
-        help="The yaml file to configure the simulation",
+        default="particles.h5",
+        dest="particles",
+        help="The filename for the particles",
     )
     parser.add_argument(
-        "-s",
-        "--sample",
+        "-h1",
+        "--half1",
         type=str,
-        default="sample.h5",
-        dest="sample",
-        help="The filename for the sample",
-    )
-    parser.add_argument(
-        "-r",
-        "--rec",
-        type=str,
-        default="rec.mrc",
-        dest="rec",
-        help="The filename for the reconstruction",
-    )
-    parser.add_argument(
-        "-avm",
-        "--average_map",
-        type=str,
-        default="average_map.mrc",
-        dest="average",
+        default="half1.mrc",
+        dest="half1",
         help="The filename for the particle average",
     )
     parser.add_argument(
-        "-psz",
-        "--particle_size",
-        type=int,
-        default=0,
-        dest="particle_size",
-        help="The size of the particles extracted (px)",
+        "-h2",
+        "--half2",
+        type=str,
+        default="half2.mrc",
+        dest="half2",
+        help="The filename for the particle average",
     )
     parser.add_argument(
         "-n",
@@ -101,7 +84,7 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     return parser
 
 
-def average_all_particles_impl(args):
+def average_extracted_particles_impl(args):
     """
     Perform sub tomogram averaging
 
@@ -114,12 +97,10 @@ def average_all_particles_impl(args):
     parakeet.command_line.configure_logging()
 
     # Do the work
-    parakeet.analyse.average_all_particles(
-        args.config,
-        args.sample,
-        args.rec,
-        args.average,
-        args.particle_size,
+    parakeet.analyse.average_extracted_particles(
+        args.particles,
+        args.half1,
+        args.half2,
         args.num_particles,
     )
 
@@ -127,9 +108,9 @@ def average_all_particles_impl(args):
     logger.info("Time taken: %.2f seconds" % (time.time() - start_time))
 
 
-def average_all_particles(args: List[str] = None):
+def average_extracted_particles(args: List[str] = None):
     """
     Perform sub tomogram averaging
 
     """
-    average_all_particles_impl(get_parser().parse_args(args=args))
+    average_extracted_particles_impl(get_parser().parse_args(args=args))
