@@ -2,7 +2,7 @@ name: Sphinx
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   
   workflow_dispatch:
 
@@ -50,8 +50,8 @@ jobs:
     
     - name: Build documentation
       run: |
-        python setup.py build_sphinx
-        cp -rv build/sphinx/html/* docs/
+        sphinx-build docs/source docs/build
+        cp -rv docs/build/* docs/
     
     - name: Publish to Github pages
       env:

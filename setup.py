@@ -56,7 +56,6 @@ def main():
     setup(
         package_dir={"": "src"},
         packages=find_packages(where="src"),
-        setup_requires=["setuptools_scm", "dask", "pytest-runner"],
         install_requires=[
             "distributed",
             "dask_jobqueue",

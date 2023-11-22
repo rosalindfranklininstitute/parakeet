@@ -348,7 +348,7 @@ Note that the snap installation only exposes the top level parakeet command:
 
 
 Install on Baskerville HPC (native)
--------------------------------
+-----------------------------------
 
 In order to install parakeet on the Baskerville tier 2 supercomputer (https://www.baskerville.ac.uk/)
 within a virtual python environment (https://docs.baskerville.ac.uk/self-install/),
