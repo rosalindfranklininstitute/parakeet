@@ -884,6 +884,8 @@ class SampleHDF5Adapter(object):
             Set the positions
 
             """
+            if "positions" in self.__handle:
+                del self.__handle["positions"]
             self.__handle.create_dataset("positions", data=positions, dtype="float32")
 
         @property
@@ -900,6 +902,8 @@ class SampleHDF5Adapter(object):
             Set the orientations
 
             """
+            if "orientations" in self.__handle:
+                del self.__handle["orientations"]
             self.__handle.create_dataset(
                 "orientations", data=orientations, dtype="float32"
             )
@@ -942,6 +946,13 @@ class SampleHDF5Adapter(object):
 
             """
             return self.keys()
+
+        def __contains__(self, key):
+            """
+            Check if molecule name exists in list
+
+            """
+            return key in self.__handle.keys()
 
         def keys(self):
             """
@@ -1348,9 +1359,19 @@ class Sample(object):
         # Add the molecule to it's own field
         if name is not None:
             name = name.replace("/", "_").replace("\\", "_").replace(".", "_")
-            self.__handle.sample.molecules[name].atoms = atoms.data
-            self.__handle.sample.molecules[name].positions = positions
-            self.__handle.sample.molecules[name].orientations = orientations
+            if name not in self.__handle.sample.molecules:
+                self.__handle.sample.molecules[name].atoms = atoms.data
+                self.__handle.sample.molecules[name].positions = positions
+                self.__handle.sample.molecules[name].orientations = orientations
+            else:
+                positions = np.concatenate(
+                    [self.__handle.sample.molecules[name].positions, positions]
+                )
+                orientations = np.concatenate(
+                    [self.__handle.sample.molecules[name].orientations, orientations]
+                )
+                self.__handle.sample.molecules[name].positions = positions
+                self.__handle.sample.molecules[name].orientations = orientations
 
     @property
     def containing_box(self):

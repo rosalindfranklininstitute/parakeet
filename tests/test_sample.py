@@ -474,6 +474,17 @@ def test_add_molecules(tmp_path):
     assert sample.number_of_molecules == 1
     assert sample.number_of_molecular_models == 1
 
+    # Test adding multiple
+    sample = parakeet.sample.add_molecules(
+        parakeet.config.Sample(
+            **{"molecules": {"pdb": [{"id": "4v5d", "instances": 2}]}}
+        ),
+        parakeet.sample.load(os.path.join(tmp_path, "test_add_molecules.h5"), "r+"),
+    )
+
+    assert sample.number_of_molecules == 1
+    assert sample.number_of_molecular_models == 3
+
 
 def test_sample_new_with_local(tmp_path):
     filename = os.path.join(tmp_path, "my.pdb")
