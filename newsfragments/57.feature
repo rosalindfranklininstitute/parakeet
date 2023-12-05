@@ -1,0 +1,1 @@
+Enable add_molecules to be called multiple times. If this is done then no guarantee is made regarding overlapping particles. New particles which overlap old ones will delete the atoms of the old particles. The positions and orientations of all particles will be recorded in the sample.h5 file.
