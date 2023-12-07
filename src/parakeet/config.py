@@ -512,6 +512,10 @@ class Microscope(BaseModel):
         PhasePlate(), description="The phase plate parameters"
     )
 
+    objective_aperture_cutoff_freq: float = Field(
+        None, description="The objective aperture cutoff frequency (1/A)"
+    )
+
     detector: Detector = Field(Detector(), description="The detector model parameters")
 
 
