@@ -46,6 +46,7 @@ class Microscope(object):
         lens: parakeet.lens.Lens = parakeet.lens.Lens(),
         detector: parakeet.detector.Detector = parakeet.detector.Detector(),
         phase_plate: PhasePlate = PhasePlate(),
+        objective_aperture_cutoff_freq=None,
     ):
         """
         Initialise the detector
@@ -63,6 +64,7 @@ class Microscope(object):
         self._lens = lens
         self._detector = detector
         self._phase_plate = phase_plate
+        self.objective_aperture_cutoff_freq = objective_aperture_cutoff_freq
 
     @property
     def model(self) -> Optional[parakeet.config.MicroscopeModel]:
@@ -153,4 +155,5 @@ def new(
             np.radians(config.phase_plate.phase_shift),
             config.phase_plate.radius,
         ),
+        objective_aperture_cutoff_freq=config.objective_aperture_cutoff_freq,
     )

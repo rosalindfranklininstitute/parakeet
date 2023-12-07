@@ -110,6 +110,14 @@ class OpticsImageSimulator(object):
             # Compute and apply the CTF
             ctf = simulate.ctf()
 
+            # Apply an objective aperture cutoff frequency
+            if microscope.objective_aperture_cutoff_freq is not None:
+                qy = np.fft.fftfreq(ctf.shape[0], d=pixel_size)
+                qx = np.fft.fftfreq(ctf.shape[1], d=pixel_size)
+                q = np.sqrt(qy[:, None] ** 2 + qx[None, :] ** 2)
+                mask = q < microscope.objective_aperture_cutoff_freq
+                ctf = ctf * mask
+
             # Add the effect of the phase plate
             if microscope.phase_plate.use:
                 ctf = ctf * parakeet.simulate.phase_plate.compute_phase_shift(
