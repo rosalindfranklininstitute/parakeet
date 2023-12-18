@@ -1,3 +1,14 @@
+Parakeet 0.5.0 (2023-12-18)
+===========================
+
+Features
+--------
+
+- Better inelastic models merged (#32)
+- Enable add_molecules to be called multiple times. If this is done then no guarantee is made regarding overlapping particles. New particles which overlap old ones will delete the atoms of the old particles. The positions and orientations of all particles will be recorded in the sample.h5 file. (#57)
+- Added ability to set objective aperture cutoff frequency (#61)
+
+
 Parakeet v0.4.6 (2023-10-20)
 ============================
 
