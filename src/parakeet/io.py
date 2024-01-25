@@ -15,10 +15,10 @@ import os
 import PIL.Image
 import parakeet
 
-try:
-    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
-except Exception:
-    FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
+# try:
+#     FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.FEI1_EXTENDED_HEADER_DTYPE
+# except Exception:
+FEI_EXTENDED_HEADER_DTYPE = mrcfile.dtypes.get_ext_header_dtype(b"FEI1")
 
 METADATA_DTYPE = np.dtype(
     [
@@ -601,21 +601,25 @@ class MrcFileWriter(Writer):
         elif dtype == "complex128":
             dtype = np.dtype(np.complex64)
 
+        # Create the extended header
+        extended_header = np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE)
+        extended_header["Metadata size"] = extended_header.dtype.itemsize
+
         # Open the handle to the mrcfile
         self.handle = mrcfile.new_mmap(
             filename,
             shape=shape,
             mrc_mode=mrcfile.utils.mode_from_dtype(dtype),
             overwrite=True,
-            extended_header=np.zeros(shape=shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE),
-            exttyp="FEI1",
+            extended_header=extended_header,
+            exttyp=b"FEI1",
         )
 
         # Set the data array
         self._data = self.handle.data
 
         # Create the header info
-        self._header = MrcfileHeader(self.handle.extended_header)
+        self._header = MrcfileHeader(extended_header)
 
         # Set the pixel size
         self.handle.voxel_size = pixel_size
@@ -985,10 +989,10 @@ class Reader(object):
 
         # Check the header info
         if handle.header.exttyp == b"FEI1":
-            assert handle.extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
-            assert len(handle.extended_header.shape) == 1
-            assert handle.extended_header.shape[0] == handle.data.shape[0]
-            extended_header = handle.extended_header
+            assert handle.indexed_extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
+            assert len(handle.indexed_extended_header.shape) == 1
+            assert handle.indexed_extended_header.shape[0] == handle.data.shape[0]
+            extended_header = handle.indexed_extended_header
         else:
             extended_header = np.zeros(
                 shape=handle.data.shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE
