@@ -398,9 +398,9 @@ class OpticsImageSimulator(object):
         metadata["c_c"] = self.microscope.lens.c_c
         metadata["current_spread"] = self.microscope.lens.current_spread
         metadata["illumination_semiangle"] = self.microscope.beam.illumination_semiangle
-        metadata[
-            "acceleration_voltage_spread"
-        ] = self.microscope.beam.acceleration_voltage_spread
+        metadata["acceleration_voltage_spread"] = (
+            self.microscope.beam.acceleration_voltage_spread
+        )
         metadata["energy_spread"] = self.microscope.beam.energy_spread
         metadata["phase_plate"] = self.microscope.phase_plate
         metadata["inelastic_model"] = self.simulation["inelastic_model"]
