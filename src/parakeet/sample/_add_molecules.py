@@ -280,9 +280,11 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
             # Set the instances
             temp[key] = {
                 "type": origin,
-                "instances": [{} for i in range(instances)]
-                if isinstance(instances, int)
-                else instances,
+                "instances": (
+                    [{} for i in range(instances)]
+                    if isinstance(instances, int)
+                    else instances
+                ),
             }
 
     molecules = temp
