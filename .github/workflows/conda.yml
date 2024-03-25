@@ -38,6 +38,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        conda install -y python=3.9
         conda env update --file conda/environment.yaml --name base
         conda config --env --add channels conda-forge
         conda config --env --add channels james.parkhurst
