@@ -106,12 +106,6 @@ class CBEDImageSimulator(object):
         # padding_offset = padding * pixel_size
         offset = (padding + margin) * pixel_size
 
-        # Create the multem system configuration
-        system_conf = parakeet.simulate.simulation.create_system_configuration(
-            self.device,
-            self.gpu_id,
-        )
-
         # The Z centre
         z_centre = self.sample.centre[2]
 
