@@ -73,6 +73,7 @@ def main():
             "pyyaml",
             "scipy",
             "starfile",
+            "lxml_html_clean",
         ],
         tests_require=tests_require,
         test_suite="tests",
