@@ -122,6 +122,16 @@ def test_simulate_exit_wave(config_path):
     assert os.path.exists(exit_wave)
 
 
+def test_simulate_cbed(config_path):
+    config = os.path.abspath(os.path.join(config_path, "config.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    cbed = os.path.abspath(os.path.join(config_path, "cbed.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.simulate.cbed(["-c", config, "-s", sample, "-i", cbed])
+    assert os.path.exists(cbed)
+
+
 def test_simulate_optics(config_path):
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
     exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))

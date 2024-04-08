@@ -426,6 +426,23 @@ class SimulationEngine(object):
         # transpose here.
         return np.array(output_multislice.data[0].psi_coh).T
 
+    def diffraction_image(self, masker=None):
+        """
+        Simulate the image
+
+        """
+        # Run the simulation
+        if masker is not None:
+            output_multislice = multem.simulate(self.system_conf, self.input, masker)
+        else:
+            output_multislice = multem.simulate(self.system_conf, self.input)
+
+        # Get the ideal image data
+        # Multem outputs data in column major format. In C++ and Python we
+        # generally deal with data in row major format so we must do a
+        # transpose here.
+        return np.array(output_multislice.data[0].m2psi_tot).T
+
     def masker(
         self,
         index,

@@ -989,10 +989,15 @@ class Reader(object):
 
         # Check the header info
         if handle.header.exttyp == b"FEI1":
-            assert handle.indexed_extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
-            assert len(handle.indexed_extended_header.shape) == 1
-            assert handle.indexed_extended_header.shape[0] == handle.data.shape[0]
-            extended_header = handle.indexed_extended_header
+            try:
+                assert handle.indexed_extended_header.dtype == FEI_EXTENDED_HEADER_DTYPE
+                assert len(handle.indexed_extended_header.shape) == 1
+                assert handle.indexed_extended_header.shape[0] == handle.data.shape[0]
+                extended_header = handle.indexed_extended_header
+            except Exception:
+                extended_header = np.zeros(
+                    shape=handle.data.shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE
+                )
         else:
             extended_header = np.zeros(
                 shape=handle.data.shape[0], dtype=FEI_EXTENDED_HEADER_DTYPE

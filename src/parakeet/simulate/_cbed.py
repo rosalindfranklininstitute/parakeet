@@ -193,18 +193,20 @@ class CBEDImageSimulator(object):
 
         if self.simulation["ice"] == True:
             # Get the masker
-            masker = simulate.get_masker(
+            masker = simulate.masker(
                 index,
                 pixel_size,
-                drift,
                 origin,
                 offset,
                 orientation,
                 position,
+                self.sample,
+                self.scan,
+                self.simulation,
             )
 
             # Run the simulation
-            image = simulate.image(masker)
+            image = simulate.diffraction_image(masker)
 
         else:
             # Set the incident wave
@@ -213,7 +215,7 @@ class CBEDImageSimulator(object):
 
             # Run the simulation
             logger.info("Simulating")
-            image = simulate.image(masker)
+            image = simulate.diffraction_image(masker)
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
