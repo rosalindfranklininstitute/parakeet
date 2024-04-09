@@ -215,7 +215,7 @@ class CBEDImageSimulator(object):
 
             # Run the simulation
             logger.info("Simulating")
-            image = simulate.diffraction_image(masker)
+            image = simulate.diffraction_image()
 
         # Get the ideal image data
         # Multem outputs data in column major format. In C++ and Python we
