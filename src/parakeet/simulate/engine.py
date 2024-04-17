@@ -386,7 +386,7 @@ class SimulationEngine(object):
         """
         return np.array(multem.compute_ctf(self.system_conf, self.input)).T
 
-    def potential(self, out, volume_z0):
+    def potential(self, out, volume_z0, masker=None):
         """
         Simulate the potential
 
@@ -407,7 +407,12 @@ class SimulationEngine(object):
                 out.data[index, :, :] = V[margin:-margin, margin:-margin].T
 
         # Run the simulation
-        multem.compute_projected_potential(self.system_conf, self.input, callback)
+        if masker is not None:
+            multem.compute_projected_potential(
+                self.system_conf, self.input, masker, callback
+            )
+        else:
+            multem.compute_projected_potential(self.system_conf, self.input, callback)
 
     def image(self, masker=None):
         """

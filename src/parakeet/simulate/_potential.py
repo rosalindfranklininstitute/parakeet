@@ -158,7 +158,27 @@ class ProjectedPotentialSimulator(object):
         potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         # Simulate the potential
-        simulate.potential(potential, volume_z0)
+        if self.simulation["ice"] == True:
+            # Get the masker
+            masker = simulate.masker(
+                index,
+                pixel_size,
+                origin,
+                offset,
+                orientation,
+                position,
+                self.sample,
+                self.scan,
+                self.simulation,
+            )
+
+            # Run the simulation
+            image = simulate.potential(potential, volume_z0, masker)
+
+        else:
+            # Run the simulation
+            logger.info("Simulating")
+            simulate.potential(potential, volume_z0)
 
         # Compute the image scaled with Poisson noise
         return (index, None, None)
