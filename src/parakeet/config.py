@@ -608,11 +608,14 @@ class Scan(BaseModel):
         ),
     )
 
-    positions: Optional[List[float]] = Field(
+    positions: Optional[Union[List[float], List[Tuple[float, float]]]] = Field(
         None,
         description=(
             "The list of positions to use (A). This field is used when the mode"
-            "is set to 'manual' or 'beam tilt'."
+            "is set to 'manual' or 'beam tilt'. Each element in the list can "
+            "either be a single value in which case the position is specified "
+            "along the rotation axis, or can be two values in which case the "
+            "position is specified in X and Y."
         ),
     )
 

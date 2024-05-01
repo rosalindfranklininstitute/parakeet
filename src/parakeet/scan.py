@@ -294,6 +294,7 @@ class ScanFactory(object):
             positions = axis * positions[:, np.newaxis]
         else:
             assert len(positions.shape) == 2
+            assert positions.shape[1] == 2
             z = np.zeros((positions.shape[0], 1))
             positions = np.append(positions, z, axis=1)
         return positions
