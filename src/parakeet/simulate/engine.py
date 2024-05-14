@@ -404,7 +404,11 @@ class SimulationEngine(object):
                 % (z0, z1, index)
             )
             if index < out.data.shape[0]:
-                out.data[index, :, :] = V[margin:-margin, margin:-margin].T
+                x0 = margin
+                y0 = margin
+                x1 = V.shape[1] - margin
+                y1 = V.shape[0] - margin
+                out.data[index, :, :] = V[y0:y1, x0:x1].T
 
         # Run the simulation
         if masker is not None:
