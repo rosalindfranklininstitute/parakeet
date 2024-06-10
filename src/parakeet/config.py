@@ -14,7 +14,7 @@ import os
 import yaml
 
 from enum import Enum
-from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict, BaseModel as PydanticBaseModel
 from pydantic import Field
 from typing import List
 from typing import Optional
@@ -40,12 +40,7 @@ class BaseModel(PydanticBaseModel):
 
     """
 
-    class Config:
-        # Ensure that enums use string values
-        use_enum_values = True
-
-        # Don't allow extra fields
-        extra = "forbid"
+    model_config = ConfigDict(use_enum_values=True, extra="forbid")
 
 
 class Auto(str, Enum):
@@ -104,11 +99,11 @@ class Cylinder(BaseModel):
         (0, 1, 0), description="The axis of the cylinder"
     )
 
-    offset_x: List[float] = Field(
+    offset_x: Optional[List[float]] = Field(
         None, description="The x offset as a function of cylinder y position"
     )
 
-    offset_z: List[float] = Field(
+    offset_z: Optional[List[float]] = Field(
         None, description="The z offset as a function of cylinder y position"
     )
 
@@ -157,6 +152,7 @@ class MoleculePose(BaseModel):
     """
 
     position: Optional[Tuple[float, float, float]] = Field(
+        None,
         description=(
             "The molecule position (A, A, A). Setting this to null or an "
             "empty list will cause parakeet to give a random position. "
@@ -170,6 +166,7 @@ class MoleculePose(BaseModel):
     )
 
     orientation: Optional[Tuple[float, float, float]] = Field(
+        None,
         description=(
             "The molecule orientation defined as a rotation vector where "
             "the direction of the vector gives the rotation axis and the "
@@ -191,7 +188,7 @@ class CoordinateFile(BaseModel):
 
     """
 
-    filename: str = Field(
+    filename: Optional[str] = Field(
         None, description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
     )
 
@@ -200,6 +197,7 @@ class CoordinateFile(BaseModel):
     scale: float = Field(1, description="Scale the coordinates x' = x * scale")
 
     position: Optional[Tuple[float, float, float]] = Field(
+        None,
         description=(
             "The model position (A, A, A). "
             "If recentre if set then the model will be centred on the given position. "
@@ -212,6 +210,7 @@ class CoordinateFile(BaseModel):
     )
 
     orientation: Optional[Tuple[float, float, float]] = Field(
+        None,
         description=(
             "The model orientation defined as a rotation vector where "
             "the direction of the vector gives the rotation axis and the "
@@ -292,11 +291,11 @@ class Molecules(BaseModel):
     """
 
     local: Optional[List[LocalMolecule]] = Field(
-        description="The local molecules to include in the sample model"
+        None, description="The local molecules to include in the sample model"
     )
 
     pdb: Optional[List[PDBMolecule]] = Field(
-        description="The PDB molecules to include in the sample model"
+        None, description="The PDB molecules to include in the sample model"
     )
 
 
@@ -346,17 +345,17 @@ class Sample(BaseModel):
     )
 
     coords: Optional[CoordinateFile] = Field(
-        description="Coordinates to initialise the sample"
+        None, description="Coordinates to initialise the sample"
     )
 
     molecules: Optional[Molecules] = Field(
-        description="The molecules to include in the sample model"
+        None, description="The molecules to include in the sample model"
     )
 
-    ice: Optional[Ice] = Field(description="The atomic ice model parameters.")
+    ice: Optional[Ice] = Field(None, description="The atomic ice model parameters.")
 
     sputter: Optional[Sputter] = Field(
-        description="The sputter coating model parameters."
+        None, description="The sputter coating model parameters."
     )
 
 
@@ -500,7 +499,7 @@ class Microscope(BaseModel):
 
     """
 
-    model: MicroscopeModel = Field(
+    model: Optional[MicroscopeModel] = Field(
         None, description="Use parameters for a given microscope model"
     )
 
@@ -512,7 +511,7 @@ class Microscope(BaseModel):
         PhasePlate(), description="The phase plate parameters"
     )
 
-    objective_aperture_cutoff_freq: float = Field(
+    objective_aperture_cutoff_freq: Optional[float] = Field(
         None, description="The objective aperture cutoff frequency (1/A)"
     )
 
@@ -643,7 +642,7 @@ class Scan(BaseModel):
         ),
     )
 
-    drift: Optional[Drift] = Field(description="The drift model parameters")
+    drift: Optional[Drift] = Field(None, description="The drift model parameters")
 
 
 class InelasticModel(str, Enum):
@@ -709,11 +708,13 @@ class Simulation(BaseModel):
         False, description="Use the radiation damage model (True/False)"
     )
 
-    inelastic_model: InelasticModel = Field(
+    inelastic_model: Optional[InelasticModel] = Field(
         None, description="The inelastic model parameters"
     )
 
-    mp_loss_width: float = Field(None, description="The MPL energy filter width")
+    mp_loss_width: Optional[float] = Field(
+        None, description="The MPL energy filter width"
+    )
 
     mp_loss_position: MPLPosition = Field(
         "peak", description="The MPL energy filter position"
