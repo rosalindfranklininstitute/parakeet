@@ -310,11 +310,6 @@ class SimulationEngine(object):
         input_multislice.illumination_model = "Partial_Coherent"
         input_multislice.temporal_spatial_incoh = "Temporal_Spatial"
 
-        # Set the incident wave
-        # For some reason need this to work with CBED
-        input_multislice.iw_x = [0]  # input_multislice.spec_lx/2
-        input_multislice.iw_y = [0]  # input_multislice.spec_ly/2
-
         # Condenser lens
         # source spread (illumination semiangle) function
         ssf_sigma = multem.mrad_to_sigma(
@@ -440,6 +435,11 @@ class SimulationEngine(object):
         Simulate the image
 
         """
+        # Set the incident wave
+        # For some reason need this to work with CBED
+        self.input.iw_x = [self.input.spec_lx / 2]
+        self.input.iw_y = [self.input.spec_ly / 2]
+
         # Run the simulation
         if masker is not None:
             output_multislice = multem.simulate(self.system_conf, self.input, masker)
