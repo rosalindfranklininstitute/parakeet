@@ -85,7 +85,7 @@ class PydanticDirective(Directive):
 
         # Parse the definitions
         definitions = nodes.paragraph()
-        for key, value in schema["definitions"].items():
+        for key, value in schema["$defs"].items():
             definition = nodes.section(ids=[nodes.make_id(key)])
             definition += nodes.title(text=key)
             definition += walk(value)
@@ -108,7 +108,7 @@ class PydanticDirective(Directive):
             raise e
 
         # Get the schema
-        return obj.schema()
+        return obj.model_json_schema()
 
 
 def setup(app):
