@@ -291,7 +291,7 @@ def simulation_factory(
     if multiprocessing is None:
         multiprocessing = {"device": "gpu", "nproc": 1, "gpu_id": 0}
     else:
-        assert multiprocessing["nproc"] in [None, 1]
+        # assert multiprocessing["nproc"] in [None, 1]
         assert len(multiprocessing["gpu_id"]) == 1
 
     # Create the simulation
