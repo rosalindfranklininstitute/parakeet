@@ -64,7 +64,7 @@ def main():
             "h5py",
             "maptools",
             "mrcfile",
-            "numpy==1.23",  # Until scikit-image updates
+            "numpy",
             "pandas",
             "pillow",
             "profet",
