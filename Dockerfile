@@ -3,6 +3,7 @@ FROM nvidia/cuda:12.6.0-devel-ubuntu24.04
 WORKDIR /app
 COPY . .
 
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ENV TZ=Europe/London
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/tim
