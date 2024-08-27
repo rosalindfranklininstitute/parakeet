@@ -1,8 +1,11 @@
+
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
 WORKDIR /app
 COPY . .
 
+ENV TZ=Europe/London
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/tim
 RUN apt update
 RUN apt install -y git
 RUN apt install -y libfftw3-dev
