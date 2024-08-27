@@ -12,5 +12,6 @@ RUN apt install -y python3-pip
 RUN export CXX=$(which g++)
 RUN export CUDACXX=$(which nvcc)
 RUN git submodule update --init --recursive
+RUN pip install -U pip
 RUN pip install .
 
