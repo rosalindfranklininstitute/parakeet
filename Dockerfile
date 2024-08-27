@@ -1,14 +1,10 @@
-FROM nvidia/cuda:12.0.0-devel-ubuntu22.04
+FROM nvidia/cuda:11.3.1-devel-ubuntu22.04
 
 WORKDIR /app
 COPY . .
 
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-ENV TZ=Europe/London
-
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/tim
-
-RUN apt update && apt install -y git
+RUN apt update
+RUN apt install -y git
 RUN apt install -y libfftw3-dev
 RUN apt install -y g++
 RUN apt install -y python3
@@ -16,6 +12,4 @@ RUN apt install -y python3-pip
 RUN export CXX=$(which g++)
 RUN export CUDACXX=$(which nvcc)
 RUN git submodule update --init --recursive
-RUN pip install -U pip
 RUN pip install .
-
