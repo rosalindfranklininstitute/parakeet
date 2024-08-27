@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
+FROM nvidia/cuda:12.0.0-devel-ubuntu24.04
 
 WORKDIR /app
 COPY . .
@@ -8,14 +8,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/tim
 
 RUN apt update
 RUN apt install -y software-properties-common
-RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt install -y git
 RUN apt install -y libfftw3-dev
 RUN apt install -y g++
-RUN apt install -y python3.9
-RUN apt install -y python3.9-dev
+RUN apt install -y python3
+RUN apt install -y python3-pip
 RUN export CXX=$(which g++)
 RUN export CUDACXX=$(which nvcc)
 RUN git submodule update --init --recursive
-RUN python3.9 -m ensure_pip
-RUN python3.9 -m pip install .
+RUN pip install .
