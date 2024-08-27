@@ -183,7 +183,7 @@ class RelionMetadataExporter(object):
         Write out a star file with single particle simulation metadata
 
         """
-        scan = parakeet.scan.new(**self.config.scan.dict())
+        scan = parakeet.scan.new(**self.config.scan.model_dump())
         relion_eulers = scan.euler_angles
         relion_shifts = -scan.shift
         data = {

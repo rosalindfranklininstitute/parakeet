@@ -801,7 +801,7 @@ def save(config: Config, filename: str = "config.yaml", **kwargs):
     """
 
     # Get the dictionary
-    d = config.dict(**kwargs)
+    d = config.model_dump(**kwargs)
 
     # Write the output file
     with open(filename, "w") as outfile:
@@ -912,7 +912,7 @@ def edit(
     config = load(in_filename)
 
     # Merge the dictionaries
-    d1 = config.dict(exclude_unset=True)
+    d1 = config.model_dump(exclude_unset=True)
     d2 = get_config_obj(config_obj)
     d = deepmerge(d1, d2)
 
@@ -957,7 +957,7 @@ def show(config: Config, full: bool = False, schema: str = None):
         else:
             raise RuntimeError("Unknown scheme value '%s' (see help)" % schema)
     else:
-        d = config.dict(exclude_unset=not full)
+        d = config.model_dump(exclude_unset=not full)
     return yaml.safe_dump(d, indent=4)
 
 

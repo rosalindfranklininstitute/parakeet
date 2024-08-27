@@ -256,7 +256,7 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
 
     """
     if config.molecules is not None:
-        molecules = config.molecules.dict()
+        molecules = config.molecules.model_dump()
     else:
         molecules = {}
 

@@ -146,7 +146,7 @@ def _ctf_Config(config: parakeet.config.Config, output_file: str):
 
     # Create the simulation
     simulation = simulation_factory(
-        microscope=microscope, simulation=config.simulation.dict()
+        microscope=microscope, simulation=config.simulation.model_dump()
     )
 
     # Create the writer

@@ -392,7 +392,7 @@ def _new_Sample(config: parakeet.config.Sample, filename: str) -> Sample:
     """
     box = config.box
     centre = config.centre
-    shape = config.shape.dict()
+    shape = config.shape.model_dump()
     ice = config.ice
     coords = config.coords
 

@@ -55,4 +55,4 @@ def new(config: parakeet.config.Detector) -> Detector:
         The detector model object
 
     """
-    return Detector(**config.dict())
+    return Detector(**config.model_dump())

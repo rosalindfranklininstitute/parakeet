@@ -221,7 +221,7 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
     # Override the dose
     scan_new = parakeet.scan.new(
         electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
-        **config.scan.dict(),
+        **config.scan.model_dump(),
     )
     scan.data["electrons_per_angstrom"] = scan_new.electrons_per_angstrom
 
@@ -230,8 +230,8 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
         microscope=microscope,
         optics=optics,
         scan=scan,
-        simulation=config.simulation.dict(),
-        multiprocessing=config.multiprocessing.dict(),
+        simulation=config.simulation.model_dump(),
+        multiprocessing=config.multiprocessing.model_dump(),
     )
 
     # Create the writer

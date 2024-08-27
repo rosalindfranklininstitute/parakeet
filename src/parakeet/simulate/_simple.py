@@ -211,8 +211,8 @@ def _simple_Config(config: parakeet.config.Config, atoms_file: str, output_file:
     simulation = simulation_factory(
         microscope=microscope,
         atoms=atoms,
-        simulation=config.simulation.dict(),
-        multiprocessing=config.multiprocessing.dict(),
+        simulation=config.simulation.model_dump(),
+        multiprocessing=config.multiprocessing.model_dump(),
     )
 
     # Create the writer

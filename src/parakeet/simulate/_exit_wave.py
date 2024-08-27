@@ -376,7 +376,7 @@ def _exit_wave_Config(
         config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
     scan = parakeet.scan.new(
         electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
-        **config.scan.dict(),
+        **config.scan.model_dump(),
     )
 
     # Create the simulation
@@ -384,8 +384,8 @@ def _exit_wave_Config(
         microscope,
         sample,
         scan,
-        simulation=config.simulation.dict(),
-        multiprocessing=config.multiprocessing.dict(),
+        simulation=config.simulation.model_dump(),
+        multiprocessing=config.multiprocessing.model_dump(),
     )
 
     # Create the writer

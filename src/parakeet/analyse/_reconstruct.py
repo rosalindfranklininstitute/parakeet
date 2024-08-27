@@ -71,7 +71,7 @@ def _reconstruct_Config(
     microscope = parakeet.microscope.new(config.microscope)
 
     # Get the simulation parameters
-    simulation = config.simulation.dict()
+    simulation = config.simulation.model_dump()
 
     # Set the corrected filename
     corrected_filename = os.path.join(os.path.dirname(rec_filename), "CORRECTED.dat")

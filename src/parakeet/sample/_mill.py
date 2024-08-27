@@ -132,7 +132,7 @@ def _mill_Sample(config: parakeet.config.Sample, sample: Sample) -> Sample:
 
     box = config.box
     centre = config.centre
-    shape = config.shape.dict()
+    shape = config.shape.model_dump()
 
     # Set the sample box and shape
     sample.containing_box = ((0, 0, 0), box)

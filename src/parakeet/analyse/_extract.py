@@ -75,7 +75,7 @@ def _extract_Config(
     """
 
     # Get the scan config
-    # scan = config.dict()
+    # scan = config.model_dump()
 
     # Get the sample centre
     centre = np.array(sample.centre)

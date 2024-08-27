@@ -304,7 +304,7 @@ def _potential_Config(
         config.scan.step_pos = config.scan.step_angle * radius * pi / 180.0
     scan = parakeet.scan.new(
         electrons_per_angstrom=microscope.beam.electrons_per_angstrom,
-        **config.scan.dict(),
+        **config.scan.model_dump(),
     )
 
     # Create the simulation
@@ -313,8 +313,8 @@ def _potential_Config(
         microscope=microscope,
         sample=sample,
         scan=scan,
-        simulation=config.simulation.dict(),
-        multiprocessing=config.multiprocessing.dict(),
+        simulation=config.simulation.model_dump(),
+        multiprocessing=config.multiprocessing.model_dump(),
     )
 
     # Run the simulation

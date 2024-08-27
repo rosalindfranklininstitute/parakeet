@@ -129,4 +129,4 @@ def new(config: parakeet.config.Lens) -> Lens:
         The lens model object
 
     """
-    return Lens(**config.dict())
+    return Lens(**config.model_dump())
