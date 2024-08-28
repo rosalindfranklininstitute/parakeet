@@ -60,7 +60,7 @@ def main():
             "distributed",
             "dask_jobqueue",
             "gemmi",
-            # "guanaco",
+            "guanaco",
             "h5py",
             "maptools",
             "mrcfile",
