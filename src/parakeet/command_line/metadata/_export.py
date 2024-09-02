@@ -61,6 +61,15 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     )
 
     parser.add_argument(
+        "-i",
+        "--image",
+        type=str,
+        default="image.h5",
+        dest="image",
+        help="The filename for the image file",
+    )
+
+    parser.add_argument(
         "--directory",
         type=str,
         default=".",
@@ -89,7 +98,9 @@ def export_impl(args):
     parakeet.command_line.configure_logging()
 
     # Parse the arguments
-    parakeet.metadata.export(args.config, args.sample, args.directory, args.relion)
+    parakeet.metadata.export(
+        args.config, args.sample, args.image, args.directory, args.relion
+    )
 
 
 def export(args: List[str] = None):

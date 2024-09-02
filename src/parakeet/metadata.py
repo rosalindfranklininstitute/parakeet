@@ -14,6 +14,7 @@ import pandas as pd
 import parakeet.config
 import parakeet.dqe
 import parakeet.microscope
+import parakeet.io
 import os
 import starfile
 from functools import singledispatch
@@ -34,7 +35,13 @@ class RelionMetadataExporter(object):
 
     """
 
-    def __init__(self, config: parakeet.config.Config, sample: Sample, directory: str):
+    def __init__(
+        self,
+        config: parakeet.config.Config,
+        sample: Sample,
+        image: parakeet.io.Reader,
+        directory: str,
+    ):
         """
         Initialise the exporter
 
@@ -43,6 +50,7 @@ class RelionMetadataExporter(object):
         # Save the config and sample
         self.config = config
         self.sample = sample
+        self.image = image
 
         # Set the relion metadata output
         self.directory = os.path.join(directory, "relion")
@@ -183,7 +191,7 @@ class RelionMetadataExporter(object):
         Write out a star file with single particle simulation metadata
 
         """
-        scan = parakeet.scan.new(**self.config.scan.model_dump())
+        scan = self.image.header.scan
         relion_eulers = scan.euler_angles
         relion_shifts = -scan.shift
         data = {
@@ -198,19 +206,25 @@ class RelionMetadataExporter(object):
         starfile.write(df, self.single_particle_scan_filename, overwrite=True)
 
 
-def export_relion(config: parakeet.config.Config, sample: Sample, directory: str):
+def export_relion(
+    config: parakeet.config.Config,
+    sample: Sample,
+    image: parakeet.io.Reader,
+    directory: str,
+):
     """
     Export metadata
 
     Args:
         config: The input config
-        sample: The input sample filename
+        sample: The input sample
+        image: The input image data
         directory: The output directory
 
     """
 
     # Create the relion exporter and export the data
-    exporter = RelionMetadataExporter(config, sample, directory)
+    exporter = RelionMetadataExporter(config, sample, image, directory)
     exporter.write_input_file()
     exporter.write_mtf_file()
     exporter.write_corrected_micrographs_file()
@@ -218,13 +232,20 @@ def export_relion(config: parakeet.config.Config, sample: Sample, directory: str
 
 
 @singledispatch
-def export(config_file, sample_file: str, directory: str = ".", relion: bool = True):
+def export(
+    config_file,
+    sample_file: str,
+    image_file: str,
+    directory: str = ".",
+    relion: bool = True,
+):
     """
     Export metadata
 
     Args:
         config_file: The input config filename
         sample_file: The input sample filename
+        image_file: The input image filename
         directory: The output directory
         relion: True/False output the relion metadata
 
@@ -235,14 +256,17 @@ def export(config_file, sample_file: str, directory: str = ".", relion: bool = T
     # Open the sample
     sample = Sample(sample_file, mode="r")
 
+    image = parakeet.io.open(image_file)
+
     # Export the metadata
-    return _export_Config(config, sample, directory, relion)
+    return _export_Config(config, sample, image, directory, relion)
 
 
 @export.register(parakeet.config.Config)
 def _export_Config(
     config: parakeet.config.Config,
     sample: Sample,
+    image: parakeet.io.Reader,
     directory: str = ".",
     relion: bool = True,
 ):
@@ -251,7 +275,8 @@ def _export_Config(
 
     Args:
         config: The input config
-        sample: The input sample filename
+        sample: The input sample
+        image: The input image
         directory: The output directory
         relion: True/False output the relion metadata
 
@@ -259,4 +284,4 @@ def _export_Config(
 
     # Export relion metadata
     if relion:
-        export_relion(config, sample, directory)
+        export_relion(config, sample, image, directory)
