@@ -10,7 +10,6 @@
 #
 import numpy as np
 import pandas as pd
-from math import pi
 from typing import Union
 from scipy.stats import special_ortho_group
 from scipy.spatial.transform import Rotation as R
@@ -80,7 +79,7 @@ class Scan(object):
                 "axis_x": axis[:, 0],
                 "axis_y": axis[:, 1],
                 "axis_z": axis[:, 2],
-                "angle": angle * pi / 180,
+                "angle": np.radians(angle),
                 "shift_x": shift[:, 0],
                 "shift_y": shift[:, 1],
                 "shift_z": shift[:, 2],
@@ -181,7 +180,7 @@ class Scan(object):
         Get the angles
 
         """
-        return self.data["angle"] * 180.0 / pi
+        return np.degrees(self.data["angle"])
 
     @property
     def axes(self) -> np.ndarray:
@@ -246,9 +245,9 @@ class ScanFactory(object):
             z = tuple([z, 0.0])
 
         # Compute the sigma of the normal in x, y, z
-        x_sigma = x[0] + x[1] * (angles * np.pi / 180.0) ** 4
-        y_sigma = y[0] + x[1] * (angles * np.pi / 180.0) ** 4
-        z_sigma = z[0] + x[1] * (angles * np.pi / 180.0) ** 4
+        x_sigma = x[0] + x[1] * np.radians(angles) ** 4
+        y_sigma = y[0] + x[1] * np.radians(angles) ** 4
+        z_sigma = z[0] + x[1] * np.radians(angles) ** 4
 
         # Generate some random noise
         drift = np.random.normal(0, [x_sigma, y_sigma, z_sigma]).T
@@ -275,7 +274,7 @@ class ScanFactory(object):
         """
         n = np.linalg.norm(orientation, axis=1)
         d = np.dot(orientation, np.array([0, 1, 0]))
-        angle = n * np.sign(d) * 180 / pi
+        angle = np.degrees(n * np.sign(d))
         s = n > 0
         n[s] = 1.0 / n[s]
         n = n * np.sign(d)
