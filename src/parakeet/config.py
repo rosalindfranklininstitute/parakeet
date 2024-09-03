@@ -386,6 +386,11 @@ class Beam(BaseModel):
 
     phi: float = Field(0, description="The beam tilt phi angle (deg)")
 
+    incident_wave: Optional[str] = Field(
+        None,
+        description="The filename of a custom input wave function. The default is a flat field.",
+    )
+
 
 class Lens(BaseModel):
     """

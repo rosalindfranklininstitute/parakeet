@@ -8,6 +8,8 @@
 # This code is distributed under the GPLv3 license, a copy of
 # which is included in the root directory of this package.
 #
+import mrcfile
+import numpy as np
 import parakeet.config
 
 
@@ -26,6 +28,7 @@ class Beam(object):
         electrons_per_angstrom: float = 40,
         theta: float = 0,
         phi: float = 0,
+        incident_wave: str = None,
     ):
         """
         Initialise the beam
@@ -38,6 +41,7 @@ class Beam(object):
             electrons_per_angstrom: The number of electrons per angstrom
             theta: The beam tilt theta
             phi: The beam tilt phi
+            incident_wave: The wave function
 
         """
         self._energy = energy
@@ -47,6 +51,7 @@ class Beam(object):
         self._electrons_per_angstrom = electrons_per_angstrom
         self._theta = theta
         self._phi = phi
+        self._incident_wave = incident_wave
 
     @property
     def energy(self) -> float:
@@ -132,6 +137,15 @@ class Beam(object):
     def phi(self, phi: float):
         self._phi = phi
 
+    @property
+    def incident_wave(self) -> np.ndarray:
+        if self._incident_wave is not None:
+            psi = mrcfile.open(self._incident_wave).data.copy()
+            assert len(psi.shape) == 2
+        else:
+            psi = None
+        return psi
+
 
 def new(config: parakeet.config.Beam) -> Beam:
     """
@@ -152,4 +166,5 @@ def new(config: parakeet.config.Beam) -> Beam:
         electrons_per_angstrom=config.electrons_per_angstrom,
         theta=config.theta,
         phi=config.phi,
+        incident_wave=config.incident_wave,
     )

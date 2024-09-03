@@ -245,6 +245,12 @@ class SimulationEngine(object):
             input_multislice.cond_lens_zero_defocus_type = "Last"
             input_multislice.obj_lens_zero_defocus_type = "Last"
 
+        # Set the incident wave
+        if microscope.beam.incident_wave is not None:
+            assert microscope.beam.incident_wave.shape[0] == input_multislice.ny
+            assert microscope.beam.incident_wave.shape[1] == input_multislice.nx
+            input_multislice.iw_psi = microscope.beam.incident_wave.T.flatten()
+
         # Return the input multislice object
         return input_multislice
 
@@ -371,6 +377,12 @@ class SimulationEngine(object):
             input_multislice.cond_lens_zero_defocus_type = "Last"
             input_multislice.obj_lens_zero_defocus_type = "Last"
 
+        # Set the incident wave
+        if microscope.beam.incident_wave is not None:
+            assert microscope.beam.incident_wave.shape[0] == input_multislice.ny
+            assert microscope.beam.incident_wave.shape[1] == input_multislice.nx
+            input_multislice.iw_psi = microscope.beam.incident_wave.T.flatten()
+
         # Return the input multislice object
         return input_multislice
 
@@ -386,6 +398,9 @@ class SimulationEngine(object):
         Simulate the potential
 
         """
+        # Set the incident wave
+        self.input.iw_x = [self.input.spec_lx / 2]
+        self.input.iw_y = [self.input.spec_ly / 2]
 
         margin = self.margin
         slice_thickness = self.input.spec_dz
@@ -418,6 +433,10 @@ class SimulationEngine(object):
         Simulate the image
 
         """
+        # Set the incident wave
+        self.input.iw_x = [self.input.spec_lx / 2]
+        self.input.iw_y = [self.input.spec_ly / 2]
+
         # Run the simulation
         if masker is not None:
             output_multislice = multem.simulate(self.system_conf, self.input, masker)
