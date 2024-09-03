@@ -51,7 +51,8 @@ class Beam(object):
         self._electrons_per_angstrom = electrons_per_angstrom
         self._theta = theta
         self._phi = phi
-        self._incident_wave = incident_wave
+        self._incident_wave_filename = incident_wave
+        self._incident_wave: np.ndarray = None
 
     @property
     def energy(self) -> float:
@@ -139,12 +140,10 @@ class Beam(object):
 
     @property
     def incident_wave(self) -> np.ndarray:
-        if self._incident_wave is not None:
-            psi = mrcfile.open(self._incident_wave).data.copy()
-            assert len(psi.shape) == 2
-        else:
-            psi = None
-        return psi
+        if self._incident_wave is None and self._incident_wave_filename is not None:
+            self._incident_wave = mrcfile.open(self._incident_wave_filename).data.copy()
+            assert len(self._incident_wave.shape) == 2
+        return self._incident_wave
 
 
 def new(config: parakeet.config.Beam) -> Beam:
