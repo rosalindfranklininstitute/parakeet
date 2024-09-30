@@ -35,6 +35,7 @@ def extract(
     rec_file: str,
     particles_file: str,
     particle_size: int,
+    particle_sampling: int,
 ):
     """
     Perform sub tomogram extraction
@@ -45,6 +46,7 @@ def extract(
         rec_file: The reconstruction filename
         particles_file: The file to extract the particles to
         particle_size: The particle size (px)
+        particle_sampling: The particle sampling (factor of 2)
 
     """
 
@@ -58,7 +60,9 @@ def extract(
     sample = parakeet.sample.load(sample_file)
 
     # Do the sub tomogram averaging
-    _extract_Config(config, sample, rec_file, particles_file, particle_size)
+    _extract_Config(
+        config, sample, rec_file, particles_file, particle_size, particle_sampling
+    )
 
 
 @extract.register(parakeet.config.Config)
@@ -68,11 +72,30 @@ def _extract_Config(
     rec_filename: str,
     extract_file: str,
     particle_size: int = 0,
+    particle_sampling: int = 1,
 ):
     """
     Extract particles for post-processing
 
     """
+
+    def is_power_of_2(n):
+        return (n & (n - 1) == 0) and n != 0
+
+    def rebin(data, shape):
+        shape = (
+            shape[0],
+            data.shape[0] // shape[0],
+            shape[1],
+            data.shape[1] // shape[1],
+            shape[2],
+            data.shape[2] // shape[2],
+        )
+        output = data.reshape(shape).sum(-1).sum(-2).sum(-3)
+        return output
+
+    # Check particle sampling is power of 2
+    assert is_power_of_2(particle_sampling)
 
     # Get the scan config
     # scan = config.model_dump()
@@ -128,11 +151,17 @@ def _extract_Config(
         else:
             half_length = particle_size // 2
         length = 2 * half_length
+
+        # Check length is compatible with particle sampling
+        assert (length % particle_sampling) == 0
+        sampled_length = length // particle_sampling
+
+        # Check number positions
         assert len(positions) == len(orientations)
         num_particles = len(positions)
         print(
-            "Extracting %d %s particles with box size %d"
-            % (num_particles, name, length)
+            "Extracting %d %s particles with box size %d and sampling %d"
+            % (num_particles, name, length, particle_sampling)
         )
 
         # Create the average array
@@ -148,10 +177,11 @@ def _extract_Config(
         indices = [list(range(len(positions)))]
 
         # Create a file to store particles
+        sampled_shape = (sampled_length, sampled_length, sampled_length)
         handle = h5py.File(extract_file, "w")
-        handle["voxel_size"] = voxel_size
+        handle["voxel_size"] = voxel_size * particle_sampling
         data_handle = handle.create_dataset(
-            "data", (0,) + shape, maxshape=(None,) + shape
+            "data", (0,) + sampled_shape, maxshape=(None,) + shape
         )
 
         # Loop through all the particles
@@ -173,7 +203,7 @@ def _extract_Config(
             ):
                 # Add the particle to the file
                 data_handle.resize(num + 1, axis=0)
-                data_handle[num, :, :, :] = data
+                data_handle[num, :, :, :] = rebin(data, sampled_shape)
                 num += 1
                 print("Count: ", num)
 

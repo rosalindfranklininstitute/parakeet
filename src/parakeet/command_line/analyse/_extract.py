@@ -89,6 +89,14 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="particle_size",
         help="The size of the particles extracted (px)",
     )
+    parser.add_argument(
+        "-psm",
+        "--particle_sampling",
+        type=int,
+        default=1,
+        dest="particle_sampling",
+        help="The sampling of the particle volume (factor of 2)",
+    )
 
     return parser
 
@@ -107,7 +115,12 @@ def extract_impl(args):
 
     # Do the work
     parakeet.analyse.extract(
-        args.config, args.sample, args.rec, args.particles, args.particle_size
+        args.config,
+        args.sample,
+        args.rec,
+        args.particles,
+        args.particle_size,
+        args.particle_sampling,
     )
 
     # Write some timing stats
