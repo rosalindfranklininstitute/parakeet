@@ -612,12 +612,16 @@ class AtomData(object):
         """
 
         # Read the structure
-        st = gemmi.read_structure(filename)
+        structure = gemmi.read_structure(filename)
+
         # Create ensemble with default first biological assembly
-        bu = gemmi.make_assembly(
-            st.assemblies[0], st[0], gemmi.HowToNameCopiedChain.AddNumber
-        )
-        return Class.from_gemmi_structure(bu)
+        if len(structure.assemblies) > 0 and len(structure) > 0:
+            structure = gemmi.make_assembly(
+                structure.assemblies[0],
+                structure[0],
+                gemmi.HowToNameCopiedChain.AddNumber,
+            )
+        return Class.from_gemmi_structure(structure)
 
     @classmethod
     def from_ligand_file(Class, filename):
