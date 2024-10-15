@@ -569,7 +569,7 @@ class AtomData(object):
         # Iterate through the atoms
         def iterate_atoms(structure):
             if isinstance(structure, gemmi.Model):
-                structure = [structure]            
+                structure = [structure]
             for model_index, model in enumerate(structure):
                 for chain in model:
                     for residue in chain:
@@ -614,9 +614,9 @@ class AtomData(object):
         # Read the structure
         st = gemmi.read_structure(filename)
         # Create ensemble with default first biological assembly
-        bu = gemmi.make_assembly(st.assemblies[0],
-                                 st[0],
-                                 gemmi.HowToNameCopiedChain.AddNumber)
+        bu = gemmi.make_assembly(
+            st.assemblies[0], st[0], gemmi.HowToNameCopiedChain.AddNumber
+        )
         return Class.from_gemmi_structure(bu)
 
     @classmethod
