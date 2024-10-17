@@ -193,6 +193,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
                     "sigma": sigma,
                     "occupancy": occupancy,
                     "charge": charge,
+                    "group" : -1,
                 }
             )
 

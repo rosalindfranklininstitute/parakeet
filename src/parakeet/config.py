@@ -328,6 +328,19 @@ class Sputter(BaseModel):
     thickness: float = Field(description="The thickness of the sputter coating (A)")
 
 
+class SampleMotion(BaseModel):
+    """
+    A model to describe sample motion using the viscek model
+
+    """
+
+    interaction_range: float = Field(0, description="The interaction range (A)")
+
+    velocity: float = Field(0, description="The particle velocity (A / fraction)")
+
+    noise_magnitude: float = Field(0, description="The magnitude of the direction noise (degrees)")
+
+
 class Sample(BaseModel):
     """
     A model to describe the sample
@@ -358,6 +371,9 @@ class Sample(BaseModel):
         None, description="The sputter coating model parameters."
     )
 
+    motion: Optional[SampleMotion] = Field(
+        None, description="The sample motion parameters"
+    )
 
 class Beam(BaseModel):
     """

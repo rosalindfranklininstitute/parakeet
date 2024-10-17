@@ -52,6 +52,7 @@ class ExitWaveImageSimulator(object):
         sample=None,
         scan=None,
         simulation=None,
+        particle_tracks=None,
         device="gpu",
         gpu_id=None,
     ):
@@ -59,6 +60,7 @@ class ExitWaveImageSimulator(object):
         self.sample = sample
         self.scan = scan
         self.simulation = simulation
+        self.particle_tracks = particle_tracks
         self.device = device
         self.gpu_id = gpu_id
 
@@ -147,11 +149,22 @@ class ExitWaveImageSimulator(object):
         logger.info("Simulating with %d atoms" % atoms.data.shape[0])
         if len(atoms.data) > 0:
             coords = atoms.data[["x", "y", "z"]].to_numpy()
+
+            # If we have motion parameters then get the group indentifier and
+            # add the difference in position
+            if self.particle_tracks is not None:
+                groups = atoms.data["group"]
+                assert np.all(groups >= 0)
+                coords += self.particle_tracks[(image_number, fraction_number)][groups] 
+
+            # Rotate the coordinates
             coords = (
                 R.from_rotvec(orientation).apply(coords - self.sample.centre)
                 + self.sample.centre
                 - position
             ).astype("float32")
+
+            # Update the coordinates
             atoms.data["x"] = coords[:, 0]
             atoms.data["y"] = coords[:, 1]
             atoms.data["z"] = coords[:, 2]
@@ -263,6 +276,7 @@ def simulation_factory(
     microscope: Microscope,
     sample: parakeet.sample.Sample,
     scan: parakeet.scan.Scan,
+    motion: dict = None,
     simulation: dict = None,
     multiprocessing: dict = None,
 ) -> Simulation:
@@ -273,6 +287,7 @@ def simulation_factory(
         microscope (object); The microscope object
         sample (object): The sample object
         scan (object): The scan object
+        motion: The motion parameters
         simulation (object): The simulation parameters
         multiprocessing (object): The multiprocessing parameters
 
@@ -280,6 +295,52 @@ def simulation_factory(
         object: The simulation object
 
     """
+
+    def get_particle_tracks():
+
+        # If motion parameters are none then don't do anything
+        if motion is None:
+            return None
+
+        # Get the atoms
+        atoms = sample.get_atoms()
+        
+        # Get the unique atom groups. This should correspond to the individual
+        # particles
+        groups = np.array(list(set(atoms.data["group"])))
+        assert np.all(groups >= 0)
+
+        # Loop through the groups and get the mean positions of the atoms
+        position = []
+        for group in groups:
+            select = atoms.data["group"] == group
+            xc = np.mean(atoms.data[select]["x"])
+            yc = np.mean(atoms.data[select]["y"])
+            zc = np.mean(atoms.data[select]["z"])
+            position.append((xc, yc, zc))
+        position = np.array(position)
+
+        # Save the first position
+        position0 = position.copy()
+
+        # Create some random directions
+        direction = np.random.uniform(-np.pi, np.pi, size=position.shape[0])
+
+        # Get the motion parameters
+        interaction_range = motion["interaction_range"]
+        velocity = motion["velocity"]
+        noise_magnitude = np.radians(motion["noise_magnitude"])
+
+        # For each image number and fraction update the particle position and
+        # save the difference in position w.r.t the original particle position
+        particle_tracks = {}
+        for image_number, fraction_number, angle in zip(scan.image_number, scan.fraction_number, scan.angles):
+            position, direction = parakeet.sample.motion.update_particle_position_and_direction(position, direction, interaction_range, velocity, noise_magnitude) 
+            motion[(image_number, fraction_number)] = position - position0
+        
+        # Return the motion dictionary
+        return particle_tracks
+
     # Get the margin
     margin = 0 if simulation is None else simulation.get("margin", 0)
 
@@ -289,6 +350,7 @@ def simulation_factory(
     else:
         assert multiprocessing["nproc"] in [None, 1]
         assert len(multiprocessing["gpu_id"]) == 1
+
 
     # Create the simulation
     return Simulation(
@@ -303,6 +365,7 @@ def simulation_factory(
             sample=sample,
             scan=scan,
             simulation=simulation,
+            particle_tracks=get_particle_tracks(),
             device=multiprocessing["device"],
             gpu_id=multiprocessing["gpu_id"][0],
         ),
@@ -384,6 +447,7 @@ def _exit_wave_Config(
         microscope,
         sample,
         scan,
+        motion=config.sample.model_dump()["motion"],
         simulation=config.simulation.model_dump(),
         multiprocessing=config.multiprocessing.model_dump(),
     )

@@ -448,6 +448,7 @@ class AtomData(object):
         "sigma": "float32",
         "occupancy": "float32",
         "charge": "int8",
+        "group": "int32",
     }
 
     def __init__(self, data=None, **kwargs):
@@ -465,6 +466,7 @@ class AtomData(object):
             sigma (array): The array of sigmas
             occupancy (array): The array of occupancies
             charge (array): The array of charges
+            group (array): The array of particle ids
 
         """
         if data is None:
@@ -548,6 +550,7 @@ class AtomData(object):
             self.data["sigma"],
             self.data["occupancy"],
             self.data["charge"],
+            self.data["group"],
         )
 
     @classmethod
@@ -564,7 +567,7 @@ class AtomData(object):
         """
 
         # The column order
-        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge"]
+        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge", "group"]
 
         # Iterate through the atoms
         def iterate_atoms(structure):
@@ -586,6 +589,7 @@ class AtomData(object):
                                 get_atom_sigma(atom),
                                 1,  # atom.occ,
                                 atom.charge,
+                                -1,
                             )
 
         # Create a dictionary of column data
@@ -654,7 +658,7 @@ class AtomData(object):
         """
 
         # The column order
-        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge"]
+        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge", "group"]
 
         # Iterate through the atoms
         def iterate_atoms(infile):
@@ -668,6 +672,7 @@ class AtomData(object):
                     float(tokens[4]),
                     float(tokens[5]),
                     int(tokens[6]),
+                    -1,
                 )
 
         # Create a dictionary of column data
@@ -1183,6 +1188,9 @@ class Sample(object):
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
         self.step = 100_000  # A
+        
+        # The number of identifiers
+        self.num_identifiers = 0
 
     def close(self):
         """
@@ -1328,6 +1336,18 @@ class Sample(object):
             atoms = self.__handle.sample.atoms[name].atoms
             self.__handle.sample.atoms[name].atoms = deleter(atoms)
 
+    def identifier(self, name):
+        """
+        Get an identifier for the object
+
+        """
+        if name is None:
+            return -1
+        identifier = self.num_identifiers
+        self.num_identifiers += 1
+        return identifier
+
+
     def add_molecule(self, atoms, positions, orientations, name=None):
         """
         Add a molecule.
@@ -1363,6 +1383,7 @@ class Sample(object):
             temp["x"] = coords[:, 0]
             temp["y"] = coords[:, 1]
             temp["z"] = coords[:, 2]
+            temp["group"] = self.identifier(name)
 
             # Add to the atoms
             self.add_atoms(AtomData(data=temp))

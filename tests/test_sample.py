@@ -3,6 +3,7 @@ import os
 import pytest
 import parakeet.config
 import parakeet.sample
+import parakeet.sample.motion
 import shutil
 from math import sqrt
 
@@ -487,7 +488,7 @@ def test_add_molecules(tmp_path):
 
 
 def test_sample_new_with_local(tmp_path):
-    filename = os.path.join(tmp_path, "my.pdb")
+    filename = os.path.join(tmp_path, "my.cif")
 
     src = parakeet.data.get_4v1w()
     shutil.copyfile(src, filename)
@@ -510,3 +511,77 @@ def test_sample_new_with_local(tmp_path):
         parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_new2.h5"),
     )
+
+
+def test_sample_with_motion(tmp_path):
+
+    filename = os.path.join(tmp_path, "my.cif")
+
+    src = parakeet.data.get_4v1w()
+    shutil.copyfile(src, filename)
+
+    config = {
+        "box": (400, 400, 400),
+        "centre": (200, 200, 200),
+        "shape": {"type": "cuboid", "cuboid": {"length_x": 400, "length_y": 400, "length_z":400}},
+        "molecules": {
+            "local": [
+                {
+                    "filename": filename,
+                    "instances": 10,
+                }
+            ]
+        },
+        "motion": {
+            "interaction_range": 300,
+            "velocity": 1,
+            "noise_magnitude": 0
+        }
+    }
+    
+    scan_config = {
+        "mode" : "tilt_series",
+        "start_angle": 0,
+        "step_angle": 1,
+        "num_images": 2,
+        "num_fractions": 10
+    }
+
+    sample = parakeet.sample.new(
+        parakeet.config.Sample(**config),
+        os.path.join(tmp_path, "test_new3.h5"),
+    )
+
+    sample = parakeet.sample.add_molecules(
+        parakeet.config.Sample(**config),
+        sample)
+
+    atoms = sample.get_atoms()
+
+    position = []
+
+    groups = list(set(atoms.data["group"]))
+
+    for group in groups:
+        select = atoms.data["group"] == group
+        xc = np.mean(atoms.data[select]["x"])
+        yc = np.mean(atoms.data[select]["y"])
+        zc = np.mean(atoms.data[select]["z"])
+        position.append((xc, yc, zc))
+
+    assert len(position) == 10
+    
+    scan = parakeet.scan.new(**scan_config)
+
+    position = np.array(position)
+    direction = np.random.uniform(-np.pi, np.pi, size=position.shape[0])
+
+    interaction_range = config["motion"]["interaction_range"]
+    velocity = config["motion"]["velocity"]
+    noise_magnitude = np.radians(config["motion"]["noise_magnitude"])
+
+    for image_number, fraction_number, angle in zip(scan.image_number, scan.fraction_number, scan.angles):
+        position, direction = parakeet.sample.motion.update_particle_position_and_direction(position, direction, interaction_range, velocity, noise_magnitude) 
+        print(image_number, fraction_number, angle, position[0], np.degrees(direction[0]))
+        assert len(position) == 10
+        assert len(direction) == 10
