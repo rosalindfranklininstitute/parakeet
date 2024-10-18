@@ -1,6 +1,9 @@
 import numpy as np
 
-def update_particle_position_and_direction(position, direction, interaction_range, velocity, noise_magnitude):
+
+def update_particle_position_and_direction(
+    position, direction, interaction_range, velocity, noise_magnitude
+):
     """
     Update the particle positions and directions using the Vicsek model
 
@@ -27,12 +30,15 @@ def update_particle_position_and_direction(position, direction, interaction_rang
     direction_mean = np.zeros_like(direction)
     for i in range(position.shape[0]):
         distance = np.linalg.norm(position[i] - position, axis=1)
-        direction_mean[i] = np.angle(np.mean(np.exp(1j * direction[distance <= interaction_range])))
+        direction_mean[i] = np.angle(
+            np.mean(np.exp(1j * direction[distance <= interaction_range]))
+        )
     direction = direction_mean + nu
 
     # Compute the new position of the particle
-    position[:,:2] = position[:,:2] + velocity * dt * np.stack([np.cos(direction), np.sin(direction)], axis=1)
+    position[:, :2] = position[:, :2] + velocity * dt * np.stack(
+        [np.cos(direction), np.sin(direction)], axis=1
+    )
 
     # Return the position and direction
     return position, direction
-

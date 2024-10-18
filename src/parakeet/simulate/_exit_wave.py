@@ -19,6 +19,7 @@ import parakeet.futures
 import parakeet.inelastic
 import parakeet.io
 import parakeet.sample
+import parakeet.sample.motion
 import parakeet.simulate
 from parakeet.config import Device
 from parakeet.simulate.simulation import Simulation
@@ -155,7 +156,9 @@ class ExitWaveImageSimulator(object):
             if self.particle_tracks is not None:
                 groups = atoms.data["group"]
                 assert np.all(groups >= 0)
-                coords += self.particle_tracks[(image_number, fraction_number)][groups] 
+                coords += self.particle_tracks[
+                    (int(image_number), int(fraction_number))
+                ][groups]
 
             # Rotate the coordinates
             coords = (
@@ -304,7 +307,7 @@ def simulation_factory(
 
         # Get the atoms
         atoms = sample.get_atoms()
-        
+
         # Get the unique atom groups. This should correspond to the individual
         # particles
         groups = np.array(list(set(atoms.data["group"])))
@@ -334,10 +337,16 @@ def simulation_factory(
         # For each image number and fraction update the particle position and
         # save the difference in position w.r.t the original particle position
         particle_tracks = {}
-        for image_number, fraction_number, angle in zip(scan.image_number, scan.fraction_number, scan.angles):
-            position, direction = parakeet.sample.motion.update_particle_position_and_direction(position, direction, interaction_range, velocity, noise_magnitude) 
-            motion[(image_number, fraction_number)] = position - position0
-        
+        for image_number, fraction_number, angle in zip(
+            scan.image_number, scan.fraction_number, scan.angles
+        ):
+            position, direction = (
+                parakeet.sample.motion.update_particle_position_and_direction(
+                    position, direction, interaction_range, velocity, noise_magnitude
+                )
+            )
+            particle_tracks[(image_number, fraction_number)] = position - position0
+
         # Return the motion dictionary
         return particle_tracks
 
@@ -350,7 +359,6 @@ def simulation_factory(
     else:
         assert multiprocessing["nproc"] in [None, 1]
         assert len(multiprocessing["gpu_id"]) == 1
-
 
     # Create the simulation
     return Simulation(

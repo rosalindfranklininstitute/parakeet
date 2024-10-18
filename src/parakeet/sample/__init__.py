@@ -567,7 +567,16 @@ class AtomData(object):
         """
 
         # The column order
-        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge", "group"]
+        column_info = [
+            "atomic_number",
+            "x",
+            "y",
+            "z",
+            "sigma",
+            "occupancy",
+            "charge",
+            "group",
+        ]
 
         # Iterate through the atoms
         def iterate_atoms(structure):
@@ -658,7 +667,16 @@ class AtomData(object):
         """
 
         # The column order
-        column_info = ["atomic_number", "x", "y", "z", "sigma", "occupancy", "charge", "group"]
+        column_info = [
+            "atomic_number",
+            "x",
+            "y",
+            "z",
+            "sigma",
+            "occupancy",
+            "charge",
+            "group",
+        ]
 
         # Iterate through the atoms
         def iterate_atoms(infile):
@@ -1188,7 +1206,7 @@ class Sample(object):
         # The step between datasets, A 500^3 A^3 volume has around 4M water molecules
         # This seems to be a reasonable division size
         self.step = 100_000  # A
-        
+
         # The number of identifiers
         self.num_identifiers = 0
 
@@ -1346,7 +1364,6 @@ class Sample(object):
         identifier = self.num_identifiers
         self.num_identifiers += 1
         return identifier
-
 
     def add_molecule(self, atoms, positions, orientations, name=None):
         """

@@ -42,6 +42,24 @@ def config_path(tmpdir_factory):
     config = parakeet.config.load(config_dict)
     config_path = os.path.abspath(os.path.join(directory, "config.yaml"))
     yaml.safe_dump(config.dict(), open(config_path, "w"))
+
+    config_dict["sample"]["motion"] = {
+        "interaction_range": 100,
+        "velocity": 1,
+        "noise_magnitude": 1,
+    }
+
+    config_dict["scan"] = {
+        "mode": "tilt_series",
+        "num_images": 2,
+        "num_fractions": 3,
+        "start_angle": 0,
+        "step_angle": 2,
+    }
+    config = parakeet.config.load(config_dict)
+    config_path = os.path.abspath(os.path.join(directory, "config_with_motion.yaml"))
+    yaml.safe_dump(config.dict(), open(config_path, "w"))
+
     return directory
 
 
@@ -114,6 +132,18 @@ def test_simulate_exit_wave(config_path):
     config = os.path.abspath(os.path.join(config_path, "config.yaml"))
     sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
     exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave.h5"))
+    assert os.path.exists(config)
+    assert os.path.exists(sample)
+    parakeet.command_line.simulate.exit_wave(
+        ["-c", config, "-s", sample, "-e", exit_wave]
+    )
+    assert os.path.exists(exit_wave)
+
+
+def test_simulate_exit_wave_with_motion(config_path):
+    config = os.path.abspath(os.path.join(config_path, "config_with_motion.yaml"))
+    sample = os.path.abspath(os.path.join(config_path, "sample.h5"))
+    exit_wave = os.path.abspath(os.path.join(config_path, "exit_wave_with_motion.h5"))
     assert os.path.exists(config)
     assert os.path.exists(sample)
     parakeet.command_line.simulate.exit_wave(

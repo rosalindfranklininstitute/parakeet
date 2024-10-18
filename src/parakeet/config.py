@@ -338,7 +338,9 @@ class SampleMotion(BaseModel):
 
     velocity: float = Field(0, description="The particle velocity (A / fraction)")
 
-    noise_magnitude: float = Field(0, description="The magnitude of the direction noise (degrees)")
+    noise_magnitude: float = Field(
+        0, description="The magnitude of the direction noise (degrees)"
+    )
 
 
 class Sample(BaseModel):
@@ -374,6 +376,7 @@ class Sample(BaseModel):
     motion: Optional[SampleMotion] = Field(
         None, description="The sample motion parameters"
     )
+
 
 class Beam(BaseModel):
     """

@@ -523,7 +523,10 @@ def test_sample_with_motion(tmp_path):
     config = {
         "box": (400, 400, 400),
         "centre": (200, 200, 200),
-        "shape": {"type": "cuboid", "cuboid": {"length_x": 400, "length_y": 400, "length_z":400}},
+        "shape": {
+            "type": "cuboid",
+            "cuboid": {"length_x": 400, "length_y": 400, "length_z": 400},
+        },
         "molecules": {
             "local": [
                 {
@@ -532,19 +535,15 @@ def test_sample_with_motion(tmp_path):
                 }
             ]
         },
-        "motion": {
-            "interaction_range": 300,
-            "velocity": 1,
-            "noise_magnitude": 0
-        }
+        "motion": {"interaction_range": 300, "velocity": 1, "noise_magnitude": 0},
     }
-    
+
     scan_config = {
-        "mode" : "tilt_series",
+        "mode": "tilt_series",
         "start_angle": 0,
         "step_angle": 1,
         "num_images": 2,
-        "num_fractions": 10
+        "num_fractions": 10,
     }
 
     sample = parakeet.sample.new(
@@ -552,9 +551,7 @@ def test_sample_with_motion(tmp_path):
         os.path.join(tmp_path, "test_new3.h5"),
     )
 
-    sample = parakeet.sample.add_molecules(
-        parakeet.config.Sample(**config),
-        sample)
+    sample = parakeet.sample.add_molecules(parakeet.config.Sample(**config), sample)
 
     atoms = sample.get_atoms()
 
@@ -570,7 +567,7 @@ def test_sample_with_motion(tmp_path):
         position.append((xc, yc, zc))
 
     assert len(position) == 10
-    
+
     scan = parakeet.scan.new(**scan_config)
 
     position = np.array(position)
@@ -580,8 +577,16 @@ def test_sample_with_motion(tmp_path):
     velocity = config["motion"]["velocity"]
     noise_magnitude = np.radians(config["motion"]["noise_magnitude"])
 
-    for image_number, fraction_number, angle in zip(scan.image_number, scan.fraction_number, scan.angles):
-        position, direction = parakeet.sample.motion.update_particle_position_and_direction(position, direction, interaction_range, velocity, noise_magnitude) 
-        print(image_number, fraction_number, angle, position[0], np.degrees(direction[0]))
+    for image_number, fraction_number, angle in zip(
+        scan.image_number, scan.fraction_number, scan.angles
+    ):
+        position, direction = (
+            parakeet.sample.motion.update_particle_position_and_direction(
+                position, direction, interaction_range, velocity, noise_magnitude
+            )
+        )
+        print(
+            image_number, fraction_number, angle, position[0], np.degrees(direction[0])
+        )
         assert len(position) == 10
         assert len(direction) == 10
