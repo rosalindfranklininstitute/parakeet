@@ -467,6 +467,10 @@ def _exit_wave_Config(
         # Save the first position
         position0 = position.copy()
 
+        # If no tracks just return original positions
+        if particle_tracks is None:
+            return position0
+
         # For each image number and fraction update the particle position and
         # save the difference in position w.r.t the original particle position
         particle_positions = []
