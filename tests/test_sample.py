@@ -535,7 +535,12 @@ def test_sample_with_motion(tmp_path):
                 }
             ]
         },
-        "motion": {"interaction_range": 300, "velocity": 1, "noise_magnitude": 0},
+        "motion": {
+            "global_drift": (1, 2),
+            "interaction_range": 300,
+            "velocity": 1,
+            "noise_magnitude": 0,
+        },
     }
 
     scan_config = {
