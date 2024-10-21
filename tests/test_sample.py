@@ -573,6 +573,7 @@ def test_sample_with_motion(tmp_path):
     position = np.array(position)
     direction = np.random.uniform(-np.pi, np.pi, size=position.shape[0])
 
+    global_drift = config["motion"]["global_drift"]
     interaction_range = config["motion"]["interaction_range"]
     velocity = config["motion"]["velocity"]
     noise_magnitude = np.radians(config["motion"]["noise_magnitude"])
@@ -582,7 +583,12 @@ def test_sample_with_motion(tmp_path):
     ):
         position, direction = (
             parakeet.sample.motion.update_particle_position_and_direction(
-                position, direction, interaction_range, velocity, noise_magnitude
+                position,
+                direction,
+                global_drift,
+                interaction_range,
+                velocity,
+                noise_magnitude,
             )
         )
         print(
