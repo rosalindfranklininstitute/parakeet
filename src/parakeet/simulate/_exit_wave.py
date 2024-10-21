@@ -330,6 +330,7 @@ def simulation_factory(
         direction = np.random.uniform(-np.pi, np.pi, size=position.shape[0])
 
         # Get the motion parameters
+        global_drift = motion["global_drift"]
         interaction_range = motion["interaction_range"]
         velocity = motion["velocity"]
         noise_magnitude = np.radians(motion["noise_magnitude"])
@@ -342,7 +343,12 @@ def simulation_factory(
         ):
             position, direction = (
                 parakeet.sample.motion.update_particle_position_and_direction(
-                    position, direction, interaction_range, velocity, noise_magnitude
+                    position,
+                    direction,
+                    global_drift,
+                    interaction_range,
+                    velocity,
+                    noise_magnitude,
                 )
             )
             particle_tracks[(image_number, fraction_number)] = position - position0
@@ -438,6 +444,41 @@ def _exit_wave_Config(
 
     """
 
+    def get_particle_positions(particle_tracks, sample, scan):
+
+        # Get the atoms
+        atoms = sample.get_atoms()
+
+        # Get the unique atom groups. This should correspond to the individual
+        # particles
+        groups = np.array(list(set(atoms.data["group"])))
+        assert np.all(groups >= 0)
+
+        # Loop through the groups and get the mean positions of the atoms
+        position = []
+        for group in groups:
+            select = atoms.data["group"] == group
+            xc = np.mean(atoms.data[select]["x"])
+            yc = np.mean(atoms.data[select]["y"])
+            zc = np.mean(atoms.data[select]["z"])
+            position.append((xc, yc, zc))
+        position = np.array(position)
+
+        # Save the first position
+        position0 = position.copy()
+
+        # For each image number and fraction update the particle position and
+        # save the difference in position w.r.t the original particle position
+        particle_positions = []
+        for image_number, fraction_number, angle in zip(
+            scan.image_number, scan.fraction_number, scan.angles
+        ):
+            delta = particle_tracks[(image_number, fraction_number)]
+            particle_positions.append(position0 + delta)
+
+        # Return the motion dictionary
+        return np.array(particle_positions)
+
     # Create the microscope
     microscope = parakeet.microscope.new(config.microscope)
 
@@ -467,6 +508,11 @@ def _exit_wave_Config(
         shape=simulation.shape,
         pixel_size=simulation.pixel_size,
         dtype=np.complex64,
+    )
+
+    # Set the particle positions
+    writer.particle_positions = get_particle_positions(
+        simulation.simulate_image.particle_tracks, sample, scan
     )
 
     # Run the simulation

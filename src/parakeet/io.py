@@ -324,7 +324,7 @@ class Header(object):
         result[:, 2] = self["stage_z"][:]
         return result
 
-    def __array__(self, dtype=METADATA_DTYPE):
+    def __array__(self, dtype=METADATA_DTYPE, copy=True):
         """
         Convert to a numpy array
 
@@ -636,6 +636,22 @@ class MrcFileWriter(Writer):
         """
         return self.handle.voxel_size[0]
 
+    @property
+    def particle_positions(self):
+        """
+        Return the particle positions
+
+        """
+        return None
+
+    @particle_positions.setter
+    def particle_positions(self, particle_positions):
+        """
+        Set the particle positions
+
+        """
+        pass
+
     def update(self):
         """
         Update before closing
@@ -795,6 +811,28 @@ class NexusWriter(Writer):
         """
         return self.handle["data"]["pixel_size_x"][0]
 
+    @property
+    def particle_positions(self):
+        """
+        Return the particle positions
+
+        """
+        sample = self.handle["entry"]["sample"]
+        if "particle_positions" in sample:
+            return sample["particle_positions"][:]
+        return None
+
+    @particle_positions.setter
+    def particle_positions(self, particle_positions):
+        """
+        Set the particle positions
+
+        """
+        if particle_positions is not None:
+            self.handle["entry"]["sample"].create_dataset(
+                "particle_positions", data=particle_positions
+            )
+
 
 class ImageWriter(Writer):
     """
@@ -913,6 +951,7 @@ class Reader(object):
         data,
         header,
         pixel_size,
+        particle_positions,
     ):
         """
         Initialise the data
@@ -930,6 +969,7 @@ class Reader(object):
         self.data = data
         self.header = header
         self.pixel_size = pixel_size
+        self.particle_positions = particle_positions
         self.shape = data.shape
         self.dtype = data.dtype
 
@@ -1009,12 +1049,16 @@ class Reader(object):
         # Get the pixel size
         pixel_size = float(handle.voxel_size["x"])
 
+        # Get the particle positions
+        particle_positions = None
+
         # Create the reader
         return Reader(
             handle,
             handle.data,
             header,
             pixel_size,
+            particle_positions,
         )
 
     @classmethod
@@ -1047,12 +1091,19 @@ class Reader(object):
         # Get the pixel size
         pixel_size = data.get("pixel_size_x", [1.0])[0]
 
+        # Get the particle positions
+        if "particle_positions" in handle["entry"]["sample"]:
+            particle_positions = handle["entry"]["sample"]["particle_positions"]
+        else:
+            particle_positions = None
+
         # Create the reader
         return Reader(
             handle,
             data["data"],
             header,
             pixel_size,
+            particle_positions,
         )
 
     @classmethod

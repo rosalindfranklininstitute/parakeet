@@ -334,6 +334,10 @@ class SampleMotion(BaseModel):
 
     """
 
+    global_drift: Tuple[float, float] = Field(
+        (0, 0), description="The global drift in x, y (A / fraction)"
+    )
+
     interaction_range: float = Field(0, description="The interaction range (A)")
 
     velocity: float = Field(0, description="The particle velocity (A / fraction)")

@@ -243,5 +243,8 @@ def _image_Config(config: parakeet.config.Config, optics_file: str, image_file: 
         dtype=np.float32,
     )
 
+    # Propagate the particle positions
+    writer.particle_positions = optics.particle_positions
+
     # Run the simulation
     simulation.run(writer)

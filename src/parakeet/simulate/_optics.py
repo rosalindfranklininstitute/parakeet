@@ -549,5 +549,8 @@ def _optics_Config(
         dtype=np.float32,
     )
 
+    # Propagate the particle positions
+    writer.particle_positions = exit_wave.particle_positions
+
     # Run the simulation
     simulation.run(writer)
