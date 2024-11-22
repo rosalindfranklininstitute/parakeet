@@ -12,7 +12,7 @@
 import logging
 import numpy as np
 import warnings
-from math import sqrt, pi, floor
+from math import sqrt, floor
 from collections.abc import Iterable
 
 
@@ -249,6 +249,7 @@ class SimulationEngine(object):
         if microscope.beam.incident_wave is not None:
             assert microscope.beam.incident_wave.shape[0] == input_multislice.ny
             assert microscope.beam.incident_wave.shape[1] == input_multislice.nx
+            input_multislice.iw_type = "User_Define_Wave"
             input_multislice.iw_psi = microscope.beam.incident_wave.T.flatten()
 
         # Return the input multislice object
@@ -354,8 +355,8 @@ class SimulationEngine(object):
         input_multislice.cond_lens_outer_aper_ang = microscope.lens.outer_aper_ang
 
         # Do we have a phase plate
-        if microscope.phase_plate:
-            input_multislice.phase_shift = pi / 2.0
+        # if microscope.phase_plate:
+        #     input_multislice.phase_shift = pi / 2.0
 
         # defocus spread function
         input_multislice.obj_lens_ti_sigma = multem.iehwgd_to_sigma(
@@ -381,6 +382,7 @@ class SimulationEngine(object):
         if microscope.beam.incident_wave is not None:
             assert microscope.beam.incident_wave.shape[0] == input_multislice.ny
             assert microscope.beam.incident_wave.shape[1] == input_multislice.nx
+            input_multislice.iw_type = "User_Define_Wave"
             input_multislice.iw_psi = microscope.beam.incident_wave.T.flatten()
 
         # Return the input multislice object
