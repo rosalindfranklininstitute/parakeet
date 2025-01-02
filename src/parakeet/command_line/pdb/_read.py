@@ -76,7 +76,7 @@ def read_impl(args):
     prefix = " " * 4
     logger.info("Structure: %s" % structure.name)
     for model in structure:
-        logger.info("%sModel: %s" % (prefix, model.name))
+        logger.info("%sModel: %s" % (prefix, str(model)))
         for chain in model:
             logger.info("%sChain: %s" % (prefix * 2, chain.name))
             for residue in chain:
