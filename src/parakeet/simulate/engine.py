@@ -181,7 +181,7 @@ class SimulationEngine(object):
         input_multislice.phi = microscope.beam.phi
 
         # Illumination model
-        input_multislice.illumination_model = "Partial_Coherent"
+        input_multislice.illumination_model = "Partial_Coherent_Higher_Order"
         input_multislice.temporal_spatial_incoh = "Temporal_Spatial"
 
         # Condenser lens
