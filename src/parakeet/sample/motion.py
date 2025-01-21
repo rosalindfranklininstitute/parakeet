@@ -2,7 +2,13 @@ import numpy as np
 
 
 def update_particle_position_and_direction(
-    position, direction, global_drift, interaction_range, velocity, noise_magnitude
+    position,
+    direction,
+    global_drift,
+    interaction_range,
+    velocity,
+    noise_magnitude,
+    time_step=1,
 ):
     """
     Update the particle positions and directions using the Vicsek model
@@ -21,7 +27,7 @@ def update_particle_position_and_direction(
     """
 
     # The time step
-    dt = 1
+    dt = time_step
 
     # For the noise draw random samples form a normal distribution
     nu = np.random.normal(0, noise_magnitude, size=position.shape[0])
@@ -40,6 +46,7 @@ def update_particle_position_and_direction(
     global_drift = np.array(global_drift)
 
     # Compute the new position of the particle
+    position = position.copy()
     position[:, :2] = position[:, :2] + dt * (
         global_drift
         + velocity * np.stack([np.cos(direction), np.sin(direction)], axis=1)
