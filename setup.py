@@ -64,7 +64,7 @@ def main():
             "h5py",
             "maptools",
             "mrcfile",
-            "numpy",
+            "numpy>=v2.2.2",
             "pandas",
             "pillow",
             "profet",
