@@ -15,6 +15,7 @@ import random
 import scipy.ndimage
 import scipy.spatial.transform
 import parakeet.sample
+from typing import Union
 from functools import singledispatch
 from math import sqrt, ceil
 
@@ -152,7 +153,7 @@ def average_particles(
     rec_file: str,
     half1_file: str,
     half2_file: str,
-    particle_size: int,
+    particle_size: Union[int, dict],
     num_particles: int,
 ):
     """
@@ -197,7 +198,7 @@ def _average_particles_Config(
     rec_filename: str,
     half_1_filename: str,
     half_2_filename: str,
-    particle_size: int = 0,
+    particle_size: Union[int, dict] = 0,
     num_particles: int = 0,
 ):
     """
@@ -242,7 +243,15 @@ def _average_particles_Config(
         yc = (ymax + ymin) / 2.0
         zc = (zmax + zmin) / 2.0
 
-        if particle_size == 0:
+        # Check if there is a per-particle or global size given
+        if particle_size is None:
+            psz = 0
+        elif isinstance(particle_size, int):
+            psz = particle_size
+        else:
+            psz = particle_size[name]
+
+        if psz == 0:
             half_length = (
                 int(
                     ceil(
@@ -256,7 +265,7 @@ def _average_particles_Config(
                 + 1
             )
         else:
-            half_length = particle_size // 2
+            half_length = psz // 2
         length = 2 * half_length
         assert len(positions) == len(orientations)
         if num_particles <= 0:
@@ -328,7 +337,7 @@ def average_all_particles(
     sample_file: str,
     rec_file: str,
     average_file: str,
-    particle_size: int,
+    particle_size: Union[int, dict],
     num_particles: int,
 ):
     """
@@ -364,7 +373,7 @@ def _average_all_particles_Config(
     sample: parakeet.sample.Sample,
     rec_filename: str,
     average_filename: str,
-    particle_size: int = 0,
+    particle_size: Union[int, dict] = 0,
     num_particles: int = 0,
 ):
     """
@@ -409,7 +418,15 @@ def _average_all_particles_Config(
         yc = (ymax + ymin) / 2.0
         zc = (zmax + zmin) / 2.0
 
-        if particle_size == 0:
+        # Check if there is a per-particle or global size given
+        if particle_size is None:
+            psz = 0
+        elif isinstance(particle_size, int):
+            psz = particle_size
+        else:
+            psz = particle_size[name]
+
+        if psz == 0:
             half_length = (
                 int(
                     ceil(
@@ -423,7 +440,7 @@ def _average_all_particles_Config(
                 + 1
             )
         else:
-            half_length = particle_size // 2
+            half_length = psz // 2
         length = 2 * half_length
         assert len(positions) == len(orientations)
         if num_particles <= 0:

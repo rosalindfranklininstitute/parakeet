@@ -84,8 +84,10 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     parser.add_argument(
         "-psz",
         "--particle_size",
-        type=int,
-        default=0,
+        type=lambda x: tuple(x.split(":")),
+        default=None,
+        action="extend",
+        nargs="+",
         dest="particle_size",
         help="The size of the particles extracted (px)",
     )
@@ -112,6 +114,21 @@ def average_all_particles_impl(args):
 
     # Configure some basic logging
     parakeet.command_line.configure_logging()
+
+    # Get the particle size as a dictionary. If no particle size is set then
+    # set it to 0. Otherwise, parse the "name:size" strings. If the length is 1
+    # and it is an integer then set as integer, otherwise convert into a
+    # dictionary
+    if args.particle_size is None:
+        args.particle_size = 0
+    else:
+        args.particle_size = [
+            (x[0], int(x[1])) if len(x) == 2 else int(x[0]) for x in args.particle_size
+        ]
+        if len(args.particle_size) == 1 and isinstance(args.particle_size[0], int):
+            args.particle_size = args.particle_size[0]
+        else:
+            args.particle_size = dict(args.particle_size)
 
     # Do the work
     parakeet.analyse.average_all_particles(
