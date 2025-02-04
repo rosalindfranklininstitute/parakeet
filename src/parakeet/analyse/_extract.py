@@ -19,6 +19,7 @@ from math import sqrt, ceil
 from typing import Union
 from parakeet.analyse._average_particles import lazy_map
 from parakeet.analyse._average_particles import _process_sub_tomo
+from parakeet.analyse._average_particles import _process_sub_tomo_no_rotation
 from parakeet.analyse._average_particles import _iterate_particles
 
 
@@ -37,6 +38,7 @@ def extract(
     particles_file: str,
     particle_size: Union[int, dict],
     particle_sampling: int,
+    particle_reorient: bool,
 ):
     """
     Perform sub tomogram extraction
@@ -48,6 +50,7 @@ def extract(
         particles_file: The file to extract the particles to
         particle_size: The particle size (px)
         particle_sampling: The particle sampling (factor of 2)
+        particle_reorient: Ensure particles are in final orientation
 
     """
 
@@ -62,7 +65,13 @@ def extract(
 
     # Do the sub tomogram averaging
     _extract_Config(
-        config, sample, rec_file, particles_file, particle_size, particle_sampling
+        config,
+        sample,
+        rec_file,
+        particles_file,
+        particle_size,
+        particle_sampling,
+        particle_reorient,
     )
 
 
@@ -74,6 +83,7 @@ def _extract_Config(
     extract_file: str,
     particle_size: Union[int, dict] = 0,
     particle_sampling: int = 1,
+    particle_reorient: bool = True,
 ):
     """
     Extract particles for post-processing
@@ -196,11 +206,17 @@ def _extract_Config(
             name, (0,) + sampled_shape, maxshape=(None,) + shape
         )
 
+        # Rotate the particle or not
+        print(particle_reorient)
+        process_sub_tomo = (
+            _process_sub_tomo if particle_reorient else _process_sub_tomo_no_rotation
+        )
+
         # Loop through all the particles
         with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
             for half_index, data in lazy_map(
                 executor,
-                _process_sub_tomo,
+                process_sub_tomo,
                 _iterate_particles(
                     indices,
                     positions,

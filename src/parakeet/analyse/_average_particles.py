@@ -82,6 +82,21 @@ def _process_sub_tomo(args):
     return half_index, data
 
 
+def _process_sub_tomo_no_rotation(args):
+    sub_tomo, position, orientation, half_index = args
+
+    # Set the data to transform
+    data = sub_tomo
+    offset = position
+
+    # Reorder input vectors
+    offset = np.array(data.shape)[::-1] / 2 + offset[[1, 2, 0]]
+    rotation = -np.array(orientation)[[1, 2, 0]]
+    rotation[1] = -rotation[1]
+
+    return half_index, data
+
+
 def _iterate_particles(
     indices,
     positions,

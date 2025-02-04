@@ -19,6 +19,7 @@ import parakeet.config
 import parakeet.microscope
 import parakeet.sample
 from argparse import ArgumentParser
+from argparse import ArgumentTypeError
 from typing import List
 
 
@@ -42,6 +43,16 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
     Get the parakeet.analyse.extract parser
 
     """
+
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ("yes", "true", "t", "y", "1"):
+            return True
+        elif v.lower() in ("no", "false", "f", "n", "0"):
+            return False
+        else:
+            raise ArgumentTypeError("Boolean value expected.")
 
     # Initialise the parser
     if parser is None:
@@ -99,6 +110,14 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="particle_sampling",
         help="The sampling of the particle volume (factor of 2)",
     )
+    parser.add_argument(
+        "-pro",
+        "--particle_reorient",
+        type=str2bool,
+        default=True,
+        dest="particle_reorient",
+        help="Ensure particles are in final orientation (False means you can't average them)",
+    )
 
     return parser
 
@@ -138,6 +157,7 @@ def extract_impl(args):
         args.particles,
         args.particle_size,
         args.particle_sampling,
+        args.particle_reorient,
     )
 
     # Write some timing stats
