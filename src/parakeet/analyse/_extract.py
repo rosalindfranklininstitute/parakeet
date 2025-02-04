@@ -16,6 +16,7 @@ import h5py
 import parakeet.sample
 from functools import singledispatch
 from math import sqrt, ceil
+from typing import Union
 from parakeet.analyse._average_particles import lazy_map
 from parakeet.analyse._average_particles import _process_sub_tomo
 from parakeet.analyse._average_particles import _iterate_particles
@@ -34,7 +35,7 @@ def extract(
     sample_file: str,
     rec_file: str,
     particles_file: str,
-    particle_size: int,
+    particle_size: Union[int, dict],
     particle_sampling: int,
 ):
     """
@@ -71,7 +72,7 @@ def _extract_Config(
     sample: parakeet.sample.Sample,
     rec_filename: str,
     extract_file: str,
-    particle_size: int = 0,
+    particle_size: Union[int, dict] = 0,
     particle_sampling: int = 1,
 ):
     """
@@ -139,7 +140,16 @@ def _extract_Config(
         yc = (ymax + ymin) / 2.0
         zc = (zmax + zmin) / 2.0
 
-        if particle_size == 0:
+        # Check if there is a per-particle or global size given
+        if particle_size is None:
+            psz = 0
+        elif isinstance(particle_size, int):
+            psz = particle_size
+        else:
+            psz = particle_size[name]
+
+        # Set the half length
+        if psz == 0:
             half_length = (
                 int(
                     ceil(
@@ -153,7 +163,7 @@ def _extract_Config(
                 + 1
             )
         else:
-            half_length = particle_size // 2
+            half_length = psz // 2
         length = 2 * half_length
 
         # Check length is compatible with particle sampling
