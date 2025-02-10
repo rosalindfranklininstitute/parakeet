@@ -479,8 +479,11 @@ class AtomData(object):
         else:
             if len(data) > 0:
                 column_names = list(data.keys())
+                for name in column_names:
+                    assert name in AtomData.column_data
                 for name in AtomData.column_data:
-                    assert name in column_names
+                    if name not in column_names:
+                        data[name] = np.zeros(len(data))
             self.data = data
 
     def rotate(self, vector):
