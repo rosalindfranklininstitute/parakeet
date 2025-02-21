@@ -449,6 +449,11 @@ def _exit_wave_Config(
         # Get the atoms
         atoms = sample.get_atoms()
 
+        # If no groups then return centre of mass
+        if "groups" not in atoms.data:
+            position = [sample.centre]
+            return position
+
         # Get the unique atom groups. This should correspond to the individual
         # particles
         groups = np.array(list(set(atoms.data["group"])))
