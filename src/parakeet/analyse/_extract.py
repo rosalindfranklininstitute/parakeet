@@ -38,7 +38,6 @@ def extract(
     particles_file: str,
     particle_size: Union[int, dict],
     particle_sampling: int,
-    particle_reorient: bool,
 ):
     """
     Perform sub tomogram extraction
@@ -50,7 +49,6 @@ def extract(
         particles_file: The file to extract the particles to
         particle_size: The particle size (px)
         particle_sampling: The particle sampling (factor of 2)
-        particle_reorient: Ensure particles are in final orientation
 
     """
 
@@ -71,7 +69,6 @@ def extract(
         particles_file,
         particle_size,
         particle_sampling,
-        particle_reorient,
     )
 
 
@@ -83,7 +80,6 @@ def _extract_Config(
     extract_file: str,
     particle_size: Union[int, dict] = 0,
     particle_sampling: int = 1,
-    particle_reorient: bool = True,
 ):
     """
     Extract particles for post-processing
@@ -135,6 +131,8 @@ def _extract_Config(
     handle = h5py.File(extract_file, "w")
     handle["voxel_size"] = voxel_size * particle_sampling
     handle.create_group("data")
+    handle.create_group("position")
+    handle.create_group("orientation")
 
     # Loop through the
     for name, (atoms, positions, orientations) in sample.iter_molecules():
@@ -206,15 +204,22 @@ def _extract_Config(
             name, (0,) + sampled_shape, maxshape=(None,) + shape
         )
 
-        # Rotate the particle or not
-        print(particle_reorient)
-        process_sub_tomo = (
-            _process_sub_tomo if particle_reorient else _process_sub_tomo_no_rotation
+        # Create a dataset to store the positions
+        position_handle = handle["position"].create_dataset(
+            name, (0, 3), maxshape=(None, 3)
         )
+
+        # Create a dataset to store the orientations
+        orientation_handle = handle["orientation"].create_dataset(
+            name, (0, 3), maxshape=(None, 3)
+        )
+
+        # Rotate the particle or not
+        process_sub_tomo = _process_sub_tomo_no_rotation
 
         # Loop through all the particles
         with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
-            for half_index, data in lazy_map(
+            for half_index, position, orientation, data in lazy_map(
                 executor,
                 process_sub_tomo,
                 _iterate_particles(
@@ -232,6 +237,12 @@ def _extract_Config(
                 # Add the particle to the file
                 data_handle.resize(num + 1, axis=0)
                 data_handle[num, :, :, :] = rebin(data, sampled_shape)
+
+                position_handle.resize(num + 1, axis=0)
+                position_handle[num, :] = position
+
+                orientation_handle.resize(num + 1, axis=0)
+                orientation_handle[num, :] = orientation
                 num += 1
                 print("Count: ", num)
 
@@ -248,7 +259,14 @@ def average_extracted_particles(
     """
 
     def _average_particle(
-        data, voxel_size, name, half1_filename, half2_filename, num_particles
+        data,
+        position,
+        orientation,
+        voxel_size,
+        name,
+        half1_filename,
+        half2_filename,
+        num_particles,
     ):
         # Get the number of particles
         if num_particles is None or num_particles <= 0:
@@ -275,7 +293,17 @@ def average_extracted_particles(
                     "Half %d: adding %d / %d"
                     % (half_index + 1, i + 1, len(particle_indices))
                 )
-                half[half_index, :, :, :] += data[particle_index, :, :, :]
+
+                _, d = _process_sub_tomo(
+                    (
+                        data[particle_index, :, :, :],
+                        position[particle_index, :],
+                        orientation[particle_index, :],
+                        half_index,
+                    )
+                )
+
+                half[half_index, :, :, :] += d
                 num[half_index] += 1
 
         # Average the sub tomograms
@@ -305,8 +333,17 @@ def average_extracted_particles(
 
     for name in particles_handle["data"].keys():
         data = particles_handle["data"][name]
+        position = particles_handle["position"][name]
+        orientation = particles_handle["orientation"][name]
         voxel_size = tuple(particles_handle["voxel_size"][:])
         print("Voxel size: %s" % str(voxel_size))
         _average_particle(
-            data, voxel_size, name, half1_filename, half2_filename, num_particles
+            data,
+            position,
+            orientation,
+            voxel_size,
+            name,
+            half1_filename,
+            half2_filename,
+            num_particles,
         )

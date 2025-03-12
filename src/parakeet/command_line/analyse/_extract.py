@@ -110,14 +110,6 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         dest="particle_sampling",
         help="The sampling of the particle volume (factor of 2)",
     )
-    parser.add_argument(
-        "-pro",
-        "--particle_reorient",
-        type=str2bool,
-        default=True,
-        dest="particle_reorient",
-        help="Ensure particles are in final orientation (False means you can't average them)",
-    )
 
     return parser
 
@@ -157,7 +149,6 @@ def extract_impl(args):
         args.particles,
         args.particle_size,
         args.particle_sampling,
-        args.particle_reorient,
     )
 
     # Write some timing stats

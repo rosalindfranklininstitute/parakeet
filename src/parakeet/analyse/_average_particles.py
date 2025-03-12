@@ -94,7 +94,7 @@ def _process_sub_tomo_no_rotation(args):
     rotation = -np.array(orientation)[[1, 2, 0]]
     rotation[1] = -rotation[1]
 
-    return half_index, data
+    return half_index, position, orientation, data
 
 
 def _iterate_particles(
