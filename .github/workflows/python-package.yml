@@ -48,7 +48,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 black mypy types-PyYAML pytest pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        export CUDACXX=/usr/bin/nvcc        
+        export CUDACXX=$(which nvcc)        
         python -m pip install -e .
     - name: Run black --check
       run: black --check src tests
