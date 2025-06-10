@@ -615,7 +615,7 @@ class AtomData(object):
         return AtomData(data=pandas.DataFrame(create_atom_data(structure)))
 
     @classmethod
-    def from_gemmi_file(Class, filename):
+    def from_gemmi_file(Class, filename, assembly_index=0):
         """
         Read the sample from a file
 
@@ -633,7 +633,7 @@ class AtomData(object):
         # Create ensemble with default first biological assembly
         if len(structure.assemblies) > 0 and len(structure) > 0:
             structure = gemmi.make_assembly(
-                structure.assemblies[0],
+                structure.assemblies[assembly_index],
                 structure[0],
                 gemmi.HowToNameCopiedChain.AddNumber,
             )
