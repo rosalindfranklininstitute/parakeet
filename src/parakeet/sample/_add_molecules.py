@@ -131,17 +131,25 @@ def add_multiple_molecules(sample, molecules):
         if len(items) == 0:
             continue
 
-        # Print some info
-        logger.info("Adding %d %s molecules" % (len(items), name))
-
         # Get the filename of the PDB entry
         if mtype == "pdb":
             filename = parakeet.data.get_pdb(name)
         elif mtype == "local":
             filename = name
 
+        assembly_index = 0
+        if "assembly_index" in value:
+            assembly_index = int(value["assembly_index"])
+            print("use user passed assembly index %d" % assembly_index)
+
+        # Print some info
+        logger.info(
+            "Adding %d %s molecules with assembly_index %d"
+            % (len(items), name, assembly_index)
+        )
+
         # Get the atom data
-        atoms = AtomData.from_gemmi_file(filename)
+        atoms = AtomData.from_gemmi_file(filename, assembly_index)
         atoms.data = recentre(atoms.data)
         atom_data[name] = atoms
 

@@ -192,6 +192,16 @@ class CoordinateFile(BaseModel):
         None, description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
     )
 
+    assembly_index: int = Field(
+        0,
+        description=(
+            "The assembly index to use for the given assembly index to be applied "
+            "This is only used if the filename is set and the file contains "
+            "multiple assemblies. If the file does not contain multiple assemblies "
+            "then this will be ignored."
+        ),
+    )
+
     recentre: bool = Field(True, description="Recentre the coordinates")
 
     scale: float = Field(1, description="Scale the coordinates x' = x * scale")
@@ -232,6 +242,16 @@ class LocalMolecule(BaseModel):
 
     filename: str = Field(
         description="The filename of the atomic coordinates to use (*.pdb, *.cif)"
+    )
+
+    assembly_index: int = Field(
+        0,
+        description=(
+            "The assembly index to use for the given assembly index to be applied "
+            "This is only used if the filename is set and the file contains "
+            "multiple assemblies. If the file does not contain multiple assemblies "
+            "then this will be ignored."
+        ),
     )
 
     instances: Union[int, List[MoleculePose]] = Field(
