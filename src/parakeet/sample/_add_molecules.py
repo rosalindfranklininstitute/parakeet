@@ -140,7 +140,7 @@ def add_multiple_molecules(sample, molecules):
         assembly_index = 0
         if "assembly_index" in value:
             assembly_index = int(value["assembly_index"])
-            print("use user passed assembly index %d" % assembly_index)
+            print("Using user passed assembly index %d" % assembly_index)
 
         # Print some info
         logger.info(
@@ -285,6 +285,9 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
             # Get the instances
             instances = item["instances"]
 
+            # Get the assembly index
+            assembly_index = item["assembly_index"] if "assembly_index" in item else 0
+
             # Set the instances
             temp[key] = {
                 "type": origin,
@@ -293,6 +296,7 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
                     if isinstance(instances, int)
                     else instances
                 ),
+                'assembly_index': assembly_index,
             }
 
     molecules = temp
