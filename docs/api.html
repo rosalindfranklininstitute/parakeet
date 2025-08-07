@@ -1,0 +1,1259 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python API &mdash; parakeet 0.1.dev1+g8c368a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=381b7a04"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Command line programs" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            parakeet
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Command line programs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#image-io-functions">Image IO functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.io.new"><code class="docutils literal notranslate"><span class="pre">new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.io.open"><code class="docutils literal notranslate"><span class="pre">open()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pdb-file-functions">PDB file functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.data.get_pdb"><code class="docutils literal notranslate"><span class="pre">get_pdb()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-functions">Configuration functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.config.new"><code class="docutils literal notranslate"><span class="pre">new()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sample-functions">Sample functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.sample.new"><code class="docutils literal notranslate"><span class="pre">new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.sample.add_molecules"><code class="docutils literal notranslate"><span class="pre">add_molecules()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.sample.mill"><code class="docutils literal notranslate"><span class="pre">mill()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.sample.sputter"><code class="docutils literal notranslate"><span class="pre">sputter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#image-simulation-functions">Image simulation functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.simulate.potential"><code class="docutils literal notranslate"><span class="pre">potential()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.simulate.exit_wave"><code class="docutils literal notranslate"><span class="pre">exit_wave()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.simulate.optics"><code class="docutils literal notranslate"><span class="pre">optics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.simulate.image"><code class="docutils literal notranslate"><span class="pre">image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.simulate.ctf"><code class="docutils literal notranslate"><span class="pre">ctf()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-functions">Analysis functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.correct"><code class="docutils literal notranslate"><span class="pre">correct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.reconstruct"><code class="docutils literal notranslate"><span class="pre">reconstruct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.average_particles"><code class="docutils literal notranslate"><span class="pre">average_particles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.average_all_particles"><code class="docutils literal notranslate"><span class="pre">average_all_particles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.extract"><code class="docutils literal notranslate"><span class="pre">extract()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.analyse.refine"><code class="docutils literal notranslate"><span class="pre">refine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-models">Data models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.beam.Beam"><code class="docutils literal notranslate"><span class="pre">Beam</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.__init__"><code class="docutils literal notranslate"><span class="pre">Beam.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.acceleration_voltage_spread"><code class="docutils literal notranslate"><span class="pre">Beam.acceleration_voltage_spread</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.electrons_per_angstrom"><code class="docutils literal notranslate"><span class="pre">Beam.electrons_per_angstrom</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.energy"><code class="docutils literal notranslate"><span class="pre">Beam.energy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.energy_spread"><code class="docutils literal notranslate"><span class="pre">Beam.energy_spread</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.illumination_semiangle"><code class="docutils literal notranslate"><span class="pre">Beam.illumination_semiangle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.phi"><code class="docutils literal notranslate"><span class="pre">Beam.phi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.beam.Beam.theta"><code class="docutils literal notranslate"><span class="pre">Beam.theta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.detector.Detector"><code class="docutils literal notranslate"><span class="pre">Detector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.detector.Detector.__init__"><code class="docutils literal notranslate"><span class="pre">Detector.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.lens.Lens"><code class="docutils literal notranslate"><span class="pre">Lens</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.lens.Lens.__init__"><code class="docutils literal notranslate"><span class="pre">Lens.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.microscope.Microscope"><code class="docutils literal notranslate"><span class="pre">Microscope</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.__init__"><code class="docutils literal notranslate"><span class="pre">Microscope.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.beam"><code class="docutils literal notranslate"><span class="pre">Microscope.beam</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.detector"><code class="docutils literal notranslate"><span class="pre">Microscope.detector</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.lens"><code class="docutils literal notranslate"><span class="pre">Microscope.lens</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.model"><code class="docutils literal notranslate"><span class="pre">Microscope.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.microscope.Microscope.phase_plate"><code class="docutils literal notranslate"><span class="pre">Microscope.phase_plate</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.scan.Scan"><code class="docutils literal notranslate"><span class="pre">Scan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.__init__"><code class="docutils literal notranslate"><span class="pre">Scan.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.angles"><code class="docutils literal notranslate"><span class="pre">Scan.angles</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.axes"><code class="docutils literal notranslate"><span class="pre">Scan.axes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.beam_tilt_phi"><code class="docutils literal notranslate"><span class="pre">Scan.beam_tilt_phi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.beam_tilt_theta"><code class="docutils literal notranslate"><span class="pre">Scan.beam_tilt_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.defocus_offset"><code class="docutils literal notranslate"><span class="pre">Scan.defocus_offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.electrons_per_angstrom"><code class="docutils literal notranslate"><span class="pre">Scan.electrons_per_angstrom</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.euler_angles"><code class="docutils literal notranslate"><span class="pre">Scan.euler_angles</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.exposure_time"><code class="docutils literal notranslate"><span class="pre">Scan.exposure_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.fraction_number"><code class="docutils literal notranslate"><span class="pre">Scan.fraction_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.image_number"><code class="docutils literal notranslate"><span class="pre">Scan.image_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.orientation"><code class="docutils literal notranslate"><span class="pre">Scan.orientation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.position"><code class="docutils literal notranslate"><span class="pre">Scan.position</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.shift"><code class="docutils literal notranslate"><span class="pre">Scan.shift</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.scan.Scan.shift_delta"><code class="docutils literal notranslate"><span class="pre">Scan.shift_delta</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet.sample.Sample"><code class="docutils literal notranslate"><span class="pre">Sample</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.__init__"><code class="docutils literal notranslate"><span class="pre">Sample.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.add_atoms"><code class="docutils literal notranslate"><span class="pre">Sample.add_atoms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.add_molecule"><code class="docutils literal notranslate"><span class="pre">Sample.add_molecule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.atoms_dataset_name"><code class="docutils literal notranslate"><span class="pre">Sample.atoms_dataset_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.atoms_dataset_range"><code class="docutils literal notranslate"><span class="pre">Sample.atoms_dataset_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.atoms_dataset_range_3d"><code class="docutils literal notranslate"><span class="pre">Sample.atoms_dataset_range_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.bounding_box"><code class="docutils literal notranslate"><span class="pre">Sample.bounding_box</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.centre"><code class="docutils literal notranslate"><span class="pre">Sample.centre</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.close"><code class="docutils literal notranslate"><span class="pre">Sample.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.containing_box"><code class="docutils literal notranslate"><span class="pre">Sample.containing_box</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.del_atoms"><code class="docutils literal notranslate"><span class="pre">Sample.del_atoms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.dimensions"><code class="docutils literal notranslate"><span class="pre">Sample.dimensions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.get_atoms"><code class="docutils literal notranslate"><span class="pre">Sample.get_atoms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.get_atoms_in_fov"><code class="docutils literal notranslate"><span class="pre">Sample.get_atoms_in_fov()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.get_atoms_in_group"><code class="docutils literal notranslate"><span class="pre">Sample.get_atoms_in_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.get_atoms_in_range"><code class="docutils literal notranslate"><span class="pre">Sample.get_atoms_in_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.get_molecule"><code class="docutils literal notranslate"><span class="pre">Sample.get_molecule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.identifier"><code class="docutils literal notranslate"><span class="pre">Sample.identifier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.info"><code class="docutils literal notranslate"><span class="pre">Sample.info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.iter_atom_groups"><code class="docutils literal notranslate"><span class="pre">Sample.iter_atom_groups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.iter_atoms"><code class="docutils literal notranslate"><span class="pre">Sample.iter_atoms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.iter_molecules"><code class="docutils literal notranslate"><span class="pre">Sample.iter_molecules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.molecules"><code class="docutils literal notranslate"><span class="pre">Sample.molecules</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.number_of_atoms"><code class="docutils literal notranslate"><span class="pre">Sample.number_of_atoms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.number_of_molecular_models"><code class="docutils literal notranslate"><span class="pre">Sample.number_of_molecular_models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.number_of_molecules"><code class="docutils literal notranslate"><span class="pre">Sample.number_of_molecules</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.shape"><code class="docutils literal notranslate"><span class="pre">Sample.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.shape_box"><code class="docutils literal notranslate"><span class="pre">Sample.shape_box</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.sample.Sample.shape_radius"><code class="docutils literal notranslate"><span class="pre">Sample.shape_radius</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">parakeet</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Python API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="python-api">
+<h1>Python API<a class="headerlink" href="#python-api" title="Link to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is under developement</p>
+</div>
+<p>The functionality of the command line programs can be called from python as shown below.</p>
+<section id="image-io-functions">
+<h2>Image IO functions<a class="headerlink" href="#image-io-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.io.new">
+<span class="sig-prename descclassname"><span class="pre">parakeet.io.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float32'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.io.new" title="Link to this definition"></a></dt>
+<dd><p>Create a new file for writing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – The output filename</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – The output shape</p></li>
+<li><p><strong>pixel_size</strong> (<em>tuple</em>) – The pixel size</p></li>
+<li><p><strong>dtype</strong> (<em>object</em>) – The data type (only used with NexusWriter)</p></li>
+<li><p><strong>vmin</strong> (<em>int</em>) – The minimum value (only used in ImageWriter)</p></li>
+<li><p><strong>vmax</strong> (<em>int</em>) – The maximum value (only used in ImageWriter)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The file writer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.io.open">
+<span class="sig-prename descclassname"><span class="pre">parakeet.io.</span></span><span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.io.open" title="Link to this definition"></a></dt>
+<dd><p>Read the simulated data from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The output filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pdb-file-functions">
+<h2>PDB file functions<a class="headerlink" href="#pdb-file-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.data.get_pdb">
+<span class="sig-prename descclassname"><span class="pre">parakeet.data.</span></span><span class="sig-name descname"><span class="pre">get_pdb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.data.get_pdb" title="Link to this definition"></a></dt>
+<dd><p>Return the path to the data file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The pdb id</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The absolute filename</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="configuration-functions">
+<h2>Configuration functions<a class="headerlink" href="#configuration-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.config.new">
+<span class="sig-prename descclassname"><span class="pre">parakeet.config.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Config</span></span></span><a class="headerlink" href="#parakeet.config.new" title="Link to this definition"></a></dt>
+<dd><p>Generate a new config file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – The config filename</p></li>
+<li><p><strong>full</strong> – Full or basic configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="sample-functions">
+<h2>Sample functions<a class="headerlink" href="#sample-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.sample.new">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span><a class="headerlink" href="#parakeet.sample.new" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dd><p>Create an ice sample and save it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.sample.add_molecules">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">add_molecules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span><a class="headerlink" href="#parakeet.sample.add_molecules" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">add_molecules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">add_molecules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dd><p>Add molecules to the sample</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The input sample filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.sample.mill">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">mill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span><a class="headerlink" href="#parakeet.sample.mill" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">mill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">mill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dd><p>Mill to the shape of the sample</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The sample object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.sample.sputter">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">sputter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span><a class="headerlink" href="#parakeet.sample.sputter" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">sputter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">sputter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sputter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></span></dt>
+<dd><p>Sputter the sample</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="image-simulation-functions">
+<h2>Image simulation functions<a class="headerlink" href="#image-simulation-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.simulate.potential">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">potential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">potential_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nproc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.simulate.potential" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">potential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">potential_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the projected potential from the sample</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The input sample filename</p></li>
+<li><p><strong>potential_prefix</strong> – The input potential filename</p></li>
+<li><p><strong>device</strong> – The device to run on (cpu or gpu)</p></li>
+<li><p><strong>nproc</strong> – The number of processes</p></li>
+<li><p><strong>gpu_id</strong> – The list of gpu ids</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.simulate.exit_wave">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">exit_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nproc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.simulate.exit_wave" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">exit_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the exit wave from the sample</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+<li><p><strong>exit_wave_file</strong> – The exit wave filename</p></li>
+<li><p><strong>device</strong> – The device to run on (cpu or gpu)</p></li>
+<li><p><strong>nproc</strong> – The number of processes</p></li>
+<li><p><strong>gpu_id</strong> – The list of gpu ids</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.simulate.optics">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">optics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nproc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.simulate.optics" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">optics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the optics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>exit_wave_file</strong> – The input exit wave filename</p></li>
+<li><p><strong>optics_file</strong> – The output optics filename</p></li>
+<li><p><strong>device</strong> – The device to run on (cpu or gpu)</p></li>
+<li><p><strong>nproc</strong> – The number of processes</p></li>
+<li><p><strong>gpu_id</strong> – The list of gpu ids</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.simulate.image">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.simulate.image" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the image with noise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The config filename</p></li>
+<li><p><strong>optics_file</strong> – The optics image filename</p></li>
+<li><p><strong>image_file</strong> – The output image filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.simulate.ctf">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">ctf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.simulate.ctf" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.simulate.</span></span><span class="sig-name descname"><span class="pre">ctf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the ctf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The config filename</p></li>
+<li><p><strong>output_file</strong> – The output ctf filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="analysis-functions">
+<h2>Analysis functions<a class="headerlink" href="#analysis-functions" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.correct">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrected_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_defocus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.correct" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrected_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_defocus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Correct the images using 3D CTF correction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>image_file</strong> – The input image filename</p></li>
+<li><p><strong>corrected_file</strong> – The output CTF corrected filename</p></li>
+<li><p><strong>num_defocus</strong> – The number of defoci</p></li>
+<li><p><strong>device</strong> – The device to use (CPU or GPU)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.reconstruct">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.reconstruct" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Reconstruct the volume</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>image_file</strong> – The input image filename</p></li>
+<li><p><strong>rec_file</strong> – The output CTF corrected reconstruction filename</p></li>
+<li><p><strong>device</strong> – The device to use (CPU or GPU)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.average_particles">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">average_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half1_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half2_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.average_particles" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">average_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_1_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_2_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Perform sub tomogram averaging</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+<li><p><strong>rec_file</strong> – The reconstruction filename</p></li>
+<li><p><strong>half1_file</strong> – The particle average filename for half 1</p></li>
+<li><p><strong>half2_file</strong> – The particle average filename for half 2</p></li>
+<li><p><strong>particle_size</strong> – The particle size (px)</p></li>
+<li><p><strong>num_particles</strong> – The number of particles to average</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.average_all_particles">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">average_all_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.average_all_particles" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">average_all_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Perform sub tomogram averaging</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+<li><p><strong>rec_file</strong> – The reconstruction filename</p></li>
+<li><p><strong>average_file</strong> – The particle average filename</p></li>
+<li><p><strong>particle_size</strong> – The particle size (px)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.extract">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particles_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.extract" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#parakeet.sample.Sample" title="parakeet.sample.Sample"><span class="pre">Sample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extract_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particle_sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Perform sub tomogram extraction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The input config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+<li><p><strong>rec_file</strong> – The reconstruction filename</p></li>
+<li><p><strong>particles_file</strong> – The file to extract the particles to</p></li>
+<li><p><strong>particle_size</strong> – The particle size (px)</p></li>
+<li><p><strong>particle_sampling</strong> – The particle sampling (factor of 2)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.analyse.refine">
+<span class="sig-prename descclassname"><span class="pre">parakeet.analyse.</span></span><span class="sig-name descname"><span class="pre">refine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rec_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.analyse.refine" title="Link to this definition"></a></dt>
+<dd><p>Refine the molecule against the map</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parakeet.run">
+<span class="sig-prename descclassname"><span class="pre">parakeet.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nproc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.run" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">parakeet.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_wave_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optics_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Simulate the TEM image from the sample</p>
+<p>If steps is None then all steps are run, otherwise steps is
+a list which contains one or more of the following: all, sample, simulate,
+sample.new, sample.add_molecules, simulate.exit_wave, simulate.optics and
+simulate.image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> – The config filename</p></li>
+<li><p><strong>sample_file</strong> – The sample filename</p></li>
+<li><p><strong>exit_wave_file</strong> – The exit wave filename</p></li>
+<li><p><strong>optics_file</strong> – The optics filename</p></li>
+<li><p><strong>image_file</strong> – The image filename</p></li>
+<li><p><strong>device</strong> – The device to run on (cpu or gpu)</p></li>
+<li><p><strong>nproc</strong> – The number of processes</p></li>
+<li><p><strong>gpu_id</strong> – The list of gpu ids</p></li>
+<li><p><strong>steps</strong> – Choose the steps to run</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="data-models">
+<h2>Data models<a class="headerlink" href="#data-models" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.beam.Beam">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.beam.</span></span><span class="sig-name descname"><span class="pre">Beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acceleration_voltage_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">illumination_semiangle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrons_per_angstrom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incident_wave</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.beam.Beam" title="Link to this definition"></a></dt>
+<dd><p>A class to encapsulate a beam</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acceleration_voltage_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">illumination_semiangle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrons_per_angstrom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incident_wave</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.beam.Beam.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the beam</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>energy</strong> – The beam energy (keV)</p></li>
+<li><p><strong>energy_spread</strong> – dE / E where dE is the 1/e half width</p></li>
+<li><p><strong>acceleration_voltage_spread</strong> – dV / V where dV is the 1 / e half width</p></li>
+<li><p><strong>illumination_semiangle</strong> – The illumination semiangle spread (mrad)</p></li>
+<li><p><strong>electrons_per_angstrom</strong> – The number of electrons per angstrom</p></li>
+<li><p><strong>theta</strong> – The beam tilt theta</p></li>
+<li><p><strong>phi</strong> – The beam tilt phi</p></li>
+<li><p><strong>incident_wave</strong> – The wave function</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.acceleration_voltage_spread">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">acceleration_voltage_spread</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.acceleration_voltage_spread" title="Link to this definition"></a></dt>
+<dd><p>dV / V where dV is the 1 / e half width</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.electrons_per_angstrom">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">electrons_per_angstrom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.electrons_per_angstrom" title="Link to this definition"></a></dt>
+<dd><p>The number of electrons per angstrom</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.energy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.energy" title="Link to this definition"></a></dt>
+<dd><p>The beam energy (keV)</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.energy_spread">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy_spread</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.energy_spread" title="Link to this definition"></a></dt>
+<dd><p>dE / E where dE is the 1/e half width</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.illumination_semiangle">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">illumination_semiangle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.illumination_semiangle" title="Link to this definition"></a></dt>
+<dd><p>The illumination semiangle (mrad)</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.phi">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.phi" title="Link to this definition"></a></dt>
+<dd><p>The beam tilt phi</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.beam.Beam.theta">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#parakeet.beam.Beam.theta" title="Link to this definition"></a></dt>
+<dd><p>The beam tilt theta</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.detector.Detector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dqe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.detector.Detector" title="Link to this definition"></a></dt>
+<dd><p>A class to encapsulate a detector</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.detector.Detector.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dqe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.detector.Detector.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the detector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nx</strong> – The size of the detector in X</p></li>
+<li><p><strong>ny</strong> – The size of the detector in Y</p></li>
+<li><p><strong>pixel_size</strong> – The effective size of the pixels in A</p></li>
+<li><p><strong>origin</strong> – The detector origin (A, A)</p></li>
+<li><p><strong>dqe</strong> – Use the detector DQE</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.lens.Lens">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.lens.</span></span><span class="sig-name descname"><span class="pre">Lens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_10</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_12</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_12</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_21</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_21</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_23</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_23</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_30</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.04</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_32</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_32</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_34</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_34</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_41</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_41</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_43</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_43</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_45</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_45</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_50</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_52</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_52</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_54</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_54</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_56</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_56</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_aper_ang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_aper_ang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.lens.Lens" title="Link to this definition"></a></dt>
+<dd><p>A class to encapsulate a lens</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.lens.Lens.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_10</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_12</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_12</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_21</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_21</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_23</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_23</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_30</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.04</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_32</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_32</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_34</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_34</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_41</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_41</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_43</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_43</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_45</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_45</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_50</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_52</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_52</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_54</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_54</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_56</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_56</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_aper_ang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer_aper_ang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.lens.Lens.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the lens</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m</strong> – The vortex momentum</p></li>
+<li><p><strong>c_10</strong> – The defocus (A)</p></li>
+<li><p><strong>c_12</strong> – The 2-fold astigmatism (A)</p></li>
+<li><p><strong>phi_12</strong> – The azimuthal angle of 2-fold astigmatism (degrees)</p></li>
+<li><p><strong>c_21</strong> – The axial coma (A)</p></li>
+<li><p><strong>phi_21</strong> – The azimuthal angle of axial coma (degrees)</p></li>
+<li><p><strong>c_23</strong> – The 3-fold astigmatism (A)</p></li>
+<li><p><strong>phi_23</strong> – The azimuthal angle of 3-fold astigmatism (degrees)</p></li>
+<li><p><strong>c_30</strong> – The 3rd order spherical aberration (mm)</p></li>
+<li><p><strong>c_32</strong> – The axial star aberration (A)</p></li>
+<li><p><strong>phi_32</strong> – The azimuthal angle of axial star aberration (degrees)</p></li>
+<li><p><strong>c_34</strong> – The 4-fold astigmatism (A)</p></li>
+<li><p><strong>phi_34</strong> – The azimuthal angle of 4-fold astigmatism (degrees)</p></li>
+<li><p><strong>c_41</strong> – The 4th order axial coma (A)</p></li>
+<li><p><strong>phi_41</strong> – The azimuthal angle of 4th order axial coma (degrees)</p></li>
+<li><p><strong>c_43</strong> – The 3-lobe aberration (A)</p></li>
+<li><p><strong>phi_43</strong> – The azimuthal angle of 3-lobe aberration (degrees)</p></li>
+<li><p><strong>c_45</strong> – The 5-fold astigmatism (A)</p></li>
+<li><p><strong>phi_45</strong> – The azimuthal angle of 5-fold astigmatism (degrees)</p></li>
+<li><p><strong>c_50</strong> – The 5th order spherical aberration (mm)</p></li>
+<li><p><strong>c_52</strong> – The 5th order axial star aberration (A)</p></li>
+<li><p><strong>phi_52</strong> – The azimuthal angle of 5th order axial star aberration (degrees)</p></li>
+<li><p><strong>c_54</strong> – The 5th order rosette aberration (A)</p></li>
+<li><p><strong>phi_54</strong> – The azimuthal angle of 5th order rosette aberration (degrees)</p></li>
+<li><p><strong>c_56</strong> – The 6-fold astigmatism (A)</p></li>
+<li><p><strong>phi_56</strong> – The azimuthal angle of 6-fold astigmatism (degrees)</p></li>
+<li><p><strong>inner_aper_ang</strong> – The inner aperture (mrad)</p></li>
+<li><p><strong>outer_aper_ang</strong> – The outer aperture (mrad)</p></li>
+<li><p><strong>c_c</strong> – The chromatic abberation (mm)</p></li>
+<li><p><strong>current_spread</strong> – dI / I where dI is the 1/e half width</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.microscope.</span></span><span class="sig-name descname"><span class="pre">Microscope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model:</span> <span class="pre">~parakeet.config.MicroscopeModel</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam:</span> <span class="pre">~parakeet.beam.Beam</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.beam.Beam</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lens:</span> <span class="pre">~parakeet.lens.Lens</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.lens.Lens</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector:</span> <span class="pre">~parakeet.detector.Detector</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.detector.Detector</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_plate:</span> <span class="pre">~parakeet.microscope.PhasePlate</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.microscope.PhasePlate</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_aperture_cutoff_freq=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.microscope.Microscope" title="Link to this definition"></a></dt>
+<dd><p>A class to encapsulate a microscope</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model:</span> <span class="pre">~parakeet.config.MicroscopeModel</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam:</span> <span class="pre">~parakeet.beam.Beam</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.beam.Beam</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lens:</span> <span class="pre">~parakeet.lens.Lens</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.lens.Lens</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector:</span> <span class="pre">~parakeet.detector.Detector</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.detector.Detector</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_plate:</span> <span class="pre">~parakeet.microscope.PhasePlate</span> <span class="pre">=</span> <span class="pre">&lt;parakeet.microscope.PhasePlate</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_aperture_cutoff_freq=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.microscope.Microscope.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the detector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The microscope model name</p></li>
+<li><p><strong>beam</strong> – The beam object</p></li>
+<li><p><strong>lens</strong> – The lens object</p></li>
+<li><p><strong>detector</strong> – The detector object</p></li>
+<li><p><strong>phase_plate</strong> – The phase plate</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.beam">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">beam</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#parakeet.beam.Beam" title="parakeet.beam.Beam"><span class="pre">Beam</span></a></em><a class="headerlink" href="#parakeet.microscope.Microscope.beam" title="Link to this definition"></a></dt>
+<dd><p>The beam model</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.detector">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">detector</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#parakeet.detector.Detector" title="parakeet.detector.Detector"><span class="pre">Detector</span></a></em><a class="headerlink" href="#parakeet.microscope.Microscope.detector" title="Link to this definition"></a></dt>
+<dd><p>The detector model</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.lens">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lens</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#parakeet.lens.Lens" title="parakeet.lens.Lens"><span class="pre">Lens</span></a></em><a class="headerlink" href="#parakeet.microscope.Microscope.lens" title="Link to this definition"></a></dt>
+<dd><p>The lens model</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.model">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MicroscopeModel</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#parakeet.microscope.Microscope.model" title="Link to this definition"></a></dt>
+<dd><p>The microscope model type</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.microscope.Microscope.phase_plate">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phase_plate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PhasePlate</span></em><a class="headerlink" href="#parakeet.microscope.Microscope.phase_plate" title="Link to this definition"></a></dt>
+<dd><p>Do we have a phase plate</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.scan.Scan">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.scan.</span></span><span class="sig-name descname"><span class="pre">Scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_tilt_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_tilt_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrons_per_angstrom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defocus_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_uniform_angular_scan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.scan.Scan" title="Link to this definition"></a></dt>
+<dd><p>A scan of angles around a single rotation axis.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_tilt_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_tilt_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrons_per_angstrom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defocus_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_uniform_angular_scan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.scan.Scan.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the scan</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.angles">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">angles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.angles" title="Link to this definition"></a></dt>
+<dd><p>Get the angles</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.axes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">axes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.axes" title="Link to this definition"></a></dt>
+<dd><p>Get the axes</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.beam_tilt_phi">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">beam_tilt_phi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.beam_tilt_phi" title="Link to this definition"></a></dt>
+<dd><p>Get the beam tilt phi angles</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.beam_tilt_theta">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">beam_tilt_theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.beam_tilt_theta" title="Link to this definition"></a></dt>
+<dd><p>Get the beam tilt theta angles</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.defocus_offset">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">defocus_offset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.defocus_offset" title="Link to this definition"></a></dt>
+<dd><p>Get the defocus offset</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.electrons_per_angstrom">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">electrons_per_angstrom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.electrons_per_angstrom" title="Link to this definition"></a></dt>
+<dd><p>Get the dose</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.euler_angles">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">euler_angles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.euler_angles" title="Link to this definition"></a></dt>
+<dd><p>Euler angle representation of the orientations.</p>
+<p>The Euler angles are intrinsic, right handed rotations around ZYZ.
+This matches the convention used by XMIPP/RELION.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.exposure_time">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exposure_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.exposure_time" title="Link to this definition"></a></dt>
+<dd><p>Get the exposure times</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.fraction_number">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fraction_number</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.fraction_number" title="Link to this definition"></a></dt>
+<dd><p>Get the movie fraction number</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.image_number">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_number</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.image_number" title="Link to this definition"></a></dt>
+<dd><p>Get the image number</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.orientation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">orientation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.orientation" title="Link to this definition"></a></dt>
+<dd><p>Get the orientations</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">position</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.position" title="Link to this definition"></a></dt>
+<dd><p>Get the positions</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.shift">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shift</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.shift" title="Link to this definition"></a></dt>
+<dd><p>Get the shifts</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.scan.Scan.shift_delta">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shift_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#parakeet.scan.Scan.shift_delta" title="Link to this definition"></a></dt>
+<dd><p>Get the shift deltas (drift)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parakeet.sample.Sample">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parakeet.sample.</span></span><span class="sig-name descname"><span class="pre">Sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample" title="Link to this definition"></a></dt>
+<dd><p>A class to hold the sample data</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialise the class with a filename</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – The filename</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – The open mode</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.add_atoms">
+<span class="sig-name descname"><span class="pre">add_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.add_atoms" title="Link to this definition"></a></dt>
+<dd><p>Add some atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>atoms</strong> (<em>object</em>) – The atom data to add to the sample</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.add_molecule">
+<span class="sig-name descname"><span class="pre">add_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.add_molecule" title="Link to this definition"></a></dt>
+<dd><p>Add a molecule.</p>
+<p>This adds the atoms of each copy of the molecule but also stores the
+molecule itself with the positions and orientations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> (<em>object</em>) – The atom data</p></li>
+<li><p><strong>positions</strong> (<em>list</em>) – A list of positions</p></li>
+<li><p><strong>orientations</strong> (<em>list</em>) – A list of orientations</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The name of the molecule</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.atoms_dataset_name">
+<span class="sig-name descname"><span class="pre">atoms_dataset_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.atoms_dataset_name" title="Link to this definition"></a></dt>
+<dd><p>Get the atom dataset name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.atoms_dataset_range">
+<span class="sig-name descname"><span class="pre">atoms_dataset_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.atoms_dataset_range" title="Link to this definition"></a></dt>
+<dd><p>Get the atom dataset range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>array</em>) – The minimum coord</p></li>
+<li><p><strong>x1</strong> (<em>array</em>) – The maximum coord</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple</em> – The coordinates of the sub ranges</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.atoms_dataset_range_3d">
+<span class="sig-name descname"><span class="pre">atoms_dataset_range_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.atoms_dataset_range_3d" title="Link to this definition"></a></dt>
+<dd><p>Get the atom dataset range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>array</em>) – The minimum coord</p></li>
+<li><p><strong>x1</strong> (<em>array</em>) – The maximum coord</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple</em> – The coordinates of the sub ranges</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.bounding_box">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bounding_box</span></span><a class="headerlink" href="#parakeet.sample.Sample.bounding_box" title="Link to this definition"></a></dt>
+<dd><p>The bounding box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>lower, upper - the bounding box coordinates</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.centre">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">centre</span></span><a class="headerlink" href="#parakeet.sample.Sample.centre" title="Link to this definition"></a></dt>
+<dd><p>The centre of the shape</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.close" title="Link to this definition"></a></dt>
+<dd><p>Close the HDF5 file</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.containing_box">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">containing_box</span></span><a class="headerlink" href="#parakeet.sample.Sample.containing_box" title="Link to this definition"></a></dt>
+<dd><p>The box containing the sample</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.del_atoms">
+<span class="sig-name descname"><span class="pre">del_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deleter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.del_atoms" title="Link to this definition"></a></dt>
+<dd><p>Delete atoms in the given range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>deleter</strong> (<em>func</em>) – Check atoms and return only those we want to keep</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.dimensions">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dimensions</span></span><a class="headerlink" href="#parakeet.sample.Sample.dimensions" title="Link to this definition"></a></dt>
+<dd><p>The dimensions of the bounding box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The dimensions</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.get_atoms">
+<span class="sig-name descname"><span class="pre">get_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.get_atoms" title="Link to this definition"></a></dt>
+<dd><p>Get all the atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The atom data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.get_atoms_in_fov">
+<span class="sig-name descname"><span class="pre">get_atoms_in_fov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.get_atoms_in_fov" title="Link to this definition"></a></dt>
+<dd><p>Get the subset of atoms within the field of view</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>float</em>) – The start of the z range</p></li>
+<li><p><strong>x1</strong> (<em>float</em>) – The end of the z range</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The atom data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.get_atoms_in_group">
+<span class="sig-name descname"><span class="pre">get_atoms_in_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.get_atoms_in_group" title="Link to this definition"></a></dt>
+<dd><p>Get the atoms in the group</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.get_atoms_in_range">
+<span class="sig-name descname"><span class="pre">get_atoms_in_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.get_atoms_in_range" title="Link to this definition"></a></dt>
+<dd><p>Get the subset of atoms within the field of view</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x0</strong> (<em>float</em>) – The start of the z range</p></li>
+<li><p><strong>x1</strong> (<em>float</em>) – The end of the z range</p></li>
+<li><p><strong>filter</strong> (<em>func</em>) – A function to filter the atoms</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The atom data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.get_molecule">
+<span class="sig-name descname"><span class="pre">get_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.get_molecule" title="Link to this definition"></a></dt>
+<dd><p>Get the molcule data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The molecule name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The molecule data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple (atoms, positions, orientations)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.identifier">
+<span class="sig-name descname"><span class="pre">identifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.identifier" title="Link to this definition"></a></dt>
+<dd><p>Get an identifier for the object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.info" title="Link to this definition"></a></dt>
+<dd><p>Get some sample info</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Some sample info</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.iter_atom_groups">
+<span class="sig-name descname"><span class="pre">iter_atom_groups</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.iter_atom_groups" title="Link to this definition"></a></dt>
+<dd><p>Iterate over the atom groups</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>object</em> – The atom group</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.iter_atoms">
+<span class="sig-name descname"><span class="pre">iter_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.iter_atoms" title="Link to this definition"></a></dt>
+<dd><p>Iterate over the atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>object</em> – The atom data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.iter_molecules">
+<span class="sig-name descname"><span class="pre">iter_molecules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parakeet.sample.Sample.iter_molecules" title="Link to this definition"></a></dt>
+<dd><p>Iterate over the molecules</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>tuple (name, data)</em> – The molecule data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.molecules">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">molecules</span></span><a class="headerlink" href="#parakeet.sample.Sample.molecules" title="Link to this definition"></a></dt>
+<dd><p>The list of molecule names</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The list of molecule names</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.number_of_atoms">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_atoms</span></span><a class="headerlink" href="#parakeet.sample.Sample.number_of_atoms" title="Link to this definition"></a></dt>
+<dd><p>Returns:
+int: The number of atoms</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.number_of_molecular_models">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_molecular_models</span></span><a class="headerlink" href="#parakeet.sample.Sample.number_of_molecular_models" title="Link to this definition"></a></dt>
+<dd><p>The number of molecular models</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of molecular models</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.number_of_molecules">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_molecules</span></span><a class="headerlink" href="#parakeet.sample.Sample.number_of_molecules" title="Link to this definition"></a></dt>
+<dd><p>The number of molecules</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of molcules</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#parakeet.sample.Sample.shape" title="Link to this definition"></a></dt>
+<dd><p>The ideal shape of the sample</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.shape_box">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape_box</span></span><a class="headerlink" href="#parakeet.sample.Sample.shape_box" title="Link to this definition"></a></dt>
+<dd><p>Return the shape box</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="parakeet.sample.Sample.shape_radius">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape_radius</span></span><a class="headerlink" href="#parakeet.sample.Sample.shape_radius" title="Link to this definition"></a></dt>
+<dd><p>Return a radius</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Command line programs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, James Parkhurst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

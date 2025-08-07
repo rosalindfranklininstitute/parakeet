@@ -1,0 +1,1790 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command line programs &mdash; parakeet 0.1.dev1+g8c368a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=381b7a04"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Python API" href="api.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            parakeet
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command line programs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#config-file-manipulation-programs">Config file manipulation programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-config-new">parakeet.config.new</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.config._new-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-config-show">parakeet.config.show</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.config._show-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-config-edit">parakeet.config.edit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.config._edit-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sample-manipulation-programs">Sample manipulation programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-sample-new">parakeet.sample.new</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.sample._new-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-sample-add-molecules">parakeet.sample.add_molecules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.sample._add_molecules-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-sample-mill">parakeet.sample.mill</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.sample._mill-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-sample-sputter">parakeet.sample.sputter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.sample._sputter-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-sample-show">parakeet.sample.show</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.sample._show-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#image-simulation-programs">Image Simulation programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-potential">parakeet.simulate.potential</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._potential-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-exit-wave">parakeet.simulate.exit_wave</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._exit_wave-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-optics">parakeet.simulate.optics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._optics-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-ctf">parakeet.simulate.ctf</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._ctf-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-image">parakeet.simulate.image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._image-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-simulate-simple">parakeet.simulate.simple</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._simple-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.simulate._simple-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-programs">Analysis programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-reconstruct">parakeet.analyse.reconstruct</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._reconstruct-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-correct">parakeet.analyse.correct</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._correct-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-average-particles">parakeet.analyse.average_particles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._average_particles-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-average-all-particles">parakeet.analyse.average_all_particles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._average_all_particles-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-extract">parakeet.analyse.extract</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._extract-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-analyse-refine">parakeet.analyse.refine</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.analyse._refine-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pdb-file-programs">PDB file programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-pdb-read">parakeet.pdb.read</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.pdb._read-get_parser-positional-arguments">Positional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-pdb-get">parakeet.pdb.get</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.pdb._get-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line.pdb._get-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#other-programs">Other programs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-export">parakeet.export</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line._export-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line._export-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet-run">parakeet.run</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line._run-get_parser-named-arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#parakeet">parakeet</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parakeet.command_line._main-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Sub-commands">Sub-commands</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">parakeet</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Command line programs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="command-line-programs">
+<h1>Command line programs<a class="headerlink" href="#command-line-programs" title="Link to this heading"></a></h1>
+<section id="config-file-manipulation-programs">
+<h2>Config file manipulation programs<a class="headerlink" href="#config-file-manipulation-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-config-new">
+<h3>parakeet.config.new<a class="headerlink" href="#parakeet-config-new" title="Link to this heading"></a></h3>
+<p><p>Generate a new config file</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FULL</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.config._new-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.config._new-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'config.yaml'</span></code></p>
+</dd>
+<dt><kbd>-f, --full</kbd></dt>
+<dd><p>Generate a file with the full configuration specification</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-config-show">
+<h3>parakeet.config.show<a class="headerlink" href="#parakeet-config-show" title="Link to this heading"></a></h3>
+<p><p>Show the configuration</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">show</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SCHEMA</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.config._show-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.config._show-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --schema</kbd></dt>
+<dd><p>Show the config schema.
+To show full scheme type ‘-s .’.
+To show the schema for a specific section type e.g. ‘-s /definitions/Simulation’</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-config-edit">
+<h3>parakeet.config.edit<a class="headerlink" href="#parakeet-config-edit" title="Link to this heading"></a></h3>
+<p><p>Edit the configuration</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">edit</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">i</span> <span class="n">INPUT</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span> <span class="o">-</span><span class="n">s</span> <span class="n">CONFIG</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.config._edit-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.config._edit-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-i, --input</kbd></dt>
+<dd><p>The input yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The output yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s</kbd></dt>
+<dd><p>The configuration string</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">''</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="sample-manipulation-programs">
+<h2>Sample manipulation programs<a class="headerlink" href="#sample-manipulation-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-sample-new">
+<h3>parakeet.sample.new<a class="headerlink" href="#parakeet-sample-new" title="Link to this heading"></a></h3>
+<p><p>Create a new sample model</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.sample._new-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.sample._new-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-sample-add-molecules">
+<h3>parakeet.sample.add_molecules<a class="headerlink" href="#parakeet-sample-add-molecules" title="Link to this heading"></a></h3>
+<p><p>Add molecules to the sample model</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">add_molecules</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.sample._add_molecules-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.sample._add_molecules-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-sample-mill">
+<h3>parakeet.sample.mill<a class="headerlink" href="#parakeet-sample-mill" title="Link to this heading"></a></h3>
+<p><p>Mill the sample</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">mill</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.sample._mill-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.sample._mill-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-sample-sputter">
+<h3>parakeet.sample.sputter<a class="headerlink" href="#parakeet-sample-sputter" title="Link to this heading"></a></h3>
+<p><p>Sputter the sample</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">sputter</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.sample._sputter-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.sample._sputter-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-sample-show">
+<h3>parakeet.sample.show<a class="headerlink" href="#parakeet-sample-show" title="Link to this heading"></a></h3>
+<p><p>Print details about the sample model</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">show</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.sample._show-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.sample._show-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="image-simulation-programs">
+<h2>Image Simulation programs<a class="headerlink" href="#image-simulation-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-simulate-potential">
+<h3>parakeet.simulate.potential<a class="headerlink" href="#parakeet-simulate-potential" title="Link to this heading"></a></h3>
+<p><p>Simulate the projected potential from the sample</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">potential</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">POTENTIAL</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._potential-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._potential-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-p, --potential</kbd></dt>
+<dd><p>The prefix for the filename for the potential</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'potential'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-simulate-exit-wave">
+<h3>parakeet.simulate.exit_wave<a class="headerlink" href="#parakeet-simulate-exit-wave" title="Link to this heading"></a></h3>
+<p><p>Simulate the exit wave from the sample</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">exit_wave</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._exit_wave-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._exit_wave-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-simulate-optics">
+<h3>parakeet.simulate.optics<a class="headerlink" href="#parakeet-simulate-optics" title="Link to this heading"></a></h3>
+<p><p>Simulate the optics and infinite dose image</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">optics</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._optics-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._optics-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-simulate-ctf">
+<h3>parakeet.simulate.ctf<a class="headerlink" href="#parakeet-simulate-ctf" title="Link to this heading"></a></h3>
+<p><p>Simulate the ctf</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">ctf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._ctf-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._ctf-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o</kbd></dt>
+<dd><p>The filename for the output</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'ctf.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-simulate-image">
+<h3>parakeet.simulate.image<a class="headerlink" href="#parakeet-simulate-image" title="Link to this heading"></a></h3>
+<p><p>Simulate the noisy detector image</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">image</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._image-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._image-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-simulate-simple">
+<h3>parakeet.simulate.simple<a class="headerlink" href="#parakeet-simulate-simple" title="Link to this heading"></a></h3>
+<p><p>Simulate the whole process</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">simple</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="n">atoms</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.simulate._simple-get_parser-positional-arguments">
+<h4>Positional Arguments<a class="headerlink" href="#parakeet.command_line.simulate._simple-get_parser-positional-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>atoms</kbd></dt>
+<dd><p>The filename for the input atoms</p>
+</dd>
+</dl>
+</section>
+<section id="parakeet.command_line.simulate._simple-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.simulate._simple-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename for the output</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'output.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="analysis-programs">
+<h2>Analysis programs<a class="headerlink" href="#analysis-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-analyse-reconstruct">
+<h3>parakeet.analyse.reconstruct<a class="headerlink" href="#parakeet-analyse-reconstruct" title="Link to this heading"></a></h3>
+<p><p>Reconstruct the volume</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">reconstruct</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span>
+                                    <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._reconstruct-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._reconstruct-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-analyse-correct">
+<h3>parakeet.analyse.correct<a class="headerlink" href="#parakeet-analyse-correct" title="Link to this heading"></a></h3>
+<p><p>3D CTF correction of the images</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">correct</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cr</span> <span class="n">CORRECTED</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">ndf</span> <span class="n">NUM_DEFOCUS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._correct-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._correct-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-cr, --corrected</kbd></dt>
+<dd><p>The filename for the corrected image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'corrected_image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-ndf, --num-defocus</kbd></dt>
+<dd><p>Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-analyse-average-particles">
+<h3>parakeet.analyse.average_particles<a class="headerlink" href="#parakeet-analyse-average-particles" title="Link to this heading"></a></h3>
+<p><p>Perform sub tomogram averaging</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">average_particles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+                                          <span class="p">[</span><span class="o">-</span><span class="n">h1</span> <span class="n">HALF1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h2</span> <span class="n">HALF2</span><span class="p">]</span>
+                                          <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                                          <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NUM_PARTICLES</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._average_particles-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._average_particles-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-h1, --half1</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half1.mrc'</span></code></p>
+</dd>
+<dt><kbd>-h2, --half2</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half2.mrc'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-n, --num_particles</kbd></dt>
+<dd><p>The number of particles to use</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-analyse-average-all-particles">
+<h3>parakeet.analyse.average_all_particles<a class="headerlink" href="#parakeet-analyse-average-all-particles" title="Link to this heading"></a></h3>
+<p><p>Perform sub tomogram averaging</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">average_all_particles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+                                              <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">avm</span> <span class="n">AVERAGE</span><span class="p">]</span>
+                                              <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                                              <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NUM_PARTICLES</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._average_all_particles-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._average_all_particles-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-avm, --average_map</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'average_map.mrc'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-n, --num_particles</kbd></dt>
+<dd><p>The number of particles to use</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-analyse-extract">
+<h3>parakeet.analyse.extract<a class="headerlink" href="#parakeet-analyse-extract" title="Link to this heading"></a></h3>
+<p><p>Perform sub tomogram extraction</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">extract</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">pm</span> <span class="n">PARTICLES</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">psm</span> <span class="n">PARTICLE_SAMPLING</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._extract-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._extract-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-pm, --particle_map</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'particle_map.h5'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-psm, --particle_sampling</kbd></dt>
+<dd><p>The sampling of the particle volume (factor of 2)</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-analyse-refine">
+<h3>parakeet.analyse.refine<a class="headerlink" href="#parakeet-analyse-refine" title="Link to this heading"></a></h3>
+<p><p>Refine map and model</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">analyse</span><span class="o">.</span><span class="n">refine</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.analyse._refine-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.analyse._refine-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half1.mrc'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="pdb-file-programs">
+<h2>PDB file programs<a class="headerlink" href="#pdb-file-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-pdb-read">
+<h3>parakeet.pdb.read<a class="headerlink" href="#parakeet-pdb-read" title="Link to this heading"></a></h3>
+<p><p>Read a PDB file</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">pdb</span><span class="o">.</span><span class="n">read</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">filename</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.pdb._read-get_parser-positional-arguments">
+<h4>Positional Arguments<a class="headerlink" href="#parakeet.command_line.pdb._read-get_parser-positional-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>filename</kbd></dt>
+<dd><p>The path to the PDB file</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-pdb-get">
+<h3>parakeet.pdb.get<a class="headerlink" href="#parakeet-pdb-get" title="Link to this heading"></a></h3>
+<p><p>Get a PDB file</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">pdb</span><span class="o">.</span><span class="n">get</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIRECTORY</span><span class="p">]</span> <span class="nb">id</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line.pdb._get-get_parser-positional-arguments">
+<h4>Positional Arguments<a class="headerlink" href="#parakeet.command_line.pdb._get-get_parser-positional-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>id</kbd></dt>
+<dd><p>The PDB ID</p>
+</dd>
+</dl>
+</section>
+<section id="parakeet.command_line.pdb._get-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line.pdb._get-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-d, --directory</kbd></dt>
+<dd><p>The directory to save to</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'.'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="other-programs">
+<h2>Other programs<a class="headerlink" href="#other-programs" title="Link to this heading"></a></h2>
+<section id="parakeet-export">
+<h3>parakeet.export<a class="headerlink" href="#parakeet-export" title="Link to this heading"></a></h3>
+<p><p>Export images to a different format</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">export</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span> <span class="p">[</span><span class="o">--</span><span class="n">rot90</span> <span class="n">ROT90</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">rotation_range</span> <span class="n">ROTATION_RANGE</span> <span class="o">|</span> <span class="o">--</span><span class="n">select_images</span> <span class="n">SELECT_IMAGES</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">roi</span> <span class="n">ROI</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">complex_mode</span> <span class="p">{</span><span class="nb">complex</span><span class="p">,</span><span class="n">real</span><span class="p">,</span><span class="n">imaginary</span><span class="p">,</span><span class="n">amplitude</span><span class="p">,</span><span class="n">phase</span><span class="p">,</span><span class="n">phase_unwrap</span><span class="p">,</span><span class="n">square</span><span class="p">,</span><span class="n">imaginary_square</span><span class="p">}]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">interlace</span> <span class="n">INTERLACE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">rebin</span> <span class="n">REBIN</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">filter_resolution</span> <span class="n">FILTER_RESOLUTION</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">filter_shape</span> <span class="p">{</span><span class="n">square</span><span class="p">,</span><span class="n">gaussian</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">vmin</span> <span class="n">VMIN</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">vmax</span> <span class="n">VMAX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">sort</span> <span class="p">{</span><span class="n">angle</span><span class="p">}]</span>
+                       <span class="n">filename</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line._export-get_parser-positional-arguments">
+<h4>Positional Arguments<a class="headerlink" href="#parakeet.command_line._export-get_parser-positional-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>filename</kbd></dt>
+<dd><p>The input filename</p>
+</dd>
+</dl>
+</section>
+<section id="parakeet.command_line._export-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line._export-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The output filename</p>
+</dd>
+<dt><kbd>--rot90</kbd></dt>
+<dd><p>Rotate the image 90deg counter clockwise</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--rotation_range</kbd></dt>
+<dd><p>Select a rotation range (deg).</p>
+<p>Multiple rotation ranges can be specified as:
+–rotation_range=start1,stop1;start2,stop2</p>
+</dd>
+<dt><kbd>--select_images</kbd></dt>
+<dd><p>Select a range of images (start,stop,step)</p>
+</dd>
+<dt><kbd>--roi</kbd></dt>
+<dd><p>Select a region of interest (–roi=x0,y0,x1,y1)</p>
+</dd>
+<dt><kbd>--complex_mode</kbd></dt>
+<dd><p>Possible choices: complex, real, imaginary, amplitude, phase, phase_unwrap, square, imaginary_square</p>
+<p>How to treat complex numbers</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'complex'</span></code></p>
+</dd>
+<dt><kbd>--interlace</kbd></dt>
+<dd><p>Interlace the scan. If the value &lt;= 1 then the images are kept in the same order, otherwise, the images are reordered by skipping images. For example, if –interlace=2 is set then the images will be written out as [1, 3, 5, … , 2, 4, 6, …]</p>
+</dd>
+<dt><kbd>--rebin</kbd></dt>
+<dd><p>The rebinned factor. The shape of the output images will be original_shape / rebin</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--filter_resolution</kbd></dt>
+<dd><p>The resolution of the filter (A)</p>
+</dd>
+<dt><kbd>--filter_shape</kbd></dt>
+<dd><p>Possible choices: square, gaussian</p>
+<p>The shape of the filter</p>
+</dd>
+<dt><kbd>--vmin</kbd></dt>
+<dd><p>The minimum pixel value when exporting to an image</p>
+</dd>
+<dt><kbd>--vmax</kbd></dt>
+<dd><p>The maximum pixel value when exporting to an image</p>
+</dd>
+<dt><kbd>--sort</kbd></dt>
+<dd><p>Possible choices: angle</p>
+<p>Sort the images</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet-run">
+<h3>parakeet.run<a class="headerlink" href="#parakeet-run" title="Link to this heading"></a></h3>
+<p><p>Run full simulation experiment</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span><span class="o">.</span><span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">steps</span> <span class="p">{</span><span class="nb">all</span><span class="p">,</span><span class="n">sample</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">new</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">add_molecules</span><span class="p">,</span><span class="n">simulate</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">exit_wave</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">optics</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">image</span><span class="p">}</span> <span class="p">[{</span><span class="nb">all</span><span class="p">,</span><span class="n">sample</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">new</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">add_molecules</span><span class="p">,</span><span class="n">simulate</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">exit_wave</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">optics</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">image</span><span class="p">}</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line._run-get_parser-named-arguments">
+<h4>Named Arguments<a class="headerlink" href="#parakeet.command_line._run-get_parser-named-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.h5'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+<dt><kbd>--steps</kbd></dt>
+<dd><p>Possible choices: all, sample, sample.new, sample.add_molecules, simulate, simulate.exit_wave, simulate.optics, simulate.image</p>
+<p>Which simulation steps to run</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="parakeet">
+<h3>parakeet<a class="headerlink" href="#parakeet" title="Link to this heading"></a></h3>
+<p><p>Parakeet: simulate some TEM images!</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">parakeet</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                <span class="p">{</span><span class="n">config</span><span class="p">,</span><span class="n">sample</span><span class="p">,</span><span class="n">simulate</span><span class="p">,</span><span class="n">analyse</span><span class="p">,</span><span class="n">metadata</span><span class="p">,</span><span class="n">pdb</span><span class="p">,</span><span class="n">export</span><span class="p">,</span><span class="n">run</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="parakeet.command_line._main-get_parser-positional-arguments">
+<h4>Positional Arguments<a class="headerlink" href="#parakeet.command_line._main-get_parser-positional-arguments" title="Link to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>command</kbd></dt>
+<dd><p>Possible choices: config, sample, simulate, analyse, metadata, pdb, export, run</p>
+<p>The parakeet sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands">
+<h4>Sub-commands<a class="headerlink" href="#Sub-commands" title="Link to this heading"></a></h4>
+<section id="config">
+<h5>config<a class="headerlink" href="#config" title="Link to this heading"></a></h5>
+<p>Commands to manipulate configuration files</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">new</span><span class="p">,</span><span class="n">edit</span><span class="p">,</span><span class="n">show</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>config_command</kbd></dt>
+<dd><p>Possible choices: new, edit, show</p>
+<p>The parakeet config sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat1">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat1" title="Link to this heading"></a></h6>
+<section id="new">
+<h6 aria-level="7">new<a class="headerlink" href="#new" title="Link to this heading"></a></h6>
+<p>Generate a new config file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">config</span> <span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FULL</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'config.yaml'</span></code></p>
+</dd>
+<dt><kbd>-f, --full</kbd></dt>
+<dd><p>Generate a file with the full configuration specification</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="edit">
+<h6 aria-level="7">edit<a class="headerlink" href="#edit" title="Link to this heading"></a></h6>
+<p>Edit the configuration</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">config</span> <span class="n">edit</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">i</span> <span class="n">INPUT</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span> <span class="o">-</span><span class="n">s</span> <span class="n">CONFIG</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat1">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat1" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-i, --input</kbd></dt>
+<dd><p>The input yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The output yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s</kbd></dt>
+<dd><p>The configuration string</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">''</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="show">
+<h6 aria-level="7">show<a class="headerlink" href="#show" title="Link to this heading"></a></h6>
+<p>Show the configuration</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">config</span> <span class="n">show</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SCHEMA</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat2">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat2" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --schema</kbd></dt>
+<dd><p>Show the config schema.
+To show full scheme type ‘-s .’.
+To show the schema for a specific section type e.g. ‘-s /definitions/Simulation’</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="sample">
+<h5>sample<a class="headerlink" href="#sample" title="Link to this heading"></a></h5>
+<p>Commands to manipulate the sample files</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">new</span><span class="p">,</span><span class="n">add_molecules</span><span class="p">,</span><span class="n">mill</span><span class="p">,</span><span class="n">sputter</span><span class="p">,</span><span class="n">show</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat1">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat1" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>sample_command</kbd></dt>
+<dd><p>Possible choices: new, add_molecules, mill, sputter, show</p>
+<p>The parakeet sample sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat2">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat2" title="Link to this heading"></a></h6>
+<section id="new_repeat1">
+<h6 aria-level="7">new<a class="headerlink" href="#new_repeat1" title="Link to this heading"></a></h6>
+<p>Create a new sample model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat3">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat3" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="add_molecules">
+<h6 aria-level="7">add_molecules<a class="headerlink" href="#add_molecules" title="Link to this heading"></a></h6>
+<p>Add molecules to the sample model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="n">add_molecules</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat4">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat4" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="mill">
+<h6 aria-level="7">mill<a class="headerlink" href="#mill" title="Link to this heading"></a></h6>
+<p>Mill the sample</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="n">mill</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat5">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat5" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="sputter">
+<h6 aria-level="7">sputter<a class="headerlink" href="#sputter" title="Link to this heading"></a></h6>
+<p>Sputter the sample</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="n">sputter</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat6">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat6" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="show_repeat1">
+<h6 aria-level="7">show<a class="headerlink" href="#show_repeat1" title="Link to this heading"></a></h6>
+<p>Print details about the sample model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">sample</span> <span class="n">show</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat7">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat7" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="simulate">
+<h5>simulate<a class="headerlink" href="#simulate" title="Link to this heading"></a></h5>
+<p>Commands to simulate the TEM images</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">potential</span><span class="p">,</span><span class="n">exit_wave</span><span class="p">,</span><span class="n">optics</span><span class="p">,</span><span class="n">image</span><span class="p">,</span><span class="n">ctf</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat2">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat2" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>simulate_command</kbd></dt>
+<dd><p>Possible choices: potential, exit_wave, optics, image, ctf</p>
+<p>The parakeet simulate sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat3">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat3" title="Link to this heading"></a></h6>
+<section id="potential">
+<h6 aria-level="7">potential<a class="headerlink" href="#potential" title="Link to this heading"></a></h6>
+<p>Simulate the projected potential from the sample</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="n">potential</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">POTENTIAL</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat8">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat8" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-p, --potential</kbd></dt>
+<dd><p>The prefix for the filename for the potential</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'potential'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="exit_wave">
+<h6 aria-level="7">exit_wave<a class="headerlink" href="#exit_wave" title="Link to this heading"></a></h6>
+<p>Simulate the exit wave from the sample</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="n">exit_wave</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat9">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat9" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="optics">
+<h6 aria-level="7">optics<a class="headerlink" href="#optics" title="Link to this heading"></a></h6>
+<p>Simulate the optics and infinite dose image</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="n">optics</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat10">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat10" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="image">
+<h6 aria-level="7">image<a class="headerlink" href="#image" title="Link to this heading"></a></h6>
+<p>Simulate the noisy detector image</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="n">image</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat11">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat11" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="ctf">
+<h6 aria-level="7">ctf<a class="headerlink" href="#ctf" title="Link to this heading"></a></h6>
+<p>Simulate the ctf</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">simulate</span> <span class="n">ctf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat12">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat12" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-o</kbd></dt>
+<dd><p>The filename for the output</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'ctf.h5'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="analyse">
+<h5>analyse<a class="headerlink" href="#analyse" title="Link to this heading"></a></h5>
+<p>Commands to analyse the simulated data</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                 <span class="p">{</span><span class="n">reconstruct</span><span class="p">,</span><span class="n">correct</span><span class="p">,</span><span class="n">average_particles</span><span class="p">,</span><span class="n">average_all_particles</span><span class="p">,</span><span class="n">extract</span><span class="p">,</span><span class="n">refine</span><span class="p">}</span>
+                 <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat3">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat3" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>analyse_command</kbd></dt>
+<dd><p>Possible choices: reconstruct, correct, average_particles, average_all_particles, extract, refine</p>
+<p>The parakeet analyse sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat4">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat4" title="Link to this heading"></a></h6>
+<section id="reconstruct">
+<h6 aria-level="7">reconstruct<a class="headerlink" href="#reconstruct" title="Link to this heading"></a></h6>
+<p>Reconstruct the volume</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">reconstruct</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat13">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat13" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="correct">
+<h6 aria-level="7">correct<a class="headerlink" href="#correct" title="Link to this heading"></a></h6>
+<p>3D CTF correction of the images</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">correct</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cr</span> <span class="n">CORRECTED</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">ndf</span> <span class="n">NUM_DEFOCUS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat14">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat14" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-cr, --corrected</kbd></dt>
+<dd><p>The filename for the corrected image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'corrected_image.mrc'</span></code></p>
+</dd>
+<dt><kbd>-ndf, --num-defocus</kbd></dt>
+<dd><p>Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected</p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="average_particles">
+<h6 aria-level="7">average_particles<a class="headerlink" href="#average_particles" title="Link to this heading"></a></h6>
+<p>Perform sub tomogram averaging</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">average_particles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">-</span><span class="n">h1</span> <span class="n">HALF1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h2</span> <span class="n">HALF2</span><span class="p">]</span>
+                                   <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                                   <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NUM_PARTICLES</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat15">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat15" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-h1, --half1</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half1.mrc'</span></code></p>
+</dd>
+<dt><kbd>-h2, --half2</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half2.mrc'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-n, --num_particles</kbd></dt>
+<dd><p>The number of particles to use</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="average_all_particles">
+<h6 aria-level="7">average_all_particles<a class="headerlink" href="#average_all_particles" title="Link to this heading"></a></h6>
+<p>Perform sub tomogram averaging</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">average_all_particles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="n">avm</span> <span class="n">AVERAGE</span><span class="p">]</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NUM_PARTICLES</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat16">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat16" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-avm, --average_map</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'average_map.mrc'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-n, --num_particles</kbd></dt>
+<dd><p>The number of particles to use</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="extract">
+<h6 aria-level="7">extract<a class="headerlink" href="#extract" title="Link to this heading"></a></h6>
+<p>Perform sub tomogram extraction</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">extract</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pm</span> <span class="n">PARTICLES</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">psz</span> <span class="n">PARTICLE_SIZE</span> <span class="p">[</span><span class="n">PARTICLE_SIZE</span> <span class="o">...</span><span class="p">]]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">psm</span> <span class="n">PARTICLE_SAMPLING</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat17">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat17" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'rec.mrc'</span></code></p>
+</dd>
+<dt><kbd>-pm, --particle_map</kbd></dt>
+<dd><p>The filename for the particle average</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'particle_map.h5'</span></code></p>
+</dd>
+<dt><kbd>-psz, --particle_size</kbd></dt>
+<dd><p>The size of the particles extracted (px)</p>
+</dd>
+<dt><kbd>-psm, --particle_sampling</kbd></dt>
+<dd><p>The sampling of the particle volume (factor of 2)</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="refine">
+<h6 aria-level="7">refine<a class="headerlink" href="#refine" title="Link to this heading"></a></h6>
+<p>Refine map and model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">analyse</span> <span class="n">refine</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REC</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat18">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat18" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-r, --rec</kbd></dt>
+<dd><p>The filename for the reconstruction</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'half1.mrc'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="metadata">
+<h5>metadata<a class="headerlink" href="#metadata" title="Link to this heading"></a></h5>
+<p>Commands to manipulate metadata</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">metadata</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">export</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat4">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat4" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>metadata_command</kbd></dt>
+<dd><p>Possible choices: export</p>
+<p>The parakeet metadata sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat5">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat5" title="Link to this heading"></a></h6>
+<section id="export">
+<h6 aria-level="7">export<a class="headerlink" href="#export" title="Link to this heading"></a></h6>
+<p>Export the metadata to star files for downstream processing</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">metadata</span> <span class="n">export</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">directory</span> <span class="n">DIRECTORY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">relion</span> <span class="n">RELION</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat19">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat19" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'config.yaml'</span></code></p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image file</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.h5'</span></code></p>
+</dd>
+<dt><kbd>--directory</kbd></dt>
+<dd><p>The directory to export to</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'.'</span></code></p>
+</dd>
+<dt><kbd>--relion</kbd></dt>
+<dd><p>Export the relion metadata</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="pdb">
+<h5>pdb<a class="headerlink" href="#pdb" title="Link to this heading"></a></h5>
+<p>Commands to operate on pdb files</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">pdb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">get</span><span class="p">,</span><span class="n">read</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat5">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat5" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>pdb_command</kbd></dt>
+<dd><p>Possible choices: get, read</p>
+<p>The parakeet pdb sub commands</p>
+</dd>
+</dl>
+</section>
+<section id="Sub-commands_repeat6">
+<h6>Sub-commands<a class="headerlink" href="#Sub-commands_repeat6" title="Link to this heading"></a></h6>
+<section id="get">
+<h6 aria-level="7">get<a class="headerlink" href="#get" title="Link to this heading"></a></h6>
+<p>Get a PDB file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">pdb</span> <span class="n">get</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIRECTORY</span><span class="p">]</span> <span class="nb">id</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat6">
+<h6 aria-level="8">Positional Arguments<a class="headerlink" href="#positional-arguments_repeat6" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>id</kbd></dt>
+<dd><p>The PDB ID</p>
+</dd>
+</dl>
+</section>
+<section id="named-arguments_repeat20">
+<h6 aria-level="8">Named Arguments<a class="headerlink" href="#named-arguments_repeat20" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-d, --directory</kbd></dt>
+<dd><p>The directory to save to</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'.'</span></code></p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="read">
+<h6 aria-level="7">read<a class="headerlink" href="#read" title="Link to this heading"></a></h6>
+<p>Read a PDB file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">pdb</span> <span class="n">read</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">filename</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat7">
+<h6 aria-level="8">Positional Arguments<a class="headerlink" href="#positional-arguments_repeat7" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>filename</kbd></dt>
+<dd><p>The path to the PDB file</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="export_repeat1">
+<h5>export<a class="headerlink" href="#export_repeat1" title="Link to this heading"></a></h5>
+<p>Export images to a different format</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">export</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span> <span class="p">[</span><span class="o">--</span><span class="n">rot90</span> <span class="n">ROT90</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">rotation_range</span> <span class="n">ROTATION_RANGE</span> <span class="o">|</span> <span class="o">--</span><span class="n">select_images</span> <span class="n">SELECT_IMAGES</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">roi</span> <span class="n">ROI</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">complex_mode</span> <span class="p">{</span><span class="nb">complex</span><span class="p">,</span><span class="n">real</span><span class="p">,</span><span class="n">imaginary</span><span class="p">,</span><span class="n">amplitude</span><span class="p">,</span><span class="n">phase</span><span class="p">,</span><span class="n">phase_unwrap</span><span class="p">,</span><span class="n">square</span><span class="p">,</span><span class="n">imaginary_square</span><span class="p">}]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">interlace</span> <span class="n">INTERLACE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">rebin</span> <span class="n">REBIN</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">filter_resolution</span> <span class="n">FILTER_RESOLUTION</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">filter_shape</span> <span class="p">{</span><span class="n">square</span><span class="p">,</span><span class="n">gaussian</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">vmin</span> <span class="n">VMIN</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">vmax</span> <span class="n">VMAX</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">sort</span> <span class="p">{</span><span class="n">angle</span><span class="p">}]</span>
+                <span class="n">filename</span>
+</pre></div>
+</div>
+<section id="positional-arguments_repeat8">
+<h6>Positional Arguments<a class="headerlink" href="#positional-arguments_repeat8" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>filename</kbd></dt>
+<dd><p>The input filename</p>
+</dd>
+</dl>
+</section>
+<section id="named-arguments_repeat21">
+<h6>Named Arguments<a class="headerlink" href="#named-arguments_repeat21" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The output filename</p>
+</dd>
+<dt><kbd>--rot90</kbd></dt>
+<dd><p>Rotate the image 90deg counter clockwise</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--rotation_range</kbd></dt>
+<dd><p>Select a rotation range (deg).</p>
+<p>Multiple rotation ranges can be specified as:
+–rotation_range=start1,stop1;start2,stop2</p>
+</dd>
+<dt><kbd>--select_images</kbd></dt>
+<dd><p>Select a range of images (start,stop,step)</p>
+</dd>
+<dt><kbd>--roi</kbd></dt>
+<dd><p>Select a region of interest (–roi=x0,y0,x1,y1)</p>
+</dd>
+<dt><kbd>--complex_mode</kbd></dt>
+<dd><p>Possible choices: complex, real, imaginary, amplitude, phase, phase_unwrap, square, imaginary_square</p>
+<p>How to treat complex numbers</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'complex'</span></code></p>
+</dd>
+<dt><kbd>--interlace</kbd></dt>
+<dd><p>Interlace the scan. If the value &lt;= 1 then the images are kept in the same order, otherwise, the images are reordered by skipping images. For example, if –interlace=2 is set then the images will be written out as [1, 3, 5, … , 2, 4, 6, …]</p>
+</dd>
+<dt><kbd>--rebin</kbd></dt>
+<dd><p>The rebinned factor. The shape of the output images will be original_shape / rebin</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--filter_resolution</kbd></dt>
+<dd><p>The resolution of the filter (A)</p>
+</dd>
+<dt><kbd>--filter_shape</kbd></dt>
+<dd><p>Possible choices: square, gaussian</p>
+<p>The shape of the filter</p>
+</dd>
+<dt><kbd>--vmin</kbd></dt>
+<dd><p>The minimum pixel value when exporting to an image</p>
+</dd>
+<dt><kbd>--vmax</kbd></dt>
+<dd><p>The maximum pixel value when exporting to an image</p>
+</dd>
+<dt><kbd>--sort</kbd></dt>
+<dd><p>Possible choices: angle</p>
+<p>Sort the images</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="run">
+<h5>run<a class="headerlink" href="#run" title="Link to this heading"></a></h5>
+<p>Run full simulation experiment</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parakeet</span> <span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">c</span> <span class="n">CONFIG</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAMPLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXIT_WAVE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OPTICS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMAGE</span><span class="p">]</span>
+             <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">cpu</span><span class="p">,</span><span class="n">gpu</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">nproc</span> <span class="n">NPROC</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">gpu_id</span> <span class="n">GPU_ID</span><span class="p">]</span>
+             <span class="p">[</span><span class="o">--</span><span class="n">steps</span> <span class="p">{</span><span class="nb">all</span><span class="p">,</span><span class="n">sample</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">new</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">add_molecules</span><span class="p">,</span><span class="n">simulate</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">exit_wave</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">optics</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">image</span><span class="p">}</span> <span class="p">[{</span><span class="nb">all</span><span class="p">,</span><span class="n">sample</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">new</span><span class="p">,</span><span class="n">sample</span><span class="o">.</span><span class="n">add_molecules</span><span class="p">,</span><span class="n">simulate</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">exit_wave</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">optics</span><span class="p">,</span><span class="n">simulate</span><span class="o">.</span><span class="n">image</span><span class="p">}</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="named-arguments_repeat22">
+<h6>Named Arguments<a class="headerlink" href="#named-arguments_repeat22" title="Link to this heading"></a></h6>
+<dl class="option-list">
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>The yaml file to configure the simulation</p>
+</dd>
+<dt><kbd>-s, --sample</kbd></dt>
+<dd><p>The filename for the sample</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'sample.h5'</span></code></p>
+</dd>
+<dt><kbd>-e, --exit_wave</kbd></dt>
+<dd><p>The filename for the exit wave</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'exit_wave.h5'</span></code></p>
+</dd>
+<dt><kbd>-o, --optics</kbd></dt>
+<dd><p>The filename for the optics</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'optics.h5'</span></code></p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>The filename for the image</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'image.h5'</span></code></p>
+</dd>
+<dt><kbd>-d, --device</kbd></dt>
+<dd><p>Possible choices: cpu, gpu</p>
+<p>Choose the device to use</p>
+</dd>
+<dt><kbd>--nproc</kbd></dt>
+<dd><p>The number of processes to use</p>
+</dd>
+<dt><kbd>--gpu_id</kbd></dt>
+<dd><p>The GPU ids (must match number of processors)</p>
+</dd>
+<dt><kbd>--steps</kbd></dt>
+<dd><p>Possible choices: all, sample, sample.new, sample.add_molecules, simulate, simulate.exit_wave, simulate.optics, simulate.image</p>
+<p>Which simulation steps to run</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="Python API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, James Parkhurst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

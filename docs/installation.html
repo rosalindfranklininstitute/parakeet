@@ -1,0 +1,594 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; parakeet 0.1.dev1+g8c368a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=381b7a04"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line programs" href="usage.html" />
+    <link rel="prev" title="Welcome to parakeet’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            parakeet
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-virtual-environments">Python virtual environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-for-developers">Installation for developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-using-pip">Install using PIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-using-conda">Install using conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-as-a-docker-container">Install as a Docker container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-as-a-singularity-image">Install as a Singularity image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-as-singularity-sandbox">Install as Singularity sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-a-derivative-singularity-image">Build a derivative Singularity image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-as-a-apptainer-image">Install as a Apptainer image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-as-a-snap">Install as a snap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-on-baskerville-hpc-native">Install on Baskerville HPC (native)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-on-baskerville-apptainer">Install on Baskerville (apptainer)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-on-stfc-scarf">Install on STFC Scarf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Command line programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">parakeet</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>In order to build this package, the following dependencies are required:</p>
+<ul class="simple">
+<li><p>A C++ compiler (e.g. g++)</p></li>
+<li><p>FFTW</p></li>
+<li><p>Python development libraries</p></li>
+<li><p>The CUDA toolkit</p></li>
+</ul>
+<p>On ubuntu 20.04, the dependencies can be install on a clean install as follows
+(you may need to contact your system administrator if you do not have admin
+privileges):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install GCC</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>build-essential
+
+<span class="c1"># Install FFTW</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>libfftw3-dev
+
+<span class="c1"># Install Python headers</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3.8-dev
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3.8-venv
+
+<span class="c1"># Install CUDA toolkit</span>
+wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+sudo<span class="w"> </span>mv<span class="w"> </span>cuda-ubuntu2004.pin<span class="w"> </span>/etc/apt/preferences.d/cuda-repository-pin-600
+sudo<span class="w"> </span>apt-key<span class="w"> </span>adv<span class="w"> </span>--fetch-keys<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+sudo<span class="w"> </span>add-apt-repository<span class="w"> </span><span class="s2">&quot;deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /&quot;</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>cuda
+</pre></div>
+</div>
+</section>
+<section id="environment-variables">
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>
+<p>If you have multiple compiler versions or the compilers you want to use are not
+automatically picked up by cmake, you can explicitly state the compiler
+versions you would like to use as follows, where in this case we are using gcc
+as the C++ compiler:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">CXX</span><span class="o">=</span>/usr/bin/g++
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDACXX</span><span class="o">=</span>/usr/local/cuda-11/bin/nvcc
+<span class="nb">export</span><span class="w"> </span><span class="nv">FFTWDIR</span><span class="o">=</span>/usr/local/
+</pre></div>
+</div>
+<p>Depending on your GPU and the version of the CUDA toolkit you are using, it may
+also be necessary to set the CMAKE_CUDA_ARCHITECTURES variable. This variable
+is by default set to “OFF” in the CMakeLists.txt file which has the effect of
+compiling CUDA kernels on the fly. If you have an old GPU, this may not work
+and you will receive CUDA errors when attempting to run the simulations on the
+GPU. In this case simply set the variable to the architecture supported by your
+GPU as follows (the example below is for the compute_37 architecture):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">CMAKE_CUDA_ARCHITECTURES</span><span class="o">=</span><span class="m">37</span>
+</pre></div>
+</div>
+</section>
+<section id="python-virtual-environments">
+<h2>Python virtual environments<a class="headerlink" href="#python-virtual-environments" title="Link to this heading"></a></h2>
+<p>Before installing parakeet, you may want to setup a python virtual environment
+in which to install it rather than installing into your system library. Use the
+following commands before following the instructions below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>env
+<span class="nb">source</span><span class="w"> </span>env/bin/activate
+</pre></div>
+</div>
+</section>
+<section id="install-from-source">
+<h2>Install from source<a class="headerlink" href="#install-from-source" title="Link to this heading"></a></h2>
+<p>To install from source you can run the following commands after setting the
+environment variables described above.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/rosalindfranklininstitute/parakeet.git
+
+<span class="c1"># Enter the parakeet directory</span>
+<span class="nb">cd</span><span class="w"> </span>parakeet
+
+<span class="c1"># Checkout the submodules</span>
+git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+
+<span class="c1"># Install the package locally</span>
+pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="installation-for-developers">
+<span id="id1"></span><h2>Installation for developers<a class="headerlink" href="#installation-for-developers" title="Link to this heading"></a></h2>
+<p>Run the following commands to install in development mode after setting the
+environment variables described above:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/rosalindfranklininstitute/parakeet.git
+
+<span class="c1"># Enter the parakeet directory</span>
+<span class="nb">cd</span><span class="w"> </span>parakeet
+
+<span class="c1"># Checkout the submodules</span>
+git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+
+<span class="c1"># Install the package locally</span>
+pip<span class="w"> </span>install<span class="w"> </span>.<span class="w"> </span>-e
+</pre></div>
+</div>
+</section>
+<section id="install-using-pip">
+<h2>Install using PIP<a class="headerlink" href="#install-using-pip" title="Link to this heading"></a></h2>
+<p>You can install parakeet from the python package archive using pip by running
+the following command. This is a source package which needs to be built on your
+local machine so the environment variables described above for CUDA, FFTW and
+CXX may need to be set.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>python-parakeet
+</pre></div>
+</div>
+<p>It is also possible to install the version of parakeet on the master branch (or
+any other branch) directly using pip by using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/rosalindfranklininstitute/parakeet.git@master
+</pre></div>
+</div>
+</section>
+<section id="install-using-conda">
+<h2>Install using conda<a class="headerlink" href="#install-using-conda" title="Link to this heading"></a></h2>
+<p>You can install parakeet using conda as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a conda environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>parakeet<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+
+<span class="c1"># Install parakeet</span>
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>james.parkhurst<span class="w"> </span>python-parakeet
+</pre></div>
+</div>
+</section>
+<section id="install-as-a-docker-container">
+<h2>Install as a Docker container<a class="headerlink" href="#install-as-a-docker-container" title="Link to this heading"></a></h2>
+<p>Parakeet can also be run via Docker
+(<a class="reference external" href="https://www.docker.com/get-started">https://www.docker.com/get-started</a>). To pull the docker container with the latest version
+parakeet, you can do the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>pull<span class="w"> </span>quay.io/rosalindfranklininstitute/parakeet:latest
+</pre></div>
+</div>
+<p>You may also pull the docker container of a specific version of parakeet. To do this in the above
+command replace the ‘latest’ with one of the tags that you can find here
+( <a class="reference external" href="https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags">https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags</a>).</p>
+<p>To use parakeet with docker with GPU support the host machine should have the
+appropriate Nvidia drivers installed and docker needs to be installed with the
+nvidia container toolkit
+(<a class="reference external" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html</a>).</p>
+<p>To easily input and output data from the container the volume mechanism can be
+used, where a workspace directory of the host machine is mounted to a directory
+in the container (in the folder /mnt in the example below). For this reason it
+is advised that all the relevant files (e.g. config.yaml, sample.h5, etc.)
+should be present in the host workspace directory.</p>
+<p>Below is an example on how to use parakeet after, its docker image has been pulled, to run parakeet commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/mnt<span class="w"> </span>--workdir<span class="o">=</span>/mnt<span class="w"> </span>parakeet:latest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>parakeet.config.new
+</pre></div>
+</div>
+<p>You may also pull and run parakeet with a single command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/mnt<span class="w"> </span>--workdir<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>quay.io/rosalindfranklininstitute/parakeet:latest<span class="w"> </span>parakeet.config.new
+</pre></div>
+</div>
+</section>
+<section id="install-as-a-singularity-image">
+<h2>Install as a Singularity image<a class="headerlink" href="#install-as-a-singularity-image" title="Link to this heading"></a></h2>
+<p>Parakeet can also be run via Singularity
+(<a class="reference external" href="https://sylabs.io/guides/2.6/user-guide/installation.html">https://sylabs.io/guides/2.6/user-guide/installation.html</a>). To build
+parakeet’s singularity container you can do the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>parakeet.sif<span class="w"> </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest
+</pre></div>
+</div>
+<p>Again similar to docker, you may build the singularity container of a specific version of parakeet
+by replacing the ‘latest’ in the command above with one of the tags that you can find here
+( <a class="reference external" href="https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags">https://quay.io/repository/rosalindfranklininstitute/parakeet?tab=tags</a>).</p>
+<p>Also like with docker, to use parakeet with singularity and GPU support, the
+host machine should have the appropriate Nvidia drivers installed.</p>
+<p>Below is an example on how to use parakeet, after its singularity image has been build, to run parakeet commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># You can open an interactive shell in the singularity container like this:</span>
+singularity<span class="w"> </span>shell<span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/data/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span>parakeet.sif
+
+<span class="c1"># Or you can execute multiple commands</span>
+singularity<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/data/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span>parakeet.sif<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;parakeet.config.new &amp;&amp; parakeet.sample.new&quot;</span>
+</pre></div>
+</div>
+<p>You may also build and run parakeet with a single command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># You can open an interactive shell in the singularity container like this:</span>
+singularity<span class="w"> </span>shell<span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/data/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest
+
+<span class="c1"># Or you can execute multiple commands</span>
+singularity<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/data/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;parakeet.config.new &amp;&amp; parakeet.sample.new&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="install-as-singularity-sandbox">
+<h2>Install as Singularity sandbox<a class="headerlink" href="#install-as-singularity-sandbox" title="Link to this heading"></a></h2>
+<p>If you need to modify the singularity container for development purposes, it is
+possible to build a parakeet sandbox as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>--sandbox<span class="w"> </span>parakeet_sandbox/<span class="w"> </span>parakeet.sif
+</pre></div>
+</div>
+<p>The source code for parakeet resides in the parakeet_sandbox/apps/ directory.
+You can then modify the python code in place and use <cite>singularity shell</cite> or
+<cite>singularity run</cite> to install the changes as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>run<span class="w"> </span>--writable<span class="w"> </span>parakeet_sandbox/<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>/app<span class="w"> </span>--prefix<span class="o">=</span>/usr/local
+</pre></div>
+</div>
+<p>Likewise, new software packages can be install into the container as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>run<span class="w"> </span>--writable<span class="w"> </span>parakeet_sandbox/<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="si">${</span><span class="nv">PACKAGE</span><span class="si">}</span><span class="w"> </span>--prefix<span class="o">=</span>/usr/local
+</pre></div>
+</div>
+<p>To run parakeet from the sandbox, execute with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>run<span class="w"> </span>--nv<span class="w"> </span>parakeet_sandbox/<span class="w"> </span>parakeet.run<span class="w"> </span>-c<span class="w"> </span>config.yaml
+</pre></div>
+</div>
+<p>If you want to rebuild the singularity image from the sandbox you can then do
+the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>parakeet_image.sif<span class="w"> </span>parakeet_sandbox/
+</pre></div>
+</div>
+</section>
+<section id="build-a-derivative-singularity-image">
+<h2>Build a derivative Singularity image<a class="headerlink" href="#build-a-derivative-singularity-image" title="Link to this heading"></a></h2>
+<p>You can build a new container depending on the parakeet docker container as
+follows. In your python source code repository create a file called Dockerfile
+with the following contents:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>FROM<span class="w"> </span>quay.io/rosalindfranklininstitute/parakeet:latest
+
+WORKDIR<span class="w"> </span>/myapp
+COPY<span class="w"> </span>.<span class="w"> </span>.
+
+RUN<span class="w"> </span>apt<span class="w"> </span>update
+RUN<span class="w"> </span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+RUN<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Now build locally with docker:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>docker<span class="w"> </span>build<span class="w"> </span>.<span class="w"> </span>-t<span class="w"> </span>me/myapp
+</pre></div>
+</div>
+<p>Now we can build the singularity image from the docker image</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>myapp.sif<span class="w"> </span>docker-daemon://me/myapp:latest
+</pre></div>
+</div>
+</section>
+<section id="install-as-a-apptainer-image">
+<h2>Install as a Apptainer image<a class="headerlink" href="#install-as-a-apptainer-image" title="Link to this heading"></a></h2>
+<p>Parakeet can also be run via Apptainer. Apptainer is the new name for the Singularity
+project after is official move to the Linux Foundation
+(<a class="reference external" href="https://apptainer.org/news/community-announcement-20211130/">https://apptainer.org/news/community-announcement-20211130/</a>).</p>
+<p>You may build and run parakeet via an Apptainer container the same way you would
+build and run parakeet via an Singularity container, but instead of the command
+‘singularity’ the command ‘apptainer’ should be used. The arguments of the command
+‘apptainer’ is the exact same with the command ‘singularity’.</p>
+</section>
+<section id="install-as-a-snap">
+<h2>Install as a snap<a class="headerlink" href="#install-as-a-snap" title="Link to this heading"></a></h2>
+<p>You can install the parakeet snap from the snapcraft repository as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install the snap from the edge channel</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>parakeet<span class="w"> </span>--classic<span class="w"> </span>--edge
+</pre></div>
+</div>
+<p>You can also build the parakeet snap application from source as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run this command in the repository directory on a VM with 4GB memory</span>
+<span class="nv">SNAPCRAFT_BUILD_ENVIRONMENT_MEMORY</span><span class="o">=</span>4G<span class="w"> </span>snapcraft
+
+<span class="c1"># Install the locally built snap</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>parakeet_<span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span>.snap<span class="w"> </span>--classic<span class="w"> </span>--dangerous
+</pre></div>
+</div>
+<p>Note that the snap installation only exposes the top level parakeet command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>parakeet<span class="w"> </span>-h
+</pre></div>
+</div>
+</section>
+<section id="install-on-baskerville-hpc-native">
+<h2>Install on Baskerville HPC (native)<a class="headerlink" href="#install-on-baskerville-hpc-native" title="Link to this heading"></a></h2>
+<p>In order to install parakeet on the Baskerville tier 2 supercomputer (<a class="reference external" href="https://www.baskerville.ac.uk/">https://www.baskerville.ac.uk/</a>)
+within a virtual python environment (<a class="reference external" href="https://docs.baskerville.ac.uk/self-install/">https://docs.baskerville.ac.uk/self-install/</a>),
+start an interactive job as follows (you will need to know your
+account-project code and qos to do this):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>--account<span class="o">=</span><span class="si">${</span><span class="nv">ACCOUNT</span><span class="si">}</span><span class="w"> </span>--qos<span class="o">=</span><span class="si">${</span><span class="nv">QOS</span><span class="si">}</span><span class="w"> </span>--gpus<span class="o">=</span><span class="m">1</span><span class="w"> </span>--time<span class="o">=</span><span class="m">0</span>:20:0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--export<span class="o">=</span>USER,HOME,PATH,TERM<span class="w"> </span>--pty<span class="w"> </span>/bin/bash
+</pre></div>
+</div>
+<p>When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load required modules</span>
+module<span class="w"> </span>purge
+module<span class="w"> </span>load<span class="w"> </span>baskerville
+module<span class="w"> </span>load<span class="w"> </span>CUDA/11.4
+module<span class="w"> </span>load<span class="w"> </span>FFTW
+module<span class="w"> </span>load<span class="w"> </span>Python/3
+
+<span class="c1"># Create a virtual environment</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>--system-site-packages<span class="w"> </span>env
+<span class="nb">source</span><span class="w"> </span>env/bin/activate
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pip<span class="w"> </span>--upgrade
+
+<span class="c1"># Install parakeet</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>python-parakeet
+</pre></div>
+</div>
+<p>You can run parakeet on Baskerville non-interactively and interactively.</p>
+<p>To run parakeet on Baskerville non-interactively (<a class="reference external" href="https://docs.baskerville.ac.uk/jobs/">https://docs.baskerville.ac.uk/jobs/</a>)
+you need write a script called run.sh with the following contents (you will need to know
+your account-project code, qos and how much time do you expect to take for your script to finish):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --account=$ACCOUNT</span>
+<span class="c1">#SBATCH --qos=$QOS</span>
+<span class="c1">#SBATCH --gpus=1</span>
+<span class="c1">#SBATCH --time=$TIME</span>
+
+<span class="c1"># Load required modules</span>
+module<span class="w"> </span>purge
+module<span class="w"> </span>load<span class="w"> </span>baskerville
+module<span class="w"> </span>load<span class="w"> </span>CUDA/11.4
+module<span class="w"> </span>load<span class="w"> </span>FFTW
+module<span class="w"> </span>load<span class="w"> </span>Python/3
+
+<span class="c1"># Activate environment</span>
+<span class="nb">source</span><span class="w"> </span>env/bin/activate
+
+<span class="c1"># Parakeet commands</span>
+parakeet.run<span class="w"> </span>-c<span class="w"> </span>config.yaml
+</pre></div>
+</div>
+<p>To submit the run.sh script and therefore run the parakeet simulations execute the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>run.sh
+</pre></div>
+</div>
+<p>The benefit of non-interactive job submissions is that your job will be executed automatically,
+when the requested computational resources are available and that you can submit and queue multiple
+jobs.</p>
+<p>To run parakeet interactively (<a class="reference external" href="https://docs.baskerville.ac.uk/interactive-jobs/">https://docs.baskerville.ac.uk/interactive-jobs/</a>), execute:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>--account<span class="o">=</span><span class="si">${</span><span class="nv">ACCOUNT</span><span class="si">}</span><span class="w"> </span>--qos<span class="o">=</span><span class="si">${</span><span class="nv">QOS</span><span class="si">}</span><span class="w"> </span>--gpus<span class="o">=</span><span class="m">1</span><span class="w"> </span>--time<span class="o">=</span><span class="si">${</span><span class="nv">TIME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--export<span class="o">=</span>USER,HOME,PATH,TERM<span class="w"> </span>--pty<span class="w"> </span>/bin/bash
+</pre></div>
+</div>
+<p>When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load required modules</span>
+module<span class="w"> </span>purge
+module<span class="w"> </span>load<span class="w"> </span>baskerville
+module<span class="w"> </span>load<span class="w"> </span>CUDA/11.4
+module<span class="w"> </span>load<span class="w"> </span>FFTW
+module<span class="w"> </span>load<span class="w"> </span>Python/3
+
+<span class="c1"># Activate environment</span>
+<span class="nb">source</span><span class="w"> </span>env/bin/activate
+
+<span class="c1"># Parakeet commands</span>
+parakeet.run<span class="w"> </span>-c<span class="w"> </span>config.yaml
+</pre></div>
+</div>
+</section>
+<section id="install-on-baskerville-apptainer">
+<h2>Install on Baskerville (apptainer)<a class="headerlink" href="#install-on-baskerville-apptainer" title="Link to this heading"></a></h2>
+<p>Alternatively, you may run parakeet on the baskerville tier 2 supercomputer with
+apptainer (<a class="reference external" href="https://docs.baskerville.ac.uk/containerisation/">https://docs.baskerville.ac.uk/containerisation/</a>).</p>
+<p>To run parakeet on Baskerville non-interactively (<a class="reference external" href="https://docs.baskerville.ac.uk/jobs/">https://docs.baskerville.ac.uk/jobs/</a>)
+you need write a script called run.sh with the following contents (you will need to know
+your account-project code, qos and how much time do you expect to take for your script to finish):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --account=$ACCOUNT</span>
+<span class="c1">#SBATCH --qos=$QOS</span>
+<span class="c1">#SBATCH --gpus=1</span>
+<span class="c1">#SBATCH --time=$TIME</span>
+
+<span class="c1"># Load required modules</span>
+module<span class="w"> </span>purge
+module<span class="w"> </span>load<span class="w"> </span>baskerville
+module<span class="w"> </span>load<span class="w"> </span>CUDA/11.4
+module<span class="w"> </span>load<span class="w"> </span>FFTW
+module<span class="w"> </span>load<span class="w"> </span>Python/3
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">APPTAINER_CACHEDIR</span><span class="o">=</span>/path/to/cache/directory/within/your/project/directory
+
+<span class="k">function</span><span class="w"> </span>container<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>apptainer<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/path/to/data/directory/within/your/project/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+<span class="o">}</span>
+
+<span class="c1"># Parakeet commands</span>
+container<span class="w"> </span><span class="se">\</span>
+<span class="s2">&quot;echo Below you can have multiple commands &amp;&amp; \</span>
+<span class="s2">parakeet.run -c config.yaml&quot;</span>
+</pre></div>
+</div>
+<p>To submit the run.sh script and therefore run the parakeet simulations execute the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>run.sh
+</pre></div>
+</div>
+<p>The benefit of non-interactive job submissions is that your job will be executed automatically,
+when the requested computational resources are available and that you can submit and queue multiple
+jobs.</p>
+<p>To run parakeet interactively (<a class="reference external" href="https://docs.baskerville.ac.uk/interactive-jobs/">https://docs.baskerville.ac.uk/interactive-jobs/</a>), execute:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>--account<span class="o">=</span><span class="si">${</span><span class="nv">ACCOUNT</span><span class="si">}</span><span class="w"> </span>--qos<span class="o">=</span><span class="si">${</span><span class="nv">QOS</span><span class="si">}</span><span class="w"> </span>--gpus<span class="o">=</span><span class="m">1</span><span class="w"> </span>--time<span class="o">=</span><span class="si">${</span><span class="nv">TIME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--export<span class="o">=</span>USER,HOME,PATH,TERM<span class="w"> </span>--pty<span class="w"> </span>/bin/bash
+</pre></div>
+</div>
+<p>When the interactive job starts (you may need to wait until the requested computational resources are
+available), execute the following commands to install parakeet:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load required modules</span>
+module<span class="w"> </span>purge
+module<span class="w"> </span>load<span class="w"> </span>baskerville
+module<span class="w"> </span>load<span class="w"> </span>CUDA/11.4
+module<span class="w"> </span>load<span class="w"> </span>FFTW
+module<span class="w"> </span>load<span class="w"> </span>Python/3
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">APPTAINER_CACHEDIR</span><span class="o">=</span>/path/to/cache/directory/within/your/project/directory
+
+<span class="k">function</span><span class="w"> </span>container<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>apptainer<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/path/to/data/directory/within/your/project/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+<span class="o">}</span>
+
+<span class="c1"># Parakeet commands</span>
+container<span class="w"> </span><span class="se">\</span>
+<span class="s2">&quot;echo Below you can have multiple commands &amp;&amp; \</span>
+<span class="s2">parakeet.run -c config.yaml&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="install-on-stfc-scarf">
+<h2>Install on STFC Scarf<a class="headerlink" href="#install-on-stfc-scarf" title="Link to this heading"></a></h2>
+<p>In order to install parakeet on the scarf with singularity, start and
+interactive job as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>salloc<span class="w"> </span>--time<span class="o">=</span><span class="m">1</span>:0:0
+</pre></div>
+</div>
+<p>Now run the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>singularity<span class="w"> </span>build<span class="w"> </span>parakeet.sif<span class="w"> </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest
+</pre></div>
+</div>
+<p>Once you are happy, log out of the interactive node. To run parakeet on scarf
+write a script called run.sh with the following contents:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --gpus=1</span>
+
+<span class="k">function</span><span class="w"> </span>container<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>singularity<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>--nv<span class="w"> </span>--bind<span class="o">=</span>/path/to/data/directory/within/your/project/directory:/mnt<span class="w"> </span>--pwd<span class="o">=</span>/mnt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>docker://quay.io/rosalindfranklininstitute/parakeet:latest<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+<span class="o">}</span>
+
+<span class="c1"># Parakeet commands</span>
+container<span class="w"> </span><span class="se">\</span>
+<span class="s2">&quot;echo Below you can have multiple commands &amp;&amp; \</span>
+<span class="s2">parakeet.run -c config.yaml&quot;</span>
+</pre></div>
+</div>
+<p>Then run the simulations as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>run.sh
+</pre></div>
+</div>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<p>To run the tests, follow the <a class="reference internal" href="#installation-for-developers"><span class="std std-ref">Installation for developers</span></a> instructions
+and then do the following command from within the source distribution:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to parakeet’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Command line programs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, James Parkhurst.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
