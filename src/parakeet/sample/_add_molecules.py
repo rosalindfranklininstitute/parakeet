@@ -296,7 +296,7 @@ def _add_molecules_Sample(config: parakeet.config.Sample, sample: Sample) -> Sam
                     if isinstance(instances, int)
                     else instances
                 ),
-                'assembly_index': assembly_index,
+                "assembly_index": assembly_index,
             }
 
     molecules = temp
