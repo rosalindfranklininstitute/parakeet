@@ -170,17 +170,19 @@ def add_multiple_molecules(sample, molecules):
 
     # Put the molecules in the sample
     logger.info("Placing molecules:")
-    
+
     # Check if any random positions need to be generated
-    random_indices = [i for i, p in enumerate(all_positions) if p is None or len(p) == 0]
-    
+    random_indices = [
+        i for i, p in enumerate(all_positions) if p is None or len(p) == 0
+    ]
+
     if random_indices:
         # Only generate positions for molecules that need them
         random_radii = [all_radii[i] for i in random_indices]
         random_positions = distribute_particles_uniformly(
             shape_volume_object(sample.centre, sample.shape), np.array(random_radii)
         )
-        
+
         # Update only the positions that were None
         for i, random_pos in zip(random_indices, random_positions):
             all_positions[i] = random_pos
