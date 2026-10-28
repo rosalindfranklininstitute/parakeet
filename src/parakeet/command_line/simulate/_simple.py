@@ -21,7 +21,6 @@ import parakeet.scan
 import parakeet.simulate
 from argparse import ArgumentParser
 
-
 __all__ = ["simple"]
 
 

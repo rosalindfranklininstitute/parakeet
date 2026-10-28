@@ -12,7 +12,6 @@ import maptools
 import random
 import parakeet.sample
 
-
 __all__ = ["refine"]
 
 

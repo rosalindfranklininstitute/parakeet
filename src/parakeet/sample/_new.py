@@ -24,7 +24,6 @@ from parakeet.sample import Sample
 from parakeet.sample import AtomData
 from parakeet.sample import random_uniform_rotation
 
-
 __all__ = ["new"]
 
 

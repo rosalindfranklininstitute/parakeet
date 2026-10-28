@@ -27,7 +27,6 @@ from functools import singledispatch
 from math import pi, floor
 from scipy.spatial.transform import Rotation as R
 
-
 __all__ = ["potential"]
 
 

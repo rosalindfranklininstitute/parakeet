@@ -19,7 +19,6 @@ from typing import Union
 from functools import singledispatch
 from math import sqrt, ceil
 
-
 __all__ = ["average_particles", "average_all_particles"]
 
 

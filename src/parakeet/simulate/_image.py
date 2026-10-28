@@ -23,7 +23,6 @@ from parakeet.scan import Scan
 from functools import singledispatch
 from parakeet.simulate.simulation import Simulation
 
-
 __all__ = ["image"]
 
 

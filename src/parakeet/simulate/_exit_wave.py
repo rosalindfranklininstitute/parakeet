@@ -29,7 +29,6 @@ from functools import singledispatch
 from math import pi
 from scipy.spatial.transform import Rotation as R
 
-
 __all__ = ["exit_wave"]
 
 

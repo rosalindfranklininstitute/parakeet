@@ -25,7 +25,6 @@ from parakeet.sample import is_box_inside_shape
 from parakeet.sample.distribute import distribute_particles_uniformly
 from parakeet.sample.distribute import shape_volume_object
 
-
 __all__ = ["add_molecules", "add_single_molecule"]
 
 

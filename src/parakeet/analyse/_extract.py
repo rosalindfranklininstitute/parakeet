@@ -22,7 +22,6 @@ from parakeet.analyse._average_particles import _process_sub_tomo
 from parakeet.analyse._average_particles import _process_sub_tomo_no_rotation
 from parakeet.analyse._average_particles import _iterate_particles
 
-
 __all__ = ["extract", "average_extracted_particles"]
 
 

@@ -23,7 +23,6 @@ from parakeet.command_line import pdb as pdb
 from argparse import ArgumentParser
 from typing import List
 
-
 __all__ = ["main"]
 
 

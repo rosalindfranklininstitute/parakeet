@@ -21,7 +21,6 @@ from functools import singledispatch
 from math import pi
 from parakeet.sample import Sample
 
-
 __all__ = ["export"]
 
 

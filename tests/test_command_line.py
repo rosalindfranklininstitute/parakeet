@@ -331,6 +331,8 @@ def test_pdb_get1(config_path):
     directory = os.path.abspath(config_path)
     parakeet.command_line.pdb.get(["4v1w", "-d", directory])
     assert os.path.exists(os.path.join(directory, "4v1w.cif"))
+
+
 #
 #
 # def test_pdb_get2(config_path):

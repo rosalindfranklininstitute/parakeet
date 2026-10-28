@@ -19,7 +19,6 @@ import parakeet.inelastic
 import parakeet.sample
 from typing import Tuple
 
-
 # Get the logger
 logger = logging.getLogger(__name__)
 

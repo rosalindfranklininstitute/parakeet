@@ -28,7 +28,6 @@ from parakeet.simulate.engine import SimulationEngine
 from parakeet.microscope import Microscope
 from parakeet.scan import Scan
 
-
 __all__ = ["optics"]
 
 

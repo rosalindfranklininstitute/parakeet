@@ -17,7 +17,6 @@ import parakeet.simulate
 from parakeet.config import Device
 from functools import singledispatch
 
-
 __all__ = ["run"]
 
 

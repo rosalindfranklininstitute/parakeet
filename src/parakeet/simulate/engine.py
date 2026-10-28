@@ -15,7 +15,6 @@ import warnings
 from math import sqrt, floor
 from collections.abc import Iterable
 
-
 # Try to input MULTEM
 try:
     import multem

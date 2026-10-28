@@ -22,7 +22,6 @@ from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from typing import List
 
-
 __all__ = ["extract"]
 
 

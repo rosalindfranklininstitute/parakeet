@@ -18,7 +18,6 @@ from argparse import ArgumentParser
 import parakeet.data
 from typing import List
 
-
 __all__ = ["get"]
 
 

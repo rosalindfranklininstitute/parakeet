@@ -22,7 +22,6 @@ import parakeet.simulate
 from argparse import ArgumentParser
 from typing import List
 
-
 __all__ = ["ctf"]
 
 

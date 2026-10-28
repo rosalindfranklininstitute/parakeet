@@ -16,7 +16,6 @@ import parakeet.sample
 from parakeet.config import Device
 from functools import singledispatch
 
-
 __all__ = ["reconstruct"]
 
 
