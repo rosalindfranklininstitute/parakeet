@@ -116,74 +116,50 @@ def test_shape_enclosed_box():
 
 
 def test_is_shape_inside_box():
-    assert (
-        parakeet.sample.is_shape_inside_box(
-            (10, 10, 10), (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
-        )
-        == False
+    assert not parakeet.sample.is_shape_inside_box(
+        (10, 10, 10), (0, 0, 0), {"type": "cube", "cube": {"length": 1}}
     )
 
-    assert (
-        parakeet.sample.is_shape_inside_box(
-            (10, 10, 10), (5, 5, 5), {"type": "cube", "cube": {"length": 1}}
-        )
-        == True
+    assert parakeet.sample.is_shape_inside_box(
+        (10, 10, 10), (5, 5, 5), {"type": "cube", "cube": {"length": 1}}
     )
 
 
 def test_is_box_inside_shape():
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (0.1, 0.1, 0.1)),
-            (0, 0, 0),
-            {"type": "cube", "cube": {"length": 1}},
-        )
-        == True
+    assert parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (0.1, 0.1, 0.1)),
+        (0, 0, 0),
+        {"type": "cube", "cube": {"length": 1}},
     )
 
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (10, 10, 10)),
-            (5, 5, 5),
-            {"type": "cube", "cube": {"length": 1}},
-        )
-        == False
+    assert not parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (10, 10, 10)),
+        (5, 5, 5),
+        {"type": "cube", "cube": {"length": 1}},
     )
 
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (0.1, 0.1, 0.1)),
-            (0, 0, 0),
-            {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
-        )
-        == True
+    assert parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (0.1, 0.1, 0.1)),
+        (0, 0, 0),
+        {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
 
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (10, 10, 10)),
-            (5, 5, 5),
-            {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
-        )
-        == False
+    assert not parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (10, 10, 10)),
+        (5, 5, 5),
+        {"type": "cuboid", "cuboid": {"length_x": 1, "length_y": 2, "length_z": 3}},
     )
 
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (0.99 / sqrt(2), 0.3, 0.99 / sqrt(2))),
-            (0, 0, 0),
-            {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
-        )
-        == True
+    assert parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (0.99 / sqrt(2), 0.3, 0.99 / sqrt(2))),
+        (0, 0, 0),
+        {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
     )
 
-    assert (
-        parakeet.sample.is_box_inside_shape(
-            ((0, 0, 0), (10, 10, 10)),
-            (0, 0, 0),
-            {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
-        )
-        == False
+    assert not parakeet.sample.is_box_inside_shape(
+        ((0, 0, 0), (10, 10, 10)),
+        (0, 0, 0),
+        {"type": "cylinder", "cylinder": {"length": 1, "radius": 1}},
     )
 
 
@@ -375,7 +351,7 @@ def test_load(tmp_path):
 
     del sample
 
-    sample = parakeet.sample.load(os.path.join(tmp_path, "test_load.h5"))
+    parakeet.sample.load(os.path.join(tmp_path, "test_load.h5"))
 
 
 def test_new(tmp_path):
@@ -507,7 +483,7 @@ def test_sample_new_with_local(tmp_path):
         },
     }
 
-    sample = parakeet.sample.new(
+    parakeet.sample.new(
         parakeet.config.Sample(**config),
         os.path.join(tmp_path, "test_new2.h5"),
     )

@@ -30,7 +30,7 @@ class CuboidVolume(object):
         """
 
         assert len(lower) == len(upper)
-        assert all([u > l for l, u in zip(lower, upper)])
+        assert all(u > l for l, u in zip(lower, upper))  # noqa: E741
         self.lower = lower
         self.upper = upper
 

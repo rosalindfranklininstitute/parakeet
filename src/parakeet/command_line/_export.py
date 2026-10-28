@@ -195,7 +195,10 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=int,
         default=1,
         dest="rebin",
-        help="The rebinned factor. The shape of the output images will be original_shape / rebin",
+        help=(
+            "The rebinned factor. The shape of the output images will be "
+            "original_shape / rebin"
+        ),
     )
     parser.add_argument(
         "--filter_resolution",

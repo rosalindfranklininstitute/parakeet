@@ -76,13 +76,13 @@ class ProjectedPotentialSimulator(object):
         """
 
         # Get the rotation angle
-        angle = self.scan.angles[index]
+        # angle = self.scan.angles[index]
         position = self.scan.position[index]
         orientation = self.scan.orientation[index]
-        shift = self.scan.shift[index]
-        drift = self.scan.shift_delta[index]
-        beam_tilt_theta = self.scan.beam_tilt_theta[index]
-        beam_tilt_phi = self.scan.beam_tilt_phi[index]
+        # shift = self.scan.shift[index]
+        # drift = self.scan.shift_delta[index]
+        # beam_tilt_theta = self.scan.beam_tilt_theta[index]
+        # beam_tilt_phi = self.scan.beam_tilt_phi[index]
 
         # The field of view
         nx = self.microscope.detector.nx
@@ -157,7 +157,7 @@ class ProjectedPotentialSimulator(object):
         potential.voxel_size = tuple((pixel_size, pixel_size, slice_thickness))
 
         # Simulate the potential
-        if self.simulation["ice"] == True:
+        if self.simulation["ice"] is True:
             # Get the masker
             masker = simulate.masker(
                 index,
@@ -172,7 +172,7 @@ class ProjectedPotentialSimulator(object):
             )
 
             # Run the simulation
-            image = simulate.potential(potential, volume_z0, masker)
+            simulate.potential(potential, volume_z0, masker)
 
         else:
             # Run the simulation

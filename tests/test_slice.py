@@ -105,7 +105,8 @@ def test_slice(tmpdir_factory):
     # Print the difference
     a = np.abs(np.array(output.data[-1].psi_coh)) ** 2
     b = np.abs(np.array(sliced_output.data[-1].psi_coh)) ** 2
-    diff = np.max(np.abs(a - b))
+    assert len(a) == len(b)
+    # diff = np.max(np.abs(a - b))
     # assert diff == pytest.approx(0.0232, rel=1e-2)
     # TODO FIX
 

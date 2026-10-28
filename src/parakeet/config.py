@@ -210,8 +210,9 @@ class CoordinateFile(BaseModel):
         None,
         description=(
             "The model position (A, A, A). "
-            "If recentre if set then the model will be centred on the given position. "
-            "If recentre if not set then the model will be translated by the given position. "
+            "If recentre if set then the model will be centred on the given "
+            "position. If recentre if not set then the model will be translated "
+            "by the given position."
         ),
         examples=[
             "position: null # Assign [0, 0, 0] position",
@@ -222,10 +223,11 @@ class CoordinateFile(BaseModel):
     orientation: Optional[Tuple[float, float, float]] = Field(
         None,
         description=(
-            "The model orientation defined as a rotation vector where "
-            "the direction of the vector gives the rotation axis and the "
-            "magnitude of the vector gives the rotation angle in radians. Setting "
-            "this to null or an empty list will cause parakeet to give a zero orientation"
+            "The model orientation defined as a rotation vector where the "
+            "direction of the vector gives the rotation axis and the magnitude "
+            "of the vector gives the rotation angle in radians. Setting this to "
+            "null or an empty list will cause parakeet to give a zero "
+            "orientation"
         ),
         examples=[
             "orienation: null # Assign [0, 0, 0] orienation",
@@ -418,7 +420,10 @@ class Beam(BaseModel):
 
     electrons_per_angstrom: float = Field(
         140,
-        description="The number of electrons per square angstrom. This is the dose per image (across all fractions).",
+        description=(
+            "The number of electrons per square angstrom. This is the dose per "
+            "image (across all fractions)."
+        ),
     )
 
     illumination_semiangle: float = Field(
@@ -431,7 +436,10 @@ class Beam(BaseModel):
 
     incident_wave: Optional[str] = Field(
         None,
-        description="The filename of a custom input wave function. The default is a flat field.",
+        description=(
+            "The filename of a custom input wave function. The default is a "
+            "flat field."
+        ),
     )
 
 
@@ -637,9 +645,10 @@ class Scan(BaseModel):
     num_fractions: int = Field(
         1,
         description=(
-            "The number of movie frames. This refers to the frames of the micrograph 'movies'. "
-            "For a tilt series, all these images will be at the same step and the dose for a 'single image' "
-            "will be fractionated over these image frames"
+            "The number of movie frames. This refers to the frames of the "
+            "micrograph 'movies'. For a tilt series, all these images will be "
+            "at the same step and the dose for a 'single image' will be "
+            "fractionated over these image frames"
         ),
     )
 
@@ -771,10 +780,12 @@ class Simulation(BaseModel):
     sensitivity_coefficient: float = Field(
         0.022,
         description=(
-            "The radiation damage model sensitivity coefficient. "
-            "This value relates the value of an isotropic B factor to the number of "
-            "incident electrons. Typical values for this (calibrated from X-ray and EM data) "
-            "range between 0.02 and 0.08 where a higher value will result in a larger B factor."
+            "The radiation damage model sensitivity coefficient. This value "
+            "relates the value of an isotropic B factor to the number of "
+            "incident electrons. Typical values for this (calibrated from X-ray "
+            "and EM data) "
+            "range between 0.02 and 0.08 where a higher value "
+            "will result in a larger B factor."
         ),
     )
 
@@ -991,7 +1002,7 @@ def show(config: Config, full: bool = False, schema: str = None):
             schema = os.path.basename(schema)
             try:
                 d = config.schema()["definitions"][schema]
-            except Exception as e:
+            except Exception:
                 raise RuntimeError(
                     "Unable to find definition '%s' in\n%s"
                     % (

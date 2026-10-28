@@ -37,9 +37,9 @@ def test_read_write_mrcfile(tmp_path, io_test_data):
         writer.header[i]["stage_z"] = position[i][2]
 
     assert writer.shape == data.shape
-    assert writer.is_mrcfile_writer == True
-    assert writer.is_nexus_writer == False
-    assert writer.is_image_writer == False
+    assert writer.is_mrcfile_writer is True
+    assert writer.is_nexus_writer is False
+    assert writer.is_image_writer is False
 
     # Test different ways of writing position
     writer.header.position[0, 0] = position[0][0]
@@ -73,9 +73,9 @@ def test_write_nexus(tmp_path, io_test_data):
         writer.header[i]["stage_z"] = position[i][2]
 
     assert writer.shape == data.shape
-    assert writer.is_mrcfile_writer == False
-    assert writer.is_nexus_writer == True
-    assert writer.is_image_writer == False
+    assert writer.is_mrcfile_writer is False
+    assert writer.is_nexus_writer is True
+    assert writer.is_image_writer is False
 
     # Test different ways of writing position
     writer.header.position[0, 0] = position[0][0]
@@ -110,9 +110,9 @@ def test_write_images(tmp_path, io_test_data):
             writer.header[i]["stage_z"] = position[i][2]
 
         assert writer.shape == data.shape
-        assert writer.is_mrcfile_writer == False
-        assert writer.is_nexus_writer == False
-        assert writer.is_image_writer == True
+        assert writer.is_mrcfile_writer is False
+        assert writer.is_nexus_writer is False
+        assert writer.is_image_writer is True
         assert writer.vmin == vmin
         assert writer.vmax == vmax
         if vmin is not None and vmax is not None:
@@ -132,7 +132,7 @@ def test_unknown_image(tmp_path):
     filename = os.path.join(tmp_path, "tmp.unknown")
 
     with pytest.raises(RuntimeError):
-        writer = parakeet.io.new(filename, shape=(1, 10, 10))
+        parakeet.io.new(filename, shape=(1, 10, 10))
 
     with pytest.raises(RuntimeError):
-        reader = parakeet.io.open(filename)
+        parakeet.io.open(filename)

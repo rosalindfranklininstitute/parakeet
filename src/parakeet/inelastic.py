@@ -356,7 +356,7 @@ def get_energy_bins(
 
         # The min and max energies
         filter_min = filter_energy - filter_width / 2.0
-        filter_max = filter_energy + filter_width / 2.0
+        # filter_max = filter_energy + filter_width / 2.0
 
         # Set the bins
         bins = []
@@ -412,7 +412,7 @@ def get_energy_bins(
             dE_spread = sqrt(dE_spread) * sqrt(2)
         else:
             dE_spread = dE_spread_max
-        fudge = np.sqrt((dE_step_sub**2 / 12) * len(P_sub))
+        # fudge = np.sqrt((dE_step_sub**2 / 12) * len(P_sub))
         assert (E2 - E1) <= (dE_step + TINY)
         assert dE_mean >= E1
         assert dE_mean <= E2

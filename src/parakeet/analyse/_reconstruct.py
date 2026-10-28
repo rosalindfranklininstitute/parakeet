@@ -59,7 +59,8 @@ def _reconstruct_Config(
     config: parakeet.config.Config, image_filename: str, rec_filename: str
 ):
     """
-    Reconstruct the volume and use 3D CTF correction beforehand if the input image is uncorrected
+    Reconstruct the volume and use 3D CTF correction beforehand if the input
+    image is uncorrected
 
     """
 

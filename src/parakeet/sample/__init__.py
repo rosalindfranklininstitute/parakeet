@@ -1980,9 +1980,9 @@ class AtomDeleter(object):
 
         # The grid size
         self.grid_cell_size = 1.0  # 2 A
-        min_distance = (
-            2.0 / self.grid_cell_size
-        )  # The distance at which to delete atoms
+        # min_distance = (
+        #     2.0 / self.grid_cell_size
+        # )  # The distance at which to delete atoms
 
         # The dimensions of the grid
         grid_shape = np.ceil(self.size / self.grid_cell_size).astype("uint32")
@@ -1991,7 +1991,11 @@ class AtomDeleter(object):
         self.grid = np.ones(shape=grid_shape, dtype="bool")
         # self.grid = ~self.grid
         # X, Y, Z = np.mgrid[0:grid_shape[0],0:grid_shape[1],0:grid_shape[2]]
-        # R = np.sqrt((X-grid_shape[0]/2)**2+(Y-grid_shape[1]/2)**2+(Z-grid_shape[2]/2)**2)
+        # R = np.sqrt(
+        #  (X-grid_shape[0]/2)**2+
+        #  (Y-grid_shape[1]/2)**2+
+        #  (Z-grid_shape[2]/2)**2
+        # )
         # r = abs(self.x0[0] - self.x1[0])
         # print(R.max(), grid_shape[0]/2.0)
         # self.grid = R < (grid_shape[0]/2.0)
@@ -2064,7 +2068,7 @@ class AtomDeleter(object):
         index_x = indices_inside_grid[:, 0]
         index_y = indices_inside_grid[:, 1]
         index_z = indices_inside_grid[:, 2]
-        selection[inside_grid] = self.grid[index_x, index_y, index_z] == False
+        selection[inside_grid] = self.grid[index_x, index_y, index_z] is False
 
         # Print some info
         logger.info(

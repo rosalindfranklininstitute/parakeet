@@ -34,19 +34,19 @@ def electron_velocity(energy):
     return sqrt(1 - (m0 * c**2 / (m0 * c**2 + eV)) ** 2)
 
 
-def landau(l):
+def landau(lam):
     """
     Calculate the landau universal function
 
     Params:
-        l (float): The dimensionless variable
+        lam (float): The dimensionless variable lambda
 
     Returns:
-        float: The value of the landau distribution at l
+        float: The value of the landau distribution at lamda
 
     """
     u = np.arange(1e-30, 40, 0.01)
-    v = np.exp(-pi * u / 2) * np.cos(l * u + u * np.log(u))
+    v = np.exp(-pi * u / 2) * np.cos(lam * u + u * np.log(u))
     psi = (1 / pi) * np.trapz(v, u)
     if psi < 1e-5:
         psi = 0
@@ -84,7 +84,8 @@ def mpl_and_fwhm(energy, thickness):
     re = scipy.constants.value("classical electron radius")  # m
     # eps_0 = scipy.constants.value("vacuum electric permittivity")
     beta = electron_velocity(energy * 1000)
-    I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
+    # Bethe's characteristic atomic energy (keV)
+    I = e * 13.5 * Z  # noqa: E741
     gamma = 0.577215664901532860606512090  # Euler's constant
 
     # The peak and fwhm of the universal function
@@ -140,7 +141,8 @@ def energy_loss_distribution(dE, energy=300, thickness=3000):
     re = scipy.constants.value("classical electron radius")  # m
     # eps_0 = scipy.constants.value("vacuum electric permittivity")
     beta = electron_velocity(energy * 1000)
-    I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
+    # Bethe's characteristic atomic energy (keV)
+    I = e * 13.5 * Z  # noqa: E741
     gamma = 0.577215664901532860606512090  # Euler's constant
 
     # Compute xi and eps and dE0
@@ -234,7 +236,8 @@ class Landau(object):
         re = scipy.constants.value("classical electron radius")  # m
         # eps_0 = scipy.constants.value("vacuum electric permittivity")
         beta = electron_velocity(energy)
-        I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
+        # Bethe's characteristic atomic energy (keV)
+        I = e * 13.5 * Z  # noqa: E741
         gamma = 0.577215664901532860606512090  # Euler's constant
 
         # Compute xi and eps and dE0
@@ -245,17 +248,17 @@ class Landau(object):
         dE0 = xi * (log(xi / eps) + 1 - beta**2 - gamma)
 
         # Convert dE to lambda
-        l = (dE - dE0) / xi
+        lam = (dE - dE0) / xi
 
         # Return lambda
-        return l
+        return lam
 
-    def lambda_to_dE(self, l, energy, thickness):
+    def lambda_to_dE(self, lam, energy, thickness):
         """
         Convert lambda to dE
 
         Params:
-            l (float): Lambda
+            lam (float): Lambda
             energy (float): The beam energy (eV)
             thickness (float): The sample thickness (A)
 
@@ -282,7 +285,8 @@ class Landau(object):
         re = scipy.constants.value("classical electron radius")  # m
         # eps_0 = scipy.constants.value("vacuum electric permittivity")
         beta = electron_velocity(energy)
-        I = e * 13.5 * Z  # Bethe's characteristic atomic energy (keV)
+        # Bethe's characteristic atomic energy (keV)
+        I = e * 13.5 * Z  # noqa: E741
         gamma = 0.577215664901532860606512090  # Euler's constant
 
         # Compute xi and eps and dE0
@@ -293,7 +297,7 @@ class Landau(object):
         dE0 = xi * (log(xi / eps) + 1 - beta**2 - gamma)
 
         # Convert lambda to dE
-        dE = l * xi + dE0
+        dE = lam * xi + dE0
 
         # Return lambda
         return dE

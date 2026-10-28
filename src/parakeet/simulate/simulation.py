@@ -96,7 +96,9 @@ class Simulation(object):
         if self.nproc is None or self.nproc <= 1:
             for i, (image_number, fraction_number, angle) in enumerate(self.angles()):
                 logger.info(
-                    f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"
+                    f"    Running job: {i+1}/{self.shape[0]} "
+                    f"for image {image_number} fraction {fraction_number} "
+                    f"with tilt {angle} degrees"
                 )
                 _, image, metadata = self.simulate_image(i)
                 if writer is not None:
@@ -116,7 +118,9 @@ class Simulation(object):
                     self.angles()
                 ):
                     logger.info(
-                        f"    Running job: {i+1}/{self.shape[0]} for image {image_number} fraction {fraction_number} with tilt {angle} degrees"
+                        f"    Running job: {i+1}/{self.shape[0]} "
+                        f"for image {image_number} fraction {fraction_number} "
+                        f"with tilt {angle} degrees"
                     )
                     futures.append(executor.submit(self.simulate_image, i))
 

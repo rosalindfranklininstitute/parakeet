@@ -162,7 +162,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
         rotation = Rotation.from_rotvec(random_uniform_rotation(number_of_waters))
 
         # Rotate the Hydrogens around the Oxygen and translate
-        O = rotation.apply(water_coords.iloc[0].copy()) + translation
+        O = rotation.apply(water_coords.iloc[0].copy()) + translation  # noqa: E741
         H1 = rotation.apply(water_coords.iloc[1].copy()) + translation
         H2 = rotation.apply(water_coords.iloc[2].copy()) + translation
 
@@ -268,7 +268,7 @@ def add_ice(sample, centre=None, shape=None, density=940.0, pack=False):
             rotation = Rotation.from_rotvec(random_uniform_rotation(coords.shape[0]))
 
             # Rotate the Hydrogens around the Oxygen and translate
-            O = rotation.apply(water_coords.iloc[0].copy()) + coords
+            O = rotation.apply(water_coords.iloc[0].copy()) + coords  # noqa: E741
             H1 = rotation.apply(water_coords.iloc[1].copy()) + coords
             H2 = rotation.apply(water_coords.iloc[2].copy()) + coords
 

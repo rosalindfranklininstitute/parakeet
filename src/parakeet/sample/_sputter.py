@@ -18,7 +18,6 @@ import parakeet.freeze
 from functools import singledispatch
 from parakeet.sample import Sample
 from parakeet.sample import AtomData
-from parakeet.sample import Sample
 
 __all__ = ["sputter"]
 

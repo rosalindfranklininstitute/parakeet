@@ -147,4 +147,4 @@ def test_beam_tilt():
 
 def test_unknown():
     with pytest.raises(KeyError):
-        scan = parakeet.scan.new("unknown")
+        parakeet.scan.new("unknown")

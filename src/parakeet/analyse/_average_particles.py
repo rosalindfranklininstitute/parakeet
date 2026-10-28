@@ -396,7 +396,7 @@ def _average_all_particles_Config(
     """
 
     # Get the scan config
-    scan = config.model_dump()
+    # scan = config.model_dump()
 
     # Get the sample centre
     centre = np.array(sample.centre)

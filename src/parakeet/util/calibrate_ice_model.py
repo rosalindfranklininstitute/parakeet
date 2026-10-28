@@ -530,16 +530,24 @@ def compute_power(ax=None):
         C = Cv * num_molecules / (pixel_size**4)
 
         # Compute the total integral of the power
-        I = np.sum(power) * (1 / pixel_size) ** 2 / power.size
-        normalized_power = power / I
+        integrated_power = np.sum(power) * (1 / pixel_size) ** 2 / power.size
+        normalized_power = power / integrated_power
 
         # Fit a model to the normalized power
         params = [0.19465002, 0.7312113, 0.78343527, 0.08078005]
-        # results = scipy.optimize.minimize(residuals, x0=params, args=(q, normalized_power))#q.flatten(), normalized_power.flatten(), p0=params, sigma=(q*power.shape[0]+1).flatten())
-        ##params, _ = scipy.optimize.curve_fit(func2, q.flatten(), normalized_power.flatten(), p0=params, sigma=(q*power.shape[0]+1).flatten())
+        # results = scipy.optimize.minimize(
+        #     residuals, x0=params, args=(q, normalized_power)
+        # )
+        # params, _ = scipy.optimize.curve_fit(
+        #     func2,
+        #     q.flatten(),
+        #     normalized_power.flatten(),
+        #     p0=params,
+        #     sigma=(q * power.shape[0] + 1).flatten(),
+        # )
         # params = results.x
-        params[0] = params[0] * I / C
-        params[2] = params[2] * I / C
+        params[0] = params[0] * integrated_power / C
+        params[2] = params[2] * integrated_power / C
         print("Parameters:", params)
 
         # Compute the model
@@ -574,7 +582,7 @@ def compute_correlation(ax=None):
         # Read the projected potential
         handle = np.load("potential_%.1f_%d.npz" % (pixel_size, thickness))
         potential = handle["potential"]
-        num_atoms = handle["num_atoms"]
+        # num_atoms = handle["num_atoms"]
 
         # Select the pixels with potential in
         xsize, ysize = potential.shape
@@ -890,10 +898,10 @@ def plot_power(physical_data, random_data, xmin, xmax, ps):
 
     random_middle = random_data[x0[0] : x1[0], x0[1] : x1[1]]
     physical_middle = physical_data[x0[0] : x1[0], x0[1] : x1[1]]
-    physical_middle_mean_real = np.mean(physical_middle.flatten().real)
-    physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
-    random_middle_mean_real = np.mean(random_middle.flatten().real)
-    random_middle_mean_imag = np.mean(random_middle.flatten().imag)
+    # physical_middle_mean_real = np.mean(physical_middle.flatten().real)
+    # physical_middle_mean_imag = np.mean(physical_middle.flatten().imag)
+    # random_middle_mean_real = np.mean(random_middle.flatten().real)
+    # random_middle_mean_imag = np.mean(random_middle.flatten().imag)
 
     # pylab.imshow(np.abs(random_data))
     # pylab.show()

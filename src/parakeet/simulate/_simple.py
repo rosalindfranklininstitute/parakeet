@@ -66,8 +66,8 @@ class SimpleImageSimulator(object):
         """
 
         # Get the rotation angle
-        angle = self.scan.angles[index]
-        position = self.scan.positions[index]
+        # angle = self.scan.angles[index]
+        # position = self.scan.positions[index]
 
         # The field of view
         nx = self.microscope.detector.nx

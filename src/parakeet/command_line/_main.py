@@ -347,7 +347,9 @@ def analyse_main(parser, args):
         "correct": analyse._correct.correct_impl,
         "reconstruct": analyse._reconstruct.reconstruct_impl,
         "average_particles": analyse._average_particles.average_particles_impl,
-        "average_all_particles": analyse._average_all_particles.average_all_particles_impl,
+        "average_all_particles": (
+            analyse._average_all_particles.average_all_particles_impl
+        ),
         "extract": analyse._extract.extract_impl,
         "refine": analyse._refine.refine_impl,
     }[args.analyse_command](args)

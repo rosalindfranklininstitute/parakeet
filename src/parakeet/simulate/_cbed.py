@@ -190,7 +190,7 @@ class CBEDImageSimulator(object):
                 % (atoms.data["z"].min(), atoms.data["z"].max())
             )
 
-        if self.simulation["ice"] == True:
+        if self.simulation["ice"] is True:
             # Get the masker
             masker = simulate.masker(
                 index,

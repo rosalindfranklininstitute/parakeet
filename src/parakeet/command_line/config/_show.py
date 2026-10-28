@@ -61,7 +61,8 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         help=(
             "Show the config schema. \n"
             "To show full scheme type '-s .'. \n"
-            "To show the schema for a specific section type e.g. '-s /definitions/Simulation'"
+            "To show the schema for a specific section type e.g. "
+            "'-s /definitions/Simulation'"
         ),
     )
 

@@ -118,7 +118,7 @@ def freeze(atoms, x0, x1):
         x_index = np.floor((coords[:, 0] - x0[0]) / grid_size).astype("int32")
         y_index = np.floor((coords[:, 1] - x0[1]) / grid_size).astype("int32")
         z_index = np.floor((coords[:, 2] - x0[2]) / grid_size).astype("int32")
-        selection = grid[z_index, y_index, x_index] == False
+        selection = grid[z_index, y_index, x_index] is False
         coords = coords[selection, :]
         water_coords = np.concatenate((water_coords, coords), axis=0)
         number_to_place -= len(coords)

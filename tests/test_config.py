@@ -25,7 +25,7 @@ def test_temp_directory():
 
 
 def test_default():
-    config = parakeet.config.default()
+    parakeet.config.default()
 
 
 def test_save(tmp_path):
@@ -36,7 +36,7 @@ def test_save(tmp_path):
 
 def test_new(tmp_path):
     filename = os.path.join(tmp_path, "tmp.yaml")
-    config = parakeet.config.new(filename)
+    parakeet.config.new(filename)
 
 
 def test_edit(tmp_path):

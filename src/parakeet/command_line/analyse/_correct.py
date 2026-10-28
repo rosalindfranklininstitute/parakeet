@@ -78,7 +78,10 @@ def get_parser(parser: ArgumentParser = None) -> ArgumentParser:
         type=int,
         default=None,
         dest="num_defocus",
-        help="Number of defoci that correspond to different depths through for which the sample will be 3D CTF corrected",
+        help=(
+            "Number of defoci that correspond to different depths through for "
+            "which the sample will be 3D CTF corrected"
+        ),
     )
     parser.add_argument(
         "-d",
